@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "propan"
+version = "0.0.1"
+description = ""
+authors = ["PasNA6713 <diementros@gmail.com>"]
+
+[tool.poetry.scripts]
+propan = "propan:run"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aio-pika = "^6.8.0"
+aiohttp = "^3.7.4.post0"
+loguru = "^0.5.3"
+PyYAML = "^5.4.1"
+pydantic = "^1.8.2"
+uvloop = "^0.16.0"
+watchgod = "^0.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^"
+pytest-asyncio = "^"
+python-lsp-server = "^"
+flake8 = "^"
+autopep8 = "^"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
