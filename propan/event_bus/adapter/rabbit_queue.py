@@ -13,14 +13,12 @@ from propan.event_bus.push_back_watcher import PushBackWatcher
 
 class AsyncRabbitQueueAdapter(EventBusUsecase):
     logger: LoggerUsecase
-    _watcher: PushBackWatcher
     _connection: aio_pika.RobustConnection
     _channel: aio_pika.RobustChannel
     _process_message: dict[str, Callable] = {}
 
     def __init__(self, logger: LoggerUsecase = EmptyLogger()):
         self.logger = logger
-        self._watcher = PushBackWatcher()
 
     async def connect(
         self,
@@ -65,23 +63,25 @@ class AsyncRabbitQueueAdapter(EventBusUsecase):
     async def close(self):
         await self._connection.close()
 
-    def retry_on_error(self, queue_name):
+    def retry_on_error(self, queue_name, try_number = 3):
+        watcher = PushBackWatcher(try_number)
+
         def decorator(func):
             async def wrapper(message):
                 try:
                     response = await func(message)
 
                 except Exception as e:
-                    self._watcher.add(message)
-                    if not self._watcher.is_max(message):
+                    watcher.add(message)
+                    if not watcher.is_max(message):
                         self.logger.error(f'In "{message}" error is occured. Pushing back it to rabbit.')
                         await self.publish_message(queue_name, message)
                     else:
-                        self.logger.error(f'"{message}" already retried {self._watcher.max_tries} times. Skipped.')
+                        self.logger.error(f'"{message}" already retried {watcher.max_tries} times. Skipped.')
                     raise e
 
                 else:
-                    self._watcher.remove(message)
+                    watcher.remove(message)
                     return response
                 wrapper.__annotations__ = func.__annotations__
             return wrapper
