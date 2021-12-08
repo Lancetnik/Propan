@@ -114,7 +114,7 @@ class AsyncFetcherImplementation(FetcherUsecase):
             timeout=kwargs.pop('timeout', self._timeout_time),
             **kwargs
         ) as response:
-            if check_content_type:
+            if check_content_type is True:
                 try:
                     return await response.json()
                 except (ContentTypeError, JSONDecodeError) as e:

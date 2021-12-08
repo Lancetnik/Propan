@@ -101,7 +101,7 @@ class WatchGodReload(BaseReload):
     def __init__(
         self,
         target: Callable[[Optional[List[socket]]], None],
-        reload_delay: Optional[float] = 0.25,
+        reload_delay: Optional[float] = 0.5,
     ) -> None:
         super().__init__(target, reload_delay)
         self.reloader_name = "watchgod"
