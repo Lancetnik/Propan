@@ -1,6 +1,7 @@
 import asyncio
 
-from  propan.event_bus.model.bus_usecase import EventBusUsecase
+from propan.event_bus.model.bus_usecase import EventBusUsecase
+from propan.annotations.decorate import apply_types
 
 
 class PropanApp:
@@ -12,9 +13,10 @@ class PropanApp:
             cls._instanse = super().__new__(cls)
         return cls._instanse
     
-    def __init__(self, queue_adapter: EventBusUsecase, *args, **kwargs):
+    def __init__(self, queue_adapter: EventBusUsecase, apply_types=False, *args, **kwargs):
         self.loop = asyncio.get_event_loop()
         self.queue_adapter = queue_adapter
+        self._apply_types = apply_types
 
     def run(self):
         try:
@@ -24,6 +26,10 @@ class PropanApp:
     
     def queue_handler(self, queue_name: str):
         def decor(func):
+            if self._apply_types:
+                ann = func.__annotations__
+                func = apply_types(func)
+                func.__annotations__ = ann
             self.loop.run_until_complete(
                 self.queue_adapter.set_queue_handler(
                     queue_name=queue_name,

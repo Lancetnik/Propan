@@ -16,7 +16,7 @@ class AsyncRabbitQueueAdapter(EventBusUsecase):
     _watcher: PushBackWatcher
     _connection: aio_pika.RobustConnection
     _channel: aio_pika.RobustChannel
-    _process_message: Callable
+    _process_message: dict[str, Callable] = {}
 
     def __init__(self, logger: LoggerUsecase = EmptyLogger()):
         self.logger = logger
@@ -45,8 +45,8 @@ class AsyncRabbitQueueAdapter(EventBusUsecase):
         handler: Callable, retrying_on_error: bool = False
     ) -> NoReturn:
         queue = await self._channel.declare_queue(queue_name)
-        self._process_message = self.retry_on_error(queue_name)(handler) if retrying_on_error else handler
-        self.logger.success('[*] Waiting for messages. To exit press CTRL+C')
+        self._process_message[queue_name] = handler
+        self.logger.success(f'[*] Waiting for messages in {queue_name}. To exit press CTRL+C')
         await queue.consume(self.handle_message)
 
     async def publish_message(self, queue_name: str, message: str) -> NoReturn:
@@ -56,17 +56,18 @@ class AsyncRabbitQueueAdapter(EventBusUsecase):
         )
 
     async def handle_message(self, message: aio_pika.IncomingMessage) -> NoReturn:
+        queue_name = message.routing_key
         body = message.body.decode()
         async with message.process():
-            self.logger.info(f"[x] Received {body}")
-            await self._process_message(body)
+            self.logger.info(f"[x] Received {body} in {queue_name}")
+            await self._process_message[queue_name](body)
 
     async def close(self):
         await self._connection.close()
 
     def retry_on_error(self, queue_name):
         def decorator(func):
-            async def wrapper(message: str):
+            async def wrapper(message):
                 try:
                     response = await func(message)
 
@@ -82,5 +83,6 @@ class AsyncRabbitQueueAdapter(EventBusUsecase):
                 else:
                     self._watcher.remove(message)
                     return response
+                wrapper.__annotations__ = func.__annotations__
             return wrapper
         return decorator

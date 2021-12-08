@@ -13,6 +13,7 @@ def ignore_exceptions(logger: LoggerUsecase, ignored: Iterable[Exception]):
                 return await func(*args, **kwargs)
             except ignored as e:
                 logger.error(e)
+        wrapper.__annotations__ = func.__annotations__
         return wrapper
     return decorator
 

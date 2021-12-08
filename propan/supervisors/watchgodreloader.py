@@ -44,28 +44,6 @@ class CustomWatcher(DefaultWatcher):
         self.resolved_root = root_path
         super().__init__(str(root_path))
 
-    def should_watch_file(self, entry: "DirEntry") -> bool:
-        cached_result = self.watched_files.get(entry.path)
-        if cached_result is not None:
-            return cached_result
-
-        entry_path = Path(entry)
-
-        # cwd is not verified through should_watch_dir, so we need to verify here
-        if entry_path.parent == Path.cwd() and not Path.cwd() in self.dirs_includes:
-            self.watched_files[entry.path] = False
-            return False
-        for include_pattern in self.includes:
-            if entry_path.match(include_pattern):
-                for exclude_pattern in self.excludes:
-                    if entry_path.match(exclude_pattern):
-                        self.watched_files[entry.path] = False
-                        return False
-                self.watched_files[entry.path] = True
-                return True
-        self.watched_files[entry.path] = False
-        return False
-
     def should_watch_dir(self, entry: "DirEntry") -> bool:
         cached_result = self.watched_dirs.get(entry.path)
         if cached_result is not None:
