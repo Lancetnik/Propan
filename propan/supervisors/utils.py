@@ -38,6 +38,15 @@ def subprocess_started(
     target()
 
 
+def is_dir(path: Path) -> bool:
+    try:
+        if not path.is_absolute():
+            path = path.resolve()
+        return path.is_dir()
+    except OSError:
+        return False
+
+
 def _normalize_dirs(dirs: Union[List[str], str, None]) -> List[str]:
     if dirs is None:
         return []
@@ -88,7 +97,7 @@ def resolve_reload_patterns(
 class Config:
     def __init__(
         self,
-        reload_dirs: Optional[Union[List[str], str]] = None,
+        reload_dirs: Optional[Union[List[str], str]] = [Path.cwd() / 'app'],
         reload_includes: Optional[Union[List[str], str]] = None,
         reload_excludes: Optional[Union[List[str], str]] = None
     ):
@@ -120,7 +129,6 @@ class Config:
         for pattern in self.reload_excludes:
             if pattern in self.reload_includes:
                 self.reload_includes.remove(pattern)
-
         if not self.reload_dirs:
             if reload_dirs:
                 logger.warning(
@@ -128,7 +136,7 @@ class Config:
                     + "directories, watching current working directory.",
                     reload_dirs,
                 )
-            self.reload_dirs = [Path(os.getcwd())]
+            self.reload_dirs = [Path.cwd() / 'app']
 
         print(
             f"Will watch for changes in these directories: {sorted(list(map(str, self.reload_dirs)))}",
