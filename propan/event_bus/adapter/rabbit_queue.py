@@ -78,6 +78,7 @@ class AsyncRabbitQueueAdapter(EventBusUsecase):
                         await self.publish_message(queue_name, message)
                     else:
                         self.logger.error(f'"{message}" already retried {watcher.max_tries} times. Skipped.')
+                        watcher.remove(message)
                     raise e
 
                 else:
