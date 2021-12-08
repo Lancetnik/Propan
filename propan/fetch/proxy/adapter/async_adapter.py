@@ -20,23 +20,6 @@ class ProxyAsyncAdapter(ProxyUsecase):
 
     async def switch(self, proxy={}) -> bool:
         if self.is_switchable:
-            return await self.switch_mobileproxy_space_ip(proxy)
+            return await self.get_proxy()
         else:
             return False
-
-    async def switch_mobileproxy_space_ip(self, proxy={}) -> bool:
-        if not proxy:
-            proxy = self.get_proxie()['https']
-
-        pattern = r'http://(.+):(.+)@.+:(\d+)'
-        result = re.match(pattern, proxy)
-        login, password, port = result.group(1), result.group(2), result.group(3)
-
-        url = f'https://mobileproxy.space/reload.html?login={login}&pass={password}&port={port}'
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url=url) as response:
-                if response.status == 200:
-                    return True
-                else:
-                    return False
