@@ -1,4 +1,4 @@
-import asyncio
+from functools import wraps
 import sys
 
 from loguru import logger
@@ -33,6 +33,7 @@ class LoguruAdapter(LoggerUsecase):
         logger.warning(message)
 
     def catch(self, func, reraise: bool = False):
+        @wraps(func)
         async def wrapped(*args, **kwargs):
             return await logger.catch(
                 func,

@@ -27,9 +27,7 @@ class PropanApp:
     def queue_handler(self, queue_name: str):
         def decor(func):
             if self._apply_types:
-                ann = func.__annotations__
                 func = apply_types(func)
-                func.__annotations__ = ann
             self.loop.run_until_complete(
                 self.queue_adapter.set_queue_handler(
                     queue_name=queue_name,

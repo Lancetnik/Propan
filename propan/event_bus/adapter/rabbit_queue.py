@@ -1,6 +1,7 @@
+from asyncio import AbstractEventLoop
+from functools import wraps
 from typing import NoReturn, Callable
 
-from asyncio import AbstractEventLoop
 import aio_pika
 
 from propan.logger.model.usecase import LoggerUsecase
@@ -67,6 +68,7 @@ class AsyncRabbitQueueAdapter(EventBusUsecase):
         watcher = PushBackWatcher(try_number)
 
         def decorator(func):
+            @wraps(func)
             async def wrapper(message):
                 try:
                     response = await func(message)
@@ -84,6 +86,5 @@ class AsyncRabbitQueueAdapter(EventBusUsecase):
                 else:
                     watcher.remove(message)
                     return response
-                wrapper.__annotations__ = func.__annotations__
             return wrapper
         return decorator

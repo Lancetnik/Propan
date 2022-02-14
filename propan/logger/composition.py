@@ -1,4 +1,5 @@
 from collections import namedtuple
+from functools import wraps
 
 from .model.usecase import LoggerUsecase
 
@@ -43,6 +44,7 @@ class LoggerSimpleComposition(LoggerUsecase):
             logger.success(message)
 
     def catch(self, func):
+        @wraps(func)
         async def wrapped(*args, **kwargs):
             new_func = func
             for logger in self.loggers[:-1]:
