@@ -85,7 +85,7 @@ loop.run_until_complete(queue_adapter.init_channel(
     max_consumers=settings.MAX_CONSUMERS
 ))  # инициализация канала
 ```
-Глобальные найстроки используются во всех случаях, когда необходимо получить доступ к константам проекта (инициализируются как указано выше при старте приложения)
+Глобальные найстроки используются во всех случаях, когда необходимо получить доступ к константам проекта (инициализируются, как указано выше, при старте приложения)
 
 ```Python
 from propan.config.lazy import settings
@@ -250,6 +250,7 @@ async def base_handler(user: str):
 ```Python
 from propan.app import PropanApp
 from propan.annotations.decorate import apply_types
+from propan.logger.utils import ignore_exceptions
 
 from .dependencies import queue_adapter, logger
 

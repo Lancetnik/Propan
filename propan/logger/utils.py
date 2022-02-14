@@ -1,4 +1,5 @@
 from itertools import dropwhile
+from functools import wraps
 import traceback
 from typing import Iterable, Callable
 
@@ -8,12 +9,12 @@ from propan.config.lazy import settings
 
 def ignore_exceptions(logger: LoggerUsecase, ignored: Iterable[Exception]):
     def decorator(func: Callable):
+        @wraps(func)
         async def wrapper(*args, **kwargs):
             try:
                 return await func(*args, **kwargs)
             except ignored as e:
                 logger.error(e)
-        wrapper.__annotations__ = func.__annotations__
         return wrapper
     return decorator
 
