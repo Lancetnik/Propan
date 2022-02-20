@@ -88,7 +88,8 @@ from propan.app import PropanApp
 
 from .dependencies import queue_adapter
 
-app = PropanApp(queue_adapter=queue_adapter)
+# broker по умолчанию - RabbitAdapter(logger=loguru)
+app = PropanApp(broker=queue_adapter)
 
 @app.handle(queue_name="test_queue")
 async def base_handler(message):
@@ -112,7 +113,7 @@ from propan.app import PropanApp
 from .dependencies import queue_adapter
 
 app = PropanApp(
-    queue_adapter=queue_adapter,
+    broker=queue_adapter,
     apply_types=True
 )
 
@@ -131,7 +132,7 @@ from propan.annotations import apply_types
 
 from .dependencies import queue_adapter
 
-app = PropanApp(queue_adapter=queue_adapter)
+app = PropanApp(broker=queue_adapter)
 
 @app.handle(queue_name="test_queue")
 @apply_types
@@ -151,7 +152,7 @@ from propan.app import PropanApp
 from propan.annotations import MessageModel
 
 app = PropanApp(
-    queue_adapter=queue_adapter,
+    broker=queue_adapter,
     apply_types=True
 )
 
@@ -248,7 +249,7 @@ from propan.logger import ignore_exceptions
 from .dependencies import queue_adapter, logger
 
 app = PropanApp(
-    queue_adapter=queue_adapter
+    broker=queue_adapter
 )
 
 NOT_CATCH = (ValueError,)
