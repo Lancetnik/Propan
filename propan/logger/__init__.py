@@ -3,10 +3,10 @@ from .composition import LoggerSimpleComposition
 from .utils import ignore_exceptions
 
 
-logger = LoguruAdapter()
+loguru = LoguruAdapter()
 
 __all__ = (
-    'logger',
+    'loguru',
     'ignore_exceptions',
     'LoggerSimpleComposition'
 )

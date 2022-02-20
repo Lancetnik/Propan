@@ -10,8 +10,7 @@ Propan существует, чтобы максимально упростит�
 
 ## Окружение
 
-Python 3.9+
-
+Python 3.8+
 
 
 ## Примеры
@@ -36,10 +35,11 @@ RABBIT:
     host: '127.0.0.1'
     login: 'guest'
     password: 'guest'
-    virtualhost: /
+    vhost: /
 ```
 
 В таком случае переменные из `.yml` файла будут транслированы в настройки в верхнем регистре
+* Данные поля для RabbitMQ автоматически используются как параметры по умолчанию
 
 ```yml
 Rabbit:
@@ -62,33 +62,21 @@ RABBIT_HOST: '127.0.0.1'
 ```Python
 import asyncio
 
-from propan.config.lazy import settings
+from propan.config import settings
+from propan.brokers import RabbitAdapter
 
-from propan.event_bus.model.bus_connection import ConnectionData
-from propan.event_bus.adapter.rabbit_queue import AsyncRabbitQueueAdapter
-
-
-loop = asyncio.get_event_loop()
-
-
-queue_adapter = AsyncRabbitQueueAdapter()  # инстанс подключения
-loop.run_until_complete(queue_adapter.connect(
-    connection_data=ConnectionData(
-        host = settings.RABBIT_HOST,
-        login = settings.RABBIT_LOGIN,
-        password = settings.RABBIT_PASSWORD,
-        virtualhost = settings.RABBIT_VIRTUALHOST,
-    ),
-    loop=loop
-))  # инициализация подключения
-loop.run_until_complete(queue_adapter.init_channel(
-    max_consumers=settings.MAX_CONSUMERS
-))  # инициализация канала
+queue_adapter = RabbitAdapter(
+    host = settings.RABBIT_HOST,
+    login = settings.RABBIT_LOGIN,
+    password = settings.RABBIT_PASSWORD,
+    virtualhost = settings.RABBIT_VHOST,
+    max_consumers=settings.MAX_CONSUMERS,
+) # данные поля settings используются для инициализации по умолчанию
 ```
 Глобальные найстроки используются во всех случаях, когда необходимо получить доступ к константам проекта (инициализируются, как указано выше, при старте приложения)
 
 ```Python
-from propan.config.lazy import settings
+from propan.config import settings
 ```
 
 `settings.MAX_CONSUMERS` указывается при запуске проекта с помощью флага `--workers=10` или `-W 10` (10-значение по умолчанию) и определяет допустимое количество одновременно обрабатываемых сообщений
@@ -100,11 +88,9 @@ from propan.app import PropanApp
 
 from .dependencies import queue_adapter
 
-
 app = PropanApp(queue_adapter=queue_adapter)
 
-
-@app.queue_handler(queue_name="test_queue")
+@app.handle(queue_name="test_queue")
 async def base_handler(message):
     print(message)
 ```
@@ -121,12 +107,16 @@ async def base_handler(message):
 * Так как входящие значения RabbitMQ представляют из себя строку, для сериализации входных параметров Propan использует аннотацию типов
 
 ```Python
+from propan.app import PropanApp
+
+from .dependencies import queue_adapter
+
 app = PropanApp(
     queue_adapter=queue_adapter,
     apply_types=True
 )
 
-@app.queue_handler(queue_name="test_queue")
+@app.handle(queue_name="test_queue")
 async def base_handler(user_id: int):  # приведение входного значения к типу int
     print(message)
 ```
@@ -136,28 +126,29 @@ async def base_handler(user_id: int):  # приведение входного �
 * Для использования сериализации в отдельных handler'ах необходимо использовать специальный декоратор `apply_types`
 
 ```Python
-from propan.annotations.decorate import apply_types
+from propan.app import PropanApp
+from propan.annotations import apply_types
+
+from .dependencies import queue_adapter
 
 app = PropanApp(queue_adapter=queue_adapter)
 
-
-@app.queue_handler(queue_name="test_queue")
+@app.handle(queue_name="test_queue")
 @apply_types
 async def base_handler(user_id: int):
     print(message)
 ```
 
 * Замечания
-    * в таком случае декоратор `apply_types` должен располагаться перед декораторами `app`
     * функция-handler всегда должна принимать на вход один аргумент
-    * функция-handler не должна иметь аннотации результата выполнения  `->`
 
 * Для сериализации более сложных объектов возможно использование классов-оберток над `pydantic`
 
 ```Python
 from typing import Optional
 
-from propan.annotations.models import MessageModel
+from propan.app import PropanApp
+from propan.annotations import MessageModel
 
 app = PropanApp(
     queue_adapter=queue_adapter,
@@ -168,7 +159,7 @@ class User(MessageModel):
     username: str
     user_id: Optional[int]
 
-@app.queue_handler(queue_name="test_queue")
+@app.handle(queue_name="test_queue")
 async def base_handler(user: User):
     print(user)
 ```
@@ -190,23 +181,23 @@ queue_adapter = AsyncRabbitQueueAdapter(
 
 * По умолчанию во всех классах Propan используется `propan.logger.adapter.empty.EmptyLogger`
 
-Также возможно построение цепочки обработки logger'ов путем использования в качестве экземпляра logger класса `propan.logger.composition.LoggerSimpleComposition`
+Также возможно построение цепочки обработки logger'ов путем использования в качестве экземпляра logger класса `propan.logger.LoggerSimpleComposition`
 
 ```Python
-from propan.logger.composition import LoggerSimpleComposition, PriorityPair
+from propan.logger import LoggerSimpleComposition, loguru
 
-logger = LoggerSimpleComposition([
-    PriorityPair(logger=LoguruAdapter(), priority=1)
-])
+logger = LoggerSimpleComposition(
+    loguru, loguru
+) # последовательнок применение двух логгеров loguru
 ```
 
-* В таком случае logger'ы будут применяться в порядке приоритета
+* В таком случае logger'ы будут применяться в том порядке, в котором они были переданы в конструктор
 
-Все logger'ы  поддерживают декоратор `logger.catch`, который позволяет совершать какие-либо действия при возникновении ошибки в функции
+Все logger'ы поддерживают декоратор `logger.catch`, который позволяет совершать какие-либо действия при возникновении ошибки в функции
 
 ```Python
 @logger.catch
-@app.queue_handler(queue_name="test_queue")
+@app.handle(queue_name="test_queue")
 async def base_handler(user: str):
     print(user)
 ```
@@ -214,28 +205,28 @@ async def base_handler(user: str):
 
 ### Дополнительно
 
-Для возвращения сообщения в очередь при возникновении ошибки c отслеживанием количества попыток повторной обработки используйте декоратор `queue_adapter.retry_on_error`
+Для возвращения сообщения в очередь при возникновении ошибки c отслеживанием количества попыток повторной обработки используйте декоратор `broker.retry`
 
 ```Python
-@app.queue_adapter.retry_on_error(queue_name="test_queue", try_number=3)
-@app.queue_handler(queue_name="test_queue")
+@app.broker.retry(queue_name="test_queue", try_number=3)
+@app.handle(queue_name="test_queue")
 async def base_handler(user: str):
     print(user)
 ```
 
 * Замечания
-    * При превышении количества повторных попыток `queue_adapter` вызывает метод `error` своего экземпляра `logger`'а, а сообщение извлекается из очереди
+    * При превышении количества повторных попыток `broker` вызывает метод `error` своего экземпляра `logger`'а, а сообщение извлекается из очереди
     * По умолчанию количество попыток - 3, название очереди - обязательный аргумент
 
 В таком случае также может быть полезным использование декоратора `ignore_exceprions`
 
 ```Python
-from propan.logger.utils import ignore_exceptions
+from propan.logger import ignore_exceptions
 
 NOT_CATCH = (ValueError,)
 
-@app.queue_adapter.retry_on_error(queue_name="test_queue", try_number=3)
-@app.queue_handler(queue_name="test_queue")
+@app.broker.retry(queue_name="test_queue", try_number=3)
+@app.handle(queue_name="test_queue")
 @ignore_exceptions(logger, NOT_CATCH)
 async def base_handler(user: str):
     print(user)
@@ -249,8 +240,8 @@ async def base_handler(user: str):
 
 ```Python
 from propan.app import PropanApp
-from propan.annotations.decorate import apply_types
-from propan.logger.utils import ignore_exceptions
+from propan.annotations import apply_types
+from propan.logger import ignore_exceptions
 
 from .dependencies import queue_adapter, logger
 
@@ -263,8 +254,8 @@ NOT_CATCH = (ValueError,)
 
 
 @logger.catch
-@app.queue_adapter.retry_on_error(queue_name="test_queue", try_number=3)
-@app.queue_handler(queue_name="test_queue")
+@app.broker.retry(queue_name="test_queue", try_number=3)
+@app.handle(queue_name="test_queue")
 @ignore_exceptions(logger, NOT_CATCH)
 @apply_types
 async def base_handler(user: str):

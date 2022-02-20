@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, List
 
 
 @dataclass
 class FromSettings:
-    proxy: Union[str, list[str]]
+    proxy: Union[str, List[str]]
 
     def __init__(self, data):
         if not isinstance(data, str):
