@@ -172,6 +172,8 @@ async def base_handler(user: User):
 
 ```Python
 from propan.logger.adapter.loguru_usecase import LoguruAdapter
+# также можно использовать
+from propan.logger import loguru # является экземпляром LoguruAdapter
 
 logger = LoguruAdapter()
 queue_adapter = AsyncRabbitQueueAdapter(
@@ -245,13 +247,11 @@ from propan.logger import ignore_exceptions
 
 from .dependencies import queue_adapter, logger
 
-
 app = PropanApp(
     queue_adapter=queue_adapter
 )
 
 NOT_CATCH = (ValueError,)
-
 
 @logger.catch
 @app.broker.retry(queue_name="test_queue", try_number=3)
