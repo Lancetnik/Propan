@@ -1,28 +1,24 @@
 from functools import wraps
-from inspect import get_annotations
+from inspect import getfullargspec
 
 
 def apply_types(func):
-    types = get_annotations(func)
-    ret_type = types.pop('return', None)
+    f_info = getfullargspec(func)
+    arg_names = f_info.args
+    annotations = f_info.annotations
+
+    def _cast_type(arg_value, arg_name):
+        if (arg_type := annotations.get(arg_name)) is not None and \
+                isinstance(arg_value, arg_type) is False:
+            arg_value = arg_type(arg_value)
+        return arg_value
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        kw = {}
-
-        for (arg_name, arg_type), arg in zip(types.items(), args):
-            if not isinstance(arg, arg_type):
-                arg = arg_type(arg)
-            kw[arg_name] = arg
-        
-        for arg_name, arg in kwargs.items():
-            arg_type = types[arg_name]
-            if not isinstance(arg, arg_type):
-                arg = arg_type(arg)
-            kw[arg_name] = arg
-        
-        if ret_type is None:
-            return func(**kw)
-        else:
-            return ret_type(func(**kw))
+        kw = {
+            arg_name: _cast_type(arg_value, arg_name)
+            for arg_name, arg_value in
+            (*zip(arg_names, args), *kwargs.items())
+        }
+        return _cast_type(func(**kw), "return")
     return wrapper

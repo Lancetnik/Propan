@@ -1,22 +1,22 @@
-from typing import Protocol, NoReturn, Callable
+from typing import Protocol, Callable, Tuple
 
 
 class LoggerUsecase(Protocol):
-    not_catch: tuple[Exception]
+    not_catch: Tuple[Exception]
 
-    def info(self, message: str) -> NoReturn:
+    def info(self, message: str) -> None:
         raise NotImplementedError()
 
-    def error(self, message: str) -> NoReturn:
+    def error(self, message: str) -> None:
         raise NotImplementedError()
 
-    def debug(self, message: str) -> NoReturn:
+    def debug(self, message: str) -> None:
         raise NotImplementedError()
 
-    def success(self, message: str) -> NoReturn:
+    def success(self, message: str) -> None:
         raise NotImplementedError()
 
-    def warning(self, message: str) -> NoReturn:
+    def warning(self, message: str) -> None:
         raise NotImplementedError()
 
     def catch(self, func: Callable) -> Callable:

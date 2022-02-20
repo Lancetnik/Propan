@@ -9,6 +9,9 @@ from propan.config.settings import init_settings
 from propan.startproject import create
 
 
+__version__ = '0.0.2.1'
+
+
 def run():
     global args
     parser = argparse.ArgumentParser(description='Simple start with async rabbitmq consumers!')
@@ -19,7 +22,7 @@ def run():
     parser.add_argument("-C", "--config", metavar="CONFIG_FILE.yml", default="config.yml", type=str, help="Select conf file of your consumer")
     parser.add_argument('-R', '--reload', dest='reload', action='store_true')
     args = parser.parse_args()
-    
+
     if (dirname := args.start):
         create(dirname)
     else:

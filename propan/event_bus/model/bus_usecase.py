@@ -1,4 +1,4 @@
-from typing import Protocol, NoReturn, Callable
+from typing import Protocol, Callable
 
 from propan.logger.model.usecase import LoggerUsecase
 
@@ -9,20 +9,20 @@ class EventBusUsecase(Protocol):
     def connect(self, connection_data: ConnectionData):
         raise NotImplementedError()
 
-    def init_channel(self) -> NoReturn:
+    def init_channel(self) -> None:
         raise NotImplementedError()
 
-    def publish_message(self, queue_name: str, message: str) -> NoReturn:
+    def publish_message(self, queue_name: str, message: str) -> None:
         raise NotImplementedError()
 
-    def process_message(logger: LoggerUsecase, command: str) -> NoReturn:
+    def process_message(logger: LoggerUsecase, command: str) -> None:
         raise NotImplementedError()
-    
+
     def set_queue_handler(
         self, queue_name: str,
         handler: Callable, retrying_on_error: bool = False
-    ) -> NoReturn:
+    ) -> None:
         raise NotImplementedError()
 
-    def close(self) -> NoReturn:
+    def close(self) -> None:
         raise NotImplementedError()
