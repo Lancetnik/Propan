@@ -1,24 +1,19 @@
-from collections import namedtuple
 from functools import wraps
+from typing import Tuple
 
 from .model.usecase import LoggerUsecase
 
 
-PriorityPair = namedtuple("PriorityPair", ["logger", "priority"])
-
 class LoggerSimpleComposition(LoggerUsecase):
-    loggers: list[LoggerUsecase]
-    not_catch: tuple[Exception]
+    loggers: Tuple[LoggerUsecase]
+    not_catch: Tuple[Exception]
 
     def __init__(
         self,
-        loggers: tuple[PriorityPair[LoggerUsecase, int]],
-        not_catch: tuple[Exception] = tuple()
+        *loggers: Tuple[LoggerUsecase, int],
+        not_catch: Tuple[Exception] = tuple()
     ):
-        self.loggers = tuple(
-            logger for logger, priority in
-            sorted(loggers, key=lambda x: x.priority)
-        )
+        self.loggers = loggers
         self.not_catch = not_catch
         for logger in self.loggers:
             logger.not_catch = not_catch
