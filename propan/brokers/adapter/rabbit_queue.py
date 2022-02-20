@@ -1,38 +1,54 @@
-from asyncio import AbstractEventLoop
+import asyncio
 from functools import wraps
 from typing import Callable, Dict
 
 import aio_pika
 
+from propan.config.lazy import settings
+
 from propan.logger.model.usecase import LoggerUsecase
 from propan.logger.adapter.empty import EmptyLogger
 
-from propan.event_bus.model.bus_connection import ConnectionData
-from propan.event_bus.model.bus_usecase import EventBusUsecase
-from propan.event_bus.push_back_watcher import PushBackWatcher
+from propan.brokers.model.bus_connection import ConnectionData
+from propan.brokers.model.bus_usecase import BrokerUsecase
+from propan.brokers.push_back_watcher import PushBackWatcher
 
 
-class AsyncRabbitQueueAdapter(EventBusUsecase):
+class AsyncRabbitQueueAdapter(BrokerUsecase):
     logger: LoggerUsecase
     _connection: aio_pika.RobustConnection
     _channel: aio_pika.RobustChannel
     _process_message: Dict[str, Callable] = {}
 
-    def __init__(self, logger: LoggerUsecase = EmptyLogger()):
-        self.logger = logger
-
-    async def connect(
+    def __init__(
         self,
-        connection_data: ConnectionData,
-        loop: AbstractEventLoop,
-    ) -> None:
-        self._connection = await aio_pika.connect_robust(
-            host=connection_data.host,
-            login=connection_data.login,
-            password=connection_data.password,
-            virtualhost=connection_data.virtualhost,
-            loop=loop
+        host=None,
+        login=None,
+        password=None,
+        virtualhost=None,
+        logger: LoggerUsecase = EmptyLogger(),
+        connection_data=None,
+        consumers=None
+    ):
+        self.logger = logger
+        self.connection_data = connection_data or ConnectionData(
+            host or settings.RABBIT_HOST, login or settings.RABBIT_LOGIN,
+            password or settings.RABBIT_PASSWORD, virtualhost or settings.RABBIT_VHOST
         )
+        self.connect()
+        asyncio.get_event_loop().run_until_complete(
+            self.init_channel(max_consumers=consumers or settings.MAX_CONSUMERS)
+        )
+
+    def connect(self) -> None:
+        loop = asyncio.get_event_loop()
+        self._connection = loop.run_until_complete(aio_pika.connect_robust(
+            host=self.connection_data.host,
+            login=self.connection_data.login,
+            password=self.connection_data.password,
+            virtualhost=self.connection_data.virtualhost,
+            loop=loop
+        ))
 
     async def init_channel(self, max_consumers: int = None) -> None:
         self._channel = await self._connection.channel()
@@ -64,7 +80,7 @@ class AsyncRabbitQueueAdapter(EventBusUsecase):
     async def close(self):
         await self._connection.close()
 
-    def retry_on_error(self, queue_name, try_number=3):
+    def retry(self, queue_name, try_number=3):
         watcher = PushBackWatcher(try_number)
 
         def decorator(func):

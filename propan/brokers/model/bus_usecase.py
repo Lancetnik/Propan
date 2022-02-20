@@ -2,10 +2,10 @@ from typing import Protocol, Callable
 
 from propan.logger.model.usecase import LoggerUsecase
 
-from propan.event_bus.model.bus_connection import ConnectionData
+from .bus_connection import ConnectionData
 
 
-class EventBusUsecase(Protocol):
+class BrokerUsecase(Protocol):
     def connect(self, connection_data: ConnectionData):
         raise NotImplementedError()
 

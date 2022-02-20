@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "propan"
-version = "0.0.2.1"
+version = "0.0.3"
 description = ""
 authors = ["PasNA6713 <diementros@gmail.com>"]
 

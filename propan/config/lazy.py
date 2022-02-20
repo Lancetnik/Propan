@@ -55,19 +55,12 @@ class LazySettings:
         self.__dict__.pop(name, None)
 
     def configure(self, default_settings, **options):
-        if self.configured:
-            return
-
         holder = UserSettingsHolder(default_settings)
         for name, value in options.items():
             if not name.isupper():
                 raise TypeError('Setting %r must be uppercase.' % name)
             setattr(holder, name, value)
         self._wrapped = holder
-
-    @property
-    def configured(self):
-        return self._wrapped is not empty
 
 
 settings = LazySettings()

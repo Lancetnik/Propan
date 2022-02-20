@@ -1,12 +1,4 @@
 import argparse
-import importlib
-import sys
-
-from loguru import logger
-import uvloop
-
-from propan.config.settings import init_settings
-from propan.startproject import create
 
 
 __version__ = '0.0.2.1'
@@ -24,6 +16,7 @@ def run():
     args = parser.parse_args()
 
     if (dirname := args.start):
+        from propan.startproject import create
         create(dirname)
     else:
         if args.reload:
@@ -33,6 +26,12 @@ def run():
             _run()
 
 def _run():
+    import sys
+    import uvloop
+    import importlib
+
+    from propan.config.configuration import init_settings
+
     uvloop.install()
     config = init_settings(args.config, **{
         "MAX_CONSUMERS": args.workers
@@ -43,7 +42,9 @@ def _run():
         f, func = args.file.split(":", 2)
         mod = importlib.import_module(f)
         app = getattr(mod, func)
-    except ValueError:
+    except ValueError as e:
+        from loguru import logger
+        logger.error(e)
         logger.error('Please, input module like python_file:propan_app_name')
     else:
         app.run()
