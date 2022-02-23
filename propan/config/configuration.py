@@ -12,7 +12,7 @@ import uvloop
 uvloop.install()
 
 
-BASE_DIR = Path.cwd()
+BASE_DIR = Path(os.path.abspath(inspect.stack()[-1][0].f_code.co_filename)).parent.parent
 
 
 def _get_recursive_name(config, name=None) -> Generator[Tuple, None, Tuple]:
