@@ -1,8 +1,18 @@
 [tool.poetry]
 name = "propan"
-version = "0.0.3"
-description = ""
+version = "0.0.3.2"
+description = "Simple and fast framework to create message brokers based microservices"
+readme = "README.md"
+homepage = "https://github.com/PasNA6713/Propan"
+repository = "https://github.com/PasNA6713/Propan"
+documentation = "https://github.com/PasNA6713/Propan"
+keywords = ["rabbitmq", "framework", "message brokers"]
 authors = ["PasNA6713 <diementros@gmail.com>"]
+classifiers = [
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
 
 [tool.poetry.scripts]
 propan = "propan:run"
