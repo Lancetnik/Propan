@@ -1,4 +1,4 @@
-Propan существует, чтобы максимально упростить для вас создание микросервисов вокруг RabbitMQ
+Propan существует, чтобы максимально упростить для вас создание микросервисов вокруг брокеров сообщений (например, RabbitMQ)
 
 Основные особенности:
 
@@ -177,7 +177,7 @@ from propan.logger.adapter.loguru_usecase import LoguruAdapter
 from propan.logger import loguru # является экземпляром LoguruAdapter
 
 logger = LoguruAdapter()
-queue_adapter = AsyncRabbitQueueAdapter(
+queue_adapter = RabbitAdapter(
     logger=logger
 )
 ```

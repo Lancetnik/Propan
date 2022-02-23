@@ -8,6 +8,9 @@ import yaml
 
 from propan.config.lazy import settings, LazySettings
 
+import uvloop
+uvloop.install()
+
 
 BASE_DIR = Path.cwd()
 
