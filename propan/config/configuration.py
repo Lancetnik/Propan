@@ -1,4 +1,4 @@
-from importlib.util import spec_from_file_location
+from importlib.util import spec_from_file_location, module_from_spec
 import os
 from pathlib import Path
 import sys
@@ -53,8 +53,11 @@ def init_settings(
         **_parse_yml_config(conf_dir, conffile),
         **options
     }
+    settings.configure(None, **config)
     sys.path.append(str(base_dir))
 
-    i = spec_from_file_location("app", f'{conf_dir / default_settings}.py')
-    settings.configure(i, **config)
+    spec = spec_from_file_location("app", f'{conf_dir / default_settings}.py')
+    mod = module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    settings.configure(mod, **config)
     return settings
