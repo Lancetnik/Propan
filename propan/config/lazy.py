@@ -5,6 +5,7 @@ from loguru import logger
 
 empty = object()
 
+IS_CONFIGURED = False
 
 class UserSettingsHolder:
     def __init__(self, default_settings):
@@ -55,12 +56,18 @@ class LazySettings:
         self.__dict__.pop(name, None)
 
     def configure(self, default_settings, **options):
+        global IS_CONFIGURED
+        if IS_CONFIGURED is True:
+            return self._wrapped
+
         holder = UserSettingsHolder(default_settings)
         for name, value in options.items():
             if not name.isupper():
                 raise TypeError('Setting %r must be uppercase.' % name)
             setattr(holder, name, value)
-        self._wrapped = holder
 
+        self._wrapped = holder
+        if default_settings is not None:
+            IS_CONFIGURED = True
 
 settings = LazySettings()
