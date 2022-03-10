@@ -45,3 +45,4 @@ def create(dirname: str):
     (app_dir / 'serve.py').touch()
     (app_dir / 'dependencies.py').touch()
     (app_dir / '__init__.py').touch()
+    exit()
