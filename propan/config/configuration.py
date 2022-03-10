@@ -9,9 +9,6 @@ from loguru import logger
 
 from propan.config.lazy import settings, LazySettings
 
-import uvloop
-uvloop.install()
-
 
 def _get_recursive_name(config, name=None) -> Generator[Tuple, None, Tuple]:
     for k, v in config.items():
@@ -28,12 +25,13 @@ def _parse_yml_config(conf_dir: Path, conffile: str = 'config.yml') -> dict:
     conf = conf_dir / conffile
     if conf.exists() is False:
         logger.error(f'FileNotFoundError: {conf}')
-        exit()
+        return config
 
     with conf.open('r') as f:
         if (data := yaml.safe_load(f)):
             for key, value in _get_recursive_name(data):
                 config[key] = os.getenv(key, default=value)
+
     return config
 
 
@@ -42,6 +40,7 @@ def init_settings(
     conffile: str = 'config.yml',
     settings_dir: str = 'app.config',
     default_settings: str = 'settings',
+    uvloop: bool = True,
     **options
 ) -> LazySettings:
     conf_dir = base_dir
@@ -60,4 +59,14 @@ def init_settings(
     mod = module_from_spec(spec)
     spec.loader.exec_module(mod)
     settings.configure(mod, **config)
+
+    try:
+        user_uv = getattr(mod, 'UVLOOP')
+    except Exception:
+        user_uv = True
+
+    if uvloop and user_uv is not False:
+        import uvloop
+        uvloop.install()
+
     return settings

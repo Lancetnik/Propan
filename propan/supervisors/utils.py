@@ -13,7 +13,7 @@ spawn = multiprocessing.get_context("spawn")
 
 
 def get_subprocess(
-    target: Callable[..., None],
+    target: Callable[..., None], args: Tuple
 ) -> SpawnProcess:
     stdin_fileno: Optional[int]
     try:
@@ -23,19 +23,20 @@ def get_subprocess(
 
     kwargs = {
         "target": target,
+        "args": args,
         "stdin_fileno": stdin_fileno,
     }
-
     return Process(target=subprocess_started, kwargs=kwargs)
 
 
 def subprocess_started(
     target: Callable[..., None],
+    args: Tuple,
     stdin_fileno: Optional[int],
 ) -> None:
     if stdin_fileno is not None:
         sys.stdin = os.fdopen(stdin_fileno)
-    target()
+    target(*args)
 
 
 def is_dir(path: Path) -> bool:

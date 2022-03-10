@@ -4,7 +4,7 @@ import signal
 import threading
 from socket import socket
 from types import FrameType
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 from propan.supervisors.utils import get_subprocess
 
@@ -19,6 +19,7 @@ class BaseReload:
     def __init__(
         self,
         target: Callable[[Optional[List[socket]]], None],
+        args: Tuple,
         reload_delay: Optional[float] = 0.5,
     ) -> None:
         self.target = target
@@ -27,6 +28,7 @@ class BaseReload:
         self.reloader_name: Optional[str] = None
         self.reload_delay = reload_delay
         self._stopped = False
+        self._args = args
 
     def signal_handler(self, sig: signal.Signals, frame: FrameType) -> None:
         if self._stopped:
@@ -48,7 +50,7 @@ class BaseReload:
             signal.signal(sig, self.signal_handler)
     
         self.process = get_subprocess(
-            target=self.target
+            target=self.target, args=self._args
         )
         self.process.start()
 
@@ -57,7 +59,7 @@ class BaseReload:
         self.process.join(timeout=1.0)
         print('Process successfully reloaded')
         self.process = get_subprocess(
-            target=self.target
+            target=self.target, args=self._args
         )
         self.process.start()
         self._stopped = False

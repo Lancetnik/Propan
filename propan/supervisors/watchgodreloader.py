@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from socket import socket
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
 
 from watchgod import DefaultWatcher
 
@@ -101,9 +101,10 @@ class WatchGodReload(BaseReload):
     def __init__(
         self,
         target: Callable[[Optional[List[socket]]], None],
+        args: Tuple,
         reload_delay: Optional[float] = 0.5,
     ) -> None:
-        super().__init__(target, reload_delay)
+        super().__init__(target, args, reload_delay)
         self.reloader_name = "watchgod"
         self.watchers = []
         reload_dirs = []
@@ -120,6 +121,6 @@ class WatchGodReload(BaseReload):
             change = watcher.check()
             if change != set():
                 message = "WatchGodReload detected file change in '%s'. Reloading..."
-                print(message, [c[1] for c in change])
+                print(message % [c[1] for c in change])
                 return True
         return False

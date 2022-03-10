@@ -9,7 +9,6 @@ from propan.annotations import apply_types
 
 class PropanApp:
     _instanse = None
-    loop = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instanse is None:
@@ -17,19 +16,20 @@ class PropanApp:
         return cls._instanse
 
     def __init__(
-        self, broker: BrokerUsecase = None,
+        self,
+        broker: BrokerUsecase = None,
         apply_types=False,
         *args, **kwargs
     ):
-        self.loop = asyncio.get_event_loop()
         self.broker = broker or RabbitAdapter(logger=logger)
         self._apply_types = apply_types
 
     def run(self):
+        loop = asyncio.get_event_loop()
         try:
-            self.loop.run_forever()
+            loop.run_forever()
         finally:
-            self.loop.run_until_complete(self.broker.close())
+            loop.run_until_complete(self.broker.close())
 
     def handle(self, queue_name: str):
         def decor(func):
