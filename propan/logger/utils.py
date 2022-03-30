@@ -20,7 +20,7 @@ def ignore_exceptions(logger: LoggerUsecase, ignored: Iterable[Exception]):
 
 
 def find_trace() -> str:
-    file = _catch_call()
+    file = catch_call()
     filepath = file.filename.split(f'{settings.BASE_DIR}/')
     if len(filepath) == 1:
         path = filepath[0]
@@ -35,9 +35,9 @@ def find_trace() -> str:
     return f'{path}:{func_name}:{line}'
 
 
-def _catch_call() -> traceback.FrameSummary:
+def catch_call(ignore='logger') -> traceback.FrameSummary:
     # получаем пути файлов из стека вызовов
     trace = traceback.StackSummary.extract(traceback.walk_stack(None))
     # отсеиваем все вызовы из директории "logger" и берем первый снаружи
-    called_from = list(dropwhile(lambda x: 'logger' in x.filename, trace))[0]
+    called_from = list(dropwhile(lambda x: ignore in x.filename, trace))[0]
     return called_from
