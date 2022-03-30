@@ -1,8 +1,8 @@
 from .adapter.rabbit_queue import AsyncRabbitQueueAdapter
 
 
-RabbitAdapter = AsyncRabbitQueueAdapter
+RabbitBroker = AsyncRabbitQueueAdapter
 
 __all__ = (
-    'RabbitAdapter',
+    'RabbitBroker',
 )

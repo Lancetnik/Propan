@@ -1,6 +1,7 @@
 from importlib.util import spec_from_file_location, module_from_spec
 import os
 from pathlib import Path
+from re import S
 import sys
 from typing import Generator, Dict, Tuple
 
@@ -46,6 +47,7 @@ def init_settings(
     conf_dir = base_dir
     for i in settings_dir.split('.'):
         conf_dir = conf_dir / i
+    base_dir = conf_dir.parent
 
     config = {
         "BASE_DIR": base_dir,

@@ -4,7 +4,7 @@ import platform
 import click
 
 
-__version__ = '0.0.3.6'
+__version__ = '0.0.3.7'
 
 
 def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
@@ -73,7 +73,7 @@ def run(
 
     if start:
         from propan.startproject import create
-        create(app)
+        create(app, __version__)
 
     if reload is True:
         from propan.supervisors.watchgodreloader import WatchGodReload
@@ -103,7 +103,6 @@ def _run(app: str, config: str, workers: int, uvloop: bool):
                 "MAX_CONSUMERS": workers
             }
         )
-        
         spec = spec_from_file_location("mode", f'{mod_path}.py')
         mod = module_from_spec(spec)
         spec.loader.exec_module(mod)

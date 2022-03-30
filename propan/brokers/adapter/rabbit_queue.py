@@ -25,7 +25,7 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
         host=None,
         login=None,
         password=None,
-        virtualhost=None,
+        vhost=None,
         logger: LoggerUsecase = EmptyLogger(),
         connection_data=None,
         consumers=None
@@ -33,7 +33,7 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
         self.logger = logger
         self.connection_data = connection_data or ConnectionData(
             host or settings.RABBIT_HOST, login or settings.RABBIT_LOGIN,
-            password or settings.RABBIT_PASSWORD, virtualhost or settings.RABBIT_VHOST
+            password or settings.RABBIT_PASSWORD, vhost or settings.RABBIT_VHOST
         )
         self.connect()
         asyncio.get_event_loop().run_until_complete(

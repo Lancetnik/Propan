@@ -1,6 +1,6 @@
 import asyncio
 
-from propan.brokers import RabbitAdapter
+from propan.brokers import RabbitBroker
 from propan.logger import loguru as logger
 
 from propan.brokers.model.bus_usecase import BrokerUsecase
@@ -21,15 +21,15 @@ class PropanApp:
         apply_types=False,
         *args, **kwargs
     ):
-        self.broker = broker or RabbitAdapter(logger=logger)
+        self.broker = broker or RabbitBroker(logger=logger)
         self._apply_types = apply_types
+        self.loop = asyncio.get_event_loop()
 
     def run(self):
-        loop = asyncio.get_event_loop()
         try:
-            loop.run_forever()
+            self.loop.run_forever()
         finally:
-            loop.run_until_complete(self.broker.close())
+            self.loop.run_until_complete(self.broker.close())
 
     def handle(self, queue_name: str):
         def decor(func):
