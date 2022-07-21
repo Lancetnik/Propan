@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "propan"
-version = "0.0.3.7"
+version = "0.0.4.0"
 description = "Simple and fast framework to create message brokers based microservices"
 readme = "README.md"
 homepage = "https://github.com/PasNA6713/Propan"
@@ -35,7 +35,6 @@ python-lsp-server = "*"
 importlib_metadata = "*"
 flake8 = "*"
 flake8-isort = "*"
-flake8-comprehensions = "*"
 autopep8 = "*"
 
 [tool.poetry.extras]

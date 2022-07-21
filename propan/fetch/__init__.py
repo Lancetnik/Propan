@@ -1,6 +1,6 @@
-from .fetcher.adapter.async_adapter import AsyncFetcherImplementation
-from .proxy.adapter.async_adapter import AsyncProxyAdapter
-from .user_agent.getter import UserAgentFabric
+from propan.fetch.fetcher.adapter.async_adapter import AsyncFetcherImplementation
+from propan.fetch.proxy.adapter.async_adapter import AsyncProxyAdapter
+from propan.fetch.user_agent.getter import UserAgentFabric
 
 
 Fetcher = AsyncFetcherImplementation

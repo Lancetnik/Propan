@@ -11,8 +11,10 @@ from propan.fetch.proxy.model.proxie_data import FromSettings
 
 class AsyncProxyAdapter(ProxyUsecase):
     def __init__(
-        self, proxy: Union[List[str], str] = settings.PROXY,
-        from_settings: FromSettings = None, is_switchable=False
+        self,
+        proxy: Union[List[str], str, None] = settings.PROXY if settings.IS_CONFIGURED else None,
+        from_settings: FromSettings = None,
+        is_switchable=False
     ):
         try:
             self.proxy = proxy or from_settings.proxy

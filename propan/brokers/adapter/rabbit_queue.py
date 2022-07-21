@@ -1,10 +1,10 @@
 import asyncio
 from functools import wraps
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
 
 import aio_pika
 
-from propan.config.lazy import settings
+from propan.config import settings
 
 from propan.logger.model.usecase import LoggerUsecase
 from propan.logger.adapter.empty import EmptyLogger
@@ -18,51 +18,55 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
     logger: LoggerUsecase
     _connection: aio_pika.RobustConnection
     _channel: aio_pika.RobustChannel
-    _process_message: Dict[str, Callable] = {}
 
     def __init__(
         self,
-        host=None,
-        login=None,
-        password=None,
-        vhost=None,
+        url: Optional[str] = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        login: Optional[str] = None,
+        password: Optional[str] = None,
+        vhost: Optional[str] = None,
         logger: LoggerUsecase = EmptyLogger(),
-        connection_data=None,
-        consumers=None
+        connection_data: Optional[ConnectionData] = None,
+        consumers=10,
     ):
         self.logger = logger
         self.connection_data = connection_data or ConnectionData(
-            host or settings.RABBIT_HOST, login or settings.RABBIT_LOGIN,
-            password or settings.RABBIT_PASSWORD, vhost or settings.RABBIT_VHOST
+            host or settings.RABBIT_HOST if settings.IS_CONFIGURED else "localhost",
+            port or settings.RABBIT_PORT if settings.IS_CONFIGURED else 5672,
+            login or settings.RABBIT_LOGIN if settings.IS_CONFIGURED else None,
+            password or settings.RABBIT_PASSWORD if settings.IS_CONFIGURED else None,
+            vhost or settings.RABBIT_VHOST if settings.IS_CONFIGURED else "/"
         )
-        self.connect()
-        asyncio.get_event_loop().run_until_complete(
-            self.init_channel(max_consumers=consumers or settings.MAX_CONSUMERS)
-        )
+        self._url = url
+        self._max_consumers = consumers or settings.MAX_CONSUMERS
 
-    def connect(self) -> None:
-        loop = asyncio.get_event_loop()
-        self._connection = loop.run_until_complete(aio_pika.connect_robust(
-            host=self.connection_data.host,
-            login=self.connection_data.login,
-            password=self.connection_data.password,
-            virtualhost=self.connection_data.virtualhost,
-            loop=loop
-        ))
+    async def connect(self) -> aio_pika.Connection:
+        if self._url:
+            self._connection = await aio_pika.connect_robust(
+                url=self._url
+            )
+        else:
+            self._connection = await aio_pika.connect_robust(
+                host=self.connection_data.host,
+                port=self.connection_data.port,
+                login=self.connection_data.login,
+                password=self.connection_data.password,
+                virtualhost=self.connection_data.virtualhost,
+            )
+        return self._connection
 
-    async def init_channel(self, max_consumers: int = None) -> None:
+    async def init_channel(self, max_consumers = None) -> None:
         self._channel = await self._connection.channel()
         if max_consumers:
             await self._channel.set_qos(prefetch_count=max_consumers)
-
-    async def set_queue_handler(
-        self, queue_name: str,
-        handler: Callable, retrying_on_error: bool = False
-    ) -> None:
-        queue = await self._channel.declare_queue(queue_name)
-        self._process_message[queue_name] = handler
-        self.logger.success(f'[*] Waiting for messages in {queue_name}. To exit press CTRL+C')
-        await queue.consume(self.handle_message)
+    
+    async def start(self):
+        for queue_name in self.handlers.keys():
+            queue = await self._channel.declare_queue(queue_name)
+            self.logger.success(f'[*] Waiting for messages in {queue_name}. To exit press CTRL+C')
+            await queue.consume(self.handle_message)
 
     async def publish_message(self, queue_name: str, message: str) -> None:
         await self._channel.default_exchange.publish(
@@ -75,7 +79,7 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
         body = message.body.decode()
         async with message.process():
             self.logger.info(f"[x] Received {body} in {queue_name}")
-            await self._process_message[queue_name](body)
+            await self.handlers[queue_name](body)
 
     async def close(self):
         await self._connection.close()

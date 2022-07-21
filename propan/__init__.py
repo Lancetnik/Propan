@@ -4,7 +4,7 @@ import platform
 import click
 
 
-__version__ = '0.0.3.7'
+__version__ = '0.0.4.0'
 
 
 def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
@@ -93,7 +93,7 @@ def _run(app: str, config: str, workers: int, uvloop: bool):
         mod_path = Path.cwd()
         for i in f.split('.'):
             mod_path = mod_path / i
-        BASE_DIR = mod_path.parent.parent
+        BASE_DIR = mod_path.parent
 
         from propan.config.configuration import init_settings
         config = init_settings(
@@ -103,6 +103,7 @@ def _run(app: str, config: str, workers: int, uvloop: bool):
                 "MAX_CONSUMERS": workers
             }
         )
+
         spec = spec_from_file_location("mode", f'{mod_path}.py')
         mod = module_from_spec(spec)
         spec.loader.exec_module(mod)

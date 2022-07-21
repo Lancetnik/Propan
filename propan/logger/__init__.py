@@ -1,6 +1,6 @@
-from .adapter.loguru_usecase import LoguruAdapter
-from .composition import LoggerSimpleComposition
-from .utils import ignore_exceptions
+from propan.logger.adapter.loguru_usecase import LoguruAdapter
+from propan.logger.composition import LoggerSimpleComposition
+from propan.logger.utils import ignore_exceptions
 
 
 loguru = LoguruAdapter()

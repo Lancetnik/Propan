@@ -39,7 +39,7 @@ def _parse_yml_config(conf_dir: Path, conffile: str = 'config.yml') -> dict:
 def init_settings(
     base_dir: Path,
     conffile: str = 'config.yml',
-    settings_dir: str = 'app.config',
+    settings_dir: str = 'config',
     default_settings: str = 'settings',
     uvloop: bool = True,
     **options

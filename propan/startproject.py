@@ -24,25 +24,24 @@ def _create_project_dir(dirname: str, version: str) -> Path:
         project_dir / 'docker-compose.yml',
         'services:',
         '    rabbit:',
-        '       image: rabbitmq:3',
-        '       environment:',
-        '           - RABBITMQ_DEFAULT_USER=user',
-        '           - RABBITMQ_DEFAULT_PASS=password',
-        '           - RABBITMQ_DEFAULT_VHOST=en0',
-        '       ports:',
-        '           - 5672:5672'
+        '        image: rabbitmq:3',
+        '        environment:',
+        '            - RABBITMQ_DEFAULT_USER=user',
+        '            - RABBITMQ_DEFAULT_PASS=password',
+        '        ports:',
+        '            - 5672:5672'
     )
 
     _write_file(project_dir / 'requirements.txt', f'propan=={version}')
 
     _write_file(
-        project_dir / '.gitignore', 
+        project_dir / '.gitignore',
         'config.yml',
-        ',n__pycache__',
-        ',nenv/',
-        ',nvenv/'
+        '__pycache__',
+        'env/',
+        'venv/'
     )
-    
+
     return project_dir
 
 
@@ -65,16 +64,17 @@ def _create_config_dir(app_dir: Path) -> Path:
         config_dir / 'config.yml',
         'RABBIT:',
         '   HOST: 127.0.0.1',
+        '   PORT: 5672',
         '   LOGIN: user',
         '   PASSWORD: password',
-        '   VHOST: en0'
+        '   VHOST: /'
     )
 
     _write_file(
         config_dir / 'settings.py',
         'from propan.config import settings\n'
     )
-    
+
     _write_file(config_dir / '__init__.py')
     return config_dir
 

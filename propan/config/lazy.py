@@ -31,11 +31,15 @@ class UserSettingsHolder:
 
 class LazySettings:
     _wrapped = None
+    IS_CONFIGURED = IS_CONFIGURED
 
     def __init__(self):
         self._wrapped = empty
 
     def __getattr__(self, name):
+        if name == "IS_CONFIGURED":
+            return self.IS_CONFIGURED
+
         if self._wrapped is empty:
             self._setup(name)
         val = getattr(self._wrapped, name)
@@ -54,8 +58,7 @@ class LazySettings:
         self.__dict__.pop(name, None)
 
     def configure(self, default_settings, **options):
-        global IS_CONFIGURED
-        if IS_CONFIGURED is True:
+        if self.IS_CONFIGURED is True:
             return self._wrapped
 
         holder = UserSettingsHolder(default_settings)
@@ -66,6 +69,6 @@ class LazySettings:
 
         self._wrapped = holder
         if default_settings is not None:
-            IS_CONFIGURED = True
+            self.IS_CONFIGURED = True
 
 settings = LazySettings()
