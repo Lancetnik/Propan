@@ -32,9 +32,10 @@ RABBIT_VIRTUALHOST = "/"
 
 ```yml
 RABBIT:
-    host: '127.0.0.1'
-    login: 'guest'
-    password: 'guest'
+    host: 127.0.0.1
+    port: 5672
+    login: guest
+    password: guest
     vhost: /
 ```
 
@@ -43,11 +44,11 @@ RABBIT:
 
 ```yml
 Rabbit:
-    host: '127.0.0.1'
+    host: 127.0.0.1
 ```
 Аналогичен
 ```yml
-RABBIT_HOST: '127.0.0.1'
+RABBIT_HOST: 127.0.0.1
 ```
 
 Проект также автоматически берет переменные из окружения при наличии совпадений в названии переменных из `.yml` файла
@@ -55,8 +56,7 @@ RABBIT_HOST: '127.0.0.1'
 * При попытке обратиться к переменной, которой нет в настройках, propan выдаст warning и `None` в качестве значения
 * `.yml` файлы можно переключать при запуске с помощью флага `--config=prod.yml` или `-C prod.yml`
     * в таком случае все используемые `.yml` файлы должны находиться в директории `app/config/`
-
-Если вы не хотите использовать `uvloop` в качестве event loop'а по умолчанию, укажите это в `settings.py`
+* если вы не хотите использовать `uvloop` в качестве event loop'а по умолчанию, укажите это в `settings.py`
 ```Python
 UVLOOP = False
 ```
@@ -67,10 +67,11 @@ UVLOOP = False
 import asyncio
 
 from propan.config import settings
-from propan.brokers import RabbitAdapter
+from propan.brokers import RabbitBroker
 
-queue_adapter = RabbitAdapter(
+queue_adapter = RabbitBroker(
     host = settings.RABBIT_HOST,
+    port = settings.RABBIT_PORT,
     login = settings.RABBIT_LOGIN,
     password = settings.RABBIT_PASSWORD,
     virtualhost = settings.RABBIT_VHOST,
@@ -92,7 +93,7 @@ from propan.app import PropanApp
 
 from .dependencies import queue_adapter
 
-# broker по умолчанию - RabbitAdapter(logger=loguru)
+# broker по умолчанию - RabbitBroker(logger=loguru)
 app = PropanApp(broker=queue_adapter)
 
 @app.handle(queue_name="test_queue")
