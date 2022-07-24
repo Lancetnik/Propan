@@ -31,29 +31,39 @@ class PropanApp:
         apply_types=False,
         *args, **kwargs
     ):
+        if settings_dir:
+            self.settings = init_settings(settings_dir, settings_dir="")
+        
         self.broker = broker
         self._apply_types = apply_types
         self.loop = asyncio.get_event_loop()
+        self.logger = logger
 
         self.ignore_exceptions = wraps(ignore_exceptions)(staticmethod(partial(
             ignore_exceptions, logger=logger
         )))
 
-        if settings_dir:
-            self.settings = init_settings(settings_dir, settings_dir="")
-
-    async def pre_run(self):
+    async def startup(self):
         if (broker := self.broker) is not None:
+            self.logger.info(f"Listening: {', '.join(broker.handlers.keys())} queues")
             await broker.connect()
             await broker.init_channel()
             await broker.start()
 
+    async def shutdown(self):
+        if getattr(self.broker, "_connection", False) is not False:
+            await self.broker.close()
+
     def run(self):
         try:
-            self.loop.run_until_complete(self.pre_run())
+            self.logger.info("Propan app starting...")
+            self.loop.run_until_complete(self.startup())
+            self.logger.success("Propan app started successfully!")
+
             self.loop.run_forever()
         finally:
-            self.loop.run_until_complete(self.broker.close())
+            self.logger.info("Propan app shutting down...")
+            self.loop.run_until_complete(self.shutdown())
 
 
     def handle(self, queue_name: str):

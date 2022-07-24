@@ -1,6 +1,4 @@
-import logging
 from pathlib import Path
-from socket import socket
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
 
 from watchgod import DefaultWatcher
@@ -11,7 +9,6 @@ from propan.supervisors.utils import Config
 
 if TYPE_CHECKING:  # pragma: no cover
     import os
-
     DirEntry = os.DirEntry[str]
 
 config = Config()
@@ -100,7 +97,7 @@ class CustomWatcher(DefaultWatcher):
 class WatchGodReload(BaseReload):
     def __init__(
         self,
-        target: Callable[[Optional[List[socket]]], None],
+        target: Callable,
         args: Tuple,
         reload_delay: Optional[float] = 0.5,
     ) -> None:

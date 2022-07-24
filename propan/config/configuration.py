@@ -1,7 +1,6 @@
 from importlib.util import spec_from_file_location, module_from_spec
 import os
 from pathlib import Path
-
 import sys
 from typing import Generator, Tuple
 
@@ -25,7 +24,7 @@ def _parse_yml_config(conf_dir: Path, conffile: str = 'config.yml') -> dict:
     config = {}
     conf = conf_dir / conffile
     if conf.exists() is False:
-        logger.error(f'FileNotFoundError: {conf}')
+        logger.warning(f'FileNotFoundError: {conf}')
         return config
 
     with conf.open('r') as f:
@@ -57,14 +56,15 @@ def init_settings(
     settings.configure(None, **config)
     sys.path.append(str(base_dir))
 
-    spec = spec_from_file_location("app", f'{conf_dir / default_settings}.py')
-    mod = module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    settings.configure(mod, **config)
-
     try:
-        user_uv = getattr(mod, 'UVLOOP')
-    except Exception:
+        spec = spec_from_file_location("app", f'{conf_dir / default_settings}.py')
+        mod = module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        settings.configure(mod, **config)
+
+        user_uv = getattr(mod, 'UVLOOP', True)
+    except (ValueError, FileNotFoundError, AttributeError) as e:
+        logger.warning(e)
         user_uv = True
 
     if uvloop and user_uv is not False:

@@ -1,4 +1,4 @@
-from ..model.usecase import LoggerUsecase
+from propan.logger.model.usecase import LoggerUsecase
 
 
 class EmptyLogger(LoggerUsecase):

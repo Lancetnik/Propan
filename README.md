@@ -84,7 +84,7 @@ queue_adapter = RabbitBroker(
 from propan.config import settings
 ```
 
-`settings.MAX_CONSUMERS` указывается при запуске проекта с помощью флага `--workers=10` или `-W 10` (10-значение по умолчанию) и определяет допустимое количество одновременно обрабатываемых сообщений
+`settings.MAX_CONSUMERS` указывается при запуске проекта с помощью флага `--consumers=10` (по умолчанию ограничение не устанавливается) и определяет допустимое количество одновременно обрабатываемых сообщений
 
 * После создания `queue_adapter` создадим `PropanApp` в `app/serve.py`
 
@@ -103,7 +103,7 @@ async def base_handler(message):
 
 * Запуск проекта осуществляется с помощью команды `propan app.serve:app`
     * `app.serve` - путь к файлу serve, а `app` - название экземпляра `PropanApp` в коде.
-    * Запуск по умолчанию: `propan app.serve:app -C config.yml -W 10`
+    * Запуск по умолчанию: `propan app.serve:app --config config.yml --consumers 10`
     * Используйте флаг `--reload` для запуска проекта в тестовом режиме с автоматической перезагрузкой при изменении файлов
 
 
@@ -133,14 +133,13 @@ async def base_handler(user_id: int):  # приведение входного �
 
 ```Python
 from propan.app import PropanApp
-from propan.annotations import apply_types
 
 from .dependencies import queue_adapter
 
 app = PropanApp(broker=queue_adapter)
 
 @app.handle(queue_name="test_queue")
-@apply_types
+@app.apply_types
 async def base_handler(user_id: int):
     print(message)
 ```
@@ -263,7 +262,7 @@ NOT_CATCH = (ValueError,)
 @app.broker.retry(queue_name="test_queue", try_number=3)
 @app.handle(queue_name="test_queue")
 @ignore_exceptions(logger, NOT_CATCH)
-@apply_types
+@app.apply_types
 async def base_handler(user: str):
     print(user)
 ```
