@@ -1,10 +1,11 @@
 """Simple and fast framework to create message brokers based microservices"""
 import platform
+from typing import Optional
 
 import click
 
 
-__version__ = '0.0.4.0'
+__version__ = '0.0.5.0'
 
 
 def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
@@ -59,17 +60,32 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> No
     help="Select conf file of your consume.",
 )
 @click.option(
-    "--workers",
-    default=10,
+    "--consumers",
+    default=None,
     show_default=True,
+    type=int,
     help="Select number of consumers.",
 )
+@click.option(
+    "--workers",
+    default=1,
+    show_default=True,
+    type=int,
+    help="Select number of processes.",
+)
 def run(
-    app: str, reload: bool,
-    config: str, workers: int,
-    start: bool, uvloop: bool
+    app: str,
+    reload: bool,
+    config: str, 
+    start: bool,
+    uvloop: bool,
+    consumers: Optional[int],
+    workers: Optional[int],
 ):
-    args = (app, config, workers, uvloop)
+    if reload and workers > 1:
+        raise ValueError("You can't user reload option with multiprocessing")
+
+    args = (app, config, consumers, uvloop)
 
     if start:
         from propan.startproject import create
@@ -79,11 +95,15 @@ def run(
         from propan.supervisors.watchgodreloader import WatchGodReload
         WatchGodReload(target=_run, args=args).run()
 
+    elif workers > 1:
+        from propan.supervisors.multiprocess import Multiprocess
+        Multiprocess(target=_run, args=args, workers=workers).run()
+
     else:
         _run(*args)
 
 
-def _run(app: str, config: str, workers: int, uvloop: bool):
+def _run(app: str, config: str, consumers: int, uvloop: bool):
     from importlib.util import spec_from_file_location, module_from_spec
     from pathlib import Path
 
@@ -100,7 +120,7 @@ def _run(app: str, config: str, workers: int, uvloop: bool):
             BASE_DIR, config,
             uvloop=uvloop, 
             **{
-                "MAX_CONSUMERS": workers
+                "MAX_CONSUMERS": consumers
             }
         )
 

@@ -1,10 +1,9 @@
 from typing import Optional
 
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class ConnectionData:
+class ConnectionData(BaseModel):
     host: str
     port: int
     login: Optional[str] = None

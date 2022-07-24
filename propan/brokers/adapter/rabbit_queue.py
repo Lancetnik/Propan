@@ -3,9 +3,11 @@ from functools import wraps
 from typing import Callable, Dict, Optional
 
 import aio_pika
+from pydantic.error_wrappers import ValidationError
 
 from propan.config import settings
 
+from propan.logger import loguru
 from propan.logger.model.usecase import LoggerUsecase
 from propan.logger.adapter.empty import EmptyLogger
 
@@ -21,56 +23,74 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
 
     def __init__(
         self,
-        url: Optional[str] = None,
-        host: Optional[str] = None,
-        port: Optional[int] = None,
-        login: Optional[str] = None,
-        password: Optional[str] = None,
-        vhost: Optional[str] = None,
+        *args,
         logger: LoggerUsecase = EmptyLogger(),
         connection_data: Optional[ConnectionData] = None,
-        consumers=10,
+        consumers: Optional[int] = None,
+        **kwargs
     ):
         self.logger = logger
-        self.connection_data = connection_data or ConnectionData(
-            host or settings.RABBIT_HOST if settings.IS_CONFIGURED else "localhost",
-            port or settings.RABBIT_PORT if settings.IS_CONFIGURED else 5672,
-            login or settings.RABBIT_LOGIN if settings.IS_CONFIGURED else None,
-            password or settings.RABBIT_PASSWORD if settings.IS_CONFIGURED else None,
-            vhost or settings.RABBIT_VHOST if settings.IS_CONFIGURED else "/"
-        )
-        self._url = url
-        self._max_consumers = consumers or settings.MAX_CONSUMERS
 
-    async def connect(self) -> aio_pika.Connection:
-        if self._url:
-            self._connection = await aio_pika.connect_robust(
-                url=self._url
-            )
-        else:
-            self._connection = await aio_pika.connect_robust(
-                host=self.connection_data.host,
-                port=self.connection_data.port,
-                login=self.connection_data.login,
-                password=self.connection_data.password,
-                virtualhost=self.connection_data.virtualhost,
-            )
+        if connection_data is not None:
+            kwargs = connection_data.dict()
+
+        self._connection_args = args
+        self._connecttion_kwargs = kwargs
+        self._max_consumers = consumers
+
+    async def connect(self, *args, **kwargs) -> aio_pika.Connection:
+        try:
+            if settings.IS_CONFIGURED is False:
+                raise ValueError()
+
+            _args = tuple()
+            _kwargs = ConnectionData(
+                host = settings.RABBIT_HOST,
+                port = settings.RABBIT_PORT,
+                login = settings.RABBIT_LOGIN,
+                password = settings.RABBIT_PASSWORD,
+                virtualhost = settings.RABBIT_VHOST
+            ).dict()
+
+        except (ValidationError, ValueError) as e:
+            _args = args or self._connection_args
+            _kwargs = kwargs or self._connecttion_kwargs
+            if isinstance(e, ValidationError):
+                self.logger.info(f"Using params: args={_args}, kwargs={_kwargs}")
+
+        try:
+            if _args or _kwargs:
+                self._connection = await aio_pika.connect_robust(*_args, **_kwargs)
+            else:
+                self._connection = await aio_pika.connect_robust()
+        except Exception as e:
+            loguru.error(e)
+            if self.logger is not loguru:
+                self.logger.error(e)
+            exit()
+
         return self._connection
 
-    async def init_channel(self, max_consumers = None) -> None:
+    async def init_channel(self, max_consumers: Optional[int] = None) -> None:
+        max_consumers = settings.MAX_CONSUMERS or max_consumers or self._max_consumers
         self._channel = await self._connection.channel()
         if max_consumers:
-            await self._channel.set_qos(prefetch_count=max_consumers)
-    
+            self.logger.info(f"Set max consumers to {max_consumers}")
+            await self._channel.set_qos(prefetch_count=int(max_consumers))
+
     async def start(self):
         for queue_name in self.handlers.keys():
             queue = await self._channel.declare_queue(queue_name)
-            self.logger.success(f'[*] Waiting for messages in {queue_name}. To exit press CTRL+C')
+            self.logger.success(
+                f'[*] Waiting for messages in {queue_name}. To exit press CTRL+C')
             await queue.consume(self.handle_message)
 
-    async def publish_message(self, queue_name: str, message: str) -> None:
+    async def publish_message(self, queue_name: str, message: str, *args, **kwargs) -> None:
         await self._channel.default_exchange.publish(
-            aio_pika.Message(str(message).encode()),
+            aio_pika.Message(
+                body=str(message).encode(),
+                *args, **kwargs
+            ),
             routing_key=queue_name,
         )
 

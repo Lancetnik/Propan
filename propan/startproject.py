@@ -87,8 +87,8 @@ def create(dirname: str, version):
     _write_file(
         app_dir / 'serve.py',
         'from propan.app import PropanApp\n',
-        'from dependencies import broker\n\n',
-        'app = PropanApp(broker)\n\n',
+        'from dependencies import broker, loguru\n\n',
+        'app = PropanApp(broker, logger=loguru)\n\n',
         '@app.handle(queue_name="test")',
         'async def base_handler(message):',
         '   print(message)\n\n',

@@ -1,8 +1,6 @@
-import logging
 import os
 import signal
 import threading
-from socket import socket
 from types import FrameType
 from typing import Callable, List, Optional, Tuple
 
@@ -18,7 +16,7 @@ HANDLED_SIGNALS = (
 class BaseReload:
     def __init__(
         self,
-        target: Callable[[Optional[List[socket]]], None],
+        target: Callable,
         args: Tuple,
         reload_delay: Optional[float] = 0.5,
     ) -> None:
