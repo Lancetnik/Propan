@@ -1,14 +1,25 @@
 """Simple and fast framework to create message brokers based microservices"""
-import platform
 from typing import Optional
 
 import click
 
+from propan.app import PropanApp
+from propan.brokers import RabbitBroker
+from propan.logger import loguru as logger, empty
 
-__version__ = '0.0.5.0'
+
+__all__ = (
+    "PropanApp",
+    "RabbitBroker",
+    "logger"
+)
+
+__version__ = '0.0.5.3'
 
 
 def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
+    import platform
+
     if not value or ctx.resilient_parsing:
         return
 
@@ -85,7 +96,8 @@ def run(
     if reload and workers > 1:
         raise ValueError("You can't user reload option with multiprocessing")
 
-    args = (app, config, consumers, uvloop)
+    mulriprocess: bool = workers > 1
+    args = (app, config, consumers, uvloop, mulriprocess)
 
     if start:
         from propan.startproject import create
@@ -103,7 +115,7 @@ def run(
         _run(*args)
 
 
-def _run(app: str, config: str, consumers: int, uvloop: bool):
+def _run(app: str, config: str, consumers: int, uvloop: bool, mulriprocess: bool):
     from importlib.util import spec_from_file_location, module_from_spec
     from pathlib import Path
 
@@ -128,6 +140,9 @@ def _run(app: str, config: str, consumers: int, uvloop: bool):
         mod = module_from_spec(spec)
         spec.loader.exec_module(mod)
         propan_app = getattr(mod, func)
+
+        if mulriprocess is True:
+            propan_app.logger = empty
 
     except (ValueError, FileNotFoundError, AttributeError) as e:
         from loguru import logger

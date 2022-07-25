@@ -10,7 +10,7 @@ from aiohttp.client_exceptions import (
 )
 
 from propan.logger.model.usecase import LoggerUsecase
-from propan.logger.adapter.empty import EmptyLogger
+from propan.logger import empty
 
 from propan.fetch.proxy.model.usecase import ProxyUsecase
 from propan.fetch.fetcher.model.usecase import FetcherUsecase
@@ -64,7 +64,7 @@ class AsyncFetcherImplementation(FetcherUsecase):
     _session: Optional[aiohttp.ClientSession] = None
 
     def __init__(self,
-        logger: LoggerUsecase = EmptyLogger(), proxy_adapter: ProxyUsecase = None,
+        logger: LoggerUsecase = empty, proxy_adapter: ProxyUsecase = None,
         max_retries=3, sleep=5,
         timeout=10, headers={},
     ):
