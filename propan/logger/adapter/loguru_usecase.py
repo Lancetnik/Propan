@@ -13,8 +13,7 @@ logger.remove()
 logger.add(sys.stderr, format="<green>{time:DD.MM.YYYY HH:mm:ss.SSS}</green> | <cyan>{name}</cyan> | <level>{message}</level>")
 
 def patching(record):
-    if settings.IS_CONFIGURED:
-        record['name'] = find_trace()
+    record['name'] = find_trace()
 
 logger = logger.patch(patching)
 

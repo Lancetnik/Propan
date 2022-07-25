@@ -1,5 +1,7 @@
 import asyncio
 from functools import wraps
+import os
+from time import monotonic
 from typing import Callable, Dict, Optional
 
 import aio_pika
@@ -7,9 +9,8 @@ from pydantic.error_wrappers import ValidationError
 
 from propan.config import settings
 
-from propan.logger import loguru
+from propan.logger import loguru, empty
 from propan.logger.model.usecase import LoggerUsecase
-from propan.logger.adapter.empty import EmptyLogger
 
 from propan.brokers.model.bus_connection import ConnectionData
 from propan.brokers.model.bus_usecase import BrokerUsecase
@@ -24,7 +25,7 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
     def __init__(
         self,
         *args,
-        logger: LoggerUsecase = EmptyLogger(),
+        logger: LoggerUsecase = empty,
         connection_data: Optional[ConnectionData] = None,
         consumers: Optional[int] = None,
         **kwargs
@@ -35,7 +36,7 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
             kwargs = connection_data.dict()
 
         self._connection_args = args
-        self._connecttion_kwargs = kwargs
+        self._connection_kwargs = kwargs
         self._max_consumers = consumers
 
     async def connect(self, *args, **kwargs) -> aio_pika.Connection:
@@ -54,15 +55,26 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
 
         except (ValidationError, ValueError) as e:
             _args = args or self._connection_args
-            _kwargs = kwargs or self._connecttion_kwargs
+            _kwargs = kwargs or self._connection_kwargs
             if isinstance(e, ValidationError):
                 self.logger.info(f"Using params: args={_args}, kwargs={_kwargs}")
+        
+        else:
+            _kwargs = {
+                **(kwargs or self._connection_kwargs),
+                **_kwargs
+            }
 
         try:
             if _args or _kwargs:
-                self._connection = await aio_pika.connect_robust(*_args, **_kwargs)
+                self._connection = await aio_pika.connect_robust(
+                    *_args, **_kwargs, loop=asyncio.get_event_loop()
+                )
             else:
-                self._connection = await aio_pika.connect_robust()
+                self._connection = await aio_pika.connect_robust(
+                    loop=asyncio.get_event_loop()
+                )
+
         except Exception as e:
             loguru.error(e)
             if self.logger is not loguru:
@@ -81,8 +93,11 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
     async def start(self):
         for queue_name in self.handlers.keys():
             queue = await self._channel.declare_queue(queue_name)
-            self.logger.success(
-                f'[*] Waiting for messages in {queue_name}. To exit press CTRL+C')
+            self.logger.success(f'[*] Waiting for messages in `{queue_name}` PID {os.getpid()}. To exit press CTRL+C')
+
+            if self.logger is not empty:
+                self.handlers[queue_name] = self.wrap_handler(queue_name)(self.handlers[queue_name])
+
             await queue.consume(self.handle_message)
 
     async def publish_message(self, queue_name: str, message: str, *args, **kwargs) -> None:
@@ -98,11 +113,25 @@ class AsyncRabbitQueueAdapter(BrokerUsecase):
         queue_name = message.routing_key
         body = message.body.decode()
         async with message.process():
-            self.logger.info(f"[x] Received {body} in {queue_name}")
             await self.handlers[queue_name](body)
 
     async def close(self):
         await self._connection.close()
+    
+    def wrap_handler(self, queue_name):
+        def decor(func):
+            @wraps(func)
+            async def wrapper(message):
+                start = monotonic()
+                self.logger.info(f"Received {message} in `{queue_name}` PID {os.getpid()}")
+                try:
+                    return await func(message)
+                finally:
+                    self.logger.info(
+                        f"{message} in `{queue_name}` PID {os.getpid()} successfully processed in {monotonic() - start}"
+                    )
+            return wrapper
+        return decor
 
     def retry(self, queue_name, try_number=3):
         watcher = PushBackWatcher(try_number)

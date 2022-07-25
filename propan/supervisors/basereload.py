@@ -46,7 +46,7 @@ class BaseReload:
 
         for sig in HANDLED_SIGNALS:
             signal.signal(sig, self.signal_handler)
-    
+
         self.process = get_subprocess(
             target=self.target, args=self._args
         )

@@ -29,7 +29,12 @@ def _create_project_dir(dirname: str, version: str) -> Path:
         '            - RABBITMQ_DEFAULT_USER=user',
         '            - RABBITMQ_DEFAULT_PASS=password',
         '        ports:',
-        '            - 5672:5672'
+        '            - 5672:5672',
+        '        networks:',
+        '            - app\n',
+        'networks:',
+        '    app:',
+        '        driver: bridge\n'
     )
 
     _write_file(project_dir / 'requirements.txt', f'propan=={version}')

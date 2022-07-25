@@ -21,3 +21,6 @@ class EmptyLogger(LoggerUsecase):
         async def wrapped(*args, **kwargs):
             return await func(*args, **kwargs)
         return wrapped
+
+
+empty = EmptyLogger()

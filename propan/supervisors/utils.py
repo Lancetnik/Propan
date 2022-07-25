@@ -132,7 +132,7 @@ class Config:
                 self.reload_includes.remove(pattern)
         if not self.reload_dirs:
             if reload_dirs:
-                logger.warning(
+                print(
                     "Provided reload directories %s did not contain valid "
                     + "directories, watching current working directory.",
                     reload_dirs,

@@ -7,9 +7,6 @@ from typing import Callable, List, Optional, Iterable, Any
 
 from propan.supervisors.utils import get_subprocess
 
-from propan.logger.model.usecase import LoggerUsecase
-from propan.logger.adapter.empty import EmptyLogger
-
 
 HANDLED_SIGNALS = (
     signal.SIGINT,  # Unix signal 2. Sent by Ctrl+C.
@@ -57,11 +54,13 @@ class Multiprocess:
         for idx in range(self.workers):
             process = get_subprocess(target=self._target, args=self._args)
             process.start()
+            print(f"Started child process [{process.pid}]")
             self.processes.append(process)
 
     def shutdown(self) -> None:
         for process in self.processes:
             process.terminate()
+            print(f"Stopping child process [{process.pid}]")
             process.join()
 
         print(f"Stopping parent process [{self.pid}]")
