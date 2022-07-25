@@ -12,8 +12,10 @@ from propan.config import settings
 logger.remove()
 logger.add(sys.stderr, format="<green>{time:DD.MM.YYYY HH:mm:ss.SSS}</green> | <cyan>{name}</cyan> | <level>{message}</level>")
 
+
 def patching(record):
     record['name'] = find_trace()
+
 
 logger = logger.patch(patching)
 
@@ -33,6 +35,9 @@ class LoguruAdapter(LoggerUsecase):
 
     def warning(self, message: str):
         logger.warning(message)
+
+    def log(self, *args, **kwargs):
+        logger.log(*args, **kwargs)
 
     def catch(self, func, reraise: bool = False):
         @wraps(func)

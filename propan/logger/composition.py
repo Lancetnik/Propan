@@ -38,6 +38,10 @@ class LoggerSimpleComposition(LoggerUsecase):
         for logger in self.loggers:
             logger.success(message)
 
+    def log(self, *args, **kwargs):
+        for logger in self.loggers:
+            logger.log(*args, **kwargs)
+
     def catch(self, func):
         @wraps(func)
         async def wrapped(*args, **kwargs):
