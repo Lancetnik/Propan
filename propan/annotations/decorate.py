@@ -1,11 +1,10 @@
 import json
-
 from functools import wraps
-from typing import Mapping
 from inspect import signature, _empty
+from typing import Mapping, Callable, Any
 
 
-def apply_types(func):
+def apply_types(func: Callable) -> Callable:
     sig = signature(func).parameters
     arg_names = tuple(sig.keys())
     annotations = {
@@ -14,7 +13,7 @@ def apply_types(func):
         if param.annotation != _empty
     }
 
-    def _cast_type(arg_value, arg_name):
+    def _cast_type(arg_value: Any, arg_name: str):
         if (arg_type := annotations.get(arg_name)) is not None and \
                 isinstance(arg_value, arg_type) is False:
 
@@ -30,7 +29,6 @@ def apply_types(func):
         if len(arg_names) > 1:
             kwargs = json.loads(args[0])
             args = []
-
         kw = {
             arg_name: _cast_type(arg_value, arg_name)
             for arg_name, arg_value in

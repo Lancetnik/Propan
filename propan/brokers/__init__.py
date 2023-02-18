@@ -1,8 +1,7 @@
-from .adapter.rabbit_queue import AsyncRabbitQueueAdapter
-
-
-RabbitBroker = AsyncRabbitQueueAdapter
+from .rabbit.rabbit_queue import RabbitBroker
+from .model import ConnectionData
 
 __all__ = (
     'RabbitBroker',
+    'ConnectionData'
 )

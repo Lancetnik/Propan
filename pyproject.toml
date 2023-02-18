@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "propan"
-version = "0.0.5.4"
+version = "0.0.5.5"
 description = "Simple and fast framework to create message brokers based microservices"
 readme = "README.md"
 homepage = "https://github.com/PasNA6713/Propan"
@@ -25,8 +25,8 @@ pydantic = "^1.8.2"
 watchgod = "*"
 loguru = "*"
 click = "*"
-uvloop = { version = "*", markers = "sys_platform != 'win32' and implementation_name == 'cpython'", optional = true }
-aio-pika = { version = "^6.8.0", optional = true }
+uvloop = "^0.17.0"
+aio-pika = "^9.0.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

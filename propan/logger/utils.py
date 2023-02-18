@@ -1,20 +1,29 @@
+import traceback
 from itertools import dropwhile
 from functools import wraps
-import traceback
-from typing import Iterable, Callable
+from typing import Callable, Sequence
+from inspect import iscoroutinefunction
 
 from propan.logger.model.usecase import LoggerUsecase
 from propan.config.lazy import settings
 
 
-def ignore_exceptions(logger: LoggerUsecase, ignored: Iterable[Exception]):
+def ignore_exceptions(logger: LoggerUsecase, ignored: Sequence[Exception]):
     def decorator(func: Callable):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            try:
-                return await func(*args, **kwargs)
-            except ignored as e:
-                logger.error(e)
+        if iscoroutinefunction(func):
+            @wraps(func)
+            async def wrapper(*args, **kwargs):
+                try:
+                    return await func(*args, **kwargs)
+                except ignored as e:
+                    logger.error(e)
+        else:
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                try:
+                    return func(*args, **kwargs)
+                except ignored as e:
+                    logger.error(e)
         return wrapper
     return decorator
 
