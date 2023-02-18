@@ -1,12 +1,11 @@
-from functools import wraps
 import sys
+from functools import wraps
+from inspect import iscoroutinefunction
 
 from loguru import logger
 
 from propan.logger.model.usecase import LoggerUsecase
 from propan.logger.utils import find_trace
-
-from propan.config import settings
 
 
 logger.remove()
@@ -40,10 +39,15 @@ class LoguruAdapter(LoggerUsecase):
         logger.log(*args, **kwargs)
 
     def catch(self, func, reraise: bool = False):
-        @wraps(func)
-        async def wrapped(*args, **kwargs):
-            return await logger.catch(
-                func,
-                reraise=reraise
-            )(*args, **kwargs)
+        func = wraps(func)(logger.catch)(func, reraise=reraise)
+        
+        if iscoroutinefunction(func):
+            @wraps(func)
+            async def wrapped(*args, **kwargs):
+                return await func(*args, **kwargs)
+        else:
+            @wraps(func)
+            def wrapped(*args, **kwargs):
+                return func(*args, **kwargs)
+        
         return wrapped

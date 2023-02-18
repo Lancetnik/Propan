@@ -23,18 +23,13 @@ def _create_project_dir(dirname: str, version: str) -> Path:
     _write_file(
         project_dir / 'docker-compose.yml',
         'services:',
-        '    rabbit:',
-        '        image: rabbitmq:3',
-        '        environment:',
-        '            - RABBITMQ_DEFAULT_USER=user',
-        '            - RABBITMQ_DEFAULT_PASS=password',
-        '        ports:',
-        '            - 5672:5672',
-        '        networks:',
-        '            - app\n',
-        'networks:',
-        '    app:',
-        '        driver: bridge\n'
+        '  rabbit:',
+        '    image: rabbitmq',
+        '    environment:',
+        '      RABBITMQ_DEFAULT_USER: guest',
+        '      RABBITMQ_DEFAULT_PASS: guest',
+        '    ports:',
+        '      - 5672:5672',
     )
 
     _write_file(project_dir / 'requirements.txt', f'propan=={version}')
@@ -68,10 +63,10 @@ def _create_config_dir(app_dir: Path) -> Path:
     _write_file(
         config_dir / 'config.yml',
         'RABBIT:',
-        '   HOST: 127.0.0.1',
+        '   HOST: localhost',
         '   PORT: 5672',
-        '   LOGIN: user',
-        '   PASSWORD: password',
+        '   LOGIN: guest',
+        '   PASSWORD: guest',
         '   VHOST: /'
     )
 
@@ -97,7 +92,7 @@ def create(dirname: str, version):
         '@app.handle(queue_name="test")',
         'async def base_handler(message):',
         '   print(message)\n\n',
-        'if __name__=="__main__":',
+        'if __name__ == "__main__":',
         '   app.run()\n'
     )
 

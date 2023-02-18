@@ -1,5 +1,6 @@
 from functools import wraps
 from typing import Tuple
+from inspect import iscoroutinefunction
 
 from .model.usecase import LoggerUsecase
 
@@ -43,12 +44,18 @@ class LoggerSimpleComposition(LoggerUsecase):
             logger.log(*args, **kwargs)
 
     def catch(self, func):
-        @wraps(func)
-        async def wrapped(*args, **kwargs):
-            new_func = func
-            for logger in self.loggers[:-1]:
-                new_func = logger.catch(new_func, reraise=True)
-            new_func = self.loggers[-1].catch(new_func)
+        new_func = func
+        for logger in self.loggers[:-1]:
+            new_func = wraps(func)(logger.catch)(new_func, reraise=True)
+        new_func = wraps(self.loggers[-1].catch)(new_func)
 
-            return await new_func(*args, **kwargs)
+        if iscoroutinefunction(func):
+            @wraps(func)
+            async def wrapped(*args, **kwargs):
+                return await new_func(*args, **kwargs)
+        else:
+            @wraps(func)
+            def wrapped(*args, **kwargs):
+                return new_func(*args, **kwargs)
+
         return wrapped

@@ -1,8 +1,9 @@
-from typing import Protocol, Callable, Dict
+from typing import Protocol, Callable, Dict, Union
 
 from propan.logger.model.usecase import LoggerUsecase
 
 from .bus_connection import ConnectionData
+from .schemas import Queue
 
 
 class BrokerUsecase(Protocol):
@@ -17,10 +18,10 @@ class BrokerUsecase(Protocol):
     def start(self) -> None:
         raise NotImplementedError()
 
-    def publish_message(self, queue_name: str, message: str) -> None:
+    def set_handler(self, queue_name: Union[str, Queue], func: Callable, **broker_args) -> None:
         raise NotImplementedError()
 
-    def process_message(logger: LoggerUsecase, command: str) -> None:
+    def publish_message(self, queue_name: str, message: str) -> None:
         raise NotImplementedError()
 
     def close(self) -> None:

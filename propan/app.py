@@ -1,6 +1,6 @@
 import asyncio
 from functools import partial, wraps
-from typing import Optional, List, Callable
+from typing import Optional, List, Callable, Union
 from pathlib import Path
 import inspect
 
@@ -9,6 +9,7 @@ from propan.logger.model.usecase import LoggerUsecase
 
 from propan.config import init_settings
 
+from propan.brokers.model.schemas import Queue
 from propan.brokers.model.bus_usecase import BrokerUsecase
 from propan.annotations import apply_types
 
@@ -48,7 +49,7 @@ class PropanApp:
 
     async def startup(self):
         if (broker := self.broker) is not None:
-            self.logger.info(f"Listening: {', '.join(broker.handlers.keys())} queues")
+            self.logger.info(f"Listening: {', '.join((i.queue.name for i in broker.handlers))} queues")
             await broker.connect()
             await broker.init_channel()
             await broker.start()
@@ -78,12 +79,13 @@ class PropanApp:
             self.logger.info("Propan app shutting down...")
             self.loop.run_until_complete(self.shutdown())
 
-    def handle(self, queue_name: str):
+    def handle(self, queue: Union[str, Queue], **broker_args):
         def decor(func):
             if self._is_apply_types:
                 func = wraps(func)(apply_types(func))
 
-            self.broker.handlers[queue_name] = func
+            self.broker.set_handler(queue, func, **broker_args)
+            return func
         return decor
 
     def on_startup(self, func: Callable):
