@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "propan"
-version = "0.0.5.5"
+version = "0.0.5.6"
 description = "Simple and fast framework to create message brokers based microservices"
 readme = "README.md"
 homepage = "https://github.com/PasNA6713/Propan"
@@ -12,6 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
 
 [tool.poetry.scripts]

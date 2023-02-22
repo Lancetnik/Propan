@@ -1,6 +1,6 @@
 import asyncio
 import os
-from functools import wraps, lru_cache
+from functools import wraps
 from time import monotonic
 from typing import Optional, Callable, Union, List
 import json
@@ -14,7 +14,7 @@ from propan.logger import loguru, empty
 from propan.logger.model.usecase import LoggerUsecase
 
 from propan.brokers.model import BrokerUsecase, ConnectionData
-from propan.brokers.push_back_watcher import PushBackWatcher
+from propan.brokers.push_back_watcher import PushBackWatcher, FakePushBackWatcher
 
 from .schemas import RabbitQueue, RabbitExchange, Handler
 
@@ -97,7 +97,11 @@ class RabbitBroker(BrokerUsecase):
     def set_handler(self,
                     queue: Union[str, RabbitQueue],
                     func: Callable,
-                    exchange: Union[RabbitExchange, None, str] = None) -> None:
+                    exchange: Union[RabbitExchange, None, str] = None,
+                    retry: Union[bool, int] = False) -> None:
+        '''
+        retry: Union[bool, int] - at exeption message will returns to queue `int` times or endless if `True`
+        '''
         if isinstance(queue, str):
             queue = RabbitQueue(name=queue)
         elif not isinstance(queue, RabbitQueue):
@@ -109,6 +113,7 @@ class RabbitBroker(BrokerUsecase):
             elif not isinstance(exchange, RabbitExchange):
                 raise ValueError(f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance")
 
+        func = self._wrap_handler(func, retry=retry, queue=queue)
         handler = Handler(callback=func, queue=queue, exchange=exchange)
         self.handlers.append(handler)
 
@@ -117,15 +122,11 @@ class RabbitBroker(BrokerUsecase):
             queue = await self._init_handler(handler)
 
             func = handler.callback
-            func = _rabbit_decode(func)
-            if self.logger is not empty:
-                func = _log_execution(handler.queue.name, self.logger)(func)
 
             self.logger.success(
                 '[*] Waiting for messages in '
                 f'`{handler.exchange.name if handler.exchange else "default"}` exchange with '
-                f'`{handler.queue.name}` queue PID {os.getpid()}. '
-                'To exit press CTRL+C'
+                f'`{handler.queue.name}` queue PID {os.getpid()}.'
             )
 
             await queue.consume(func)
@@ -168,32 +169,50 @@ class RabbitBroker(BrokerUsecase):
             await queue.bind(exchange)
         return queue
 
-    def retry(self, queue_name, try_number=3):
+    def _wrap_handler(self, func: Callable, retry: Union[bool, int], queue: RabbitQueue) -> Callable:
+        func = _rabbit_decode(func)
+
+        if retry is not False:
+            func = retry_proccess(retry, self.logger)(func)
+        else:
+            func = _process_message(func)
+
+        if self.logger is not empty:
+            func = _log_execution(queue.name, self.logger)(func)
+
+        return func
+
+
+def retry_proccess(try_number: Union[True, int] = True, logger: LoggerUsecase = empty):
+    if try_number is True:
+        watcher = FakePushBackWatcher()
+    else:
         watcher = PushBackWatcher(try_number)
 
-        def decorator(func):
-            @wraps(func)
-            async def wrapper(message):
-                try:
-                    response = await func(message)
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(message: aio_pika.IncomingMessage):
+            id = message.message_id
+            try:
+                watcher.add(id)
+                response = await func(message)
 
-                except Exception as e:
-                    watcher.add(message)
-                    if not watcher.is_max(message):
-                        self.logger.error(
-                            f'In "{message}" error is occured. Pushing back it to rabbit.')
-                        await self.publish_message(queue_name, message)
-                    else:
-                        self.logger.error(
-                            f'"{message}" already retried {watcher.max_tries} times. Skipped.')
-                        watcher.remove(message)
-                    raise e
-
+            except Exception as e:
+                if not watcher.is_max(id):
+                    logger.error(f'In "{id}" error is occured. Pushing back to queue.')
+                    await message.reject(requeue=True)
                 else:
-                    watcher.remove(message)
-                    return response
-            return wrapper
-        return decorator
+                    logger.error(f'"{id}" already retried {watcher.max_tries} times. Skipped.')
+                    watcher.remove(id)
+                    await message.reject(requeue=False)
+                raise e
+
+            else:
+                watcher.remove(id)
+                await message.ack()
+                return response
+        return wrapper
+    return decorator
 
 
 def _rabbit_decode(func: Callable) -> Callable:
@@ -204,8 +223,15 @@ def _rabbit_decode(func: Callable) -> Callable:
         if message.content_type == "application/json":
             body = json.loads(body)
 
+        return await func(body)
+    return wrapper
+
+
+def _process_message(func: Callable) -> Callable:
+    @wraps(func)
+    async def wrapper(message: aio_pika.IncomingMessage) -> None:
         async with message.process():
-            return await func(body)
+            return await func(message)
     return wrapper
 
 

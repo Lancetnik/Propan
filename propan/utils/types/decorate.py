@@ -1,4 +1,3 @@
-import json
 from functools import wraps
 from inspect import signature, _empty
 from typing import Mapping, Callable, Any
@@ -26,9 +25,6 @@ def apply_types(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if len(arg_names) > 1:
-            kwargs = json.loads(args[0])
-            args = []
         kw = {
             arg_name: _cast_type(arg_value, arg_name)
             for arg_name, arg_value in

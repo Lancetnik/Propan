@@ -1,23 +1,24 @@
 import asyncio
-from functools import partial, wraps
-from typing import Optional, List, Callable, Union
+from functools import wraps
+from typing import Optional, Callable, Union, List, Dict, Any
 from pathlib import Path
 import inspect
 
-from propan.logger import ignore_exceptions, empty
+from propan.logger import empty
 from propan.logger.model.usecase import LoggerUsecase
 
 from propan.config import init_settings
 
 from propan.brokers.model.schemas import Queue
 from propan.brokers.model.bus_usecase import BrokerUsecase
-from propan.annotations import apply_types
+from propan.utils import apply_types, use_context
 
 
 class PropanApp:
     _instanse = None
-
-    apply_types = staticmethod(apply_types)
+    _context: Dict[str, Any] = {}
+    _on_startup_calling: List[Callable] = []
+    _on_shutdown_calling: List[Callable] = []
 
     def __new__(cls, *args, **kwargs):
         if cls._instanse is None:
@@ -39,13 +40,11 @@ class PropanApp:
         self.logger = logger
 
         self._is_apply_types: bool = apply_types
-        self._on_startup_calling: List[Callable] = []
-        self._on_shutdown_calling: List[Callable] = []
         self.loop = asyncio.get_event_loop()
 
-        self.ignore_exceptions = staticmethod(partial(
-            ignore_exceptions, logger=logger
-        ))
+        self.set_context("app", self)
+        self.set_context("broker", self.broker)
+
 
     async def startup(self):
         if (broker := self.broker) is not None:
@@ -72,17 +71,20 @@ class PropanApp:
         try:
             self.logger.info("Propan app starting...")
             self.loop.run_until_complete(self.startup())
-            self.logger.success("Propan app started successfully!")
+            self.logger.success("Propan app started successfully! To exit press CTRL+C")
 
             self.loop.run_forever()
         finally:
             self.logger.info("Propan app shutting down...")
             self.loop.run_until_complete(self.shutdown())
+            self.logger.info("Propan app shut down gracefully.")
 
     def handle(self, queue: Union[str, Queue], **broker_args):
         def decor(func):
+            func = use_context(self, func)
+
             if self._is_apply_types:
-                func = wraps(func)(apply_types(func))
+                func = apply_types(func)
 
             self.broker.set_handler(queue, func, **broker_args)
             return func
@@ -95,3 +97,6 @@ class PropanApp:
     def on_shutdown(self, func: Callable):
         self._on_shutdown_calling.append(func)
         return func
+
+    def set_context(self, key: str, v: Any):
+        self._context[key] = v
