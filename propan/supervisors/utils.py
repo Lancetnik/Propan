@@ -119,8 +119,8 @@ class Config:
         for directory in self.reload_dirs_excludes:
             for reload_directory in reload_dirs_tmp:
                 if (
-                    directory == reload_directory
-                    or directory in reload_directory.parents
+                    directory == reload_directory or
+                    directory in reload_directory.parents
                 ):
                     try:
                         self.reload_dirs.remove(reload_directory)
@@ -132,9 +132,9 @@ class Config:
                 self.reload_includes.remove(pattern)
         if not self.reload_dirs:
             if reload_dirs:
-                print(
+                print((
                     "Provided reload directories %s did not contain valid "
-                    + "directories, watching current working directory.",
+                    "directories, watching current working directory."),
                     reload_dirs,
                 )
             self.reload_dirs = [Path.cwd() / 'app']

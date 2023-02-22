@@ -1,6 +1,17 @@
 from collections import Counter
 
 
+class FakePushBackWatcher:
+    def add(self, message: str):
+        pass
+
+    def is_max(self, message: str):
+        return False
+
+    def remove(self, message: str):
+        pass
+
+
 class PushBackWatcher:
     memory = Counter()
     max_tries: int
