@@ -16,6 +16,8 @@ from propan.logger.model.usecase import LoggerUsecase
 from propan.brokers.model import BrokerUsecase, ConnectionData
 from propan.brokers.push_back_watcher import PushBackWatcher, FakePushBackWatcher
 
+from propan.utils.context.decorate import message as message_context
+
 from .schemas import RabbitQueue, RabbitExchange, Handler
 
 
@@ -180,6 +182,8 @@ class RabbitBroker(BrokerUsecase):
         if self.logger is not empty:
             func = _log_execution(queue.name, self.logger)(func)
 
+        func = _set_message_context(func)
+
         return func
 
 
@@ -213,6 +217,14 @@ def retry_proccess(try_number: Union[True, int] = True, logger: LoggerUsecase = 
                 return response
         return wrapper
     return decorator
+
+
+def _set_message_context(func: Callable) -> Callable:
+    @wraps(func)
+    async def wrapper(message: aio_pika.IncomingMessage) -> None:
+        message_context.set(message)
+        return await func(message)
+    return wrapper
 
 
 def _rabbit_decode(func: Callable) -> Callable:
