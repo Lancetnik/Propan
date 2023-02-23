@@ -1,5 +1,9 @@
+from contextvars import ContextVar
 from functools import wraps
 from inspect import signature
+
+
+message = ContextVar("message", default=None)
 
 
 def use_context(app, func):
@@ -8,9 +12,11 @@ def use_context(app, func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        context = {**app._context, "message": message.get()}
+        context_keys = context.keys()
         return func(*args, **kwargs, **{
-            k: v
-            for k, v in app._context.items()
-            if k in arg_names
+            k: context[k]
+            for k in arg_names
+            if k in context_keys
         })
     return wrapper
