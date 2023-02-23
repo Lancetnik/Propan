@@ -1,7 +1,7 @@
 # Decorators ordering
 
 ```mermaid
-  flowchart LR
+  graph TD
     broker_logger{broker with logger}
     is_retry{retry setted}
     is_apply_types{use types casting}
