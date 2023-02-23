@@ -11,6 +11,7 @@ from propan.config import init_settings
 from propan.brokers.model.schemas import Queue
 from propan.brokers.model.bus_usecase import BrokerUsecase
 from propan.utils import apply_types, use_context
+from propan.utils.context.decorate import global_context
 
 
 class PropanApp:
@@ -41,8 +42,10 @@ class PropanApp:
         self._is_apply_types: bool = apply_types
         self.loop = asyncio.get_event_loop()
 
+        self._context = global_context
         self.set_context("app", self)
         self.set_context("broker", self.broker)
+        self.set_context("logger", self.logger)
 
 
     async def startup(self):
@@ -80,7 +83,7 @@ class PropanApp:
 
     def handle(self, queue: Union[str, Queue], **broker_args):
         def decor(func):
-            func = use_context(self, func)
+            func = use_context(func)
 
             if self._is_apply_types:
                 func = apply_types(func)

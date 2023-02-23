@@ -1,26 +1,29 @@
 from contextvars import ContextVar
 from functools import wraps
-from inspect import signature, _empty
+from inspect import signature
 
 from .types import Alias
+
+
+global_context = {}
 
 message = ContextVar("message", default=None)
 
 
-def use_context(app, func):
+def use_context(func):
     sig = signature(func).parameters
 
     aliases = {
-        param.annotation.name: name
+        param.default.name: name
         for name, param in sig.items()
-        if isinstance(param.annotation, Alias)
+        if isinstance(param.default, Alias)
     }
 
     arg_names = (set(sig.keys()) - set(aliases.values())) | set(aliases.keys())
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        context = {**app._context, "message": message.get()}
+        context = {**global_context, "message": message.get()}
         context_keys = context.keys()
         return func(*args, **kwargs, **{
             aliases.get(k, k): context[k]
