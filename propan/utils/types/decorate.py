@@ -2,6 +2,8 @@ from functools import wraps
 from inspect import signature, _empty
 from typing import Mapping, Callable, Any
 
+from propan.utils.context import Alias
+
 
 def apply_types(func: Callable) -> Callable:
     sig = signature(func).parameters
@@ -14,6 +16,7 @@ def apply_types(func: Callable) -> Callable:
 
     def _cast_type(arg_value: Any, arg_name: str):
         if (arg_type := annotations.get(arg_name)) is not None and \
+                not isinstance(arg_type, Alias) and \
                 isinstance(arg_value, arg_type) is False:
 
             if isinstance(arg_value, Mapping):
