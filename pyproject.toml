@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "propan"
-version = "0.0.5.6"
+version = "0.0.6.0"
 description = "Simple and fast framework to create message brokers based microservices"
 readme = "README.md"
 homepage = "https://github.com/PasNA6713/Propan"

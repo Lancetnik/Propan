@@ -40,7 +40,7 @@ class LoguruAdapter(LoggerUsecase):
 
     def catch(self, func, reraise: bool = False):
         func = wraps(func)(logger.catch)(func, reraise=reraise)
-        
+
         if iscoroutinefunction(func):
             @wraps(func)
             async def wrapped(*args, **kwargs):
@@ -49,5 +49,5 @@ class LoguruAdapter(LoggerUsecase):
             @wraps(func)
             def wrapped(*args, **kwargs):
                 return func(*args, **kwargs)
-        
+
         return wrapped

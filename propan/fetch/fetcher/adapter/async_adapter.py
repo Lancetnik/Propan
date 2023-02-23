@@ -6,7 +6,7 @@ import aiohttp
 from aiohttp.client_exceptions import (
     ServerTimeoutError, ClientHttpProxyError,
     ClientProxyConnectionError, ContentTypeError,
-    ClientOSError, ServerDisconnectedError
+    ServerDisconnectedError
 )
 
 from propan.logger.model.usecase import LoggerUsecase
