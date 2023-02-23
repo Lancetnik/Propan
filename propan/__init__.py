@@ -7,17 +7,18 @@ from propan.app import PropanApp
 from propan.brokers import RabbitBroker
 from propan.logger import loguru as logger, empty
 
-
-__all__ = (
-    "PropanApp",
-    "RabbitBroker",
-    "logger"
-)
-
-__version__ = '0.0.5.5'
+# Imports to use at __all__
+from propan.brokers import *
+from propan.config import *
+from propan.logger import *
+from propan.fetch import *
+from propan.utils import *
 
 
-def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
+__version__ = "0.0.6.1"
+
+
+def _print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
     import platform
 
     if not value or ctx.resilient_parsing:
@@ -40,7 +41,7 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> No
 @click.option(
     "--version",
     is_flag=True,
-    callback=print_version,
+    callback=_print_version,
     expose_value=False,
     is_eager=True,
     help="Display the propan version and exit.",
@@ -87,7 +88,7 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> No
 def run(
     app: str,
     reload: bool,
-    config: str, 
+    config: str,
     start: bool,
     uvloop: bool,
     consumers: Optional[int],
@@ -130,10 +131,8 @@ def _run(app: str, config: str, consumers: int, uvloop: bool, mulriprocess: bool
         from propan.config.configuration import init_settings
         config = init_settings(
             BASE_DIR, config,
-            uvloop=uvloop, 
-            **{
-                "MAX_CONSUMERS": consumers
-            }
+            uvloop=uvloop,
+            **{"MAX_CONSUMERS": consumers}
         )
 
         spec = spec_from_file_location("mode", f'{mod_path}.py')

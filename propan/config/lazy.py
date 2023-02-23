@@ -51,7 +51,7 @@ class LazySettings:
     def configure(self, default_settings, **options):
         if self.IS_CONFIGURED is True:
             return self._wrapped
-        
+
         for name, value in options.items():
             if not name.isupper():
                 raise TypeError('Setting %r must be uppercase.' % name)
