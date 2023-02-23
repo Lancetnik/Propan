@@ -1,7 +1,7 @@
 # Decorators ordering
 
 ```mermaid
-  graph Decorators;
+  graph TD;
       _log_execution-->retry_proccess;
       retry_proccess-->_rabbit_decode;
       _rabbit_decode-->use_context;
