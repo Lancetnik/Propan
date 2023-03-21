@@ -1,6 +1,6 @@
 import pytest
 
-from propan.brokers import RabbitBroker, ConnectionData
+from propan.brokers import RabbitBroker
 
 
 async def _init_channel(broker):
@@ -19,18 +19,6 @@ async def _connect(broker):
 @pytest.mark.asyncio
 async def test_init_connect_by_url(settings):
     broker = RabbitBroker(url=settings.url)
-    assert await _connect(broker)
-
-
-@pytest.mark.asyncio
-async def test_init_connect_by_connection_data(settings):
-    connection = ConnectionData(
-        host=settings.host,
-        login=settings.login,
-        password=settings.password,
-        port=settings.port
-    )
-    broker = RabbitBroker(connection_data=connection)
     assert await _connect(broker)
 
 

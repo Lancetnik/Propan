@@ -7,7 +7,7 @@ from pamqp.common import FieldTable
 
 from propan.logger import empty
 from propan.logger.model.usecase import LoggerUsecase
-from propan.brokers.model import BrokerUsecase, ConnectionData
+from propan.brokers.model import BrokerUsecase
 
 from .schemas import RabbitExchange, RabbitQueue
 
@@ -27,7 +27,7 @@ class RabbitBroker(BrokerUsecase):
                        client_properties: Optional[FieldTable] = None,
                        *,
                        logger: LoggerUsecase = empty,
-                       connection_data: Optional[ConnectionData] = None,
+                       apply_types: bool = True,
                        consumers: Optional[int] = None):
         ...
 
@@ -48,16 +48,20 @@ class RabbitBroker(BrokerUsecase):
     async def publish_message(self,
                               message: Union[aio_pika.Message, str, dict],
                               queue: str = "",
-                              exchange: Union[RabbitExchange, str, None] = None,
+                              exchange: Union[RabbitExchange,
+                                              str, None] = None,
                               mandatory: bool = True,
                               immediate: bool = False,
                               timeout: aio_pika.abc.TimeoutType = None) -> None:
         ...
 
-    def set_handler(self,
-                    queue: Union[str, RabbitQueue],
-                    func: Callable,
-                    exchange: Union[RabbitExchange, None, str] = None) -> None:
+    def handle(self,
+               queue: Union[str, RabbitQueue],
+               exchange: Union[str, RabbitExchange, None] = None,
+               retry: Union[bool, int] = False) -> Callable:
+        '''
+        retry: Union[bool, int] - at exeption message will returns to queue `int` times or endless if `True`
+        '''
         ...
 
 

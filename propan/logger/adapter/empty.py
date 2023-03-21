@@ -1,3 +1,5 @@
+from functools import wraps
+
 from propan.logger.model.usecase import LoggerUsecase
 
 
@@ -18,9 +20,10 @@ class EmptyLogger(LoggerUsecase):
         pass
 
     def catch(self, func, reraise: bool = False):
-        async def wrapped(*args, **kwargs):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
             return await func(*args, **kwargs)
-        return wrapped
+        return wrapper
 
 
 empty = EmptyLogger()
