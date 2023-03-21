@@ -8,14 +8,13 @@ from propan.brokers import RabbitBroker
 from propan.logger import loguru as logger, empty
 
 # Imports to use at __all__
-from propan.brokers import *
-from propan.config import *
-from propan.logger import *
-from propan.fetch import *
-from propan.utils import *
+from propan.brokers import *  # noqa: F403
+from propan.config import *  # noqa: F403
+from propan.logger import *  # noqa: F403
+from propan.utils import *  # noqa: F403
 
 
-__version__ = "0.0.6.1"
+__version__ = "0.0.6.3"
 
 
 def _print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:

@@ -21,7 +21,7 @@ class LoggerUsecase(Protocol):
 
     def catch(self, func: Callable) -> Callable:
         raise NotImplementedError()
-    
+
     def log(self, *args, **kwargs):
         raise NotImplementedError()
 

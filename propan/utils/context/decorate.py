@@ -13,11 +13,11 @@ message = ContextVar("message", default=None)
 def use_context(func):
     sig = signature(func).parameters
 
-    aliases = {
-        param.default.name: name
-        for name, param in sig.items()
-        if isinstance(param.default, Alias)
-    }
+    aliases = {}
+
+    for name, param in sig.items():
+        if isinstance(param.default, Alias):
+            aliases[param.default.name] = name
 
     arg_names = (set(sig.keys()) - set(aliases.values())) | set(aliases.keys())
 

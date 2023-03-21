@@ -1,17 +1,18 @@
 import pytest
 import pytest_asyncio
+
 from pydantic import BaseSettings
 
 from propan.brokers import RabbitBroker
 
 
 class Settings(BaseSettings):
-    url = "amqp://user:password@localhost:5672/"
+    url = "amqp://guest:guest@localhost:5672/"
 
     host = "localhost"
     port = 5672
-    login = "user"
-    password = "password"
+    login = "guest"
+    password = "guest"
 
     queue = "test_queue"
 
@@ -24,7 +25,5 @@ def settings():
 @pytest_asyncio.fixture
 async def broker(settings):
     broker = RabbitBroker(settings.url)
-    await broker.connect()
-    await broker.init_channel()
     yield broker
     await broker.close()

@@ -8,7 +8,7 @@ loguru = LoguruAdapter()
 
 __all__ = (
     'loguru',
-    'empty'
+    'empty',
     'ignore_exceptions',
-    'LoggerSimpleComposition'
+    'LoggerSimpleComposition',
 )

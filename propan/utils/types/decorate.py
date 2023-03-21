@@ -2,6 +2,11 @@ from functools import wraps
 from inspect import signature, _empty
 from typing import Mapping, Callable, Any
 
+from propan.utils.context import Alias
+
+
+NOT_CAST = (Alias,)
+
 
 def apply_types(func: Callable) -> Callable:
     sig = signature(func).parameters
@@ -9,7 +14,7 @@ def apply_types(func: Callable) -> Callable:
     annotations = {
         name: param.annotation
         for name, param in sig.items()
-        if param.annotation != _empty
+        if param.annotation != _empty and type(param.default) not in NOT_CAST
     }
 
     def _cast_type(arg_value: Any, arg_name: str):
