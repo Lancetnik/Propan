@@ -17,8 +17,8 @@ from propan.brokers.rabbit.schemas import RabbitQueue, RabbitExchange, Handler
 class RabbitBroker(BrokerUsecase):
     logger: LoggerUsecase
     handlers: List[Handler] = []
-    _connection: aio_pika.RobustConnection
-    _channel: aio_pika.RobustChannel
+    _connection: Optional[aio_pika.RobustConnection] = None
+    _channel: Optional[aio_pika.RobustChannel] = None
 
     def __init__(
         self,
@@ -36,26 +36,31 @@ class RabbitBroker(BrokerUsecase):
         self._is_apply_types = apply_types
 
     async def connect(self, *args, **kwargs) -> aio_pika.Connection:
-        _args = args or self._connection_args
-        _kwargs = kwargs or self._connection_kwargs
+        if self._connection is None:
+            _args = args or self._connection_args
+            _kwargs = kwargs or self._connection_kwargs
 
-        try:
-            self._connection = await aio_pika.connect_robust(
-                *_args, **_kwargs, loop=asyncio.get_event_loop()
-            )
+            try:
+                self._connection = await aio_pika.connect_robust(
+                    *_args, **_kwargs, loop=asyncio.get_event_loop()
+                )
 
-        except Exception as e:
-            self.logger.error(e)
-            exit()
+            except Exception as e:
+                self.logger.error(e)
+                exit()
 
-        return self._connection
+            return self._connection
 
     async def init_channel(self, max_consumers: Optional[int] = None) -> None:
-        max_consumers = max_consumers or self._max_consumers
-        self._channel = await self._connection.channel()
-        if max_consumers:
-            self.logger.info(f"Set max consumers to {max_consumers}")
-            await self._channel.set_qos(prefetch_count=int(max_consumers))
+        if self._channel is None:
+            if self._connection is None:
+                raise ValueError("RabbitBroker not connected yet")
+
+            max_consumers = max_consumers or self._max_consumers
+            self._channel = await self._connection.channel()
+            if max_consumers:
+                self.logger.info(f"Set max consumers to {max_consumers}")
+                await self._channel.set_qos(prefetch_count=int(max_consumers))
 
     def handle(self,
                queue: Union[str, RabbitQueue],
@@ -105,6 +110,9 @@ class RabbitBroker(BrokerUsecase):
                               queue: str = "",
                               exchange: Union[RabbitExchange, str, None] = None,
                               **publish_args) -> None:
+        if self._channel is None:
+            raise ValueError("RabbitBroker channel not started yet")
+
         if not isinstance(message, aio_pika.Message):
             if isinstance(message, dict):
                 message = aio_pika.Message(json.dumps(
