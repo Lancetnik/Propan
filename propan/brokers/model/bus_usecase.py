@@ -7,10 +7,8 @@ from propan.logger.model.usecase import LoggerUsecase
 
 from propan.brokers.push_back_watcher import BaseWatcher, PushBackWatcher, FakePushBackWatcher
 
-from propan.utils.context.decorate import message as message_context
+from propan.utils.context import message as message_context
 from propan.utils import apply_types, use_context
-
-from .schemas import Queue
 
 
 class BrokerUsecase(Protocol):

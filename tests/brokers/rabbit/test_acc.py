@@ -40,18 +40,9 @@ async def test_same_consume(broker: RabbitBroker):
     await broker.connect()
     await broker.init_channel()
 
-    was_called_1 = [False]
-    await _test_consume(broker, "test3", was_called_1)
-
-    was_called_2 = [False]
-    await _test_consume(broker, "test3", was_called_2)
-    await broker.start()
-
-    await _wait_for_message(was_called_1)
-    assert was_called_1[0], "Message1 not reseaved"
-
-    await _wait_for_message(was_called_2, 10)
-    assert was_called_2[0] is False, "Message2 reseaved"
+    with pytest.raises(ValueError):
+        broker.handle("test")(lambda: None)
+        broker.handle("test")(lambda: None)
 
 
 async def _test_consume(broker, queue, was_called):

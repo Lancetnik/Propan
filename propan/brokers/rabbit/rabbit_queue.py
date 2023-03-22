@@ -82,6 +82,12 @@ class RabbitBroker(BrokerUsecase):
         parent = super()
 
         def wrapper(func) -> None:
+            for handler in self.handlers:
+                if handler.exchange == exchange and handler.queue == queue:
+                    raise ValueError(f"`{func.__name__}` uses already "
+                                     f"using `{queue.name}` queue to listen "
+                                     f"`{exchange.name if exchange else 'default'}` exchange")
+
             func = parent.handle(func, retry)
             handler = Handler(callback=func, queue=queue, exchange=exchange)
             self.handlers.append(handler)
@@ -99,8 +105,8 @@ class RabbitBroker(BrokerUsecase):
 
             self.logger.info(
                 '[*] Waiting for messages in '
-                f'`{handler.exchange.name if handler.exchange else "default"}` exchange with '
-                f'`{handler.queue.name}` queue.'
+                f'`{handler.exchange.name if handler.exchange else "default"}` exchange, '
+                f'`{handler.queue.name}` queue with `{func.__name__}` function'
             )
 
             await queue.consume(func)
@@ -108,25 +114,29 @@ class RabbitBroker(BrokerUsecase):
     async def publish_message(self,
                               message: Union[aio_pika.Message, str, dict],
                               queue: str = "",
-                              exchange: Union[RabbitExchange, str, None] = None,
+                              exchange: Union[RabbitExchange,
+                                              str, None] = None,
                               **publish_args) -> None:
         if self._channel is None:
             raise ValueError("RabbitBroker channel not started yet")
 
         if not isinstance(message, aio_pika.Message):
             if isinstance(message, dict):
-                message = aio_pika.Message(json.dumps(
-                    message).encode(), content_type="application/json")
+                message = aio_pika.Message(
+                    json.dumps(message).encode(),
+                    content_type="application/json"
+                )
             else:
                 message = aio_pika.Message(
-                    message.encode(), content_type="text/plain")
+                    message.encode(),
+                    content_type="text/plain"
+                )
 
         if exchange is not None:
             if isinstance(exchange, str):
                 exchange = RabbitExchange(name=exchange)
             elif not isinstance(exchange, RabbitExchange):
-                raise ValueError(
-                    f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance")
+                raise ValueError(f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance")
 
         if exchange is None:
             exchange_obj = self._channel.default_exchange
@@ -170,7 +180,8 @@ class RabbitBroker(BrokerUsecase):
             else:
                 context = WatcherContext(watcher, message.message_id,
                                          on_success=partial(message.ack),
-                                         on_error=partial(message.reject, True),
+                                         on_error=partial(
+                                             message.reject, True),
                                          on_max=partial(message.reject, False))
             async with context:
                 return await func(message)
