@@ -1,35 +1,55 @@
 [tool.poetry]
 name = "propan"
-version = "0.0.6.3"
+version = "0.0.6.8"
 description = "Simple and fast framework to create message brokers based microservices"
 readme = "README.md"
-homepage = "https://github.com/PasNA6713/Propan"
-repository = "https://github.com/PasNA6713/Propan"
-documentation = "https://github.com/PasNA6713/Propan"
+homepage = "https://github.com/Lancetnik/Propan"
 keywords = ["rabbitmq", "framework", "message brokers"]
-authors = ["PasNA6713 <diementros@gmail.com>"]
-classifiers = [
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+
+authors = [
+    'Pastukhov Nikita <diementros@yandex.ru>'
 ]
+
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Information Technology',
+    'Intended Audience :: System Administrators',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Topic :: Internet',
+]
+
+
+[tool.poetry.urls]
+"Source" = "https://github.com/Lancetnik/Propan"
+"Tracker" = "https://github.com/Lancetnik/Propan/issues"
+"Documentation" = "https://github.com/Lancetnik/Propan"
+
 
 [tool.poetry.scripts]
 propan = "propan:run"
 
 [tool.poetry.dependencies]
 python = ">3.8,<4"
-aiohttp = "^3.7.4.post0"
-PyYAML = "^5.4.1"
 pydantic = "^1.8.2"
 watchgod = "*"
-loguru = "*"
 click = "*"
-uvloop = "^0.17.0"
-aio-pika = "^9.0.2"
 
-[tool.poetry.dev-dependencies]
+"aio-pika" = { version=">9", optional= true, extras = ["async-rabbit"] }
+
+[tool.poetry.extras]
+"async-rabbit" = ["aio-pika"]
+
+[tool.poetry.group.dev.dependencies]
 pytest = "*"
 pytest-asyncio = "*"
 python-lsp-server = "*"
@@ -38,9 +58,6 @@ flake8 = "*"
 flake8-isort = "*"
 autopep8 = "*"
 
-[tool.poetry.extras]
-rabbit = ["aio-pika"]
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

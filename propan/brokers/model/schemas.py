@@ -12,6 +12,9 @@ class NameRequired(BaseModel):
     def __hash__(self):
         return hash(self.json())
 
+    def __eq__(self, other: 'NameRequired') -> bool:
+        return self.name == other.name
+
 
 class Queue(NameRequired):
     name: Optional[str] = Field(...)

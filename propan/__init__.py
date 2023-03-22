@@ -14,7 +14,7 @@ from propan.logger import *  # noqa: F403
 from propan.utils import *  # noqa: F403
 
 
-__version__ = "0.0.6.3"
+__version__ = "0.0.6.8"
 
 
 def _print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:

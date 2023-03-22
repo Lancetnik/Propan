@@ -1,27 +1,24 @@
 import asyncio
-from typing import Optional, Callable, List, Dict, Any, NoReturn
+from typing import (
+    Optional, Callable, NoReturn,
+    List, Dict, Any
+)
 from pathlib import Path
-import inspect
 
 from propan.logger import empty
 from propan.logger.model.usecase import LoggerUsecase
 
 from propan.config import init_settings
-
+from propan.utils.classes import Singlethon
+from propan.utils.context import use_context, context
+from propan.utils.functions import call_or_await
 from propan.brokers.model.bus_usecase import BrokerUsecase
-from propan.utils.context.decorate import global_context
 
 
-class PropanApp:
-    _instanse = None
+class PropanApp(Singlethon):
     _context: Dict[str, Any] = {}
     _on_startup_calling: List[Callable] = []
     _on_shutdown_calling: List[Callable] = []
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instanse is None:
-            cls._instanse = super().__new__(cls)
-        return cls._instanse
 
     def __init__(
         self,
@@ -38,49 +35,39 @@ class PropanApp:
 
         self.loop = asyncio.get_event_loop()
 
-        self._context = global_context
-        self.set_context("app", self)
-        self.set_context("broker", self.broker)
-        self.set_context("logger", self.logger)
+        context.set_context("app", self)
+        context.set_context("broker", self.broker)
+        context.set_context("logger", self.logger)
 
+    def on_startup(self, func: Callable):
+        self._on_startup_calling.append(use_context(func))
+        return func
 
-    async def startup(self):
-        if (broker := self.broker) is not None:
-            self.logger.info(f"Listening: {', '.join((i.queue.name for i in broker.handlers))} queues")
-            await broker.start()
-
-        for func in self._on_startup_calling:
-            f = func()
-            if inspect.isawaitable(f):
-                await f
-
-    async def shutdown(self):
-        if getattr(self.broker, "_connection", False) is not False:
-            await self.broker.close()
-
-        for func in self._on_shutdown_calling:
-            f = func()
-            if inspect.isawaitable(f):
-                await f
+    def on_shutdown(self, func: Callable):
+        self._on_shutdown_calling.append(use_context(func))
+        return func
 
     def run(self) -> NoReturn:
         try:
             self.logger.info("Propan app starting...")
-            self.loop.run_until_complete(self.startup())
+            self.loop.run_until_complete(self._startup())
             self.logger.info("Propan app started successfully! To exit press CTRL+C")
             self.loop.run_forever()
         finally:
             self.logger.info("Propan app shutting down...")
-            self.loop.run_until_complete(self.shutdown())
+            self.loop.run_until_complete(self._shutdown())
             self.logger.info("Propan app shut down gracefully.")
 
-    def on_startup(self, func: Callable):
-        self._on_startup_calling.append(func)
-        return func
+    async def _startup(self):
+        if (broker := self.broker) is not None:
+            await broker.start()
 
-    def on_shutdown(self, func: Callable):
-        self._on_shutdown_calling.append(func)
-        return func
+        for func in self._on_startup_calling:
+            await call_or_await(func)
 
-    def set_context(self, key: str, v: Any):
-        self._context[key] = v
+    async def _shutdown(self):
+        if getattr(self.broker, "_connection", False) is not False:
+            await self.broker.close()
+
+        for func in self._on_shutdown_calling:
+            await call_or_await(func)

@@ -4,6 +4,7 @@ import pytest_asyncio
 from pydantic import BaseSettings
 
 from propan.brokers import RabbitBroker
+from propan.utils import context as global_context
 
 
 class Settings(BaseSettings):
@@ -20,6 +21,12 @@ class Settings(BaseSettings):
 @pytest.fixture(scope="session")
 def settings():
     return Settings()
+
+
+@pytest.fixture
+def context():
+    yield global_context
+    global_context.clear()
 
 
 @pytest_asyncio.fixture
