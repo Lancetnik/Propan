@@ -2,7 +2,7 @@ import os
 import signal
 import threading
 from types import FrameType
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 from propan.supervisors.utils import get_subprocess
 

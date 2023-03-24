@@ -1,30 +1,61 @@
 from functools import wraps
 from inspect import signature
+from typing import Any, TypeAlias, Callable
 
-from propan.utils.context.types import Alias
+from propan.utils.functions import call_or_await, remove_useless_arguments
+from propan.utils.context.types import Alias, Depends
 from propan.utils.context.main import context as global_context
+
+
+FuncArgName: TypeAlias = str
+AliasStr: TypeAlias = str
 
 
 def use_context(func):
     sig = signature(func).parameters
 
-    aliases: dict[str, str] = {}
+    aliases: dict[AliasStr, FuncArgName] = {}
+    dependencies: dict[FuncArgName, Callable] = {}
 
     for name, param in sig.items():
         if isinstance(param.default, Alias):
             aliases[param.default.name] = name
+        elif isinstance(param.default, Depends):
+            dependencies[name] = param.default.func
 
-    function_args = set(sig.keys())
-    args_with_aliases_casted = (function_args - set(aliases.values())) | set(aliases.keys())
+    func_args_with_aliases_casted = (set(sig.keys()) - set(aliases.values())) | set(aliases.keys())
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
+    def _cast_context(*args, **kwargs) -> tuple[tuple, dict]:
         context = global_context.context
 
         context_keys = context.keys()
-        return func(*args, **kwargs, **{
-            aliases.get(k, k): context[k]
-            for k in args_with_aliases_casted
-            if k in context_keys
-        })
+
+        for k in func_args_with_aliases_casted:
+            keys = k.split(".")
+
+            func_argument_name = aliases.get(k, k)
+            if keys[0] in context_keys:
+                func_argument_value = _get_context_by_key(context, keys)
+            else:
+                func_argument_value = _get_context_by_key(kwargs, keys)
+            kwargs[func_argument_name] = func_argument_value
+
+        return args, kwargs
+
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        args, kwargs = _cast_context(*args, **kwargs)
+        for k, f in dependencies.items():
+            kw = remove_useless_arguments(f, *args, **kwargs)
+            kwargs[k] = await call_or_await(f, **kw)
+        return await func(*args, **kwargs)
+
     return wrapper
+
+def _get_context_by_key(context: dict, keys: list[str]) -> Any:
+    v = context.get(keys[0])
+    for i in keys[1:]:
+        v = getattr(v, i, None)
+        if v is None:
+            return v
+    return v

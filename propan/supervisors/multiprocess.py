@@ -51,7 +51,7 @@ class Multiprocess:
         for sig in HANDLED_SIGNALS:
             signal.signal(sig, self.signal_handler)
 
-        for idx in range(self.workers):
+        for _ in range(self.workers):
             process = get_subprocess(target=self._target, args=self._args)
             process.start()
             print(f"Started child process [{process.pid}]")

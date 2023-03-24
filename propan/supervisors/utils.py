@@ -4,7 +4,6 @@ import sys
 from multiprocessing.context import SpawnProcess
 from multiprocessing import Process
 from pathlib import Path
-from socket import socket
 from typing import Callable, List, Optional, Union, Tuple
 
 
@@ -98,7 +97,7 @@ def resolve_reload_patterns(
 class Config:
     def __init__(
         self,
-        reload_dirs: Optional[Union[List[str], str]] = [Path.cwd() / 'app'],
+        reload_dirs: Optional[Union[List[str], str]] = Path.cwd(),
         reload_includes: Optional[Union[List[str], str]] = None,
         reload_excludes: Optional[Union[List[str], str]] = None
     ):

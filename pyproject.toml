@@ -41,6 +41,7 @@ propan = "propan:run"
 [tool.poetry.dependencies]
 python = ">3.8,<4"
 pydantic = "^1.8.2"
+asgiref = "^3.6"
 watchgod = "*"
 click = "*"
 

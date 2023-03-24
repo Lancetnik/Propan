@@ -2,10 +2,10 @@ from functools import wraps
 from inspect import signature, _empty
 from typing import Mapping, Callable, Any
 
-from propan.utils.context import Alias
+from propan.utils.context.types import Alias, Depends
 
 
-NOT_CAST = (Alias,)
+NOT_CAST = (Alias, Depends)
 
 
 def apply_types(func: Callable) -> Callable:

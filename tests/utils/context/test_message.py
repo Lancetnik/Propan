@@ -6,7 +6,7 @@ from propan.brokers import RabbitBroker
 
 
 @pytest.mark.asyncio
-async def test_different_consume(context, broker: RabbitBroker):
+async def test_different_consumers_has_different_messages(context, broker: RabbitBroker):
     await broker.connect()
     await broker.init_channel()
 
