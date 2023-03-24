@@ -1,3 +1,5 @@
+import pytest
+
 from propan.utils import use_context
 
 
@@ -9,27 +11,30 @@ def test_context_getattr(context):
     assert context.key2 is None
 
 
-def test_context_apply(context):
+@pytest.mark.asyncio
+async def test_context_apply(context):
     a = 1000
     context.set_context("key", a)
 
     @use_context
-    def use(key):
-        assert key is a
-    use()
+    async def use(key):
+        return key is a
+    assert await use()
 
 
-def test_context_ignore(context):
+@pytest.mark.asyncio
+async def test_context_ignore(context):
     a = 3
     context.set_context("key", a)
 
     @use_context
-    def use():
+    async def use():
         pass
-    use()
+    assert await use() is None
 
 
-def test_context_apply_multi(context):
+@pytest.mark.asyncio
+async def test_context_apply_multi(context):
     a = 1001
     context.set_context("key_a", a)
 
@@ -37,23 +42,23 @@ def test_context_apply_multi(context):
     context.set_context("key_b", b)
 
     @use_context
-    def use1(key_a):
-        assert key_a is a
-    use1()
+    async def use1(key_a):
+        return key_a is a
+    assert await use1()
 
     @use_context
-    def use2(key_b):
-        assert key_b is b
-    use2()
+    async def use2(key_b):
+        return key_b is b
+    assert await use2()
 
     @use_context
-    def use3(key_a, key_b):
-        assert key_a is a
-        assert key_b is b
-    use3()
+    async def use3(key_a, key_b):
+        return key_a is a and key_b is b
+    assert await use3()
 
 
-def test_context_overrides(context):
+@pytest.mark.asyncio
+async def test_context_overrides(context):
     a = 1001
     context.set_context("test", a)
 
@@ -61,6 +66,6 @@ def test_context_overrides(context):
     context.set_context("test", b)
 
     @use_context
-    def use(test):
-        assert test is b
-    use()
+    async def use(test):
+        return test is b
+    assert await use()

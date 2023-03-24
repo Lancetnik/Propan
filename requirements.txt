@@ -2,6 +2,7 @@ aiohttp
 PyYAML
 pydantic
 aio-pika
+asgiref==3.6.0
 
 watchgod 
 loguru
