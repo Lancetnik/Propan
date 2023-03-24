@@ -3,13 +3,11 @@ from collections import Counter
 from typing import Optional, Type, Callable
 from types import TracebackType
 
-from propan.logger import empty
-
 
 class BaseWatcher(ABC):
     max_tries: int
 
-    def __init__(self, logger=empty, max_tries: int = None):
+    def __init__(self, logger=None, max_tries: int = None):
         self.logger = logger
         self.max_tries = max_tries
 

@@ -1,13 +1,13 @@
-from inspect import signature, iscoroutinefunction
+from inspect import signature, isawaitable
 
 from typing import Any
 
 
 async def call_or_await(func, *args, **kwargs) -> Any:
-    if iscoroutinefunction(func):
-        return await func(*args, **kwargs)
-    else:
-        return func(*args, **kwargs)
+    f = func(*args, **kwargs)
+    if isawaitable(f):
+        f = await f
+    return f
 
 
 def remove_useless_arguments(func, *args, **kwargs) -> dict:

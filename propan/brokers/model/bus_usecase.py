@@ -1,9 +1,9 @@
 from functools import wraps, partial
+from logging import Logger
 from time import monotonic
 from typing import Protocol, Callable, Dict, Union, Optional
 
-from propan.logger import empty
-from propan.logger.model.usecase import LoggerUsecase
+from propan.log import logger
 
 from propan.brokers.push_back_watcher import BaseWatcher, PushBackWatcher, FakePushBackWatcher
 
@@ -51,15 +51,14 @@ class BrokerUsecase(Protocol):
         func = retry_proccess(
             partial(self._process_message, func), retry, self.logger)
 
-        if self.logger is not empty:
-            func = _log_execution(self.logger)(func)
+        func = _log_execution(self.logger)(func)
 
         func = _set_message_context(func)
 
         return func
 
 
-def retry_proccess(func: Callable, try_number: Union[bool, int] = True, logger: LoggerUsecase = empty):
+def retry_proccess(func: Callable, try_number: Union[bool, int] = True, logger: Logger = logger):
     if try_number is True:
         watcher = FakePushBackWatcher(logger=logger)
     elif try_number is False:

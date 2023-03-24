@@ -1,12 +1,12 @@
 from ssl import SSLContext
+from logging import Logger
 from typing import Union, Optional, Callable
 from yarl import URL
 
 import aio_pika
 from pamqp.common import FieldTable
 
-from propan.logger import empty
-from propan.logger.model.usecase import LoggerUsecase
+from propan.log import logger
 from propan.brokers.model import BrokerUsecase
 
 from .schemas import RabbitExchange, RabbitQueue
@@ -26,7 +26,7 @@ class RabbitBroker(BrokerUsecase):
                        timeout: aio_pika.abc.TimeoutType = None,
                        client_properties: Optional[FieldTable] = None,
                        *,
-                       logger: LoggerUsecase = empty,
+                       logger: Logger = logger,
                        apply_types: bool = True,
                        consumers: Optional[int] = None):
         ...
