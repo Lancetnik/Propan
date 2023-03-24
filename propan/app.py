@@ -3,12 +3,10 @@ from typing import (
     Optional, Callable, NoReturn,
     List, Dict, Any
 )
-from pathlib import Path
 
-from propan.logger import empty
-from propan.logger.model.usecase import LoggerUsecase
+from logging import Logger
 
-from propan.config import init_settings
+from propan.log import logger
 from propan.utils.classes import Singlethon
 from propan.utils.context import use_context, context
 from propan.utils.functions import call_or_await
@@ -23,13 +21,9 @@ class PropanApp(Singlethon):
     def __init__(
         self,
         broker: Optional[BrokerUsecase] = None,
-        logger: LoggerUsecase = empty,
-        settings_dir: Optional[Path] = None,
+        logger: Logger = logger,
         *args, **kwargs
     ):
-        if settings_dir:
-            self.settings = init_settings(settings_dir, settings_dir="")
-
         self.broker = broker
         self.logger = logger
 

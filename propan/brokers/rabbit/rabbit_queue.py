@@ -1,12 +1,12 @@
 import asyncio
+from logging import Logger
 from functools import wraps, partial
 from typing import Optional, Callable, Union, List
 import json
 
 import aio_pika
 
-from propan.logger import empty
-from propan.logger.model.usecase import LoggerUsecase
+from propan.log import logger
 
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
@@ -15,7 +15,7 @@ from propan.brokers.rabbit.schemas import RabbitQueue, RabbitExchange, Handler
 
 
 class RabbitBroker(BrokerUsecase):
-    logger: LoggerUsecase
+    logger: Logger
     handlers: List[Handler] = []
     _connection: Optional[aio_pika.RobustConnection] = None
     _channel: Optional[aio_pika.RobustChannel] = None
@@ -23,7 +23,7 @@ class RabbitBroker(BrokerUsecase):
     def __init__(
         self,
         *args,
-        logger: LoggerUsecase = empty,
+        logger: Logger = logger,
         apply_types: bool = True,
         consumers: Optional[int] = None,
         **kwargs
