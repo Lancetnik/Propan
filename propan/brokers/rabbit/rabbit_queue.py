@@ -150,7 +150,8 @@ class RabbitBroker(BrokerUsecase):
         )
 
     async def close(self):
-        await self._connection.close()
+        if self._connection:
+            await self._connection.close()
 
     async def _init_handler(self, handler: Handler):
         queue = await self._channel.declare_queue(**handler.queue.dict())
@@ -180,8 +181,7 @@ class RabbitBroker(BrokerUsecase):
             else:
                 context = WatcherContext(watcher, message.message_id,
                                          on_success=partial(message.ack),
-                                         on_error=partial(
-                                             message.reject, True),
+                                         on_error=partial(message.reject, True),
                                          on_max=partial(message.reject, False))
             async with context:
                 return await func(message)

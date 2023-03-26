@@ -1,5 +1,5 @@
 from functools import wraps
-from inspect import signature
+from inspect import signature, iscoroutinefunction
 from typing import Any, TypeAlias, Callable
 
 from propan.utils.functions import call_or_await, remove_useless_arguments
@@ -42,15 +42,29 @@ def use_context(func):
 
         return args, kwargs
 
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        args, kwargs = _cast_context(*args, **kwargs)
-        for k, f in dependencies.items():
-            kw = remove_useless_arguments(f, *args, **kwargs)
-            kwargs[k] = await call_or_await(f, **kw)
-        return await func(*args, **kwargs)
+    if iscoroutinefunction(func) is True:
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            args, kwargs = _cast_context(*args, **kwargs)
+            for k, f in dependencies.items():
+                kw = remove_useless_arguments(f, *args, **kwargs)
+                kwargs[k] = await call_or_await(f, **kw)
+            return await func(*args, **kwargs)
+
+    else:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            args, kwargs = _cast_context(*args, **kwargs)
+            for k, f in dependencies.items():
+                if iscoroutinefunction(f) is True:
+                    raise ValueError("You can't use async Depends with sync function")
+
+                kw = remove_useless_arguments(f, *args, **kwargs)
+                kwargs[k] = f(**kw)
+            return func(*args, **kwargs)
 
     return wrapper
+
 
 def _get_context_by_key(context: dict, keys: list[str]) -> Any:
     v = context.get(keys[0])
