@@ -69,3 +69,18 @@ async def test_context_overrides(context):
     async def use(test):
         return test is b
     assert await use()
+
+
+@pytest.mark.asyncio
+async def test_context_nested_apply(context):
+    a = 1000
+    context.set_context("key", a)
+
+    @use_context
+    def use_nested(key):
+        return key
+
+    @use_context
+    async def use(key):
+        return key is use_nested() is a
+    assert await use()

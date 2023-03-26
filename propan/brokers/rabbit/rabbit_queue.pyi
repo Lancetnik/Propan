@@ -6,7 +6,7 @@ from yarl import URL
 import aio_pika
 from pamqp.common import FieldTable
 
-from propan.log import logger
+from propan.log import access_logger
 from propan.brokers.model import BrokerUsecase
 
 from .schemas import RabbitExchange, RabbitQueue
@@ -26,7 +26,7 @@ class RabbitBroker(BrokerUsecase):
                        timeout: aio_pika.abc.TimeoutType = None,
                        client_properties: Optional[FieldTable] = None,
                        *,
-                       logger: Logger = logger,
+                       logger: Optional[Logger] = access_logger,
                        apply_types: bool = True,
                        consumers: Optional[int] = None):
         ...
