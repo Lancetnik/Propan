@@ -34,10 +34,12 @@ def use_context(func):
             keys = k.split(".")
 
             func_argument_name = aliases.get(k, k)
-            if keys[0] in context_keys:
+            if keys[0] in kwargs.keys():
+                func_argument_value = _get_context_by_key(kwargs, keys)
+            elif keys[0] in context_keys:
                 func_argument_value = _get_context_by_key(context, keys)
             else:
-                func_argument_value = _get_context_by_key(kwargs, keys)
+                func_argument_value = None
             kwargs[func_argument_name] = func_argument_value
 
         return args, kwargs

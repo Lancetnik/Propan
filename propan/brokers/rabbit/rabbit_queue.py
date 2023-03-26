@@ -6,11 +6,11 @@ import json
 
 import aio_pika
 
-from propan.log import logger
-
+from propan.log import access_logger
+from propan.log.formatter import expand_log_field
+from propan.utils.context.main import log_context
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
-
 from propan.brokers.rabbit.schemas import RabbitQueue, RabbitExchange, Handler
 
 
@@ -20,15 +20,18 @@ class RabbitBroker(BrokerUsecase):
     _connection: Optional[aio_pika.RobustConnection] = None
     _channel: Optional[aio_pika.RobustChannel] = None
 
+    __max_queue_len = 4
+    __max_exchange_len = 4
+
     def __init__(
         self,
         *args,
-        logger: Logger = logger,
+        logger: Optional[Logger] = access_logger,
         apply_types: bool = True,
         consumers: Optional[int] = None,
         **kwargs
     ):
-        self.logger = logger
+        super().__init__(*args, logger=logger, apply_types=apply_types, consumers=consumers, **kwargs)
 
         self._connection_args = args
         self._connection_kwargs = kwargs
@@ -46,7 +49,8 @@ class RabbitBroker(BrokerUsecase):
                 )
 
             except Exception as e:
-                self.logger.error(e)
+                if self.logger:
+                    self.logger.error(e)
                 exit()
 
             return self._connection
@@ -58,7 +62,7 @@ class RabbitBroker(BrokerUsecase):
 
             max_consumers = max_consumers or self._max_consumers
             self._channel = await self._connection.channel()
-            if max_consumers:
+            if max_consumers and self.logger:
                 self.logger.info(f"Set max consumers to {max_consumers}")
                 await self._channel.set_qos(prefetch_count=int(max_consumers))
 
@@ -66,18 +70,13 @@ class RabbitBroker(BrokerUsecase):
                queue: Union[str, RabbitQueue],
                exchange: Union[str, RabbitExchange, None] = None,
                retry: Union[bool, int] = False) -> Callable:
-        if isinstance(queue, str):
-            queue = RabbitQueue(name=queue)
-        elif not isinstance(queue, RabbitQueue):
-            raise ValueError(
-                f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance")
+        queue, exchange = _validate_exchange_and_queue(queue, exchange)
 
-        if exchange is not None:
-            if isinstance(exchange, str):
-                exchange = RabbitExchange(name=exchange)
-            elif not isinstance(exchange, RabbitExchange):
-                raise ValueError(
-                    f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance")
+        if exchange and (l := len(exchange.name)) > self.__max_exchange_len:
+            self.__max_exchange_len = l
+        
+        if (l := len(queue.name)) > self.__max_queue_len:
+            self.__max_queue_len = l
 
         parent = super()
 
@@ -88,7 +87,7 @@ class RabbitBroker(BrokerUsecase):
                                      f"using `{queue.name}` queue to listen "
                                      f"`{exchange.name if exchange else 'default'}` exchange")
 
-            func = parent.handle(func, retry)
+            func = parent.handle(func, retry, queue=queue, exchange=exchange)
             handler = Handler(callback=func, queue=queue, exchange=exchange)
             self.handlers.append(handler)
 
@@ -103,11 +102,9 @@ class RabbitBroker(BrokerUsecase):
 
             func = handler.callback
 
-            self.logger.info(
-                '[*] Waiting for messages in '
-                f'`{handler.exchange.name if handler.exchange else "default"}` exchange, '
-                f'`{handler.queue.name}` queue with `{func.__name__}` function'
-            )
+            if self.logger:
+                self._get_log_context(None, handler.queue, handler.exchange)
+                self.logger.info(f'`{func.__name__}` waiting for messages')
 
             await queue.consume(func)
 
@@ -160,17 +157,25 @@ class RabbitBroker(BrokerUsecase):
             await queue.bind(exchange)
         return queue
 
+    def _get_log_context(self,
+                         message: Optional[aio_pika.Message],
+                         queue: RabbitQueue,
+                         exchange: Optional[RabbitExchange] = None,
+                        **kwrags) -> str:
+        exchange_name = exchange.name if exchange else "default"
+        context = (
+            f"{expand_log_field(exchange_name, self.__max_exchange_len)} | "
+            f"{expand_log_field(queue.name,  self.__max_queue_len)}"
+        ) + (f" | {message.message_id[:10]}" if message else  "")
+        log_context.set(context)
+        return context
+
     @staticmethod
-    def _decode_message(func: Callable) -> Callable:
-        @wraps(func)
-        async def wrapper(message: aio_pika.IncomingMessage) -> None:
-            body = message.body.decode()
-
-            if message.content_type == "application/json":
-                body = json.loads(body)
-
-            return await func(body)
-        return wrapper
+    async def _decode_message(message: aio_pika.IncomingMessage) -> None:
+        body = message.body.decode()
+        if message.content_type == "application/json":
+            body = json.loads(body)
+        return body
 
     @staticmethod
     def _process_message(func: Callable, watcher: Optional[BaseWatcher] = None) -> Callable:
@@ -186,3 +191,20 @@ class RabbitBroker(BrokerUsecase):
             async with context:
                 return await func(message)
         return wrapper
+
+
+def _validate_exchange_and_queue(
+        queue: Union[str, RabbitQueue],
+        exchange: Union[str, RabbitExchange, None] = None) -> tuple[RabbitQueue, Optional[RabbitExchange]]:
+    if isinstance(queue, str):
+        queue = RabbitQueue(name=queue)
+    elif not isinstance(queue, RabbitQueue):
+        raise ValueError(f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance")
+
+    if exchange is not None:
+        if isinstance(exchange, str):
+            exchange = RabbitExchange(name=exchange)
+        elif not isinstance(exchange, RabbitExchange):
+            raise ValueError(f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance")
+    
+    return queue, exchange
