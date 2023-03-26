@@ -21,14 +21,14 @@ class PropanApp(Singlethon):
     def __init__(
         self,
         broker: Optional[BrokerUsecase] = None,
-        logger: Logger = logger,
-        *args, **kwargs
+        logger: Logger = logger
     ):
         self.broker = broker
         self.logger = logger
 
         self.loop = asyncio.get_event_loop()
 
+        self.context = context
         context.set_context("app", self)
         context.set_context("broker", self.broker)
         context.set_context("logger", self.logger)
@@ -41,7 +41,10 @@ class PropanApp(Singlethon):
         self._on_shutdown_calling.append(use_context(func))
         return func
 
-    def run(self) -> NoReturn:
+    def run(self, **context_kwargs) -> NoReturn:
+        for k, v in context_kwargs.items():
+            self.context.set_context(k, v)
+
         try:
             self.logger.info("Propan app starting...")
             self.loop.run_until_complete(self._startup())

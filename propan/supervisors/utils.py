@@ -97,7 +97,7 @@ def resolve_reload_patterns(
 class Config:
     def __init__(
         self,
-        reload_dirs: Optional[Union[List[str], str]] = Path.cwd(),
+        reload_dirs: Optional[Union[List[str], str]] = [Path.cwd()],
         reload_includes: Optional[Union[List[str], str]] = None,
         reload_excludes: Optional[Union[List[str], str]] = None
     ):
