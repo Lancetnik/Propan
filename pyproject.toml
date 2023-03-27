@@ -1,63 +1,107 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "propan"
 version = "0.0.7.0"
 description = "Simple and fast framework to create message brokers based microservices"
 readme = "README.md"
+authors = [
+    { name = "Pastukhov Nikita", email = "diementros@yandex.ru" },
+]
+license = "MIT"
+
 homepage = "https://github.com/Lancetnik/Propan"
 keywords = ["rabbitmq", "framework", "message brokers"]
 
-authors = [
-    'Pastukhov Nikita <diementros@yandex.ru>'
-]
+requires-python = ">=3.7"
 
 classifiers = [
-    'Development Status :: 3 - Alpha',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: Implementation :: CPython',
-    'Programming Language :: Python :: Implementation :: PyPy',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
-    'Intended Audience :: Developers',
-    'Intended Audience :: Information Technology',
-    'Intended Audience :: System Administrators',
-    'Topic :: Software Development :: Libraries :: Python Modules',
-    'Topic :: Internet',
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development",
+    "Typing :: Typed",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Environment :: Web Environment",
+    "Framework :: AsyncIO",
+    "Framework :: Pydantic",
+    "Framework :: Pydantic :: 1",
 ]
 
+dependencies = [
+    "pydantic>=1.8",
+    "watchgod",
+    "click",
+    "aio-pika>=9",
+    "loguru"
+]
 
-[tool.poetry.urls]
-"Source" = "https://github.com/Lancetnik/Propan"
-"Tracker" = "https://github.com/Lancetnik/Propan/issues"
-"Documentation" = "https://github.com/Lancetnik/Propan"
+[project.urls]
+Homepage = "https://github.com/Lancetnik/Propan"
+Documentation = "https://github.com/Lancetnik/Propan"
+Tracker = "https://github.com/Lancetnik/Propan/issues"
+Source = "https://github.com/Lancetnik/Propan"
 
+[project.scripts]
+cli-name = "propan:cli"
 
-[tool.poetry.scripts]
-propan = "propan:cli"
+[project.optional-dependencies]
+async_rabbit = [
+    "aio-pika>=9",
+]
 
-[tool.poetry.dependencies]
-python = ">3.8,<4"
-pydantic = "^1.8.2"
-watchgod = "*"
-click = "*"
+test = [
+    "propan[async_rabbit]",
 
-"aio-pika" = { version=">9", optional= true, extras = ["async-rabbit"] }
+    "distutils",
+    "pytest",
+    "pytest-asyncio"
+]
 
-[tool.poetry.extras]
-"async-rabbit" = ["aio-pika"]
+dev = [
+    "propan[test]",
+    "pika-stubs",
+    "loguru"
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "*"
-pytest-asyncio = "*"
-python-lsp-server = "*"
-importlib_metadata = "*"
-flake8 = "*"
-flake8-isort = "*"
-autopep8 = "*"
+[tool.hatch.version]
+path = "propan/__init__.py"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.hatch.build]
+skip-excluded-dirs = true
+sources = ["propan"]
+exclude = [
+    "/tests",
+    "/docs",
+]
+
+[tool.hatch.envs.default]
+python = "/usr/bin/python3.11" 
+dependencies = [
+  "propan[dev]",
+]
+
+[tool.hatch.envs.test]
+dependencies = [
+  "propan[test]",
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["37", "38", "39", "310", "311"]

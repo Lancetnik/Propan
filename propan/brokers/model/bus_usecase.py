@@ -1,7 +1,8 @@
+from abc import ABC
 from logging import Logger
 from time import perf_counter
-from functools import wraps, partial
-from typing import Protocol, Callable, Dict, Union, Optional
+from functools import wraps
+from typing import Callable, Dict, Union, Optional
 
 from propan.log import access_logger
 from propan.utils import apply_types, use_context
@@ -9,7 +10,7 @@ from propan.utils.context import message as message_context, context
 from propan.brokers.push_back_watcher import BaseWatcher, PushBackWatcher, FakePushBackWatcher
 
 
-class BrokerUsecase(Protocol):
+class BrokerUsecase(ABC):
     logger: Logger
     handlers: Dict[str, Callable] = {}
     
@@ -55,7 +56,7 @@ class BrokerUsecase(Protocol):
 
         func = self._wrap_decode_message(func)
 
-        func = retry_proccess(partial(self._process_message, func), retry, self.logger)
+        func = self._process_message(func, _get_watcher(self.logger, retry))
 
         if self.logger is not None:
             func = self._log_execution(**broker_args)(func)
@@ -90,14 +91,14 @@ class BrokerUsecase(Protocol):
         return decor
 
 
-def retry_proccess(func: Callable, try_number: Union[bool, int] = True, logger: Logger = access_logger):
+def _get_watcher( logger: Logger, try_number: Union[bool, int] = True) -> Optional[BaseWatcher]:
     if try_number is True:
         watcher = FakePushBackWatcher(logger=logger)
     elif try_number is False:
         watcher = None
     else:
         watcher = PushBackWatcher(logger=logger, max_tries=try_number)
-    return func(watcher=watcher)
+    return watcher
 
 
 def _set_message_context(func: Callable) -> Callable:

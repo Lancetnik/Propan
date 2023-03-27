@@ -1,5 +1,5 @@
 from contextvars import ContextVar
-from typing import Any
+from typing import Any, Dict
 
 from propan.utils.classes import Singlethon
 
@@ -9,7 +9,7 @@ log_context = ContextVar("message", default="")
 
 
 class Context(Singlethon):
-    _context: dict[str: Any] = {}
+    _context: Dict[str, Any] = {}
 
     def set_context(self, key: str, v: Any):
         self._context[key] = v
