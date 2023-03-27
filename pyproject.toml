@@ -17,7 +17,7 @@ keywords = ["rabbitmq", "framework", "message brokers"]
 requires-python = ">=3.7"
 
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: Implementation :: CPython",
