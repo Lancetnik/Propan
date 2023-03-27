@@ -1,3 +1,13 @@
+<p align="center">
+    <a href="https://pypi.org/project/propan" target="_blank">
+        <img src="https://img.shields.io/pypi/v/propan?color=%2334D058&label=pypi%20package" alt="Package version">
+    </a>
+    <a href="https://pypi.org/project/propan" target="_blank">
+        <img src="https://img.shields.io/pypi/pyversions/propan.svg?color=%2334D058" alt="Supported Python versions">
+    </a>
+</p>
+
+
 Propan существует, чтобы максимально упростить для вас создание микросервисов вокруг брокеров сообщений (например, RabbitMQ)
 
 Основные особенности:
