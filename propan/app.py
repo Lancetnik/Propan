@@ -31,6 +31,9 @@ class PropanApp(Singlethon):
         self.context = context
         context.set_context("app", self)
         context.set_context("broker", self.broker)
+    
+    def set_broker(self, broker: BrokerUsecase):
+        self.broker = broker
 
     def on_startup(self, func: Callable):
         self._on_startup_calling.append(use_context(func))
