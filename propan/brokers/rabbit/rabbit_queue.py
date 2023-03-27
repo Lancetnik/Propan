@@ -31,7 +31,10 @@ class RabbitBroker(BrokerUsecase):
         consumers: Optional[int] = None,
         **kwargs
     ):
-        super().__init__(*args, logger=logger, apply_types=apply_types, consumers=consumers, **kwargs)
+        super().__init__(*args,
+                         logger=logger,
+                         apply_types=apply_types,
+                         consumers=consumers, **kwargs)
 
         self._connection_args = args
         self._connection_kwargs = kwargs
@@ -72,11 +75,11 @@ class RabbitBroker(BrokerUsecase):
                retry: Union[bool, int] = False) -> Callable:
         queue, exchange = _validate_exchange_and_queue(queue, exchange)
 
-        if exchange and (l := len(exchange.name)) > self.__max_exchange_len:
-            self.__max_exchange_len = l
+        if exchange and (i := len(exchange.name)) > self.__max_exchange_len:
+            self.__max_exchange_len = i
         
-        if (l := len(queue.name)) > self.__max_queue_len:
-            self.__max_queue_len = l
+        if (i := len(queue.name)) > self.__max_queue_len:
+            self.__max_queue_len = i
 
         parent = super()
 

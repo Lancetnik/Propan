@@ -7,7 +7,7 @@ from propan.utils import *  # noqa: F403
 from propan.log import *  # noqa: F403
 
 
-__version__ = "0.0.7.0"
+__version__ = "0.0.7.1"
 
 
 def _print_version() -> None:

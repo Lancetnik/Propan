@@ -1,21 +1,21 @@
 from functools import wraps
 from inspect import signature, iscoroutinefunction
-from typing import Any, TypeAlias, Callable
+from typing import Any, Callable, Dict, List
 
 from propan.utils.functions import call_or_await, remove_useless_arguments
 from propan.utils.context.types import Alias, Depends
 from propan.utils.context.main import context as global_context
 
 
-FuncArgName: TypeAlias = str
-AliasStr: TypeAlias = str
+FuncArgName = str
+AliasStr = str
 
 
 def use_context(func):
     sig = signature(func).parameters
 
-    aliases: dict[AliasStr, FuncArgName] = {}
-    dependencies: dict[FuncArgName, Callable] = {}
+    aliases: Dict[AliasStr, FuncArgName] = {}
+    dependencies: Dict[FuncArgName, Callable] = {}
 
     for name, param in sig.items():
         if isinstance(param.default, Alias):
@@ -68,7 +68,7 @@ def use_context(func):
     return wrapper
 
 
-def _get_context_by_key(context: dict, keys: list[str]) -> Any:
+def _get_context_by_key(context: dict, keys: List[str]) -> Any:
     v = context.get(keys[0])
     for i in keys[1:]:
         v = getattr(v, i, None)
