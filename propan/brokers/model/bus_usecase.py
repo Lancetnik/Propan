@@ -17,6 +17,7 @@ class BrokerUsecase(ABC):
     def __init__(self, *args, logger: Optional[Logger] = access_logger, **kwargs):
         self.logger = logger
         context.set_context("logger", logger)
+        context.set_context("broker", self)
 
     def connect(self):
         raise NotImplementedError()

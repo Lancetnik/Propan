@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple
 
 from watchgod import DefaultWatcher
 
+from propan.log import logger
+
 from propan.supervisors.basereload import BaseReload
 from propan.supervisors.utils import Config
 
@@ -63,7 +65,7 @@ class CustomWatcher(DefaultWatcher):
                         is_watched = True
 
                 if is_watched:
-                    print(
+                    logger.debug(
                         f"WatchGodReload detected a new excluded dir '{entry_path.relative_to(self.resolved_root)}' in '{str(self.resolved_root)}'; "
                         "Adding to exclude list."
                     )
@@ -82,7 +84,7 @@ class CustomWatcher(DefaultWatcher):
 
         for include_pattern in self.includes:
             if entry_path.match(include_pattern):
-                print(
+                logger.debug(
                     f"WatchGodReload detected a new reload dir '{str(entry_path.relative_to(self.resolved_root))}' in '{str(self.resolved_root)}'; "
                     "Adding to watch list."
                 )
@@ -118,6 +120,6 @@ class WatchGodReload(BaseReload):
             change = watcher.check()
             if change != set():
                 message = "WatchGodReload detected file change in '%s'. Reloading..."
-                print(message % [c[1] for c in change])
+                logger.info(message % [c[1] for c in change])
                 return True
         return False

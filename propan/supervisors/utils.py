@@ -6,6 +6,8 @@ from multiprocessing import Process
 from pathlib import Path
 from typing import Callable, List, Optional, Union, Tuple
 
+from propan.log import logger
+
 
 multiprocessing.allow_connection_pickling()
 spawn = multiprocessing.get_context("spawn")
@@ -131,13 +133,13 @@ class Config:
                 self.reload_includes.remove(pattern)
         if not self.reload_dirs:
             if reload_dirs:
-                print((
+                logger.debug((
                     "Provided reload directories %s did not contain valid "
                     "directories, watching current working directory."),
                     reload_dirs,
                 )
             self.reload_dirs = [Path.cwd() / 'app']
 
-        print(
+        logger.debug(
             f"Will watch for changes in these directories: {sorted(list(map(str, self.reload_dirs)))}",
         )

@@ -1,13 +1,18 @@
 """Simple and fast framework to create message brokers based microservices"""
+import sys
+
 import click
+
+from propan.log import logger
 
 # Imports to use at __all__
 from propan.brokers import *  # noqa: F403
 from propan.utils import *  # noqa: F403
 from propan.log import *  # noqa: F403
+from propan.app import *  # noqa: F403
 
 
-__version__ = "0.0.7.5"
+__version__ = "0.0.7.6"
 
 
 def _print_version() -> None:
@@ -99,13 +104,14 @@ def _run(app: str, context_kwargs: dict):
         for i in f.split('.'):
             mod_path = mod_path / i
 
+        sys.path.insert(0, str(mod_path.parent))
+
         spec = spec_from_file_location("mode", f'{mod_path}.py')
         mod = module_from_spec(spec)
         spec.loader.exec_module(mod)
         propan_app = getattr(mod, func)
 
     except (ValueError, FileNotFoundError, AttributeError) as e:
-        from loguru import logger
         logger.error(e)
         logger.error('Please, input module like python_file:propan_app_name')
         exit()

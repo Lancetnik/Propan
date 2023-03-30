@@ -25,12 +25,11 @@ class PropanApp(Singlethon):
     ):
         self.broker = broker
         self.logger = logger
+        self.context = context
+
+        context.set_context("app", self)
 
         self.loop = asyncio.get_event_loop()
-
-        self.context = context
-        context.set_context("app", self)
-        context.set_context("broker", self.broker)
     
     def set_broker(self, broker: BrokerUsecase):
         self.broker = broker
