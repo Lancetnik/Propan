@@ -5,6 +5,7 @@ from types import FrameType
 from typing import Callable, Optional, Tuple
 
 from propan.supervisors.utils import get_subprocess
+from propan.log import logger
 
 
 HANDLED_SIGNALS = (
@@ -42,7 +43,7 @@ class BaseReload:
 
     def startup(self) -> None:
         message = f"Started reloader process [{self.pid}] using {self.reloader_name}"
-        print(message)
+        logger.info(message)
 
         for sig in HANDLED_SIGNALS:
             signal.signal(sig, self.signal_handler)
@@ -55,7 +56,7 @@ class BaseReload:
     def restart(self) -> None:
         self.process.terminate()
         self.process.join(timeout=1.0)
-        print('Process successfully reloaded')
+        logger.info('Process successfully reloaded')
         self.process = get_subprocess(
             target=self.target, args=self._args
         )

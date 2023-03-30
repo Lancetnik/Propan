@@ -5,6 +5,8 @@ from multiprocessing.context import SpawnProcess
 from types import FrameType
 from typing import Callable, List, Optional, Iterable, Any
 
+from propan.log import logger
+
 from propan.supervisors.utils import get_subprocess
 
 
@@ -46,7 +48,7 @@ class Multiprocess:
         self.shutdown()
 
     def startup(self) -> None:
-        print(f"Started parent process [{self.pid}]")
+        logger.debug(f"Started parent process [{self.pid}]")
 
         for sig in HANDLED_SIGNALS:
             signal.signal(sig, self.signal_handler)
@@ -54,13 +56,13 @@ class Multiprocess:
         for _ in range(self.workers):
             process = get_subprocess(target=self._target, args=self._args)
             process.start()
-            print(f"Started child process [{process.pid}]")
+            logger.debug(f"Started child process [{process.pid}]")
             self.processes.append(process)
 
     def shutdown(self) -> None:
         for process in self.processes:
             process.terminate()
-            print(f"Stopping child process [{process.pid}]")
+            logger.debug(f"Stopping child process [{process.pid}]")
             process.join()
 
-        print(f"Stopping parent process [{self.pid}]")
+        logger.debug(f"Stopping parent process [{self.pid}]")
