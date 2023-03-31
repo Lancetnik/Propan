@@ -41,6 +41,14 @@ class RabbitBroker(BrokerUsecase):
         self._max_consumers = consumers
         self._is_apply_types = apply_types
 
+    async def __aenter__(self) -> 'RabbitBroker':
+        await self.connect()
+        await self.init_channel()
+        return self
+    
+    async def __aexit__(self, *args, **kwargs):
+        await self.close()
+
     async def connect(self, *args, **kwargs) -> aio_pika.Connection:
         if self._connection is None:
             _args = args or self._connection_args

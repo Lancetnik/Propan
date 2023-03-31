@@ -22,9 +22,6 @@ class BrokerUsecase(ABC):
     def connect(self):
         raise NotImplementedError()
 
-    def init_channel(self) -> None:
-        raise NotImplementedError()
-
     def start(self) -> None:
         raise NotImplementedError()
 
@@ -45,6 +42,13 @@ class BrokerUsecase(ABC):
 
     def handle(self, func: Callable, retry: Union[bool, int] = False, **broker_args) -> Callable:
         return self._wrap_handler(func, retry, **broker_args)
+
+    def __enter__(self) -> 'BrokerUsecase':
+        self.connect()
+        return self
+    
+    def __exit__(self, *args, **kwargs):
+        self.close()
 
     def _wrap_handler(self,
                       func: Callable,

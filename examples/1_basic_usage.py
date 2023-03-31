@@ -15,5 +15,5 @@ app = PropanApp(broker)
 
 
 @broker.handle("test")
-async def base_handler(body: dict):
+async def base_handler(body):
     print(body)
