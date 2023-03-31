@@ -26,13 +26,9 @@ class BaseReload:
         self.pid = os.getpid()
         self.reloader_name: Optional[str] = None
         self.reload_delay = reload_delay
-        self._stopped = False
         self._args = args
 
     def signal_handler(self, sig: signal.Signals, frame: FrameType) -> None:
-        if self._stopped:
-            exit()
-        self._stopped = True
         self.should_exit.set()
 
     def run(self) -> None:
@@ -40,28 +36,30 @@ class BaseReload:
         while not self.should_exit.wait(self.reload_delay):
             if self.should_restart():
                 self.restart()
+        self.shutdown()
 
     def startup(self) -> None:
-        message = f"Started reloader process [{self.pid}] using {self.reloader_name}"
-        logger.info(message)
-
+        logger.info(f"Started reloader process [{self.pid}] using {self.reloader_name}")
         for sig in HANDLED_SIGNALS:
             signal.signal(sig, self.signal_handler)
-
-        self.process = get_subprocess(
-            target=self.target, args=self._args
-        )
-        self.process.start()
+        self._start_process()
 
     def restart(self) -> None:
-        self.process.terminate()
-        self.process.join(timeout=1.0)
+        self._stop_process()
         logger.info('Process successfully reloaded')
-        self.process = get_subprocess(
-            target=self.target, args=self._args
-        )
+        self._start_process()
+
+    def shutdown(self) -> None:
+        self._stop_process()
+        logger.info(f"Stopping reloader process [{self.pid}]")
+
+    def _stop_process(self):
+        self.process.terminate()
+        self.process.join()
+
+    def _start_process(self):
+        self.process = get_subprocess(target=self.target, args=self._args)
         self.process.start()
-        self._stopped = False
 
     def should_restart(self) -> bool:
         raise NotImplementedError("Reload strategies should override should_restart()")
