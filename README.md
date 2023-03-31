@@ -15,7 +15,7 @@
 
 # Propan
 
-Propan is a modern framework for building Applications with Python 3.7+ based on [Messaging Architecture](https://microservices.io/patterns/communication-style/messaging.html).
+Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
 The key features are:
 
@@ -74,7 +74,7 @@ $ propan create [projectname]
 
 *Notice: project template require* `pydantic[dotenv]` *installation.*
 
-To run created project:
+Run created project:
 
 ```shell
 # Run rabbimq first
