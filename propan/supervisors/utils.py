@@ -2,7 +2,6 @@ import multiprocessing
 import os
 import sys
 from multiprocessing.context import SpawnProcess
-from multiprocessing import Process
 from pathlib import Path
 from typing import Callable, List, Optional, Union, Tuple
 
@@ -22,22 +21,24 @@ def get_subprocess(
     except OSError:
         stdin_fileno = None
 
-    kwargs = {
-        "target": target,
-        "args": args,
-        "stdin_fileno": stdin_fileno,
-    }
-    return Process(target=subprocess_started, kwargs=kwargs)
+    return spawn.Process(
+        target=subprocess_started,
+        args=args,
+        kwargs={
+            "t": target,
+            "stdin_fileno": stdin_fileno
+        }
+    )
 
 
 def subprocess_started(
-    target: Callable[..., None],
-    args: Tuple,
+    *args: Tuple,
+    t: Callable[..., None],
     stdin_fileno: Optional[int],
 ) -> None:
     if stdin_fileno is not None:
         sys.stdin = os.fdopen(stdin_fileno)
-    target(*args)
+    t(*args)
 
 
 def is_dir(path: Path) -> bool:
