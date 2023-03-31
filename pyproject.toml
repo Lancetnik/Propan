@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "propan"
-description = "Simple and fast framework to create message brokers based microservices"
+description = "Propan framework: the simplest way to work with a messaging queues"
 readme = "README.md"
 authors = [
     { name = "Pastukhov Nikita", email = "diementros@yandex.ru" },
