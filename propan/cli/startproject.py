@@ -1,8 +1,5 @@
 from pathlib import Path
-from typing import Optional, List
-
-
-BASE_DIR = Path.cwd()
+from typing import Optional, Sequence
 
 
 def create(dirname: str, version: str):
@@ -15,7 +12,7 @@ def create(dirname: str, version: str):
 
 
 def _create_project_dir(dirname: str, version: str) -> Path:
-    project_dir = _touch_dir(BASE_DIR / dirname)
+    project_dir = _touch_dir(Path.cwd() / dirname)
 
     if project_dir.exists() is False:
         project_dir.mkdir()
@@ -185,7 +182,7 @@ def _touch_dir(dir: Path) -> Path:
     return dir
 
 
-def _write_file(path: Path, *content: Optional[List[str]]):
+def _write_file(path: Path, *content: Optional[Sequence[str]]):
     path.touch()
     if content:
         path.write_text('\n'.join(content))

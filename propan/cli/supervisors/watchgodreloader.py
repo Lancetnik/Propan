@@ -5,8 +5,8 @@ from watchgod import DefaultWatcher
 
 from propan.log import logger
 
-from propan.supervisors.basereload import BaseReload
-from propan.supervisors.utils import Config
+from propan.cli.supervisors.basereload import BaseReload
+from propan.cli.supervisors.utils import Config
 
 
 if TYPE_CHECKING:  # pragma: no cover

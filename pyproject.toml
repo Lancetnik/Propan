@@ -48,6 +48,7 @@ dependencies = [
     "pydantic>=1.8",
     "watchgod",
     "click",
+    "uvloop>=0.14.0,!=0.15.0,!=0.15.1; sys_platform != 'win32' and (sys_platform != 'cygwin' and platform_python_implementation != 'PyPy')",
 ]
 
 dynamic = ["version"]
@@ -87,7 +88,7 @@ allow-direct-references = true
 allow-ambiguous-features = true
 
 [tool.hatch.version]
-path = "propan/__init__.py"
+path = "propan/__about__.py"
 
 [tool.hatch.build]
 skip-excluded-dirs = true

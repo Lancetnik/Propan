@@ -1,4 +1,4 @@
-from . import cli
+from propan.cli import cli
 
 if __name__ == "__main__":
     cli()
