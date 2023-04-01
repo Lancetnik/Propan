@@ -17,16 +17,16 @@ def apply_types(func: Callable) -> Callable:
 
     annotations = {}
     for name, param in sig.items():
-        if type(param.default) not in NOT_CAST and (
-            (has_annotation := (param.annotation != param.empty)) or
-            param.default != param.empty
-        ):
+        if type(param.default) not in NOT_CAST and any((
+            (has_annotation := (param.annotation != param.empty)),
+            (has_default := (param.default != param.empty))
+        )):
             annotations[name] = ModelField(
                 name=name,
                 type_=param.annotation if has_annotation else type(param.default),
-                default=param.default if param.default != param.empty else Undefined,
+                default=param.default if has_default else Undefined,
                 class_validators=None,
-                required=param.default == param.empty,
+                required=not has_default,
                 model_config=BaseConfig,
             )
 
