@@ -26,9 +26,10 @@ The key features are:
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
 * **Dependencies management**: Minimize code duplication. Multiple features from each argument and parameter declaration.
+* **Integrations**: Propan is ready to using in pair with [any http framework](https://github.com/Lancetnik/Propan/tree/main/examples/http_frameworks_integrations) you want
 * **MQ independent**: Single and same interface to popular MQ:
-    * NATS
-    * RabbitMQ
+    * NATS (based on [nats-py](https://github.com/nats-io/nats.py)) 
+    * RabbitMQ (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
 * **Greate to develop**: cli tool provides great development expireince:
     * framework-independent way to rule application environment
     * application code hot reloading
