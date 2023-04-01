@@ -14,7 +14,7 @@ You can pass options following ways:
 Or you can pass a boolean flags
 ... --use-smth  # passes as use_smth=True
 '''
-from propan import PropanApp, RabbitBroker, Alias, Context
+from propan import PropanApp, RabbitBroker, Context
 
 from pydantic import BaseSettings
 

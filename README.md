@@ -25,12 +25,12 @@ The key features are:
 
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
-* **Dependencies management**: Minimize code duplication. Multiple features from each argument and parameter declaration.
+* [**Dependencies management**](#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
 * [**Integrations**](#http-frameworks-integrations): Propan is ready to using in pair with [any http framework](https://github.com/Lancetnik/Propan/tree/main/examples/http_frameworks_integrations) you want
-* **MQ independent**: Single and same interface to popular MQ:
+* **MQ independent**: Single interface to popular MQ:
     * NATS (based on [nats-py](https://github.com/nats-io/nats.py)) 
     * RabbitMQ (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
-* **Greate to develop**: cli tool provides great development expireince:
+* [**Greate to develop**](#cli-power): cli tool provides great development expireince:
     * framework-independent way to rule application environment
     * application code hot reloading
 
@@ -60,7 +60,6 @@ broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
 app = PropanApp(broker)
 
-
 @broker.handle("test")
 async def base_handler(body):
     '''Handle all default exchange messages with `test` routing key'''
@@ -74,6 +73,74 @@ $ propan run serve:app
 ```
 
 ---
+
+## Dependencies
+
+Propan use dependencies management policy close to `pytest fixtures`.
+You can specify in functions arguments which dependencies
+you would to use. Framework passes them from the global Context object.
+
+Default context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
+If you call not existed field it returns *None* value.
+
+But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
+and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
+
+```python
+from logging import Logger
+
+import aio_pika
+from propan import PropanApp, RabbitBroker, Context
+
+broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
+
+app = PropanApp(broker)
+
+@broker.handle("test")
+async def base_handler(body: dict,
+                       app: PropanApp,
+                       broker: RabbitBroker,
+                       context: Context,
+                       logger: Logger,
+                       message: aio_pika.Message,
+                       not_existed_field):
+    logger.debug(body)
+    assert not_existed_field is None
+```
+
+---
+
+## CLI power
+
+Propan has own cli tool providing following features:
+* project generation
+* multiprocessing workers
+* project hot reloading
+* custom context arguments passing
+
+### Context passing
+
+For example: pass your current *.env* project setting to context
+```bash
+$ propan run serve:app --env=.env.dev
+```
+
+```python
+from propan import PropanApp, RabbitBroker, Context
+from pydantic import BaseSettings
+
+broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
+
+app = PropanApp(broker)
+
+class Settings(BaseSettings):
+    ...
+
+@app.on_startup
+async def setup_later(env: str, context: Context):
+    settings = Settings(_env_file=env)
+    context.set_context("settings", settings)
+```
 
 ### Project template
 
