@@ -28,8 +28,8 @@ The key features are:
 * [**Dependencies management**](#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
 * [**Integrations**](#http-frameworks-integrations): Propan is ready to using in pair with [any http framework](https://github.com/Lancetnik/Propan/tree/main/examples/http_frameworks_integrations) you want
 * **MQ independent**: Single interface to popular MQ:
-    * NATS (based on [nats-py](https://github.com/nats-io/nats.py)) 
-    * RabbitMQ (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
+    * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
+    * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
 * [**Greate to develop**](#cli-power): cli tool provides great development expireince:
     * framework-independent way to rule application environment
     * application code hot reloading
@@ -74,9 +74,31 @@ $ propan run serve:app
 
 ---
 
+## Type casting
+
+Propan uses `pydantic` to cast incoming function arguments to type according their type annotation.
+
+```python
+from propan import PropanApp, RabbitBroker, Context
+from pydantic import BaseModel
+
+broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
+app = PropanApp(broker)
+
+class SimpleMessage(BaseModel):
+    key: int
+
+@broker.handle("test2")
+async def second_handler(body: SimpleMessage):
+    assert isinstance(body.key, int)
+
+```
+
+---
+
 ## Dependencies
 
-Propan use dependencies management policy close to `pytest fixtures`.
+Propan has dependencies management policy close to `pytest fixtures`.
 You can specify in functions arguments which dependencies
 you would to use. Framework passes them from the global Context object.
 
