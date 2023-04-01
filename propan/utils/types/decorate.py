@@ -1,6 +1,9 @@
 from functools import wraps
-from inspect import signature, _empty
-from typing import Mapping, Callable, Any
+from inspect import signature
+from typing import Callable, Any, Dict
+
+from pydantic import BaseConfig
+from pydantic.fields import ModelField, Undefined
 
 from propan.utils.context.types import Alias, Depends
 
@@ -11,30 +14,39 @@ NOT_CAST = (Alias, Depends)
 def apply_types(func: Callable) -> Callable:
     sig = signature(func).parameters
     arg_names = tuple(sig.keys())
-    annotations = {
-        name: param.annotation
-        for name, param in sig.items()
-        if param.annotation != _empty and type(param.default) not in NOT_CAST
-    }
 
-    def _cast_type(arg_value: Any, arg_name: str):
-        if (arg_type := annotations.get(arg_name)) is not None and \
-                isinstance(arg_value, arg_type) is False:
+    annotations = {}
+    for name, param in sig.items():
+        if type(param.default) not in NOT_CAST and (
+            (has_annotation := (param.annotation != param.empty)) or
+            param.default != param.empty
+        ):
+            annotations[name] = ModelField(
+                name=name,
+                type_=param.annotation if has_annotation else type(param.default),
+                default=param.default if param.default != param.empty else Undefined,
+                class_validators=None,
+                required=param.default == param.empty,
+                model_config=BaseConfig,
+            )
 
-            if isinstance(arg_value, Mapping):
-                arg_value = arg_type(**arg_value)
-            else:
-                arg_value = arg_type(arg_value)
-
+    def _cast_type(arg_name: str, arg_value: Any, values: Dict[str, Any]):
+        if (arg_type := annotations.get(arg_name)) is not None:
+            arg_value, err = arg_type.validate(arg_value, values, loc=arg_type.alias)
+            if err:
+                raise ValueError(err)
         return arg_value
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         kw = {
-            arg_name: _cast_type(arg_value, arg_name)
-            for arg_name, arg_value in
-            (*zip(arg_names, args), *kwargs.items())
+            k: v for k, v in (*zip(arg_names, args), *kwargs.items())
         }
 
-        return _cast_type(func(**kw), "return")
+        kw = {
+            arg_name: _cast_type(arg_name, arg_value, kw)
+            for arg_name, arg_value in kw.items()
+        }
+
+        return func(**kw)
     return wrapper
