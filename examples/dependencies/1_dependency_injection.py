@@ -4,7 +4,7 @@ You can specify in functions argument parameters which dependencies
 you would to use. And framework passes them from the global Context object.
 
 Default context fields are: app, broker, context (itself), logger and message.
-If you calls not existed field it returns None value.
+If you call not existed field it returns None value.
 '''
 from logging import Logger
 
