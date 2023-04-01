@@ -68,7 +68,7 @@ async_rabbit = [
 ]
 
 async_nats = [
-    "nats-py>=2.2."
+    "nats-py>=2"
 ]
 
 test = [
