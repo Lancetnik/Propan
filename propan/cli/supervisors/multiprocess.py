@@ -1,19 +1,11 @@
 import os
-import signal
 import threading
-from multiprocessing.context import SpawnProcess
 from types import FrameType
 from typing import Callable, List, Optional, Iterable, Any
+from multiprocessing.context import SpawnProcess
 
 from propan.log import logger
-
-from propan.supervisors.utils import get_subprocess
-
-
-HANDLED_SIGNALS = (
-    signal.SIGINT,  # Unix signal 2. Sent by Ctrl+C.
-    signal.SIGTERM,  # Unix signal 15. Sent by `kill <pid>`.
-)
+from propan.cli.supervisors.utils import get_subprocess, set_exit
 
 
 class Multiprocess:
@@ -31,15 +23,11 @@ class Multiprocess:
         
         self.should_exit = threading.Event()
         self.pid = os.getpid()
-        self._stopped = False
 
     def signal_handler(self, sig: int, frame: Optional[FrameType]) -> None:
         """
         A signal handler that is registered with the parent process.
         """
-        if self._stopped:
-            exit()
-        self._stopped = True
         self.should_exit.set()
 
     def run(self) -> None:
@@ -48,21 +36,20 @@ class Multiprocess:
         self.shutdown()
 
     def startup(self) -> None:
-        logger.debug(f"Started parent process [{self.pid}]")
+        logger.info(f"Started parent process [{self.pid}]")
 
-        for sig in HANDLED_SIGNALS:
-            signal.signal(sig, self.signal_handler)
+        set_exit(self.signal_handler)
 
         for _ in range(self.workers):
             process = get_subprocess(target=self._target, args=self._args)
             process.start()
-            logger.debug(f"Started child process [{process.pid}]")
+            logger.info(f"Started child process [{process.pid}]")
             self.processes.append(process)
 
     def shutdown(self) -> None:
         for process in self.processes:
             process.terminate()
-            logger.debug(f"Stopping child process [{process.pid}]")
+            logger.info(f"Stopping child process [{process.pid}]")
             process.join()
 
-        logger.debug(f"Stopping parent process [{self.pid}]")
+        logger.info(f"Stopping parent process [{self.pid}]")

@@ -4,14 +4,8 @@ import threading
 from types import FrameType
 from typing import Callable, Optional, Tuple
 
-from propan.supervisors.utils import get_subprocess
 from propan.log import logger
-
-
-HANDLED_SIGNALS = (
-    signal.SIGINT,  # Unix signal 2. Sent by Ctrl+C.
-    signal.SIGTERM,  # Unix signal 15. Sent by `kill <pid>`.
-)
+from propan.cli.supervisors.utils import get_subprocess, set_exit
 
 
 class BaseReload:
@@ -40,8 +34,7 @@ class BaseReload:
 
     def startup(self) -> None:
         logger.info(f"Started reloader process [{self.pid}] using {self.reloader_name}")
-        for sig in HANDLED_SIGNALS:
-            signal.signal(sig, self.signal_handler)
+        set_exit(self.signal_handler)
         self._start_process()
 
     def restart(self) -> None:

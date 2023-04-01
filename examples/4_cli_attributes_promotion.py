@@ -9,8 +9,10 @@ You can pass options following ways:
 ... --env=.env
 ... -env=.env
 ... env=.env
+"=" is required 
 
-"=" is required
+Or you can pass a boolean flags
+... --use-smth  # passes as use_smth=True
 '''
 from propan import PropanApp, RabbitBroker, Alias, Context
 

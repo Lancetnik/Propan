@@ -1,8 +1,9 @@
-import multiprocessing
 import os
 import sys
-from multiprocessing.context import SpawnProcess
+import signal
 from pathlib import Path
+import multiprocessing
+from multiprocessing.context import SpawnProcess
 from typing import Callable, List, Optional, Union, Tuple
 
 from propan.log import logger
@@ -10,6 +11,17 @@ from propan.log import logger
 
 multiprocessing.allow_connection_pickling()
 spawn = multiprocessing.get_context("spawn")
+
+
+HANDLED_SIGNALS = (
+    signal.SIGINT,  # Unix signal 2. Sent by Ctrl+C.
+    signal.SIGTERM,  # Unix signal 15. Sent by `kill <pid>`.
+)
+
+
+def set_exit(func: Callable):
+    for sig in HANDLED_SIGNALS:
+        signal.signal(sig, func)
 
 
 def get_subprocess(
