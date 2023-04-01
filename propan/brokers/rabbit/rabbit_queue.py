@@ -6,11 +6,11 @@ import json
 
 import aio_pika
 
-from propan.log import access_logger
 from propan.log.formatter import expand_log_field
 from propan.utils.context.main import log_context
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
+
 from propan.brokers.rabbit.schemas import RabbitQueue, RabbitExchange, Handler
 
 
@@ -26,20 +26,11 @@ class RabbitBroker(BrokerUsecase):
     def __init__(
         self,
         *args,
-        logger: Optional[Logger] = access_logger,
-        apply_types: bool = True,
         consumers: Optional[int] = None,
         **kwargs
     ):
-        super().__init__(*args,
-                         logger=logger,
-                         apply_types=apply_types,
-                         consumers=consumers, **kwargs)
-
-        self._connection_args = args
-        self._connection_kwargs = kwargs
+        super().__init__(*args, **kwargs)
         self._max_consumers = consumers
-        self._is_apply_types = apply_types
 
     async def __aenter__(self) -> 'RabbitBroker':
         await self.connect()
@@ -49,22 +40,10 @@ class RabbitBroker(BrokerUsecase):
     async def __aexit__(self, *args, **kwargs):
         await self.close()
 
-    async def connect(self, *args, **kwargs) -> aio_pika.Connection:
-        if self._connection is None:
-            _args = args or self._connection_args
-            _kwargs = kwargs or self._connection_kwargs
-
-            try:
-                self._connection = await aio_pika.connect_robust(
-                    *_args, **_kwargs, loop=asyncio.get_event_loop()
-                )
-
-            except Exception as e:
-                if self.logger:
-                    self.logger.error(e)
-                exit()
-
-            return self._connection
+    async def _connect(self, *args, **kwargs) -> aio_pika.Connection:
+        return await aio_pika.connect_robust(
+            *args, **kwargs, loop=asyncio.get_event_loop()
+        )
 
     async def init_channel(self, max_consumers: Optional[int] = None) -> None:
         if self._channel is None:
@@ -105,7 +84,7 @@ class RabbitBroker(BrokerUsecase):
         return wrapper
 
     async def start(self):
-        await self.connect()
+        await super().start()
         await self.init_channel()
 
         for handler in self.handlers:
@@ -182,7 +161,7 @@ class RabbitBroker(BrokerUsecase):
         return context
 
     @staticmethod
-    async def _decode_message(message: aio_pika.IncomingMessage) -> None:
+    async def _decode_message(message: aio_pika.IncomingMessage) -> Union[str, dict]:
         body = message.body.decode()
         if message.content_type == "application/json":
             body = json.loads(body)

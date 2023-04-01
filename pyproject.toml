@@ -67,8 +67,13 @@ async_rabbit = [
     "aio-pika>=9",
 ]
 
+async_nats = [
+    "nats-py>=2.2."
+]
+
 test = [
     "propan[async_rabbit]",
+    "propan[async_nats]",
 
     "distutils",
     "pytest",
