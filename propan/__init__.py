@@ -10,10 +10,13 @@ __all__ = (  # noqa: F405
     'PropanApp',
 
     # brokers
+    ## Rabbit
     'RabbitBroker',
     'ExchangeType',
     'RabbitQueue',
     'RabbitExchange',
+    ## Nats
+    'NatsBroker',
 
     # log
     'logger',

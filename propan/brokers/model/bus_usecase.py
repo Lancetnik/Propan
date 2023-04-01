@@ -2,7 +2,7 @@ from abc import ABC
 from logging import Logger
 from time import perf_counter
 from functools import wraps
-from typing import Callable, Dict, Union, Optional
+from typing import Callable, Dict, Union, Optional, Any
 
 from propan.log import access_logger
 from propan.utils import apply_types, use_context
@@ -14,16 +14,34 @@ class BrokerUsecase(ABC):
     logger: Logger
     handlers: Dict[str, Callable] = {}
     
-    def __init__(self, *args, logger: Optional[Logger] = access_logger, **kwargs):
+    def __init__(self, *args, apply_types: bool = True, logger: Optional[Logger] = access_logger, **kwargs):
         self.logger = logger
+        self._is_apply_types = apply_types
+        self._connection_args = args
+        self._connection_kwargs = kwargs
+
         context.set_context("logger", logger)
         context.set_context("broker", self)
 
-    def connect(self):
+    async def connect(self, *args, **kwargs):
+        if self._connection is None:
+            _args = args or self._connection_args
+            _kwargs = kwargs or self._connection_kwargs
+
+            try:
+                self._connection = await self._connect(*_args, **_kwargs)
+            except Exception as e:
+                if self.logger:
+                    self.logger.error(e)
+                exit()
+
+            return self._connection
+
+    async def _connect(self, *args, **kwargs) -> Any:
         raise NotImplementedError()
 
-    def start(self) -> None:
-        raise NotImplementedError()
+    async def start(self) -> None:
+        await self.connect()
 
     def publish_message(self, queue_name: str, message: str) -> None:
         raise NotImplementedError()
@@ -31,7 +49,7 @@ class BrokerUsecase(ABC):
     def close(self) -> None:
         raise NotImplementedError()
 
-    def _decode_message(self) -> Callable:
+    def _decode_message(self) -> Union[str, dict]:
         raise NotImplementedError()
 
     def _process_message(self, func: Callable, watcher: Optional[BaseWatcher]) -> Callable:

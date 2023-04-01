@@ -26,6 +26,9 @@ The key features are:
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
 * **Dependencies management**: Minimize code duplication. Multiple features from each argument and parameter declaration.
+* **MQ independent**: Single and same interface to popular MQ:
+    * NATS
+    * RabbitMQ
 * **Greate to develop**: cli tool provides great development expireince:
     * framework-independent way to rule application environment
     * application code hot reloading
@@ -38,6 +41,8 @@ Install using `pip`:
 
 ```shell
 $ pip install "propan[async_rabbit]"
+# or
+$ pip install "propan[async_nats]"
 ```
 
 ### Basic usage
@@ -47,9 +52,10 @@ Create an application with the following code at `serve.py`:
 ```python
 from propan.app import PropanApp
 from propan.brokers import RabbitBroker
-
+# from propan.brokers import NatsBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
+# broker = NatsBroker("nats://localhost:4222")
 
 app = PropanApp(broker)
 
