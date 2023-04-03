@@ -15,12 +15,12 @@ from propan.brokers import RabbitBroker
 from propan.utils import Context
 
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
+rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
-app = PropanApp(broker)
+app = PropanApp(rabbit_broker)
 
 
-@broker.handle("test")
+@rabbit_broker.handle("test")
 async def base_handler(body: dict,
                        app: PropanApp,
                        broker: RabbitBroker,
@@ -28,5 +28,5 @@ async def base_handler(body: dict,
                        logger: Logger,
                        message: aio_pika.Message,
                        not_existed_field):
-    logger.debug(body)
+    assert broker is rabbit_broker
     assert not_existed_field is None

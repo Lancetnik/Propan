@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./docs/files/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
+    <img src="https://github.com/Lancetnik/Propan/blob/main/docs/files/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
 </p>
 
 <p align="center">
@@ -114,11 +114,11 @@ from logging import Logger
 import aio_pika
 from propan import PropanApp, RabbitBroker, Context
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
+rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
-app = PropanApp(broker)
+app = PropanApp(rabbit_broker)
 
-@broker.handle("test")
+@rabbit_broker.handle("test")
 async def base_handler(body: dict,
                        app: PropanApp,
                        broker: RabbitBroker,
@@ -126,7 +126,7 @@ async def base_handler(body: dict,
                        logger: Logger,
                        message: aio_pika.Message,
                        not_existed_field):
-    logger.debug(body)
+    assert broker is rabbit_broker
     assert not_existed_field is None
 ```
 
@@ -159,7 +159,7 @@ class Settings(BaseSettings):
     ...
 
 @app.on_startup
-async def setup_later(env: str, context: Context):
+async def setup(env: str, context: Context):
     settings = Settings(_env_file=env)
     context.set_context("settings", settings)
 ```
