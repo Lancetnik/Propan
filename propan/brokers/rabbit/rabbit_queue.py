@@ -100,12 +100,13 @@ class RabbitBroker(BrokerUsecase):
 
     async def publish_message(self,
                               message: Union[aio_pika.Message, str, dict],
-                              queue: str = "",
-                              exchange: Union[RabbitExchange,
-                                              str, None] = None,
+                              queue: Union[RabbitQueue, str] = "",
+                              exchange: Union[RabbitExchange, str, None] = None,
                               **publish_args) -> None:
         if self._channel is None:
             raise ValueError("RabbitBroker channel not started yet")
+
+        queue, exchange = _validate_exchange_and_queue(queue, exchange)
 
         if not isinstance(message, aio_pika.Message):
             if isinstance(message, dict):
@@ -119,12 +120,6 @@ class RabbitBroker(BrokerUsecase):
                     content_type="text/plain"
                 )
 
-        if exchange is not None:
-            if isinstance(exchange, str):
-                exchange = RabbitExchange(name=exchange)
-            elif not isinstance(exchange, RabbitExchange):
-                raise ValueError(f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance")
-
         if exchange is None:
             exchange_obj = self._channel.default_exchange
         else:
@@ -132,7 +127,7 @@ class RabbitBroker(BrokerUsecase):
 
         return await exchange_obj.publish(
             message=message,
-            routing_key=queue,
+            routing_key=queue.name,
             **publish_args,
         )
 

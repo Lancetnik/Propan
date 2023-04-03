@@ -24,7 +24,6 @@ broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(broker)
 
 
-
 class Settings(BaseSettings):
     ...
 
