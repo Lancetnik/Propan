@@ -14,6 +14,7 @@ class RabbitQueue(Queue):
     arguments: Optional[Dict[str, Any]] = None
     timeout: TimeoutType = None
     robust: bool = True
+    declare: bool = False
 
 
 class RabbitExchange(NameRequired):
@@ -25,6 +26,7 @@ class RabbitExchange(NameRequired):
     arguments: Optional[Dict[str, Any]] = None
     timeout: TimeoutType = None
     robust: bool = True
+    declare: bool = False
 
 
 class Handler(BaseModel):
