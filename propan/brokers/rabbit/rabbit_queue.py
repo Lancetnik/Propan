@@ -123,7 +123,7 @@ class RabbitBroker(BrokerUsecase):
         if exchange is None:
             exchange_obj = self._channel.default_exchange
         else:
-            exchange_obj = await self._channel.get_exchange(exchange.name)
+            exchange_obj = await self._init_exchange(exchange)
 
         return await exchange_obj.publish(
             message=message,
@@ -136,11 +136,23 @@ class RabbitBroker(BrokerUsecase):
             await self._connection.close()
 
     async def _init_handler(self, handler: Handler):
-        queue = await self._channel.declare_queue(**handler.queue.dict())
+        queue = await self._init_queue(handler.queue)
         if handler.exchange is not None:
-            exchange = await self._channel.declare_exchange(**handler.exchange.dict())
+            exchange = await self._init_exchange_init_exchange(handler.exchange)
             await queue.bind(exchange)
         return queue
+
+    async def _init_queue(self, queue: RabbitQueue) -> aio_pika.abc.AbstractRobustQueue:
+        if queue.declare is True:
+            return await self._channel.declare_queue(**queue.dict())
+        else:
+            return await self._channel.get_queue(queue.name)
+    
+    async def _init_exchange(self, exchange: RabbitExchange) -> aio_pika.abc.AbstractRobustExchange:
+        if exchange.declare is True:
+            return await self._channel.declare_exchange(**exchange.dict())
+        else:
+            return await self._channel.get_exchange(exchange.name)
 
     def _get_log_context(self,
                          message: Optional[aio_pika.Message],
