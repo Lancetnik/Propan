@@ -1,7 +1,9 @@
 import json
-from logging import Logger
-from functools import wraps, partial
-from typing import Optional, Callable, Union, List
+from functools import wraps
+from typing import (
+    Optional, Callable, Union,
+    List, Dict, Any
+)
 from uuid import uuid4
 
 import nats
@@ -11,19 +13,26 @@ from nats.aio.msg import Msg
 from propan.log.formatter import expand_log_field
 from propan.utils.context.main import log_context
 from propan.brokers.model import BrokerUsecase
-from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
+from propan.brokers.push_back_watcher import BaseWatcher
 
-from propan.brokers.nats.schemas import Handler
+from propan.brokers.nats.schemas import Handler, JetStream
 
 
 class NatsBroker(BrokerUsecase):
-    # TODO: move implementation to JetStream
-    logger: Logger
     handlers: List[Handler] = []
     _connection: Optional[Client] = None
 
     __max_queue_len = 0
     __max_subject_len = 4
+
+    def __init__(
+        self,
+        *args,
+        log_fmt: Optional[str] = None,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self._fmt = log_fmt
 
     async def __aenter__(self) -> 'NatsBroker':
         await self.connect()
@@ -108,17 +117,29 @@ class NatsBroker(BrokerUsecase):
                          message: Optional[Msg],
                          subject: str,
                          queue: str = "",
-                         **kwrags) -> str:
+                         **kwrags) -> Dict[str, Any]:
         if message is not None:
             message_id = message.reply or uuid4().hex
             message.message_id = message_id
 
-        context = f"{expand_log_field(subject, self.__max_subject_len)}" + \
-                    (f" | {expand_log_field(queue, self.__max_queue_len)}" if self.__max_queue_len else "") + \
-                    (f" | {message.message_id[:10]}" if message else  "")
+        context = {
+            "subject": subject,
+            "queue": queue,
+            "message_id": message.message_id[:10] if message else  ""
+        }
 
         log_context.set(context)
         return context
+
+    @property
+    def fmt(self):
+        return self._fmt or (
+            '%(asctime)s %(levelname)s - '
+            f'%(subject)-{self.__max_subject_len}s | ' + 
+            (f'%(queue)-{self.__max_queue_len}s | ' if self.__max_queue_len else "") +
+            '%(message_id)-10s | '
+            '- %(message)s'
+        )
 
     @staticmethod
     async def _decode_message(message: Msg) -> Union[str, dict]:
@@ -131,14 +152,5 @@ class NatsBroker(BrokerUsecase):
     def _process_message(func: Callable, watcher: Optional[BaseWatcher] = None) -> Callable:
         @wraps(func)
         async def wrapper(message: Msg):
-            # TODO: add Jet ack logic
-            # if watcher is None:
-            #     context = message.process()
-            # else:
-            #     context = WatcherContext(watcher, message.message_id,
-            #                              on_success=partial(message.ack),
-            #                              on_error=partial(message.reject, True),
-            #                              on_max=partial(message.reject, False))
-            # async with context:
             return await func(message)
         return wrapper

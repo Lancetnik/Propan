@@ -61,7 +61,7 @@ class AccessFormatter(ColourizedFormatter):
     def formatMessage(self, record: logging.LogRecord) -> str:
         recordcopy = copy(record)
         if context := log_context.get():
-            recordcopy.__dict__["message"] = f"{context} - {recordcopy.__dict__['message']}"
+            recordcopy.__dict__.update(context)
         return super().formatMessage(recordcopy)
 
 

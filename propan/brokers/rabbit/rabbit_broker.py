@@ -1,12 +1,13 @@
 import asyncio
-from logging import Logger
-from functools import wraps, partial
-from typing import Optional, Callable, Union, List
 import json
+from functools import wraps, partial
+from typing import (
+    Optional, Callable, Union,
+    List, Dict, Any
+)
 
 import aio_pika
 
-from propan.log.formatter import expand_log_field
 from propan.utils.context.main import log_context
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
@@ -15,7 +16,6 @@ from propan.brokers.rabbit.schemas import RabbitQueue, RabbitExchange, Handler
 
 
 class RabbitBroker(BrokerUsecase):
-    logger: Logger
     handlers: List[Handler] = []
     _connection: Optional[aio_pika.RobustConnection] = None
     _channel: Optional[aio_pika.RobustChannel] = None
@@ -27,10 +27,12 @@ class RabbitBroker(BrokerUsecase):
         self,
         *args,
         consumers: Optional[int] = None,
+        log_fmt: Optional[str] = None,
         **kwargs
     ):
         super().__init__(*args, **kwargs)
         self._max_consumers = consumers
+        self._fmt = log_fmt
 
     async def __aenter__(self) -> 'RabbitBroker':
         await self.connect()
@@ -158,14 +160,25 @@ class RabbitBroker(BrokerUsecase):
                          message: Optional[aio_pika.Message],
                          queue: RabbitQueue,
                          exchange: Optional[RabbitExchange] = None,
-                        **kwrags) -> str:
+                        **kwrags) -> Dict[str, Any]:
         exchange_name = exchange.name if exchange else "default"
-        context = (
-            f"{expand_log_field(exchange_name, self.__max_exchange_len)} | "
-            f"{expand_log_field(queue.name,  self.__max_queue_len)}"
-        ) + (f" | {message.message_id[:10]}" if message else  "")
+        context = {
+            "exchange": exchange_name,
+            "queue": queue.name,
+            "message_id": message.message_id[:10] if message else  ""
+        }
         log_context.set(context)
         return context
+
+    @property
+    def fmt(self):
+        return self._fmt or (
+            '%(asctime)s %(levelname)s - '
+            f'%(exchange)-{self.__max_exchange_len}s | '
+            f'%(queue)-{self.__max_queue_len}s | '
+            f'%(message_id)-10s | '
+            '- %(message)s'
+        )
 
     @staticmethod
     async def _decode_message(message: aio_pika.IncomingMessage) -> Union[str, dict]:

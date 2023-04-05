@@ -74,6 +74,7 @@ class NatsBroker(BrokerUsecase):
         flush_timeout: Optional[float] = None,
         *,
         logger: Optional[Logger] = access_logger,
+        log_fmt: Optional[str] = None,
         apply_types: bool = True,
         consumers: Optional[int] = None,
     ):
