@@ -205,11 +205,9 @@ app = FastAPI()
 async def base_handler(body):
     print(body)
 
-
 @app.on_event("startup")
 async def start_broker():
     await broker.start()
-
 
 @app.on_event("shutdown")
 async def stop_broker():
