@@ -1,4 +1,4 @@
-from propan.brokers.nats.nats_queue import NatsBroker
+from propan.brokers.nats.nats_broker import NatsBroker
 
 
 __all__ = (

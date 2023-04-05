@@ -1,6 +1,8 @@
-from .rabbit.rabbit_queue import RabbitBroker
-from .rabbit.schemas import RabbitExchange, RabbitQueue, ExchangeType
-from .nats import NatsBroker
+from propan.brokers.rabbit import (
+    RabbitBroker, RabbitExchange,
+    RabbitQueue, ExchangeType
+)
+from propan.brokers.nats import NatsBroker
 
 
 __all__ = (

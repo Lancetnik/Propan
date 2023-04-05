@@ -1,5 +1,5 @@
-from .rabbit_queue import RabbitBroker
-from .schemas import RabbitQueue, RabbitExchange, ExchangeType
+from propan.brokers.rabbit.rabbit_broker import RabbitBroker
+from propan.brokers.rabbit.schemas import RabbitQueue, RabbitExchange, ExchangeType
 
 __all__ = (
     "RabbitBroker",

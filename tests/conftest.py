@@ -1,44 +1,33 @@
-from uuid import uuid4
+import asyncio
+from unittest.mock import Mock, AsyncMock
 
 import pytest
-import pytest_asyncio
 
-from pydantic import BaseSettings
-
-from propan.brokers import RabbitBroker, RabbitQueue
 from propan.utils import context as global_context
 
 
-class Settings(BaseSettings):
-    url = "amqp://guest:guest@localhost:5672/"
-
-    host = "localhost"
-    port = 5672
-    login = "guest"
-    password = "guest"
-
-    queue = "test_queue"
+@pytest.fixture
+def mock():
+    return Mock()
 
 
 @pytest.fixture
-def queue():
-    name = str(uuid4())
-    return RabbitQueue(name=name, declare=True)
+def async_mock():
+    return AsyncMock()
 
 
 @pytest.fixture(scope="session")
-def settings():
-    return Settings()
+def wait_for_mock():
+    async def _wait_for_message(mock: Mock, max_tries=20):
+        tries = 0
+        call_count = mock.call_count
+        while tries < max_tries and call_count == mock.call_count:
+            await asyncio.sleep(0.1)
+            tries += 1
+    return _wait_for_message
 
 
 @pytest.fixture
 def context():
     yield global_context
     global_context.clear()
-
-
-@pytest_asyncio.fixture
-async def broker(settings):
-    broker = RabbitBroker(settings.url)
-    yield broker
-    await broker.close()
