@@ -1,5 +1,5 @@
 import ssl
-from logging import Logger
+import logging
 from typing import (
     Callable,
     List,
@@ -33,7 +33,7 @@ from propan.brokers.nats.schemas import Handler
 
 
 class NatsBroker(BrokerUsecase):
-    logger: Logger
+    logger: logging.Logger
     handlers: List[Handler] = []
     _connection: Optional[Client] = None
 
@@ -73,7 +73,8 @@ class NatsBroker(BrokerUsecase):
         pending_size: int = DEFAULT_PENDING_SIZE,
         flush_timeout: Optional[float] = None,
         *,
-        logger: Optional[Logger] = access_logger,
+        logger: Optional[logging.Logger] = access_logger,
+        log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         consumers: Optional[int] = None,
