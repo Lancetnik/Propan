@@ -2,7 +2,7 @@ from abc import ABC
 from logging import Logger
 from time import perf_counter
 from functools import wraps
-from typing import Callable, Dict, Union, Optional, Any
+from typing import Callable, Union, Optional, Any
 
 from propan.log import access_logger
 from propan.utils import apply_types, use_context
@@ -12,13 +12,21 @@ from propan.brokers.push_back_watcher import BaseWatcher, PushBackWatcher, FakeP
 
 class BrokerUsecase(ABC):
     logger: Logger
-    handlers: Dict[str, Callable] = {}
+    _fmt: str = '%(asctime)s %(levelname)s - %(message)s'
     
-    def __init__(self, *args, apply_types: bool = True, logger: Optional[Logger] = access_logger, **kwargs):
+    def __init__(self,
+                 *args,
+                 apply_types: bool = True,
+                 logger: Optional[Logger] = access_logger,
+                 log_fmt: Optional[str] = None,
+                 **kwargs):
         self.logger = logger
         self._is_apply_types = apply_types
         self._connection_args = args
         self._connection_kwargs = kwargs
+
+        if log_fmt:
+            self._fmt = log_fmt
 
         context.set_context("logger", logger)
         context.set_context("broker", self)
@@ -41,6 +49,7 @@ class BrokerUsecase(ABC):
         raise NotImplementedError()
 
     async def start(self) -> None:
+        self._init_logger()
         await self.connect()
 
     def publish_message(self, queue_name: str, message: str) -> None:
@@ -55,11 +64,19 @@ class BrokerUsecase(ABC):
     def _process_message(self, func: Callable, watcher: Optional[BaseWatcher]) -> Callable:
         raise NotImplementedError()
     
-    def _get_log_context(self, *kwargs) -> None:
-        return None
+    def _get_log_context(self, *kwargs) -> dict[str, Any]:
+        return {}
 
     def handle(self, func: Callable, retry: Union[bool, int] = False, **broker_args) -> Callable:
         return self._wrap_handler(func, retry, **broker_args)
+    
+    @property
+    def fmt(self):
+        return self._fmt
+
+    def _init_logger(self):
+        for handler in self.logger.handlers:
+            handler.setFormatter(type(handler.formatter)(self.fmt))
 
     def __enter__(self) -> 'BrokerUsecase':
         self.connect()
@@ -114,7 +131,7 @@ class BrokerUsecase(ABC):
         return decor
 
 
-def _get_watcher( logger: Logger, try_number: Union[bool, int] = True) -> Optional[BaseWatcher]:
+def _get_watcher(logger: Logger, try_number: Union[bool, int] = True) -> Optional[BaseWatcher]:
     if try_number is True:
         watcher = FakePushBackWatcher(logger=logger)
     elif try_number is False:

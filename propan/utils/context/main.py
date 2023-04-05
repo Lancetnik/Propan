@@ -5,7 +5,7 @@ from propan.utils.classes import Singlethon
 
 
 message = ContextVar("message", default=None)
-log_context = ContextVar("message", default="")
+log_context = ContextVar("message", default={})
 
 
 class Context(Singlethon):

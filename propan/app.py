@@ -14,7 +14,7 @@ from propan.log import logger
 from propan.utils.classes import Singlethon
 from propan.utils.context import use_context, context
 from propan.utils.functions import call_or_await
-from propan.brokers.model.bus_usecase import BrokerUsecase
+from propan.brokers.model.broker_usecase import BrokerUsecase
 from propan.cli.supervisors.utils import set_exit
 
 
@@ -52,8 +52,10 @@ class PropanApp(Singlethon):
             self.context.set_context(k, v)
 
         set_exit(lambda *_: self.loop.stop())
-        self._start(log_level)
-        self._stop(log_level)  # calls after loop stopping
+        try:
+            self._start(log_level)
+        finally:
+            self._stop(log_level)
             
     def _start(self, log_level: int) -> NoReturn:
         self.logger.log(log_level, "Propan app starting...")
