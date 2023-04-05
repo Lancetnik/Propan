@@ -38,9 +38,6 @@ class RabbitBroker(BrokerUsecase):
         await self.connect()
         await self.init_channel()
         return self
-    
-    async def __aexit__(self, *args, **kwargs):
-        await self.close()
 
     async def _connect(self, *args, **kwargs) -> aio_pika.Connection:
         return await aio_pika.connect_robust(

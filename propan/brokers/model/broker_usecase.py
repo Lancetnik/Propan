@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 import logging
 from time import perf_counter
 from functools import wraps
@@ -20,13 +20,9 @@ class BrokerUsecase(ABC):
                  apply_types: bool = True,
                  logger: Optional[logging.Logger] = access_logger,
                  log_level: int = logging.INFO,
-                 log_fmt: Optional[str] = None,
                  **kwargs):
         self.logger = logger
         self.log_level = log_level
-
-        if log_fmt:
-            self._fmt = log_fmt
 
         self._is_apply_types = apply_types
         self._connection_args = args
@@ -39,34 +35,32 @@ class BrokerUsecase(ABC):
         if self._connection is None:
             _args = args or self._connection_args
             _kwargs = kwargs or self._connection_kwargs
-
-            try:
-                self._connection = await self._connect(*_args, **_kwargs)
-            except Exception as e:
-                if self.logger:
-                    self.logger.error(e)
-                exit()
-
+            self._connection = await self._connect(*_args, **_kwargs)
             return self._connection
 
+    @abstractmethod
     async def _connect(self, *args, **kwargs) -> Any:
         raise NotImplementedError()
 
-    async def start(self) -> None:
-        self._init_logger()
-        await self.connect()
-
+    @abstractmethod
     def publish_message(self, queue_name: str, message: str) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
     def close(self) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
     def _decode_message(self) -> Union[str, dict]:
         raise NotImplementedError()
 
+    @abstractmethod
     def _process_message(self, func: Callable, watcher: Optional[BaseWatcher]) -> Callable:
         raise NotImplementedError()
+    
+    async def start(self) -> None:
+        self._init_logger()
+        await self.connect()
     
     def _get_log_context(self, *kwargs) -> dict[str, Any]:
         return {}
@@ -82,12 +76,12 @@ class BrokerUsecase(ABC):
         for handler in self.logger.handlers:
             handler.setFormatter(type(handler.formatter)(self.fmt))
 
-    def __enter__(self) -> 'BrokerUsecase':
-        self.connect()
+    async def __aenter__(self) -> 'BrokerUsecase':
+        await self.connect()
         return self
     
-    def __exit__(self, *args, **kwargs):
-        self.close()
+    async def __aexit__(self, *args, **kwargs):
+        await self.close()
 
     def _wrap_handler(self,
                       func: Callable,

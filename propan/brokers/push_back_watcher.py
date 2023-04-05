@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from logging import Logger
 from collections import Counter
 from typing import Optional, Type, Callable
@@ -12,12 +12,15 @@ class BaseWatcher(ABC):
         self.logger = logger
         self.max_tries = max_tries
 
+    @abstractmethod
     def add(self, message_id: str) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
     def is_max(self, message_id: str) -> bool:
         raise NotImplementedError()
 
+    @abstractmethod
     def remove(self, message_id: str):
         raise NotImplementedError()
 

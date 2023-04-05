@@ -8,7 +8,7 @@ from propan.brokers.push_back_watcher import (
 
 
 @pytest.mark.asyncio
-async def test_push_not_push(async_mock: AsyncMock):
+async def test_push_back_correct(async_mock: AsyncMock):
     message_id = 1
 
     watcher = PushBackWatcher(3)
@@ -23,6 +23,23 @@ async def test_push_not_push(async_mock: AsyncMock):
 
     async_mock.on_success.assert_awaited_once()
     assert not watcher.memory.get(message_id)
+
+
+@pytest.mark.asyncio
+async def test_push_back_endless_correct(async_mock: AsyncMock):
+    message_id = 1
+
+    watcher = FakePushBackWatcher()
+
+    context = WatcherContext(watcher, message_id,
+                            on_success=async_mock.on_success,
+                            on_error=async_mock.on_error,
+                            on_max=async_mock.on_max)
+
+    async with context:
+        await async_mock()
+
+    async_mock.on_success.assert_awaited_once()
 
 
 @pytest.mark.asyncio
