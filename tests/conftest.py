@@ -1,9 +1,11 @@
+from uuid import uuid4
+
 import pytest
 import pytest_asyncio
 
 from pydantic import BaseSettings
 
-from propan.brokers import RabbitBroker
+from propan.brokers import RabbitBroker, RabbitQueue
 from propan.utils import context as global_context
 
 
@@ -16,6 +18,12 @@ class Settings(BaseSettings):
     password = "guest"
 
     queue = "test_queue"
+
+
+@pytest.fixture
+def queue():
+    name = str(uuid4())
+    return RabbitQueue(name=name, declare=True)
 
 
 @pytest.fixture(scope="session")

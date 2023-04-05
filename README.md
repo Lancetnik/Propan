@@ -197,11 +197,9 @@ Just *start* and *stop* them whenever you want.
 from fastapi import FastAPI
 from propan.brokers import RabbitBroker
 
-
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
 app = FastAPI()
-
 
 @broker.handle("test")
 async def base_handler(body):

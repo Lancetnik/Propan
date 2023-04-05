@@ -146,13 +146,13 @@ class RabbitBroker(BrokerUsecase):
         if queue.declare is True:
             return await self._channel.declare_queue(**queue.dict())
         else:
-            return await self._channel.get_queue(queue.name)
+            return await self._channel.get_queue(queue.name, ensure=False)
     
     async def _init_exchange(self, exchange: RabbitExchange) -> aio_pika.abc.AbstractRobustExchange:
         if exchange.declare is True:
             return await self._channel.declare_exchange(**exchange.dict())
         else:
-            return await self._channel.get_exchange(exchange.name)
+            return await self._channel.get_exchange(exchange.name, ensure=False)
 
     def _get_log_context(self,
                          message: Optional[aio_pika.Message],

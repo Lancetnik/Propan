@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any, Callable, Optional, Union
 
 from aio_pika.abc import TimeoutType, ExchangeType
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from propan.brokers.model.schemas import Queue, NameRequired
 
@@ -14,7 +14,8 @@ class RabbitQueue(Queue):
     arguments: Optional[Dict[str, Any]] = None
     timeout: TimeoutType = None
     robust: bool = True
-    declare: bool = False
+    declare: bool = Field(default=True, exclude=True)
+
 
 
 class RabbitExchange(NameRequired):
@@ -26,7 +27,7 @@ class RabbitExchange(NameRequired):
     arguments: Optional[Dict[str, Any]] = None
     timeout: TimeoutType = None
     robust: bool = True
-    declare: bool = False
+    declare: bool = Field(default=True, exclude=True)
 
 
 class Handler(BaseModel):
