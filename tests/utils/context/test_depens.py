@@ -27,7 +27,7 @@ async def test_sync_with_async_depends():
 
     @use_context
     def func(*args, k = Depends(async_dep), **kwargs):
-        return k is key
+        pass
     
     with pytest.raises(ValueError):
         func(key=key)

@@ -34,13 +34,6 @@ class NatsBroker(BrokerUsecase):
         super().__init__(*args, **kwargs)
         self._fmt = log_fmt
 
-    async def __aenter__(self) -> 'NatsBroker':
-        await self.connect()
-        return self
-    
-    async def __aexit__(self, *args, **kwargs):
-        await self.close()
-
     async def _connect(self, *args, **kwargs) -> Client:
         return await nats.connect(*args, **kwargs)
 

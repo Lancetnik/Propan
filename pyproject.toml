@@ -64,6 +64,7 @@ propan = "propan:cli"
 
 [project.optional-dependencies]
 async_rabbit = [
+    "pika-stubs",
     "aio-pika>=9",
 ]
 
@@ -75,18 +76,15 @@ test = [
     "propan[async_rabbit]",
     "propan[async_nats]",
 
-    "distutils",
+    "ruff",
+
+    "coverage[toml]",
     "pytest",
     "pytest-asyncio",
-    "pytest-cov",
 ]
 
 dev = [
     "propan[test]",
-
-    "pika-stubs",
-
-    "loguru",
 ]
 
 [tool.hatch.metadata]
@@ -117,3 +115,27 @@ features = [
 
 [[tool.hatch.envs.test.matrix]]
 python = ["37", "38", "39", "310", "311"]
+
+[tool.coverage.run]
+parallel = true
+source = [
+    "propan",
+    "tests"
+]
+context = '${CONTEXT}'
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "from .*",
+    "import .*",
+    '@(abc\.)?abstractmethod',
+    "raise NotImplementedError",
+    'raise AssertionError',
+    'if self.logger is not None:',
+    'logger\..*',
+    "pass",
+    '\.\.\.',
+]
