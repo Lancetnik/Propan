@@ -1,5 +1,5 @@
 from abc import ABC
-from logging import Logger
+import logging
 from time import perf_counter
 from functools import wraps
 from typing import Callable, Union, Optional, Any
@@ -11,22 +11,26 @@ from propan.brokers.push_back_watcher import BaseWatcher, PushBackWatcher, FakeP
 
 
 class BrokerUsecase(ABC):
-    logger: Logger
+    logger: logging.Logger
+    log_level: int
     _fmt: str = '%(asctime)s %(levelname)s - %(message)s'
     
     def __init__(self,
                  *args,
                  apply_types: bool = True,
-                 logger: Optional[Logger] = access_logger,
+                 logger: Optional[logging.Logger] = access_logger,
+                 log_level: int = logging.INFO,
                  log_fmt: Optional[str] = None,
                  **kwargs):
         self.logger = logger
-        self._is_apply_types = apply_types
-        self._connection_args = args
-        self._connection_kwargs = kwargs
+        self.log_level = log_level
 
         if log_fmt:
             self._fmt = log_fmt
+
+        self._is_apply_types = apply_types
+        self._connection_args = args
+        self._connection_kwargs = kwargs
 
         context.set_context("logger", logger)
         context.set_context("broker", self)
@@ -118,20 +122,21 @@ class BrokerUsecase(ABC):
                 start = perf_counter()
 
                 self._get_log_context(message=message, **broker_args)
-                self.logger.info("Received")
+                self.logger.log(self.log_level, "Received")
 
                 try:
                     r = await func(message)
                 except Exception as e:
                     self.logger.error(repr(e))
                 else:
-                    self.logger.info(f"Processed by {(perf_counter() - start):.4f}")
+                    self.logger.log(self.log_level,
+                                    f"Processed by {(perf_counter() - start):.4f}")
                     return r
             return wrapper
         return decor
 
 
-def _get_watcher(logger: Logger, try_number: Union[bool, int] = True) -> Optional[BaseWatcher]:
+def _get_watcher(logger: logging.Logger, try_number: Union[bool, int] = True) -> Optional[BaseWatcher]:
     if try_number is True:
         watcher = FakePushBackWatcher(logger=logger)
     elif try_number is False:

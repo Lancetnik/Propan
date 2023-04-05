@@ -137,7 +137,7 @@ class NatsBroker(BrokerUsecase):
             '%(asctime)s %(levelname)s - '
             f'%(subject)-{self.__max_subject_len}s | ' + 
             (f'%(queue)-{self.__max_queue_len}s | ' if self.__max_queue_len else "") +
-            '%(message_id)-10s | '
+            '%(message_id)-10s '
             '- %(message)s'
         )
 

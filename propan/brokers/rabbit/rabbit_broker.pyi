@@ -1,5 +1,5 @@
 from ssl import SSLContext
-from logging import Logger
+import logging
 from typing import Union, Optional, Callable
 from yarl import URL
 
@@ -26,7 +26,8 @@ class RabbitBroker(BrokerUsecase):
                        timeout: aio_pika.abc.TimeoutType = None,
                        client_properties: Optional[FieldTable] = None,
                        *,
-                       logger: Optional[Logger] = access_logger,
+                       logger: Optional[logging.Logger] = access_logger,
+                       log_level: int = logging.INFO,
                        log_fmt: Optional[str] = None,
                        apply_types: bool = True,
                        consumers: Optional[int] = None):

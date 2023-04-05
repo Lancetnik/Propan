@@ -176,7 +176,7 @@ class RabbitBroker(BrokerUsecase):
             '%(asctime)s %(levelname)s - '
             f'%(exchange)-{self.__max_exchange_len}s | '
             f'%(queue)-{self.__max_queue_len}s | '
-            f'%(message_id)-10s | '
+            f'%(message_id)-10s '
             '- %(message)s'
         )
 
