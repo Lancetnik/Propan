@@ -1,4 +1,5 @@
 from abc import ABC
+from logging import Logger
 from collections import Counter
 from typing import Optional, Type, Callable
 from types import TracebackType
@@ -7,7 +8,7 @@ from types import TracebackType
 class BaseWatcher(ABC):
     max_tries: int
 
-    def __init__(self, logger=None, max_tries: int = None):
+    def __init__(self, max_tries: int = None, logger: Optional[Logger] = None):
         self.logger = logger
         self.max_tries = max_tries
 
@@ -22,6 +23,9 @@ class BaseWatcher(ABC):
 
 
 class FakePushBackWatcher(BaseWatcher):
+    def __init__(self):
+        pass
+
     def add(self, message_id: str):
         pass
 
@@ -35,18 +39,19 @@ class FakePushBackWatcher(BaseWatcher):
 class PushBackWatcher(BaseWatcher):
     memory = Counter()
 
-    def __init__(self, logger, max_tries: int = 3):
-        super().__init__(logger, max_tries)
+    def __init__(self, max_tries: int = 3, logger: Optional[Logger] = None):
+        super().__init__(logger=logger, max_tries=max_tries)
 
     def add(self, message_id: str) -> None:
         self.memory[message_id] += 1
 
     def is_max(self, message_id: str) -> bool:
         is_max = self.memory[message_id] > self.max_tries
-        if is_max:
-            self.logger.error(f'Already retried {self.max_tries} times. Skipped.')
-        else:
-            self.logger.error('Error is occured. Pushing back to queue.')
+        if self.logger is not None:
+            if is_max:
+                self.logger.error(f'Already retried {self.max_tries} times. Skipped.')
+            else:
+                self.logger.error('Error is occured. Pushing back to queue.')
         return is_max
 
     def remove(self, message: str) -> None:

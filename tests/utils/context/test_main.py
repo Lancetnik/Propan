@@ -1,6 +1,6 @@
 import pytest
 
-from propan.utils import use_context
+from propan.utils import use_context, Context
 
 
 def test_context_getattr(context):
@@ -83,4 +83,28 @@ async def test_context_nested_apply(context):
     @use_context
     async def use(key):
         return key is use_nested() is a
+    assert await use()
+
+
+@pytest.mark.asyncio
+async def test_remove_context(context: Context):
+    a = 1000
+    context.set_context("key", a)
+    context.remove_context("key")
+
+    @use_context
+    async def use(key):
+        return key is None
+    assert await use()
+
+
+@pytest.mark.asyncio
+async def test_clear_context(context: Context):
+    a = 1000
+    context.set_context("key", a)
+    context.clear()
+
+    @use_context
+    async def use(key):
+        return key is None
     assert await use()

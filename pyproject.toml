@@ -77,7 +77,8 @@ test = [
 
     "distutils",
     "pytest",
-    "pytest-asyncio"
+    "pytest-asyncio",
+    "pytest-cov",
 ]
 
 dev = [
@@ -85,7 +86,7 @@ dev = [
 
     "pika-stubs",
 
-    "loguru"
+    "loguru",
 ]
 
 [tool.hatch.metadata]
