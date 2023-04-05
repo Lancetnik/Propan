@@ -191,7 +191,7 @@ Now you can enjoy a new development experience!
 ## HTTP Frameworks integrations
 
 You can use Propan MQBrokers without PropanApp.
-Just *start* and *stop* them whenever you want.
+Just *start* and *stop* them according your application lifespan.
 
 ```python
 from fastapi import FastAPI
