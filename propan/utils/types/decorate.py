@@ -9,7 +9,7 @@ from pydantic.fields import ModelField, Undefined
 NOT_CAST = (Alias, Depends)
 
 
-def apply_types(func: Callable) -> Callable:
+def apply_types(func: Callable[..., Any]) -> Callable[..., Any]:
     sig = signature(func).parameters
     arg_names = tuple(sig.keys())
 
@@ -30,7 +30,7 @@ def apply_types(func: Callable) -> Callable:
                 model_config=BaseConfig,
             )
 
-    def _cast_type(arg_name: str, arg_value: Any, values: Dict[str, Any]):
+    def _cast_type(arg_name: str, arg_value: Any, values: Dict[str, Any]) -> Any:
         if (arg_type := annotations.get(arg_name)) is not None:
             arg_value, err = arg_type.validate(arg_value, values, loc=arg_type.alias)
             if err:
@@ -38,7 +38,7 @@ def apply_types(func: Callable) -> Callable:
         return arg_value
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         kw = dict((*zip(arg_names, args), *kwargs.items()))
 
         kw = {

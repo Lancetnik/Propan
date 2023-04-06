@@ -10,11 +10,11 @@ FuncArgName = str
 AliasStr = str
 
 
-def use_context(func):
+def use_context(func: Callable[..., Any]) -> Callable[..., Any]:
     sig = signature(func).parameters
 
     aliases: Dict[AliasStr, FuncArgName] = {}
-    dependencies: Dict[FuncArgName, Callable] = {}
+    dependencies: Dict[FuncArgName, Callable[..., Any]] = {}
 
     for name, param in sig.items():
         if isinstance(param.default, Alias):
@@ -26,7 +26,7 @@ def use_context(func):
         aliases.keys()
     )
 
-    def _cast_context(*args, **kwargs) -> tuple[tuple, dict]:
+    def _cast_context(*args: Any, **kwargs: Any) -> tuple[Any, Any]:
         context = global_context.context
 
         context_keys = context.keys()
@@ -48,7 +48,7 @@ def use_context(func):
     if iscoroutinefunction(func) is True:
 
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             args, kwargs = _cast_context(*args, **kwargs)
             for k, f in dependencies.items():
                 kw = remove_useless_arguments(f, *args, **kwargs)
@@ -58,7 +58,7 @@ def use_context(func):
     else:
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             args, kwargs = _cast_context(*args, **kwargs)
             for k, f in dependencies.items():
                 if iscoroutinefunction(f) is True:
@@ -71,7 +71,7 @@ def use_context(func):
     return wrapper
 
 
-def _get_context_by_key(context: dict, keys: List[str]) -> Any:
+def _get_context_by_key(context: Dict[str, Any], keys: List[str]) -> Any:
     v = context.get(keys[0])
     for i in keys[1:]:
         v = getattr(v, i, None)

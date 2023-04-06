@@ -1,12 +1,14 @@
 import logging
 import logging.config
 from functools import partial
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 from propan.log.formatter import AccessFormatter, DefaultFormatter
 
 
-def configure_formatter(formatter, *args, **kwargs):
+def configure_formatter(
+    formatter: Type[logging.Formatter], *args: Any, **kwargs: Any
+) -> logging.Formatter:
     return formatter(*args, **kwargs)
 
 

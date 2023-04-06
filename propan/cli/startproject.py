@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Iterable
 
 
 def create(dirname: str, version: str) -> None:
@@ -85,7 +84,7 @@ def _create_app_dir(app: Path) -> Path:
         "import logging",
         "from typing import Optional",
         "",
-        "from propan.app import PropanApp",
+        "from propan import PropanApp",
         "from propan.utils import Context",
         "from propan.brokers.rabbit import RabbitBroker",
         "",
@@ -218,7 +217,7 @@ def _touch_dir(dir: Path) -> Path:
     return dir
 
 
-def _write_file(path: Path, *content: Iterable[str]) -> None:
+def _write_file(path: Path, *content: str) -> None:
     path.touch()
     if content:
         path.write_text("\n".join(content))

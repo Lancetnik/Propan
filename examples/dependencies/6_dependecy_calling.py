@@ -3,7 +3,7 @@ Depends parameter allows to call function before
 natural handler with providing all arguments and context
 inside dependency function
 """
-from propan.app import PropanApp
+from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
 from propan.utils import Depends, use_context
 

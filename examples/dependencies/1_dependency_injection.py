@@ -9,7 +9,7 @@ If you call not existed field it returns None value.
 from logging import Logger
 
 import aio_pika
-from propan.app import PropanApp
+from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
 from propan.utils import Context
 

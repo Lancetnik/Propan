@@ -4,6 +4,13 @@ from aio_pika.abc import ExchangeType, TimeoutType
 from propan.brokers.model.schemas import NameRequired, Queue
 from pydantic import BaseModel, Field
 
+__all__ = (
+    "RabbitQueue",
+    "RabbitExchange",
+    "Handler",
+    "ExchangeType",
+)
+
 
 class RabbitQueue(Queue):
     durable: bool = False
@@ -29,6 +36,6 @@ class RabbitExchange(NameRequired):
 
 
 class Handler(BaseModel):
-    callback: Callable
+    callback: Callable[..., Any]
     queue: RabbitQueue
     exchange: Optional[RabbitExchange] = None

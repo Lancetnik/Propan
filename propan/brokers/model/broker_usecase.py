@@ -2,7 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from functools import wraps
 from time import perf_counter
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 from propan.brokers.push_back_watcher import (
     BaseWatcher,
@@ -16,17 +16,18 @@ from propan.utils.context import message as message_context
 
 
 class BrokerUsecase(ABC):
-    logger: logging.Logger
+    logger: Optional[logging.Logger]
     log_level: int
+    _connection: Any = None
     _fmt: str = "%(asctime)s %(levelname)s - %(message)s"
 
     def __init__(
         self,
-        *args,
+        *args: Any,
         apply_types: bool = True,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
-        **kwargs,
+        **kwargs: Any,
     ):
         self.logger = logger
         self.log_level = log_level
@@ -38,7 +39,7 @@ class BrokerUsecase(ABC):
         context.set_context("logger", logger)
         context.set_context("broker", self)
 
-    async def connect(self, *args, **kwargs):
+    async def connect(self, *args: Any, **kwargs: Any) -> Any:
         if self._connection is None:
             _args = args or self._connection_args
             _kwargs = kwargs or self._connection_kwargs
@@ -46,57 +47,64 @@ class BrokerUsecase(ABC):
             return self._connection
 
     @abstractmethod
-    async def _connect(self, *args, **kwargs) -> Any:
+    async def _connect(self, *args: Any, **kwargs: Any) -> Any:
         raise NotImplementedError()
 
     @abstractmethod
-    def publish_message(self, queue_name: str, message: str) -> None:
+    async def publish_message(self, message: Any, *args: Any, **kwargs: Any) -> Any:
         raise NotImplementedError()
 
     @abstractmethod
-    def close(self) -> None:
+    async def close(self) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def _decode_message(self) -> Union[str, dict]:
+    async def _decode_message(self, message: Any) -> Union[str, Dict[str, Any]]:
         raise NotImplementedError()
 
     @abstractmethod
     def _process_message(
-        self, func: Callable, watcher: Optional[BaseWatcher]
-    ) -> Callable:
+        self, func: Callable[..., Any], watcher: Optional[BaseWatcher]
+    ) -> Callable[..., Any]:
         raise NotImplementedError()
 
     async def start(self) -> None:
-        self._init_logger()
+        if self.logger is not None:
+            self._init_logger(self.logger)
+
         await self.connect()
 
-    def _get_log_context(self, *kwargs) -> dict[str, Any]:
+    def _get_log_context(self, **kwargs: Any) -> Dict[str, Any]:
         return {}
 
+    @abstractmethod
     def handle(
-        self, func: Callable, retry: Union[bool, int] = False, **broker_args
-    ) -> Callable:
-        return self._wrap_handler(func, retry, **broker_args)
+        self,
+        *broker_args: Any,
+        retry: Union[bool, int] = False,
+        **broker_kwargs: Any,
+    ) -> Callable[[Callable[..., Any]], None]:
+        raise NotImplementedError()
 
     @property
-    def fmt(self):
+    def fmt(self) -> str:
         return self._fmt
 
-    def _init_logger(self):
-        for handler in self.logger.handlers:
-            handler.setFormatter(type(handler.formatter)(self.fmt))
+    def _init_logger(self, logger: logging.Logger) -> None:
+        for handler in logger.handlers:
+            if handler.formatter is not None:
+                handler.setFormatter(type(handler.formatter)(self.fmt))
 
     async def __aenter__(self) -> "BrokerUsecase":
         await self.connect()
         return self
 
-    async def __aexit__(self, *args, **kwargs):
+    async def __aexit__(self, *args: Any, **kwargs: Any) -> None:
         await self.close()
 
     def _wrap_handler(
-        self, func: Callable, retry: Union[bool, int], **broker_args
-    ) -> Callable:
+        self, func: Callable[..., Any], retry: Union[bool, int], **broker_args: Any
+    ) -> Callable[..., Any]:
         func = use_context(func)
 
         if self._is_apply_types:
@@ -107,34 +115,36 @@ class BrokerUsecase(ABC):
         func = self._process_message(func, _get_watcher(self.logger, retry))
 
         if self.logger is not None:
-            func = self._log_execution(**broker_args)(func)
+            func = self._log_execution(self.logger, **broker_args)(func)
 
         func = _set_message_context(func)
 
         return func
 
-    def _wrap_decode_message(self, func: Callable) -> Callable:
+    def _wrap_decode_message(self, func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        async def wrapper(message) -> None:
+        async def wrapper(message: Any) -> Any:
             return await func(await self._decode_message(message))
 
         return wrapper
 
-    def _log_execution(self, **broker_args):
-        def decor(func):
+    def _log_execution(
+        self, logger: logging.Logger, **broker_args: Any
+    ) -> Callable[[Callable[..., Any]], Any]:
+        def decor(func: Callable[..., Any]) -> Callable[..., Any]:
             @wraps(func)
-            async def wrapper(message):
+            async def wrapper(message: Any) -> Any:
                 start = perf_counter()
 
                 self._get_log_context(message=message, **broker_args)
-                self.logger.log(self.log_level, "Received")
+                logger.log(self.log_level, "Received")
 
                 try:
                     r = await func(message)
                 except Exception as e:
-                    self.logger.error(repr(e))
+                    logger.error(repr(e))
                 else:
-                    self.logger.log(
+                    logger.log(
                         self.log_level, f"Processed by {(perf_counter() - start):.4f}"
                     )
                     return r
@@ -145,10 +155,11 @@ class BrokerUsecase(ABC):
 
 
 def _get_watcher(
-    logger: logging.Logger, try_number: Union[bool, int] = True
+    logger: Optional[logging.Logger], try_number: Union[bool, int] = True
 ) -> Optional[BaseWatcher]:
+    watcher: Optional[BaseWatcher]
     if try_number is True:
-        watcher = FakePushBackWatcher(logger=logger)
+        watcher = FakePushBackWatcher()
     elif try_number is False:
         watcher = None
     else:
@@ -156,9 +167,9 @@ def _get_watcher(
     return watcher
 
 
-def _set_message_context(func: Callable) -> Callable:
+def _set_message_context(func: Callable[..., Any]) -> Callable[[Any], Any]:
     @wraps(func)
-    async def wrapper(message) -> None:
+    async def wrapper(message: Any) -> Any:
         message_context.set(message)
         return await func(message)
 

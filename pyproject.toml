@@ -121,6 +121,7 @@ python = ["37", "38", "39", "310", "311"]
 
 [tool.mypy]
 strict = true
+ignore_missing_imports = true
 
 [tool.isort]
 profile = "black"
@@ -150,6 +151,9 @@ source = [
     "tests"
 ]
 context = '${CONTEXT}'
+omit = [
+    "**/__init__.py",
+]
 
 [tool.coverage.report]
 show_missing = true

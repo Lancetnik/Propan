@@ -51,7 +51,7 @@ $ pip install "propan[async_nats]"
 Create an application with the following code at `serve.py`:
 
 ```python
-from propan.app import PropanApp
+from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
 # from propan.brokers.nats import NatsBroker
 

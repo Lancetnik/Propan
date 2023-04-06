@@ -4,7 +4,7 @@ All Context dependencies also available from on_startup hook
 
 You can use it to setup your custom context fields.
 """
-from propan.app import PropanApp
+from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
 from propan.utils import Context
 

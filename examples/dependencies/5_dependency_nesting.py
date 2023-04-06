@@ -4,7 +4,7 @@ to all functions with the same context through the functions
 calling stack.
 """
 import aio_pika
-from propan.app import PropanApp
+from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
 from propan.utils import use_context
 

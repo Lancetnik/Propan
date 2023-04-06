@@ -1,6 +1,6 @@
 import logging
 import ssl
-from typing import Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from nats.aio.client import (
     DEFAULT_CONNECT_TIMEOUT,
@@ -19,8 +19,10 @@ from nats.aio.client import (
     JWTCallback,
     SignatureCallback,
 )
+from nats.aio.msg import Msg
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.nats.schemas import Handler
+from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
 
 class NatsBroker(BrokerUsecase):
@@ -67,7 +69,7 @@ class NatsBroker(BrokerUsecase):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         consumers: Optional[int] = None,
-    ): ...
+    ) -> None: ...
     async def connect(
         self,
         servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006
@@ -104,12 +106,23 @@ class NatsBroker(BrokerUsecase):
     ) -> Client: ...
     async def publish_message(
         self,
-        message: Union[str, dict],
+        message: Union[str, Dict[str, Any]],
         subject: str,
         reply: str = "",
         headers: Optional[Dict[str, str]] = None,
     ) -> None: ...
     def handle(
         self, subject: str, queue: str = "", retry: Union[bool, int] = False
-    ) -> Callable: ...
+    ) -> Callable[[Callable[..., Any]], None]: ...
     async def __aenter__(self) -> "NatsBroker": ...
+    async def _connect(self, *args: Any, **kwargs: Any) -> Client: ...
+    async def close(self) -> None: ...
+    def _get_log_context(
+        self, message: Optional[Msg], subject: str, queue: str = "", **kwargs
+    ) -> Dict[str, Any]: ...
+    @staticmethod
+    async def _decode_message(message: Msg) -> Union[str, dict]: ...
+    @staticmethod
+    def _process_message(
+        func: Callable[..., Any], watcher: Optional[BaseWatcher] = None
+    ) -> Callable[[Msg], Any]: ...

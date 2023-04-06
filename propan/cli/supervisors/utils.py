@@ -4,7 +4,8 @@ import signal
 import sys
 from multiprocessing.context import SpawnProcess
 from pathlib import Path
-from typing import Callable, List, Optional, Sequence, Tuple, Union
+from types import FrameType
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 
 from propan.log import logger
 
@@ -18,15 +19,16 @@ HANDLED_SIGNALS = (
 )
 
 
-DIRS = Union[Sequence[str], str, None]
+DIR = Union[Path, str]
+DIRS = Union[Sequence[DIR], DIR, None]
 
 
-def set_exit(func: Callable):
+def set_exit(func: Callable[[int, Optional[FrameType]], Any]) -> None:
     for sig in HANDLED_SIGNALS:
         signal.signal(sig, func)
 
 
-def get_subprocess(target: Callable[..., None], args: Tuple) -> SpawnProcess:
+def get_subprocess(target: Callable[..., None], args: Any) -> SpawnProcess:
     stdin_fileno: Optional[int]
     try:
         stdin_fileno = sys.stdin.fileno()
@@ -41,7 +43,7 @@ def get_subprocess(target: Callable[..., None], args: Tuple) -> SpawnProcess:
 
 
 def subprocess_started(
-    *args: Tuple,
+    *args: Any,
     t: Callable[..., None],
     stdin_fileno: Optional[int],
 ) -> None:
@@ -62,9 +64,10 @@ def is_dir(path: Path) -> bool:
 def _normalize_dirs(dirs: DIRS) -> List[str]:
     if dirs is None:
         return []
-    if isinstance(dirs, str):
-        return [dirs]
-    return list(set(dirs))
+    if isinstance(dirs, Sequence):
+        return list(set(map(str, dirs)))
+    else:
+        return [str(dirs)]
 
 
 def resolve_reload_patterns(
