@@ -18,7 +18,24 @@ def _create_project_dir(dirname: str, version: str) -> Path:
         project_dir.mkdir()
 
     _write_file(project_dir / 'README.md')
-    _write_file(project_dir / 'Dockerfile')
+
+    _write_file(
+        project_dir / 'Dockerfile',
+        'FROM python:3.11.3-slim',
+        '',
+        'RUN useradd -ms /bin/bash user',
+        '',
+        'USER user',
+        'WORKDIR /home/user',
+        '',
+        'COPY requirements.txt requirements.txt',
+        '',
+        'RUN pip install -r requirements.txt',
+        '',
+        'COPY ./app ./app',
+        '',
+        'ENTRYPOINT [ "python", "-m", "propan", "run", "app.serve:app" ]',
+    )
 
     _write_file(
         project_dir / 'docker-compose.yaml',
@@ -32,6 +49,15 @@ def _create_project_dir(dirname: str, version: str) -> Path:
         '      RABBITMQ_DEFAULT_PASS: guest',
         '    ports:',
         '      - 5672:5672',
+        '',
+        '  app:',
+        '    build: .',
+        '    environment:',
+        '      APP_RABBIT__URL: amqp://guest:guest@rabbit:5672/',
+        '    volumes:',
+        '      - ./app:/home/user/app:ro',
+        '    depends_on:',
+        '      - rabbit',
     )
 
     _write_file(
@@ -64,7 +90,7 @@ def _create_app_dir(app: Path) -> Path:
         'from propan.brokers.rabbit import RabbitBroker',
         '',
         'from core import broker',
-        'from config import Settings, BASE_DIR',
+        'from config import init_settings',
         '',
         'from apps import *  # import to register handlers  # NOQA',
         '',
@@ -73,9 +99,8 @@ def _create_app_dir(app: Path) -> Path:
         '',
         '',
         '@app.on_startup',
-        'async def init_settings(broker: RabbitBroker, env: Optional[str], context: Context):',
-        '    env_file = BASE_DIR / "config" / (env or ".env")',
-        '    settings = Settings(_env_file=env_file)',
+        'async def init_app(broker: RabbitBroker, env: Optional[str], context: Context):',
+        '    settings = init_settings(env)',
         '    context.set_context("settings", settings)',
         '',
         '    logger_level = logging.DEBUG if settings.debug else logging.INFO',
@@ -104,11 +129,13 @@ def _create_config_dir(config: Path) -> Path:
     _write_file(
         config_dir / 'settings.py',
         'from pathlib import Path',
+        'from typing import Optional',
         '',
         'from pydantic import BaseSettings, BaseModel, Field',
         '',
         '',
-        'BASE_DIR = Path(__file__).resolve().parent.parent',
+        'CONFIG_DIR = Path(__file__).resolve().parent',
+        'BASE_DIR = CONFIG_DIR.parent',
         '',
         '',
         'class RabbitSettings(BaseModel):',
@@ -124,11 +151,20 @@ def _create_config_dir(config: Path) -> Path:
         "        env_prefix = 'APP_'",
         "        env_file_encoding = 'utf-8'",
         "        env_nested_delimiter = '__'",
+        "",
+        "",
+        "def init_settings(env_file: Optional[str]) -> Settings:",
+        '    env_file = CONFIG_DIR / (env_file or ".env")',
+        '    if env_file.exists():',
+        '        settings = Settings(_env_file=env_file)',
+        '    else:',
+        '        settings = Settings()',
+        '    return settings',
     )
 
     _write_file(
         config_dir / '__init__.py',
-        'from .settings import Settings, BASE_DIR',
+        'from .settings import Settings, init_settings',
     )
 
     return config_dir
