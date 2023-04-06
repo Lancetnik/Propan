@@ -9,3 +9,7 @@ class Alias:
 class Depends:
     def __init__(self, func: Callable[..., Any]):
         self.func = func
+
+    def __repr__(self) -> str:
+        attr = getattr(self.func, "__name__", type(self.func).__name__)
+        return f"{self.__class__.__name__}({attr})"

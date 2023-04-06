@@ -17,10 +17,16 @@ def use_context(func: Callable[..., Any]) -> Callable[..., Any]:
     dependencies: Dict[FuncArgName, Callable[..., Any]] = {}
 
     for name, param in sig.items():
-        if isinstance(param.default, Alias):
-            aliases[param.default.name] = name
-        elif isinstance(param.default, Depends):
-            dependencies[name] = param.default.func
+        annotated_attr = getattr(param.annotation, "__metadata__", None)
+        if annotated_attr is not None:
+            attr = annotated_attr[0]
+        else:
+            attr = param.default
+
+        if isinstance(attr, Alias):
+            aliases[attr.name] = name
+        elif isinstance(attr, Depends):
+            dependencies[name] = attr.func
 
     func_args_with_aliases_casted = (set(sig.keys()) - set(aliases.values())) | set(
         aliases.keys()
