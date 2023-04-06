@@ -144,6 +144,13 @@ ignore = [
 [tool.ruff.isort]
 known-third-party = ["propan", "pydantic", "aio-pika", "nats-py"]
 
+[tool.ruff.flake8-bugbear]
+extend-immutable-calls = [
+    "propan.Depends", "propan.Alias",
+    "propan.utils.Depends", "propan.utils.Alias",
+    "propan.utils.context.Depends", "propan.utils.context.Alias",
+]
+
 [tool.coverage.run]
 parallel = true
 source = [
