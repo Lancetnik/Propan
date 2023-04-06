@@ -2,7 +2,7 @@
 Also you can use sync/async functions as 
 application lifecycle hooks
 
-All `on_startup` hooks runs after broker has been started
+All `on_startup` hooks runs before broker has been started
 All `on_shutdown` hooks runs after broker has been stopped
 '''
 

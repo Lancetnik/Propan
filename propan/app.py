@@ -69,11 +69,11 @@ class PropanApp(Singlethon):
         self.logger.log(log_level, "Propan app shut down gracefully.")
 
     async def _startup(self):
-        if (broker := self.broker) is not None:
-            await broker.start()
-
         for func in self._on_startup_calling:
             await call_or_await(func)
+        
+        if (broker := self.broker) is not None:
+            await broker.start()
 
     async def _shutdown(self):
         if getattr(self.broker, "_connection", False) is not False:
