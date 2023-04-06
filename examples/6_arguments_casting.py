@@ -6,8 +6,8 @@ If you doesn't create broker as `RabbitBroker(apply_types=False)`,
 all broker handlers are wrapped by @apply_types by default.
 '''
 from propan.app import PropanApp
-from propan.brokers import RabbitBroker
 from propan.utils import apply_types
+from propan.brokers.rabbit import RabbitBroker
 
 from pydantic import BaseModel
 

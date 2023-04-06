@@ -4,7 +4,7 @@ just use Broker as context manager and publish whatever you want!
 '''
 import asyncio
 
-from propan.brokers import RabbitBroker
+from propan.brokers.rabbit import RabbitBroker
 
 
 async def main():

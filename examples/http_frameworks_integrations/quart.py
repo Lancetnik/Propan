@@ -3,7 +3,7 @@ You can use Propan MQBrokers without PropanApp
 Just start and stop them whenever you want
 '''
 from quart import Quart
-from propan.brokers import RabbitBroker
+from propan.brokers.rabbit import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

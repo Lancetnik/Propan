@@ -4,7 +4,7 @@ Just start and stop them whenever you want
 '''
 import falcon
 import falcon.asgi
-from propan.brokers import RabbitBroker
+from propan.brokers.rabbit import RabbitBroker
 
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")

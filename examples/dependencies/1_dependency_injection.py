@@ -11,8 +11,8 @@ from logging import Logger
 import aio_pika
 
 from propan.app import PropanApp
-from propan.brokers import RabbitBroker
 from propan.utils import Context
+from propan.brokers.rabbit import RabbitBroker
 
 
 rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")

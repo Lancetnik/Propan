@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from propan.brokers import RabbitBroker, RabbitQueue
+from propan.brokers.rabbit import RabbitBroker, RabbitQueue
 
 
 @pytest.mark.asyncio

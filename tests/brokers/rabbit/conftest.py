@@ -5,7 +5,7 @@ import pytest_asyncio
 
 from pydantic import BaseSettings
 
-from propan.brokers import RabbitBroker, RabbitQueue
+from propan.brokers.rabbit import RabbitBroker, RabbitQueue
 
 
 class Settings(BaseSettings):

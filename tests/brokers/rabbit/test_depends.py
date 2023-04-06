@@ -1,6 +1,6 @@
 import pytest
 
-from propan.brokers import RabbitBroker
+from propan.brokers.rabbit import RabbitBroker
 from propan.utils.context import Depends, use_context
 
 
