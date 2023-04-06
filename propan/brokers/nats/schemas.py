@@ -1,14 +1,14 @@
 from dataclasses import dataclass
-from typing import Callable, Optional, Sequence
+from typing import Any, Callable, Optional, Sequence
 
 from nats.aio.subscription import Subscription
-from nats.js import api
+from nats.js.api import DEFAULT_PREFIX
 from pydantic import BaseModel
 
 
 @dataclass
 class Handler:
-    callback: Callable
+    callback: Callable[..., Any]
     subject: str
     queue: str = ""
 
@@ -16,7 +16,7 @@ class Handler:
 
 
 class JetStream(BaseModel):
-    prefix: str = api.DEFAULT_PREFIX
+    prefix: str = DEFAULT_PREFIX
     domain: Optional[str] = None
     timeout: float = 5
 

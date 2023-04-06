@@ -19,16 +19,16 @@ class NatsBroker(BrokerUsecase):
     __max_queue_len = 0
     __max_subject_len = 4
 
-    def __init__(self, *args, log_fmt: Optional[str] = None, **kwargs):
+    def __init__(self, *args: Any, log_fmt: Optional[str] = None, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self._fmt = log_fmt
 
-    async def _connect(self, *args, **kwargs) -> Client:
+    async def _connect(self, *args: Any, **kwargs: Any) -> Client:
         return await nats.connect(*args, **kwargs)
 
     def handle(
         self, subject: str, queue: str = "", retry: Union[bool, int] = False
-    ) -> Callable:
+    ) -> Callable[[Callable[..., Any]], None]:
         if (i := len(subject)) > self.__max_subject_len:
             self.__max_subject_len = i
 
@@ -37,7 +37,7 @@ class NatsBroker(BrokerUsecase):
 
         parent = super()
 
-        def wrapper(func) -> None:
+        def wrapper(func: Callable[..., Any]) -> None:
             for handler in self.handlers:
                 if handler.subject == subject and handler.queue == queue:
                     raise ValueError(
@@ -52,7 +52,7 @@ class NatsBroker(BrokerUsecase):
 
         return wrapper
 
-    async def start(self):
+    async def start(self) -> None:
         await super().start()
 
         for handler in self.handlers:
@@ -66,7 +66,7 @@ class NatsBroker(BrokerUsecase):
             handler.subscription = sub
 
     async def publish_message(
-        self, message: Union[str, dict], subject: str, **publish_args
+        self, message: Union[str, Dict[str, Any]], subject: str, **publish_args: Any
     ) -> None:
         if self._connection is None:
             raise ValueError("NatsConnection not started yet")
@@ -87,7 +87,7 @@ class NatsBroker(BrokerUsecase):
             subject, message.encode(), headers=headers, **publish_args
         )
 
-    async def close(self):
+    async def close(self) -> None:
         for h in self.handlers:
             await h.subscription.unsubscribe()
 
@@ -95,7 +95,7 @@ class NatsBroker(BrokerUsecase):
             await self._connection.drain()
 
     def _get_log_context(
-        self, message: Optional[Msg], subject: str, queue: str = "", **kwrags
+        self, message: Optional[Msg], subject: str, queue: str = "", **kwargs
     ) -> Dict[str, Any]:
         if message is not None:
             message_id = message.reply or uuid4().hex
@@ -111,7 +111,7 @@ class NatsBroker(BrokerUsecase):
         return context
 
     @property
-    def fmt(self):
+    def fmt(self) -> str:
         return self._fmt or (
             "%(asctime)s %(levelname)s - "
             f"%(subject)-{self.__max_subject_len}s | "
@@ -129,8 +129,8 @@ class NatsBroker(BrokerUsecase):
 
     @staticmethod
     def _process_message(
-        func: Callable, watcher: Optional[BaseWatcher] = None
-    ) -> Callable:
+        func: Callable[..., Any], watcher: Optional[BaseWatcher] = None
+    ) -> Callable[[Msg], Any]:
         @wraps(func)
         async def wrapper(message: Msg):
             return await func(message)

@@ -5,6 +5,7 @@ from typing import Dict, Sequence, Union
 
 import click
 from propan.__about__ import __version__
+from propan.cli.app import PropanApp
 from propan.log import access_logger, logger
 
 LOG_LEVELS: Dict[str, int] = {
@@ -61,7 +62,7 @@ def create(appname: str) -> None:
 )
 @click.option(
     "--log-level",
-    type=click.Choice(LOG_LEVELS.keys()),
+    type=click.Choice(tuple(LOG_LEVELS.keys())),
     default="info",
     help="Log level. [default: info]",
     show_default=True,
@@ -110,7 +111,7 @@ def _run(
         propan_app.run(log_level, **context_kwargs)
 
 
-def _get_app_object(app: str) -> object:
+def _get_app_object(app: str) -> PropanApp:
     from importlib.util import module_from_spec, spec_from_file_location
     from pathlib import Path
 
@@ -123,22 +124,34 @@ def _get_app_object(app: str) -> object:
     sys.path.insert(0, str(mod_path.parent))
 
     spec = spec_from_file_location("mode", f"{mod_path}.py")
+    if spec is None:
+        raise FileNotFoundError(f"{mod_path}.py not found")
+
     mod = module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return getattr(mod, func)
+    loader = spec.loader
+    if loader is None:
+        raise ValueError(f"{spec} has no loader")
+
+    loader.exec_module(mod)
+    app = getattr(mod, func)
+    if not isinstance(app, PropanApp):
+        raise ValueError(f"{app} is not a PropanApp")
+
+    return app
 
 
 def _parse_cli_extra_options(args: Sequence[str]) -> Dict[str, Union[bool, str]]:
-    extra_kwargs = {}
+    extra_kwargs: Dict[str, Union[bool, str]] = {}
     for item in args:
         arg = item.split("=")
 
+        v: Union[bool, str]
         if len(arg) == 0:
             k, v = arg[0], True
         elif len(arg) == 2:
             k, v = arg
         else:
-            raise ValueError(f"{arg} is not valid argument")
+            raise ValueError(f"{arg} is not a valid argument")
 
         k = k.strip("-").strip().replace("-", "_")
         extra_kwargs[k] = v

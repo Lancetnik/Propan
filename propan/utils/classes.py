@@ -1,7 +1,10 @@
+from typing import Any
+
+
 class Singlethon:
     _instanse = None
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any) -> "Singlethon":
         if cls._instanse is None:
             cls._instanse = super().__new__(cls)
         return cls._instanse

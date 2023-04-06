@@ -1,12 +1,12 @@
 """
-Also you can use sync/async functions as 
+Also you can use sync/async functions as
 application lifecycle hooks
 
 All `on_startup` hooks runs before broker has been started
 All `on_shutdown` hooks runs after broker has been stopped
 """
 
-from propan.app import PropanApp
+from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")

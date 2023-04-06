@@ -2,7 +2,7 @@
 Using Alias allows you rename context dependencies passing
 to your function
 """
-from propan.app import PropanApp
+from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
 from propan.utils import Alias
 

@@ -1,14 +1,15 @@
 import logging
 from ssl import SSLContext
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 import aio_pika
+import aiormq
 from pamqp.common import FieldTable
 from propan.brokers.model import BrokerUsecase
+from propan.brokers.push_back_watcher import BaseWatcher
+from propan.brokers.rabbit.schemas import RabbitExchange, RabbitQueue
 from propan.log import access_logger
 from yarl import URL
-
-from .schemas import RabbitExchange, RabbitQueue
 
 class RabbitBroker(BrokerUsecase):
     async def __init__(
@@ -66,7 +67,7 @@ class RabbitBroker(BrokerUsecase):
         ssl_context: Optional[SSLContext] = None,
         timeout: aio_pika.abc.TimeoutType = None,
         client_properties: Optional[FieldTable] = None,
-    ):
+    ) -> aio_pika.Connection:
         """
         URL string might be contain ssl parameters e.g.
         `amqps://user:pass@host//?ca_certs=ca.pem&certfile=crt.pem&keyfile=key.pem`
@@ -91,21 +92,38 @@ class RabbitBroker(BrokerUsecase):
         ...
     async def publish_message(
         self,
-        message: Union[aio_pika.Message, str, dict],
+        message: Union[aio_pika.Message, str, Dict[str, Any]],
         queue: Union[RabbitQueue, str] = "",
         exchange: Union[RabbitExchange, str, None] = None,
         mandatory: bool = True,
         immediate: bool = False,
         timeout: aio_pika.abc.TimeoutType = None,
-    ) -> None: ...
+    ) -> Optional[aiormq.abc.ConfirmationFrameType]: ...
     def handle(
         self,
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-    ) -> Callable:
+    ) -> Callable[[Callable[..., Any]], None]:
         """
         retry: Union[bool, int] - at exeption message will returns to queue `int` times or endless if `True`
         """
         ...
     async def __aenter__(self) -> "RabbitBroker": ...
+    async def _connect(self, *args: Any, **kwargs: Any) -> aio_pika.Connection: ...
+    async def close(self) -> None: ...
+    @staticmethod
+    async def _decode_message(
+        message: aio_pika.IncomingMessage,
+    ) -> Union[str, Dict[str, Any]]: ...
+    @staticmethod
+    def _process_message(
+        func: Callable[..., Any], watcher: Optional[BaseWatcher] = None
+    ) -> Callable[..., Any]: ...
+    def _get_log_context(
+        self,
+        message: Optional[aio_pika.Message],
+        queue: RabbitQueue,
+        exchange: Optional[RabbitExchange] = None,
+        **kwrags,
+    ) -> Dict[str, Any]: ...

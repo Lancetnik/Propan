@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple
 
 from propan.cli.supervisors.basereload import BaseReload
 from propan.cli.supervisors.utils import Config
@@ -12,7 +12,7 @@ if TYPE_CHECKING:  # pragma: no cover
     DirEntry = os.DirEntry[str]
 
 
-config = Config(reload_dirs=[Path.cwd()])
+config = Config(reload_dirs=Path.cwd())
 
 
 class CustomWatcher(DefaultWatcher):
@@ -98,20 +98,14 @@ class CustomWatcher(DefaultWatcher):
 class WatchGodReload(BaseReload):
     def __init__(
         self,
-        target: Callable,
-        args: Tuple,
+        target: Callable[..., Any],
+        args: Tuple[Any, ...],
         reload_delay: Optional[float] = 0.5,
     ) -> None:
         super().__init__(target, args, reload_delay)
         self.reloader_name = "watchgod"
         self.watchers = []
-        reload_dirs = []
-        for directory in config.reload_dirs:
-            if Path.cwd() not in directory.parents:
-                reload_dirs.append(directory)
-        if Path.cwd() not in reload_dirs:
-            reload_dirs.append(Path.cwd())
-        for w in reload_dirs:
+        for w in config.reload_dirs:
             self.watchers.append(CustomWatcher(w.resolve()))
 
     def should_restart(self) -> bool:

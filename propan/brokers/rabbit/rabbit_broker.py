@@ -4,6 +4,7 @@ from functools import partial, wraps
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import aio_pika
+import aiormq
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
@@ -20,10 +21,10 @@ class RabbitBroker(BrokerUsecase):
 
     def __init__(
         self,
-        *args,
+        *args: Any,
         consumers: Optional[int] = None,
         log_fmt: Optional[str] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(*args, **kwargs)
         self._max_consumers = consumers
@@ -34,7 +35,7 @@ class RabbitBroker(BrokerUsecase):
         await self.init_channel()
         return self
 
-    async def _connect(self, *args, **kwargs) -> aio_pika.Connection:
+    async def _connect(self, *args: Any, **kwargs: Any) -> aio_pika.Connection:
         return await aio_pika.connect_robust(
             *args, **kwargs, loop=asyncio.get_event_loop()
         )
@@ -55,7 +56,7 @@ class RabbitBroker(BrokerUsecase):
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-    ) -> Callable:
+    ) -> Callable[[Callable[..., Any]], None]:
         queue, exchange = _validate_exchange_and_queue(queue, exchange)
 
         if exchange and (i := len(exchange.name)) > self.__max_exchange_len:
@@ -66,7 +67,7 @@ class RabbitBroker(BrokerUsecase):
 
         parent = super()
 
-        def wrapper(func) -> None:
+        def wrapper(func: Callable[..., Any]) -> None:
             for handler in self.handlers:
                 if handler.exchange == exchange and handler.queue == queue:
                     raise ValueError(
@@ -75,13 +76,13 @@ class RabbitBroker(BrokerUsecase):
                         f"`{exchange.name if exchange else 'default'}` exchange"
                     )
 
-            func = parent.handle(func, retry, queue=queue, exchange=exchange)
+            func = parent._wrap_handler(func, retry, queue=queue, exchange=exchange)
             handler = Handler(callback=func, queue=queue, exchange=exchange)
             self.handlers.append(handler)
 
         return wrapper
 
-    async def start(self):
+    async def start(self) -> None:
         await super().start()
         await self.init_channel()
 
@@ -98,11 +99,11 @@ class RabbitBroker(BrokerUsecase):
 
     async def publish_message(
         self,
-        message: Union[aio_pika.Message, str, dict],
+        message: Union[aio_pika.Message, str, Dict[str, Any]],
         queue: Union[RabbitQueue, str] = "",
         exchange: Union[RabbitExchange, str, None] = None,
         **publish_args,
-    ) -> None:
+    ) -> Optional[aiormq.abc.ConfirmationFrameType]:
         if self._channel is None:
             raise ValueError("RabbitBroker channel not started yet")
 
@@ -127,11 +128,11 @@ class RabbitBroker(BrokerUsecase):
             **publish_args,
         )
 
-    async def close(self):
+    async def close(self) -> None:
         if self._connection:
             await self._connection.close()
 
-    async def _init_handler(self, handler: Handler):
+    async def _init_handler(self, handler: Handler) -> aio_pika.abc.AbstractRobustQueue:
         queue = await self._init_queue(handler.queue)
         if handler.exchange is not None:
             exchange = await self._init_exchange(handler.exchange)
@@ -169,7 +170,7 @@ class RabbitBroker(BrokerUsecase):
         return context
 
     @property
-    def fmt(self):
+    def fmt(self) -> str:
         return self._fmt or (
             "%(asctime)s %(levelname)s - "
             f"%(exchange)-{self.__max_exchange_len}s | "
@@ -179,7 +180,9 @@ class RabbitBroker(BrokerUsecase):
         )
 
     @staticmethod
-    async def _decode_message(message: aio_pika.IncomingMessage) -> Union[str, dict]:
+    async def _decode_message(
+        message: aio_pika.IncomingMessage,
+    ) -> Union[str, Dict[str, Any]]:
         body = message.body.decode()
         if message.content_type == "application/json":
             body = json.loads(body)
@@ -187,8 +190,8 @@ class RabbitBroker(BrokerUsecase):
 
     @staticmethod
     def _process_message(
-        func: Callable, watcher: Optional[BaseWatcher] = None
-    ) -> Callable:
+        func: Callable[..., Any], watcher: Optional[BaseWatcher] = None
+    ) -> Callable[..., Any]:
         @wraps(func)
         async def wrapper(message: aio_pika.Message):
             if watcher is None:

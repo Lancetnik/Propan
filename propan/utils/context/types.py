@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 
 class Alias:
@@ -7,5 +7,5 @@ class Alias:
 
 
 class Depends:
-    def __init__(self, func: Callable):
+    def __init__(self, func: Callable[..., Any]):
         self.func = func

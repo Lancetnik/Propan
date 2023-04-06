@@ -45,9 +45,13 @@ async def test_nested_context_alias(context: Context):
 
     @use_context
     async def func(
-        *args, m=Alias("model.field.field"), m2=Alias("model.not_existed"), **kwargs
+        *args,
+        m=Alias("model.field.field"),
+        m2=Alias("model.not_existed"),
+        m3=Alias("model.not_existed.not_existed"),
+        **kwargs,
     ):
-        return m is model.field.field and m2 is None
+        return m is model.field.field and m2 is None and m3 is None
 
     assert await func(model=model)
 

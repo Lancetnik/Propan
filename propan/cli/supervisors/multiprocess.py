@@ -1,15 +1,16 @@
 import os
 import threading
 from multiprocessing.context import SpawnProcess
-from types import FrameType
-from typing import Any, Callable, Iterable, List, Optional
+from typing import Any, Callable, List, Tuple
 
 from propan.cli.supervisors.utils import get_subprocess, set_exit
 from propan.log import logger
 
 
 class Multiprocess:
-    def __init__(self, target: Callable, args: Iterable[Any], workers: int) -> None:
+    def __init__(
+        self, target: Callable[..., Any], args: Tuple[Any, ...], workers: int
+    ) -> None:
         self._target = target
         self._args = args
 
@@ -19,12 +20,6 @@ class Multiprocess:
         self.should_exit = threading.Event()
         self.pid = os.getpid()
 
-    def signal_handler(self, sig: int, frame: Optional[FrameType]) -> None:
-        """
-        A signal handler that is registered with the parent process.
-        """
-        self.should_exit.set()
-
     def run(self) -> None:
         self.startup()
         self.should_exit.wait()
@@ -33,7 +28,7 @@ class Multiprocess:
     def startup(self) -> None:
         logger.info(f"Started parent process [{self.pid}]")
 
-        set_exit(self.signal_handler)
+        set_exit(lambda *_: self.should_exit.set())
 
         for _ in range(self.workers):
             process = get_subprocess(target=self._target, args=self._args)

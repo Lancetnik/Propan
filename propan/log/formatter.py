@@ -1,22 +1,34 @@
 import logging
 import sys
+from collections import defaultdict
 from copy import copy
-from typing import Literal, Optional
+from typing import Callable, Literal, Optional
 
 import click
 from propan.utils.context.main import log_context
 
 
 class ColourizedFormatter(logging.Formatter):
-    level_name_colors = {
-        logging.DEBUG: lambda level_name: click.style(str(level_name), fg="cyan"),
-        logging.INFO: lambda level_name: click.style(str(level_name), fg="green"),
-        logging.WARNING: lambda level_name: click.style(str(level_name), fg="yellow"),
-        logging.ERROR: lambda level_name: click.style(str(level_name), fg="red"),
-        logging.CRITICAL: lambda level_name: click.style(
-            str(level_name), fg="bright_red"
-        ),
-    }
+    level_name_colors: defaultdict[str, Callable[[str], str]] = defaultdict(
+        lambda: str,
+        **{
+            str(logging.DEBUG): lambda level_name: click.style(
+                str(level_name), fg="cyan"
+            ),
+            str(logging.INFO): lambda level_name: click.style(
+                str(level_name), fg="green"
+            ),
+            str(logging.WARNING): lambda level_name: click.style(
+                str(level_name), fg="yellow"
+            ),
+            str(logging.ERROR): lambda level_name: click.style(
+                str(level_name), fg="red"
+            ),
+            str(logging.CRITICAL): lambda level_name: click.style(
+                str(level_name), fg="bright_red"
+            ),
+        },
+    )
 
     def __init__(
         self,
@@ -32,11 +44,7 @@ class ColourizedFormatter(logging.Formatter):
         super().__init__(fmt=fmt, datefmt=datefmt, style=style)
 
     def color_level_name(self, level_name: str, level_no: int) -> str:
-        def default(level_name: str) -> str:
-            return str(level_name)
-
-        func = self.level_name_colors.get(level_no, default)
-        return func(level_name)
+        return self.level_name_colors[str(level_no)](level_name)
 
     def should_use_colors(self) -> bool:
         return True

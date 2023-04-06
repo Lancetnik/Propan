@@ -4,11 +4,13 @@ from logging import Logger
 from types import TracebackType
 from typing import Callable, Optional, Type
 
+from propan.utils.functions import call_or_await
+
 
 class BaseWatcher(ABC):
     max_tries: int
 
-    def __init__(self, max_tries: int = None, logger: Optional[Logger] = None):
+    def __init__(self, max_tries: int = 0, logger: Optional[Logger] = None):
         self.logger = logger
         self.max_tries = max_tries
 
@@ -21,26 +23,23 @@ class BaseWatcher(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def remove(self, message_id: str):
+    def remove(self, message_id: str) -> None:
         raise NotImplementedError()
 
 
 class FakePushBackWatcher(BaseWatcher):
-    def __init__(self):
+    def add(self, message_id: str) -> None:
         pass
 
-    def add(self, message_id: str):
-        pass
-
-    def is_max(self, message_id: str):
+    def is_max(self, message_id: str) -> bool:
         return False
 
-    def remove(self, message_id: str):
+    def remove(self, message_id: str) -> None:
         pass
 
 
 class PushBackWatcher(BaseWatcher):
-    memory = Counter()
+    memory: Counter[str] = Counter()
 
     def __init__(self, max_tries: int = 3, logger: Optional[Logger] = None):
         super().__init__(logger=logger, max_tries=max_tries)
@@ -66,11 +65,10 @@ class WatcherContext:
     def __init__(
         self,
         watcher: BaseWatcher,
-        message_id,
-        *args,
-        on_success: Callable = lambda: None,
-        on_max: Callable = lambda: None,
-        on_error: Callable = lambda: None,
+        message_id: str,
+        on_success: Callable[[], None] = lambda: None,
+        on_max: Callable[[], None] = lambda: None,
+        on_error: Callable[[], None] = lambda: None,
     ):
         self.watcher = watcher
         self.on_success = on_success
@@ -78,7 +76,7 @@ class WatcherContext:
         self.on_error = on_error
         self._message_id = message_id
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> None:
         self.watcher.add(self._message_id)
 
     async def __aexit__(
@@ -88,12 +86,12 @@ class WatcherContext:
         exc_tb: Optional[TracebackType],
     ) -> None:
         if not exc_type:
-            await self.on_success()
+            await call_or_await(self.on_success)
             self.watcher.remove(self._message_id)
 
         elif self.watcher.is_max(self._message_id):
-            await self.on_max()
+            await call_or_await(self.on_max)
             self.watcher.remove(self._message_id)
 
         else:
-            await self.on_error()
+            await call_or_await(self.on_error)
