@@ -79,8 +79,9 @@ $ propan run serve:app
 Propan uses `pydantic` to cast incoming function arguments to type according their type annotation.
 
 ```python
-from propan import PropanApp, RabbitBroker, Context
 from pydantic import BaseModel
+from propan import PropanApp, Context
+from propan.brokers.rabbit import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(broker)
@@ -112,7 +113,8 @@ and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 from logging import Logger
 
 import aio_pika
-from propan import PropanApp, RabbitBroker, Context
+from propan import PropanApp, Context
+from propan.brokers.rabbit import RabbitBroker
 
 rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
@@ -148,7 +150,8 @@ $ propan run serve:app --env=.env.dev
 ```
 
 ```python
-from propan import PropanApp, RabbitBroker, Context
+from propan import PropanApp, Context
+from propan.brokers.rabbit import RabbitBroker
 from pydantic import BaseSettings
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
