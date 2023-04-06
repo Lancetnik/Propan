@@ -6,8 +6,8 @@ calling stack.
 import aio_pika
 
 from propan.app import PropanApp
-from propan.brokers import RabbitBroker
 from propan.utils import use_context
+from propan.brokers.rabbit import RabbitBroker
 
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")

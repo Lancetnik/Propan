@@ -52,8 +52,8 @@ Create an application with the following code at `serve.py`:
 
 ```python
 from propan.app import PropanApp
-from propan.brokers import RabbitBroker
-# from propan.brokers import NatsBroker
+from propan.brokers.rabbit import RabbitBroker
+# from propan.brokers.nats import NatsBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 # broker = NatsBroker("nats://localhost:4222")
@@ -195,7 +195,7 @@ Just *start* and *stop* them according your application lifespan.
 
 ```python
 from fastapi import FastAPI
-from propan.brokers import RabbitBroker
+from propan.brokers.rabbit import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

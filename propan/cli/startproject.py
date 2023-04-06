@@ -60,8 +60,8 @@ def _create_app_dir(app: Path) -> Path:
         'from typing import Optional',
         '',
         'from propan.app import PropanApp',
-        'from propan.brokers import RabbitBroker',
         'from propan.utils import Context',
+        'from propan.brokers.rabbit import RabbitBroker',
         '',
         'from core import broker',
         'from config import Settings, BASE_DIR',
@@ -144,7 +144,7 @@ def _create_core_dir(core: Path) -> Path:
 
     _write_file(
         core_dir / 'dependencies.py',
-        'from propan.brokers import RabbitBroker',
+        'from propan.brokers.rabbit import RabbitBroker',
         '',
         'broker = RabbitBroker()',
     )
@@ -164,7 +164,7 @@ def _create_apps_dir(apps: Path) -> Path:
         apps_dir / 'handlers.py',
         'from core import broker',
         '',
-        'from propan.brokers import RabbitQueue, RabbitExchange',
+        'from propan.brokers.rabbit import RabbitQueue, RabbitExchange',
         '',
         '',
         '@broker.handle(queue=RabbitQueue("test"),',

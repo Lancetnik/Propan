@@ -4,7 +4,7 @@ Just start and stop them whenever you want
 '''
 from sanic import Sanic
 from sanic.response import text
-from propan.brokers import RabbitBroker
+from propan.brokers.rabbit import RabbitBroker
 
 
 app = Sanic("MyHelloWorldApp")

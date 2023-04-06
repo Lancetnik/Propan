@@ -137,7 +137,7 @@ class RabbitBroker(BrokerUsecase):
     async def _init_handler(self, handler: Handler):
         queue = await self._init_queue(handler.queue)
         if handler.exchange is not None:
-            exchange = await self._init_exchange_init_exchange(handler.exchange)
+            exchange = await self._init_exchange(handler.exchange)
             await queue.bind(exchange)
         return queue
 

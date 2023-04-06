@@ -6,7 +6,7 @@ use `propan run basic_usage:app` to start example
 '''
 
 from propan.app import PropanApp
-from propan.brokers import RabbitBroker
+from propan.brokers.rabbit import RabbitBroker
 
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
