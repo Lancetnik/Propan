@@ -2,10 +2,8 @@ from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-
-from pydantic import BaseSettings
-
 from propan.brokers.rabbit import RabbitBroker, RabbitQueue
+from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -28,6 +26,7 @@ def queue():
 @pytest.fixture(scope="session")
 def settings():
     return Settings()
+
 
 @pytest_asyncio.fixture
 async def broker(settings):

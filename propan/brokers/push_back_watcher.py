@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from logging import Logger
 from collections import Counter
-from typing import Optional, Type, Callable
+from logging import Logger
 from types import TracebackType
+from typing import Callable, Optional, Type
 
 
 class BaseWatcher(ABC):
@@ -52,9 +52,9 @@ class PushBackWatcher(BaseWatcher):
         is_max = self.memory[message_id] > self.max_tries
         if self.logger is not None:
             if is_max:
-                self.logger.error(f'Already retried {self.max_tries} times. Skipped.')
+                self.logger.error(f"Already retried {self.max_tries} times. Skipped.")
             else:
-                self.logger.error('Error is occured. Pushing back to queue.')
+                self.logger.error("Error is occured. Pushing back to queue.")
         return is_max
 
     def remove(self, message: str) -> None:
@@ -63,13 +63,15 @@ class PushBackWatcher(BaseWatcher):
 
 
 class WatcherContext:
-    def __init__(self,
-                 watcher: BaseWatcher,
-                 message_id,
-                 *args,
-                 on_success: Callable = lambda: None,
-                 on_max: Callable = lambda: None,
-                 on_error: Callable = lambda: None):
+    def __init__(
+        self,
+        watcher: BaseWatcher,
+        message_id,
+        *args,
+        on_success: Callable = lambda: None,
+        on_max: Callable = lambda: None,
+        on_error: Callable = lambda: None,
+    ):
         self.watcher = watcher
         self.on_success = on_success
         self.on_max = on_max

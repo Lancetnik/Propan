@@ -1,10 +1,9 @@
-'''
+"""
 Alias is able to provide access to specific attributes of dependency
-'''
-from propan import PropanApp, RabbitBroker, Alias, Context
-
+"""
+from propan import Alias, Context, PropanApp
+from propan.brokers.rabbit import RabbitBroker
 from pydantic import BaseSettings, Field
-
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

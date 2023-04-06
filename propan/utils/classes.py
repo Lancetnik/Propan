@@ -1,5 +1,3 @@
-
-
 class Singlethon:
     _instanse = None
 

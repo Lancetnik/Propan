@@ -9,7 +9,7 @@ class NameRequired(BaseModel):
     def __init__(self, name: str, **kwargs):
         super().__init__(name=name, **kwargs)
 
-    def __eq__(self, other: 'NameRequired') -> bool:
+    def __eq__(self, other: "NameRequired") -> bool:
         return self.name == other.name
 
 

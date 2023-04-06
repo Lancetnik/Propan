@@ -1,8 +1,7 @@
 import asyncio
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
-
 from propan.utils import context as global_context
 
 
@@ -24,6 +23,7 @@ def wait_for_mock():
         while tries < max_tries and call_count == mock.call_count:
             await asyncio.sleep(0.1)
             tries += 1
+
     return _wait_for_message
 
 

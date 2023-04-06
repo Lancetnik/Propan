@@ -3,7 +3,6 @@ from typing import Any, Dict
 
 from propan.utils.classes import Singlethon
 
-
 message = ContextVar("message", default=None)
 log_context = ContextVar("message", default={})
 
@@ -16,7 +15,7 @@ class Context(Singlethon):
 
     def remove_context(self, key: str):
         self._context.pop(key, None)
-    
+
     def clear(self):
         self._context = {}
 
@@ -25,11 +24,7 @@ class Context(Singlethon):
 
     @property
     def context(self):
-        return {
-            **self._context,
-            "context": self,
-            "message": message.get()
-        }
+        return {**self._context, "context": self, "message": message.get()}
 
 
 context = Context()

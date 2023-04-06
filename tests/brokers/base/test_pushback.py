@@ -1,9 +1,10 @@
 from unittest.mock import AsyncMock
 
 import pytest
-
 from propan.brokers.push_back_watcher import (
-    WatcherContext, PushBackWatcher, FakePushBackWatcher
+    FakePushBackWatcher,
+    PushBackWatcher,
+    WatcherContext,
 )
 
 
@@ -13,10 +14,13 @@ async def test_push_back_correct(async_mock: AsyncMock):
 
     watcher = PushBackWatcher(3)
 
-    context = WatcherContext(watcher, message_id,
-                            on_success=async_mock.on_success,
-                            on_error=async_mock.on_error,
-                            on_max=async_mock.on_max)
+    context = WatcherContext(
+        watcher,
+        message_id,
+        on_success=async_mock.on_success,
+        on_error=async_mock.on_error,
+        on_max=async_mock.on_max,
+    )
 
     async with context:
         await async_mock()
@@ -31,10 +35,13 @@ async def test_push_back_endless_correct(async_mock: AsyncMock):
 
     watcher = FakePushBackWatcher()
 
-    context = WatcherContext(watcher, message_id,
-                            on_success=async_mock.on_success,
-                            on_error=async_mock.on_error,
-                            on_max=async_mock.on_max)
+    context = WatcherContext(
+        watcher,
+        message_id,
+        on_success=async_mock.on_success,
+        on_error=async_mock.on_error,
+        on_max=async_mock.on_max,
+    )
 
     async with context:
         await async_mock()
@@ -46,13 +53,16 @@ async def test_push_back_endless_correct(async_mock: AsyncMock):
 async def test_push_back_watcher(async_mock: AsyncMock):
     watcher = PushBackWatcher(3)
 
-    context = WatcherContext(watcher, 1,
-                            on_success=async_mock.on_success,
-                            on_error=async_mock.on_error,
-                            on_max=async_mock.on_max)
-    
+    context = WatcherContext(
+        watcher,
+        1,
+        on_success=async_mock.on_success,
+        on_error=async_mock.on_error,
+        on_max=async_mock.on_max,
+    )
+
     async_mock.side_effect = Exception("Ooops!")
-    
+
     while not async_mock.on_max.called:
         with pytest.raises(Exception):
             async with context:
@@ -67,13 +77,16 @@ async def test_push_back_watcher(async_mock: AsyncMock):
 async def test_push_endless_back_watcher(async_mock: AsyncMock):
     watcher = FakePushBackWatcher()
 
-    context = WatcherContext(watcher, 1,
-                            on_success=async_mock.on_success,
-                            on_error=async_mock.on_error,
-                            on_max=async_mock.on_max)
-    
+    context = WatcherContext(
+        watcher,
+        1,
+        on_success=async_mock.on_success,
+        on_error=async_mock.on_error,
+        on_max=async_mock.on_max,
+    )
+
     async_mock.side_effect = Exception("Ooops!")
-    
+
     while async_mock.on_error.call_count < 10:
         with pytest.raises(Exception):
             async with context:

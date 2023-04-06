@@ -76,15 +76,18 @@ test = [
     "propan[async_rabbit]",
     "propan[async_nats]",
 
-    "ruff",
-
-    "coverage[toml]",
-    "pytest",
-    "pytest-asyncio",
+    "coverage[toml]>=7.2",
+    "pytest>=7",
+    "pytest-asyncio>=0.21",
 ]
 
 dev = [
     "propan[test]",
+
+    "mypy==1.1.1",
+    "black==23.3.0",
+    "isort==5.12.0",
+    "ruff==0.0.261",
 ]
 
 [tool.hatch.metadata]
@@ -115,6 +118,30 @@ features = [
 
 [[tool.hatch.envs.test.matrix]]
 python = ["37", "38", "39", "310", "311"]
+
+[tool.mypy]
+strict = true
+
+[tool.isort]
+profile = "black"
+known_third_party = ["propan", "pydantic", "aio-pika", "nats-py"]
+
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "C901",  # too complex
+]
+
+[tool.ruff.isort]
+known-third-party = ["propan", "pydantic", "aio-pika", "nats-py"]
 
 [tool.coverage.run]
 parallel = true

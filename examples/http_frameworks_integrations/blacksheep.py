@@ -1,10 +1,9 @@
-'''
+"""
 You can use Propan MQBrokers without PropanApp
 Just start and stop them whenever you want
-'''
+"""
 from blacksheep import Application
 from propan.brokers.rabbit import RabbitBroker
-
 
 app = Application()
 

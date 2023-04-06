@@ -1,12 +1,11 @@
-'''
+"""
 Depends parameter allows to call function before
 natural handler with providing all arguments and context
 inside dependency function
-'''
+"""
 from propan.app import PropanApp
-from propan.utils import Depends, use_context
 from propan.brokers.rabbit import RabbitBroker
-
+from propan.utils import Depends, use_context
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
@@ -25,8 +24,9 @@ def sync_dependency():
 
 
 @broker.handle("test")
-async def base_handler(body: dict,
-                       async_called: bool = Depends(async_dependency),
-                       sync_called: bool = Depends(sync_dependency)):
+async def base_handler(
+    body: dict,
+    async_called: bool = Depends(async_dependency),
+    sync_called: bool = Depends(sync_dependency),
+):
     assert async_called and sync_called
-

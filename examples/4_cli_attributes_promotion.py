@@ -1,4 +1,4 @@
-'''
+"""
 Using propan cli tool allows to pass command-line
 options inside your Context dependencies.
 
@@ -9,15 +9,14 @@ You can pass options following ways:
 ... --env=.env
 ... -env=.env
 ... env=.env
-"=" is required 
+"=" is required
 
 Or you can pass a boolean flags
 ... --use-smth  # passes as use_smth=True
-'''
-from propan import PropanApp, RabbitBroker, Context
-
+"""
+from propan import Context, PropanApp
+from propan.brokers.rabbit import RabbitBroker
 from pydantic import BaseSettings
-
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

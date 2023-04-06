@@ -1,13 +1,12 @@
-'''
+"""
 Connect to localhost RabbitMQ and listen `default` exchange
 with `test` routing key
 
 use `propan run basic_usage:app` to start example
-'''
+"""
 
 from propan.app import PropanApp
 from propan.brokers.rabbit import RabbitBroker
-
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

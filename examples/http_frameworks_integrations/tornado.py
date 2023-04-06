@@ -1,7 +1,7 @@
-'''
+"""
 You can use Propan MQBrokers without PropanApp
 Just start and stop them whenever you want
-'''
+"""
 import asyncio
 
 import tornado.web
@@ -21,15 +21,17 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 def make_app():
-    return tornado.web.Application([
-        (r"/", MainHandler),
-    ])
+    return tornado.web.Application(
+        [
+            (r"/", MainHandler),
+        ]
+    )
 
 
 async def main():
     app = make_app()
     app.listen(8888)
-    
+
     await broker.start()
     try:
         await asyncio.Event().wait()

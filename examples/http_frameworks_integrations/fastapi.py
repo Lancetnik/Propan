@@ -1,10 +1,9 @@
-'''
+"""
 You can use Propan MQBrokers without PropanApp
 Just start and stop them whenever you want
-'''
+"""
 from fastapi import FastAPI
 from propan.brokers.rabbit import RabbitBroker
-
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

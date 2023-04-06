@@ -1,26 +1,21 @@
 import os
 import threading
-from types import FrameType
-from typing import Callable, List, Optional, Iterable, Any
 from multiprocessing.context import SpawnProcess
+from types import FrameType
+from typing import Any, Callable, Iterable, List, Optional
 
-from propan.log import logger
 from propan.cli.supervisors.utils import get_subprocess, set_exit
+from propan.log import logger
 
 
 class Multiprocess:
-    def __init__(
-        self,
-        target: Callable,
-        args: Iterable[Any],
-        workers: int
-    ) -> None:
+    def __init__(self, target: Callable, args: Iterable[Any], workers: int) -> None:
         self._target = target
         self._args = args
 
         self.workers = workers
         self.processes: List[SpawnProcess] = []
-        
+
         self.should_exit = threading.Event()
         self.pid = os.getpid()
 
