@@ -1,7 +1,6 @@
 from typing import Any
 
 import pytest
-
 from propan.utils.context import Alias, Context, use_context
 
 
@@ -10,9 +9,9 @@ async def test_base_kwargs_alias():
     key = 1000
 
     @use_context
-    async def func(*args, k = Alias("key"), **kwargs):
+    async def func(*args, k=Alias("key"), **kwargs):
         return k is key
-    
+
     assert await func(key=key)
 
 
@@ -21,9 +20,9 @@ async def test_base_nested_kwargs_alias():
     model = SomeModel(field=SomeModel(field=1000))
 
     @use_context
-    async def func(*args, m = Alias("model.field.field"), **kwargs):
+    async def func(*args, m=Alias("model.field.field"), **kwargs):
         return m is model.field.field
-    
+
     assert await func(model=model)
 
 
@@ -33,9 +32,9 @@ async def test_base_context_alias(context: Context):
     context.set_context("key", key)
 
     @use_context
-    async def func(*args, k = Alias("key"), **kwargs):
+    async def func(*args, k=Alias("key"), **kwargs):
         return k is key
-    
+
     assert await func()
 
 
@@ -45,12 +44,11 @@ async def test_nested_context_alias(context: Context):
     context.set_context("model", model)
 
     @use_context
-    async def func(*args,
-                   m = Alias("model.field.field"),
-                   m2 = Alias("model.not_existed"),
-                   **kwargs):
+    async def func(
+        *args, m=Alias("model.field.field"), m2=Alias("model.not_existed"), **kwargs
+    ):
         return m is model.field.field and m2 is None
-    
+
     assert await func(model=model)
 
 

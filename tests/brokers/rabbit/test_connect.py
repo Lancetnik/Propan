@@ -1,5 +1,4 @@
 import pytest
-
 from propan.brokers.rabbit import RabbitBroker
 
 
@@ -28,7 +27,7 @@ async def test_init_connect_by_raw_data(settings):
         host=settings.host,
         login=settings.login,
         password=settings.password,
-        port=settings.port
+        port=settings.port,
     )
     assert await _connect(broker)
 
@@ -40,7 +39,7 @@ async def test_connection_by_url(settings):
         host=settings.host,
         login=settings.login,
         password=settings.password,
-        port=settings.port
+        port=settings.port,
     )
     assert await _init_channel(broker)
 

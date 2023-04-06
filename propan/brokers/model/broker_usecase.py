@@ -1,26 +1,33 @@
-from abc import ABC, abstractmethod
 import logging
-from time import perf_counter
+from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Callable, Union, Optional, Any
+from time import perf_counter
+from typing import Any, Callable, Optional, Union
 
+from propan.brokers.push_back_watcher import (
+    BaseWatcher,
+    FakePushBackWatcher,
+    PushBackWatcher,
+)
 from propan.log import access_logger
 from propan.utils import apply_types, use_context
-from propan.utils.context import message as message_context, context
-from propan.brokers.push_back_watcher import BaseWatcher, PushBackWatcher, FakePushBackWatcher
+from propan.utils.context import context
+from propan.utils.context import message as message_context
 
 
 class BrokerUsecase(ABC):
     logger: logging.Logger
     log_level: int
-    _fmt: str = '%(asctime)s %(levelname)s - %(message)s'
-    
-    def __init__(self,
-                 *args,
-                 apply_types: bool = True,
-                 logger: Optional[logging.Logger] = access_logger,
-                 log_level: int = logging.INFO,
-                 **kwargs):
+    _fmt: str = "%(asctime)s %(levelname)s - %(message)s"
+
+    def __init__(
+        self,
+        *args,
+        apply_types: bool = True,
+        logger: Optional[logging.Logger] = access_logger,
+        log_level: int = logging.INFO,
+        **kwargs,
+    ):
         self.logger = logger
         self.log_level = log_level
 
@@ -55,19 +62,23 @@ class BrokerUsecase(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def _process_message(self, func: Callable, watcher: Optional[BaseWatcher]) -> Callable:
+    def _process_message(
+        self, func: Callable, watcher: Optional[BaseWatcher]
+    ) -> Callable:
         raise NotImplementedError()
-    
+
     async def start(self) -> None:
         self._init_logger()
         await self.connect()
-    
+
     def _get_log_context(self, *kwargs) -> dict[str, Any]:
         return {}
 
-    def handle(self, func: Callable, retry: Union[bool, int] = False, **broker_args) -> Callable:
+    def handle(
+        self, func: Callable, retry: Union[bool, int] = False, **broker_args
+    ) -> Callable:
         return self._wrap_handler(func, retry, **broker_args)
-    
+
     @property
     def fmt(self):
         return self._fmt
@@ -76,17 +87,16 @@ class BrokerUsecase(ABC):
         for handler in self.logger.handlers:
             handler.setFormatter(type(handler.formatter)(self.fmt))
 
-    async def __aenter__(self) -> 'BrokerUsecase':
+    async def __aenter__(self) -> "BrokerUsecase":
         await self.connect()
         return self
-    
+
     async def __aexit__(self, *args, **kwargs):
         await self.close()
 
-    def _wrap_handler(self,
-                      func: Callable,
-                      retry: Union[bool, int],
-                      **broker_args) -> Callable:
+    def _wrap_handler(
+        self, func: Callable, retry: Union[bool, int], **broker_args
+    ) -> Callable:
         func = use_context(func)
 
         if self._is_apply_types:
@@ -107,6 +117,7 @@ class BrokerUsecase(ABC):
         @wraps(func)
         async def wrapper(message) -> None:
             return await func(await self._decode_message(message))
+
         return wrapper
 
     def _log_execution(self, **broker_args):
@@ -123,14 +134,19 @@ class BrokerUsecase(ABC):
                 except Exception as e:
                     self.logger.error(repr(e))
                 else:
-                    self.logger.log(self.log_level,
-                                    f"Processed by {(perf_counter() - start):.4f}")
+                    self.logger.log(
+                        self.log_level, f"Processed by {(perf_counter() - start):.4f}"
+                    )
                     return r
+
             return wrapper
+
         return decor
 
 
-def _get_watcher(logger: logging.Logger, try_number: Union[bool, int] = True) -> Optional[BaseWatcher]:
+def _get_watcher(
+    logger: logging.Logger, try_number: Union[bool, int] = True
+) -> Optional[BaseWatcher]:
     if try_number is True:
         watcher = FakePushBackWatcher(logger=logger)
     elif try_number is False:
@@ -145,4 +161,5 @@ def _set_message_context(func: Callable) -> Callable:
     async def wrapper(message) -> None:
         message_context.set(message)
         return await func(message)
+
     return wrapper

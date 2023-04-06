@@ -1,13 +1,11 @@
 """Simple and fast framework to create message brokers based microservices"""
-import sys
 import logging
+import sys
 from typing import Dict, Sequence, Union
 
 import click
-
 from propan.__about__ import __version__
-from propan.log import logger, access_logger
-
+from propan.log import access_logger, logger
 
 LOG_LEVELS: Dict[str, int] = {
     "critical": logging.CRITICAL,
@@ -19,29 +17,33 @@ LOG_LEVELS: Dict[str, int] = {
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
 @cli.add_command
 @click.command()
-def version():
+def version() -> None:
     return _print_version()
 
 
 @cli.add_command
 @click.command(help="Create new Propan project at [APPNAME] directory")
 @click.argument("appname")
-def create(appname: str):
+def create(appname: str) -> None:
     from propan.cli.startproject import create
+
     create(appname, __version__)
 
 
 @cli.add_command
-@click.command(context_settings=dict(
-    ignore_unknown_options=True,
-    allow_extra_args=True,
-), help="Run Propan app from [module:app]")
+@click.command(
+    context_settings={
+        "ignore_unknown_options": True,
+        "allow_extra_args": True,
+    },
+    help="Run Propan app from [module:app]",
+)
 @click.argument("app")
 @click.option(
     "--reload",
@@ -71,61 +73,63 @@ def run(
     log_level: str = "info",
     reload: bool = False,
     workers: int = 1,
-):
+) -> None:
     if reload and workers > 1:
         raise ValueError("You can't use reload option with multiprocessing")
 
-    _set_log_level(log_level)    
+    _set_log_level(log_level)
 
     args = (app, _parse_cli_extra_options(ctx.args))
 
     if reload is True:
         from propan.cli.supervisors.watchgodreloader import WatchGodReload
+
         WatchGodReload(target=_run, args=args).run()
 
     elif workers > 1:
         from propan.cli.supervisors.multiprocess import Multiprocess
+
         Multiprocess(target=_run, args=(*args, logging.DEBUG), workers=workers).run()
 
     else:
         _run(*args)
 
 
-def _run(app: str,
-         context_kwargs: Dict[str, Union[bool, str]],
-         log_level: int = logging.INFO):
+def _run(
+    app: str, context_kwargs: Dict[str, Union[bool, str]], log_level: int = logging.INFO
+) -> None:
     try:
         propan_app = _get_app_object(app)
 
     except (ValueError, FileNotFoundError, AttributeError) as e:
         logger.error(e)
-        logger.error('Please, input module like python_file:propan_app_name')
+        logger.error("Please, input module like python_file:propan_app_name")
         exit()
 
     else:
         propan_app.run(log_level, **context_kwargs)
 
 
-def _get_app_object(app: str):
-    from importlib.util import spec_from_file_location, module_from_spec
+def _get_app_object(app: str) -> object:
+    from importlib.util import module_from_spec, spec_from_file_location
     from pathlib import Path
 
     f, func = app.split(":", 2)
 
     mod_path = Path.cwd()
-    for i in f.split('.'):
+    for i in f.split("."):
         mod_path = mod_path / i
 
     sys.path.insert(0, str(mod_path.parent))
 
-    spec = spec_from_file_location("mode", f'{mod_path}.py')
+    spec = spec_from_file_location("mode", f"{mod_path}.py")
     mod = module_from_spec(spec)
     spec.loader.exec_module(mod)
     return getattr(mod, func)
 
 
 def _parse_cli_extra_options(args: Sequence[str]) -> Dict[str, Union[bool, str]]:
-    extra_kwargs = dict()
+    extra_kwargs = {}
     for item in args:
         arg = item.split("=")
 
@@ -141,7 +145,7 @@ def _parse_cli_extra_options(args: Sequence[str]) -> Dict[str, Union[bool, str]]
     return extra_kwargs
 
 
-def _set_log_level(level: str):
+def _set_log_level(level: str) -> None:
     log_level = LOG_LEVELS[level]
     logger.setLevel(log_level)
     access_logger.setLevel(log_level)

@@ -1,9 +1,9 @@
 import logging
 import logging.config
-from typing import Dict, Any
 from functools import partial
+from typing import Any, Dict
 
-from propan.log.formatter import DefaultFormatter, AccessFormatter
+from propan.log.formatter import AccessFormatter, DefaultFormatter
 
 
 def configure_formatter(formatter, *args, **kwargs):
@@ -21,7 +21,7 @@ LOGGING_CONFIG: Dict[str, Any] = {
         },
         "access": {
             "()": partial(configure_formatter, AccessFormatter),
-            "fmt": '%(asctime)s %(levelname)s - %(message)s',
+            "fmt": "%(asctime)s %(levelname)s - %(message)s",
         },
     },
     "handlers": {

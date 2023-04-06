@@ -1,11 +1,10 @@
-'''
+"""
 Using Alias allows you rename context dependencies passing
 to your function
-'''
+"""
 from propan.app import PropanApp
-from propan.utils import Alias
 from propan.brokers.rabbit import RabbitBroker
-
+from propan.utils import Alias
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

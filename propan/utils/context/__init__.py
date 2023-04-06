@@ -1,7 +1,6 @@
 from .decorate import use_context
+from .main import Context, context, message
 from .types import Alias, Depends
-from .main import message, context, Context
-
 
 __all__ = (
     "Alias",

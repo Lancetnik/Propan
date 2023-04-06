@@ -1,13 +1,13 @@
 from unittest.mock import Mock
 
 import pytest
-
 from propan.brokers.rabbit import RabbitBroker, RabbitQueue
 
 
 @pytest.mark.asyncio
-async def test_consume(mock: Mock, queue: RabbitQueue,
-                       broker: RabbitBroker, wait_for_mock):
+async def test_consume(
+    mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
+):
     async with broker:
         broker.handle(queue)(mock.method)
         await broker.start()
@@ -19,8 +19,9 @@ async def test_consume(mock: Mock, queue: RabbitQueue,
 
 
 @pytest.mark.asyncio
-async def test_consume_double(mock: Mock, queue: RabbitQueue,
-                              broker: RabbitBroker, wait_for_mock):
+async def test_consume_double(
+    mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
+):
     async with broker:
         broker.handle(queue)(mock.method)
         await broker.start()
@@ -35,9 +36,10 @@ async def test_consume_double(mock: Mock, queue: RabbitQueue,
 
 
 @pytest.mark.asyncio
-async def test_different_consume(mock: Mock, queue: RabbitQueue,
-                                 broker: RabbitBroker, wait_for_mock):
-    another_queue = RabbitQueue(**queue.dict(exclude={"name"}), name=queue.name+"1")
+async def test_different_consume(
+    mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
+):
+    another_queue = RabbitQueue(**queue.dict(exclude={"name"}), name=queue.name + "1")
     async with broker:
         broker.handle(queue)(mock.method)
         broker.handle(another_queue)(mock.method2)

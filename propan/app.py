@@ -1,21 +1,19 @@
 import asyncio
 import logging
 import sys
-from typing import (
-    Optional, Callable, NoReturn,
-    List, Dict, Any
-)
+from typing import Any, Callable, Dict, List, NoReturn, Optional
 
-if sys.platform not in ('win32', 'cygwin', 'cli'):
+if sys.platform not in ("win32", "cygwin", "cli"):
     import uvloop
+
     uvloop.install()
 
-from propan.log import logger
-from propan.utils.classes import Singlethon
-from propan.utils.context import use_context, context
-from propan.utils.functions import call_or_await
 from propan.brokers.model.broker_usecase import BrokerUsecase
 from propan.cli.supervisors.utils import set_exit
+from propan.log import logger
+from propan.utils.classes import Singlethon
+from propan.utils.context import context, use_context
+from propan.utils.functions import call_or_await
 
 
 class PropanApp(Singlethon):
@@ -24,9 +22,7 @@ class PropanApp(Singlethon):
     _on_shutdown_calling: List[Callable] = []
 
     def __init__(
-        self,
-        broker: Optional[BrokerUsecase] = None,
-        logger: logging.Logger = logger
+        self, broker: Optional[BrokerUsecase] = None, logger: logging.Logger = logger
     ):
         self.broker = broker
         self.logger = logger
@@ -35,7 +31,7 @@ class PropanApp(Singlethon):
         context.set_context("app", self)
 
         self.loop = asyncio.get_event_loop()
-    
+
     def set_broker(self, broker: BrokerUsecase):
         self.broker = broker
 
@@ -56,11 +52,13 @@ class PropanApp(Singlethon):
             self._start(log_level)
         finally:
             self._stop(log_level)
-            
+
     def _start(self, log_level: int) -> NoReturn:
         self.logger.log(log_level, "Propan app starting...")
         self.loop.run_until_complete(self._startup())
-        self.logger.log(log_level, "Propan app started successfully! To exit press CTRL+C")
+        self.logger.log(
+            log_level, "Propan app started successfully! To exit press CTRL+C"
+        )
         self.loop.run_forever()
 
     def _stop(self, log_level: int):
@@ -71,7 +69,7 @@ class PropanApp(Singlethon):
     async def _startup(self):
         for func in self._on_startup_calling:
             await call_or_await(func)
-        
+
         if (broker := self.broker) is not None:
             await broker.start()
 

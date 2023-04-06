@@ -1,13 +1,12 @@
-import os
-import sys
-import signal
-from pathlib import Path
 import multiprocessing
+import os
+import signal
+import sys
 from multiprocessing.context import SpawnProcess
-from typing import Callable, List, Optional, Union, Tuple
+from pathlib import Path
+from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from propan.log import logger
-
 
 multiprocessing.allow_connection_pickling()
 spawn = multiprocessing.get_context("spawn")
@@ -19,14 +18,15 @@ HANDLED_SIGNALS = (
 )
 
 
+DIRS = Union[Sequence[str], str, None]
+
+
 def set_exit(func: Callable):
     for sig in HANDLED_SIGNALS:
         signal.signal(sig, func)
 
 
-def get_subprocess(
-    target: Callable[..., None], args: Tuple
-) -> SpawnProcess:
+def get_subprocess(target: Callable[..., None], args: Tuple) -> SpawnProcess:
     stdin_fileno: Optional[int]
     try:
         stdin_fileno = sys.stdin.fileno()
@@ -36,10 +36,7 @@ def get_subprocess(
     return spawn.Process(
         target=subprocess_started,
         args=args,
-        kwargs={
-            "t": target,
-            "stdin_fileno": stdin_fileno
-        }
+        kwargs={"t": target, "stdin_fileno": stdin_fileno},
     )
 
 
@@ -62,7 +59,7 @@ def is_dir(path: Path) -> bool:
         return False
 
 
-def _normalize_dirs(dirs: Union[List[str], str, None]) -> List[str]:
+def _normalize_dirs(dirs: DIRS) -> List[str]:
     if dirs is None:
         return []
     if isinstance(dirs, str):
@@ -73,7 +70,6 @@ def _normalize_dirs(dirs: Union[List[str], str, None]) -> List[str]:
 def resolve_reload_patterns(
     patterns_list: List[str], directories_list: List[str]
 ) -> Tuple[List[str], List[Path]]:
-
     directories: List[Path] = list(set(map(Path, directories_list.copy())))
     patterns: List[str] = patterns_list.copy()
 
@@ -91,9 +87,9 @@ def resolve_reload_patterns(
 
     directories = list(set(directories))
     directories = list(map(Path, directories))
-    directories = list(map(lambda x: x.resolve(), directories))
+    directories = [x.resolve() for x in directories]
     directories = list(
-        set([reload_path for reload_path in directories if is_dir(reload_path)])
+        {reload_path for reload_path in directories if is_dir(reload_path)}
     )
 
     children = []
@@ -112,9 +108,9 @@ def resolve_reload_patterns(
 class Config:
     def __init__(
         self,
-        reload_dirs: Optional[Union[List[str], str]] = [Path.cwd()],
-        reload_includes: Optional[Union[List[str], str]] = None,
-        reload_excludes: Optional[Union[List[str], str]] = None
+        reload_dirs: DIRS = None,
+        reload_includes: DIRS = None,
+        reload_excludes: DIRS = None,
     ):
         reload_dirs = _normalize_dirs(reload_dirs)
         reload_includes = _normalize_dirs(reload_includes)
@@ -133,8 +129,8 @@ class Config:
         for directory in self.reload_dirs_excludes:
             for reload_directory in reload_dirs_tmp:
                 if (
-                    directory == reload_directory or
-                    directory in reload_directory.parents
+                    directory == reload_directory
+                    or directory in reload_directory.parents
                 ):
                     try:
                         self.reload_dirs.remove(reload_directory)
@@ -146,13 +142,15 @@ class Config:
                 self.reload_includes.remove(pattern)
         if not self.reload_dirs:
             if reload_dirs:
-                logger.debug((
-                    "Provided reload directories %s did not contain valid "
-                    "directories, watching current working directory."),
+                logger.debug(
+                    (
+                        "Provided reload directories %s did not contain valid "
+                        "directories, watching current working directory."
+                    ),
                     reload_dirs,
                 )
-            self.reload_dirs = [Path.cwd() / 'app']
+            self.reload_dirs = [Path.cwd() / "app"]
 
         logger.debug(
-            f"Will watch for changes in these directories: {sorted(list(map(str, self.reload_dirs)))}",
+            f"Will watch for changes in these directories: {sorted(map(str, self.reload_dirs))}",
         )

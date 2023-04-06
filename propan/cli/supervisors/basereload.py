@@ -4,8 +4,8 @@ import threading
 from types import FrameType
 from typing import Callable, Optional, Tuple
 
-from propan.log import logger
 from propan.cli.supervisors.utils import get_subprocess, set_exit
+from propan.log import logger
 
 
 class BaseReload:
@@ -39,7 +39,7 @@ class BaseReload:
 
     def restart(self) -> None:
         self._stop_process()
-        logger.info('Process successfully reloaded')
+        logger.info("Process successfully reloaded")
         self._start_process()
 
     def shutdown(self) -> None:

@@ -1,11 +1,10 @@
 from functools import wraps
-from inspect import signature, iscoroutinefunction
+from inspect import iscoroutinefunction, signature
 from typing import Any, Callable, Dict, List
 
-from propan.utils.functions import call_or_await, remove_useless_arguments
-from propan.utils.context.types import Alias, Depends
 from propan.utils.context.main import context as global_context
-
+from propan.utils.context.types import Alias, Depends
+from propan.utils.functions import call_or_await, remove_useless_arguments
 
 FuncArgName = str
 AliasStr = str
@@ -23,7 +22,9 @@ def use_context(func):
         elif isinstance(param.default, Depends):
             dependencies[name] = param.default.func
 
-    func_args_with_aliases_casted = (set(sig.keys()) - set(aliases.values())) | set(aliases.keys())
+    func_args_with_aliases_casted = (set(sig.keys()) - set(aliases.values())) | set(
+        aliases.keys()
+    )
 
     def _cast_context(*args, **kwargs) -> tuple[tuple, dict]:
         context = global_context.context
@@ -45,6 +46,7 @@ def use_context(func):
         return args, kwargs
 
     if iscoroutinefunction(func) is True:
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
             args, kwargs = _cast_context(*args, **kwargs)
@@ -54,6 +56,7 @@ def use_context(func):
             return await func(*args, **kwargs)
 
     else:
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             args, kwargs = _cast_context(*args, **kwargs)

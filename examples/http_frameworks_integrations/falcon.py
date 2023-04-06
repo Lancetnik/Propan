@@ -1,11 +1,10 @@
-'''
+"""
 You can use Propan MQBrokers without PropanApp
 Just start and stop them whenever you want
-'''
+"""
 import falcon
 import falcon.asgi
 from propan.brokers.rabbit import RabbitBroker
-
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
@@ -19,20 +18,22 @@ class ThingsResource:
     async def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
         resp.content_type = falcon.MEDIA_TEXT
-        resp.text = ('\nTwo things awe me most, the starry sky '
-                     'above me and the moral law within me.\n'
-                     '\n'
-                     '    ~ Immanuel Kant\n\n')
+        resp.text = (
+            "\nTwo things awe me most, the starry sky "
+            "above me and the moral law within me.\n"
+            "\n"
+            "    ~ Immanuel Kant\n\n"
+        )
 
 
 class PropanMiddleware:
     async def process_startup(self, scope, event):
         await broker.start()
-    
+
     async def process_shutdown(self, scope, event):
         await broker.close()
 
 
 app = falcon.asgi.App()
 app.add_middleware(PropanMiddleware())
-app.add_route('/things', ThingsResource())
+app.add_route("/things", ThingsResource())

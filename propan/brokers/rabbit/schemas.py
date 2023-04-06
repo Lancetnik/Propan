@@ -1,9 +1,8 @@
-from typing import Optional, Dict, Any, Callable, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
-from aio_pika.abc import TimeoutType, ExchangeType
+from aio_pika.abc import ExchangeType, TimeoutType
+from propan.brokers.model.schemas import NameRequired, Queue
 from pydantic import BaseModel, Field
-
-from propan.brokers.model.schemas import Queue, NameRequired
 
 
 class RabbitQueue(Queue):
@@ -15,7 +14,6 @@ class RabbitQueue(Queue):
     timeout: TimeoutType = None
     robust: bool = True
     declare: bool = Field(default=True, exclude=True)
-
 
 
 class RabbitExchange(NameRequired):

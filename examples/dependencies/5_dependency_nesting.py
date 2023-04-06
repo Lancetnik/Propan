@@ -1,14 +1,12 @@
-'''
+"""
 @use_context decorator allows pass context dependencies
 to all functions with the same context through the functions
 calling stack.
-'''
+"""
 import aio_pika
-
 from propan.app import PropanApp
-from propan.utils import use_context
 from propan.brokers.rabbit import RabbitBroker
-
+from propan.utils import use_context
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

@@ -1,8 +1,8 @@
 from typing import Tuple
 
 import pytest
-from pydantic import BaseModel
 from propan.utils import apply_types
+from pydantic import BaseModel
 
 
 class Base(BaseModel):
@@ -23,6 +23,6 @@ def test_model():
 
     is_casted, m = cast_model({"field": "1"})
     assert is_casted, m.field == (True, 1)
-    
+
     with pytest.raises(ValueError):
         cast_model(("field", 1))

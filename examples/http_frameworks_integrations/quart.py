@@ -1,9 +1,9 @@
-'''
+"""
 You can use Propan MQBrokers without PropanApp
 Just start and stop them whenever you want
-'''
-from quart import Quart
+"""
 from propan.brokers.rabbit import RabbitBroker
+from quart import Quart
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
@@ -28,4 +28,3 @@ async def stop_broker():
 @app.route("/")
 async def json():
     return {"hello": "world"}
-

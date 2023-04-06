@@ -1,19 +1,18 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple
 
-from watchgod import DefaultWatcher
-
-from propan.log import logger
-
 from propan.cli.supervisors.basereload import BaseReload
 from propan.cli.supervisors.utils import Config
-
+from propan.log import logger
+from watchgod import DefaultWatcher
 
 if TYPE_CHECKING:  # pragma: no cover
     import os
+
     DirEntry = os.DirEntry[str]
 
-config = Config()
+
+config = Config(reload_dirs=[Path.cwd()])
 
 
 class CustomWatcher(DefaultWatcher):
