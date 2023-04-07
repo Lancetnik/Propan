@@ -1,13 +1,13 @@
 from functools import wraps
 from inspect import iscoroutinefunction, signature
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, TypeVar
 
 from propan.utils.context.main import context as global_context
 from propan.utils.context.types import Alias, Depends
 from propan.utils.functions import call_or_await, remove_useless_arguments
 
-FuncArgName = str
-AliasStr = str
+FuncArgName = TypeVar("FuncArgName", bound=str)
+AliasStr = TypeVar("AliasStr", bound=str)
 
 
 def use_context(func: Callable[..., Any]) -> Callable[..., Any]:

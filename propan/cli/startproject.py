@@ -1,17 +1,17 @@
 from pathlib import Path
 
 
-def create(dirname: str, version: str) -> None:
-    project_dir = _create_project_dir(dirname, version)
+def create(project_dir: Path, version: str) -> Path:
+    project_dir = _create_project_dir(project_dir, version)
     app_dir = _create_app_dir(project_dir / "app")
     _create_config_dir(app_dir / "config")
     _create_core_dir(app_dir / "core")
     _create_apps_dir(app_dir / "apps")
-    exit()
+    return project_dir
 
 
-def _create_project_dir(dirname: str, version: str) -> Path:
-    project_dir = _touch_dir(Path.cwd() / dirname)
+def _create_project_dir(dirname: Path, version: str) -> Path:
+    project_dir = _touch_dir(dirname)
 
     if project_dir.exists() is False:
         project_dir.mkdir()

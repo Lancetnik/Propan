@@ -65,6 +65,7 @@ class PropanApp(Singlethon):
         self.logger.log(log_level, "Propan app shutting down...")
         self.loop.run_until_complete(self._shutdown())
         self.logger.log(log_level, "Propan app shut down gracefully.")
+        self.loop.close()
 
     async def _startup(self) -> None:
         for func in self._on_startup_calling:
