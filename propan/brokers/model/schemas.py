@@ -10,9 +10,7 @@ class NameRequired(BaseModel):
         super().__init__(name=name, **kwargs)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, NameRequired):
-            raise ValueError(f"{other} is not NameRequired type")
-        return self.name == other.name
+        return isinstance(other, NameRequired) and self.name == other.name
 
 
 class Queue(NameRequired):

@@ -5,7 +5,7 @@ import sys
 from multiprocessing.context import SpawnProcess
 from pathlib import Path
 from types import FrameType
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, List, Optional, Sequence, Tuple, TypeVar, Union
 
 from propan.log import logger
 
@@ -19,8 +19,8 @@ HANDLED_SIGNALS = (
 )
 
 
-DIR = Union[Path, str]
-DIRS = Union[Sequence[DIR], DIR, None]
+DIR = TypeVar("DIR", bound=Union[Path, str])
+DIRS = TypeVar("DIRS", bound=Union[Sequence[DIR], DIR, None])
 
 
 def set_exit(func: Callable[[int, Optional[FrameType]], Any]) -> None:
