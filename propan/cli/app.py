@@ -1,17 +1,10 @@
 import asyncio
 import logging
-import sys
 from typing import Any, Callable, Dict, List, Optional
-
-if sys.platform not in ("win32", "cygwin", "cli"):
-    import uvloop
-
-    uvloop.install()
 
 from anyio import create_memory_object_stream, create_task_group
 from anyio.streams.memory import MemoryObjectReceiveStream
 from propan.brokers.model.broker_usecase import BrokerUsecase
-from propan.cli.supervisors.basereload import BaseReload
 from propan.cli.supervisors.utils import set_exit
 from propan.log import logger
 from propan.utils.classes import Singlethon
@@ -19,7 +12,7 @@ from propan.utils.context import context, use_context
 from propan.utils.functions import call_or_await
 
 
-class PropanApp(Singlethon, BaseReload):
+class PropanApp(Singlethon):
     _context: Dict[str, Any] = {}
     _on_startup_calling: List[Callable[..., None]] = []
     _on_shutdown_calling: List[Callable[..., None]] = []
@@ -27,14 +20,10 @@ class PropanApp(Singlethon, BaseReload):
     def __init__(
         self, broker: Optional[BrokerUsecase] = None, logger: logging.Logger = logger
     ):
-        super().__init__(None, [], None)
         self.broker = broker
         self.logger = logger
         self.context = context
-
         context.set_context("app", self)
-
-        self.loop = asyncio.get_event_loop()
 
     def set_broker(self, broker: BrokerUsecase) -> None:
         self.broker = broker
@@ -47,10 +36,12 @@ class PropanApp(Singlethon, BaseReload):
         self._on_shutdown_calling.append(use_context(func))
         return func
 
-    async def run(self, log_level: int = logging.INFO, **context_kwargs: Any) -> None:
+    def set_context(self, **context_kwargs: Dict[str, Any]) -> None:
         for k, v in context_kwargs.items():
             self.context.set_context(k, v)
 
+    async def run(self, log_level: int = logging.INFO) -> None:
+        self.loop = asyncio.get_event_loop()
         send_stream, receive_stream = create_memory_object_stream()
 
         async with create_task_group() as tg:
