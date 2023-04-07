@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import sys
 from pathlib import Path
 from typing import Dict, Optional, Union
 
@@ -115,4 +117,15 @@ def _run(
         exit()
 
     else:
-        anyio.run(propan_app.run, log_level, **context_kwargs)
+        propan_app.set_context(**context_kwargs)
+
+        if sys.platform not in ("win32", "cygwin", "cli"):
+            import uvloop
+
+            if sys.version_info >= (3, 11):
+                with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+                    runner.run(propan_app.run(log_level))
+            else:
+                uvloop.install()
+
+        anyio.run(propan_app.run, log_level)
