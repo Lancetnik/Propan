@@ -1,7 +1,7 @@
 import platform
 
-from propan.cli.main import cli
 from propan.__about__ import __version__
+from propan.cli.main import cli
 
 
 def test_version(runner):
