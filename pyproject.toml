@@ -60,7 +60,7 @@ Tracker = "https://github.com/Lancetnik/Propan/issues"
 Source = "https://github.com/Lancetnik/Propan"
 
 [project.scripts]
-propan = "propan:cli"
+propan = "propan.__main__:cli"
 
 [project.optional-dependencies]
 async_rabbit = [
@@ -169,6 +169,7 @@ show_missing = true
 skip_empty = true
 exclude_lines = [
     "if __name__ == .__main__.:",
+    "def __repr__",
     "from .*",
     "import .*",
     '@(abc\.)?abstractmethod',
@@ -178,4 +179,9 @@ exclude_lines = [
     'logger\..*',
     "pass",
     '\.\.\.',
+]
+omit = [
+    '*/__about__.py',
+    '*/__main__.py',
+    '*/__init__.py',
 ]
