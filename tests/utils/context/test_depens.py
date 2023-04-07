@@ -17,7 +17,7 @@ async def test_sync_depends():
     key = 1000
 
     @use_context
-    def func(*args, k = Depends(sync_dep), **kwargs):
+    def func(*args, k=Depends(sync_dep), **kwargs):
         return k is key
 
     assert func(key=key)
