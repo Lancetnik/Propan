@@ -7,14 +7,14 @@ from typing import Annotated
 
 from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
-from propan.utils import Depends, Alias, use_context
-
+from propan.utils import Alias, Depends, use_context
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
 app = PropanApp(broker)
 
 Logger = Annotated[logging.Logger, Alias("broker.logger")]
+
 
 @use_context
 async def async_dependency(body, logger: Logger):
