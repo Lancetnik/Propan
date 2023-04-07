@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from typing import Dict, Optional, Union
 
+import anyio
 import typer
 from propan.__about__ import __version__
 from propan.cli.app import PropanApp
@@ -114,4 +115,4 @@ def _run(
         exit()
 
     else:
-        propan_app.run(log_level, **context_kwargs)
+        anyio.run(propan_app.run, log_level, **context_kwargs)
