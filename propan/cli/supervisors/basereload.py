@@ -53,8 +53,8 @@ class BaseReload:
         logger.info(f"Stopping reloader process [{self.pid}]")
 
     def _stop_process(self) -> None:
-        self.process.terminate()
-        self.process.join()
+        self._process.terminate()
+        self._process.join()
 
     def _start_process(self) -> SpawnProcess:
         process = get_subprocess(target=self._target, args=self._args)
