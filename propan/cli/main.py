@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Dict, Optional, Union
 
 import typer
@@ -29,27 +30,12 @@ def version_callback(version: bool) -> None:
         raise typer.Exit()
 
 
-@cli.callback()
-def callback(
-    version: Optional[bool] = typer.Option(
-        False,
-        "--version",
-        callback=version_callback,
-        is_eager=True,
-        help="Show current platform, python and propan version",
-    )
-):
-    """
-    Generate, run and manage Propan apps to greater development experience
-    """
-
-
 @cli.command()
 def create(appname: str) -> None:
     """Create a new Propan project at [APPNAME] directory"""
     from propan.cli.startproject import create
 
-    project = create(appname, __version__)
+    project = create(Path.cwd() / appname, __version__)
     typer.echo(f"Create Propan project template at: {project}")
 
 
@@ -97,6 +83,21 @@ def run(
 
     else:
         _run(*args)
+
+
+@cli.callback()
+def main(
+    version: Optional[bool] = typer.Option(
+        False,
+        "--version",
+        callback=version_callback,
+        is_eager=True,
+        help="Show current platform, python and propan version",
+    )
+):
+    """
+    Generate, run and manage Propan apps to greater development experience
+    """
 
 
 def _run(

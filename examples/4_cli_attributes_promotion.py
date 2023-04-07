@@ -13,6 +13,7 @@ You can pass options following ways:
 
 Or you can pass a boolean flags
 ... --use-smth  # passes as use_smth=True
+... --no-use-smth  # passes as use_smth=False
 """
 from propan import Context, PropanApp
 from propan.brokers.rabbit import RabbitBroker

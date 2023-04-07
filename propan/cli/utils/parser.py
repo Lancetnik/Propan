@@ -1,14 +1,15 @@
 from functools import reduce
-from typing import Dict, Literal, Sequence, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 
-def parse_cli_args(*args: Sequence[str]) -> Tuple[str, Dict[str, Union[bool, str]]]:
+def parse_cli_args(*args: str) -> Tuple[str, Dict[str, Union[bool, str]]]:
     extra_kwargs: Dict[str, Union[bool, str]] = {}
 
     k: str = ""
-    v: Union[Literal[True], str, None] = None
+    v: Union[bool, str, None] = None
 
-    field_args = []
+    field_args: List[str] = []
+    app = ""
     for item in reduce(lambda acc, x: acc + x.split("="), args, []) + ["-"]:
         if ":" in item:
             app = item
