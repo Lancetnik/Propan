@@ -1,5 +1,6 @@
 import os
 import threading
+from multiprocessing.context import SpawnProcess
 from typing import Any, Callable, Optional, Tuple
 
 from propan.cli.supervisors.utils import get_subprocess, set_exit
@@ -7,18 +8,29 @@ from propan.log import logger
 
 
 class BaseReload:
+    _process: SpawnProcess
+    _target: Callable[..., Any]
+    _args: Tuple[Any, ...]
+
+    reload_delay: Optional[float]
+    should_exit: threading.Event
+    pid: int
+    reloader_name: str = ""
+
     def __init__(
         self,
         target: Callable[..., Any],
         args: Tuple[Any, ...],
         reload_delay: Optional[float] = 0.5,
     ) -> None:
-        self.target = target
+        self._target = target
+        self._args = args
+
         self.should_exit = threading.Event()
         self.pid = os.getpid()
-        self.reloader_name: Optional[str] = None
         self.reload_delay = reload_delay
-        self._args = args
+
+        set_exit(lambda *_: self.should_exit.set())
 
     def run(self) -> None:
         self.startup()
@@ -29,25 +41,25 @@ class BaseReload:
 
     def startup(self) -> None:
         logger.info(f"Started reloader process [{self.pid}] using {self.reloader_name}")
-        set_exit(lambda *_: self.should_exit.set())
-        self._start_process()
+        self._process = self._start_process()
 
     def restart(self) -> None:
         self._stop_process()
         logger.info("Process successfully reloaded")
-        self._start_process()
+        self._process = self._start_process()
 
     def shutdown(self) -> None:
         self._stop_process()
         logger.info(f"Stopping reloader process [{self.pid}]")
 
     def _stop_process(self) -> None:
-        self.process.terminate()
-        self.process.join()
+        self._process.terminate()
+        self._process.join()
 
-    def _start_process(self) -> None:
-        self.process = get_subprocess(target=self.target, args=self._args)
-        self.process.start()
+    def _start_process(self) -> SpawnProcess:
+        process = get_subprocess(target=self._target, args=self._args)
+        process.start()
+        return process
 
     def should_restart(self) -> bool:
         raise NotImplementedError("Reload strategies should override should_restart()")
