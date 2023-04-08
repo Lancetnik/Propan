@@ -1,1 +1,1 @@
-coverage run -m pytest -m 'not rabbit' tests ${@}
+coverage run -m pytest tests "$@"
