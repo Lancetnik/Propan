@@ -5,6 +5,7 @@ from propan.brokers.rabbit import RabbitBroker, RabbitQueue
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 async def test_consume(
     mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
 ):
@@ -19,6 +20,7 @@ async def test_consume(
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 async def test_consume_double(
     mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
 ):
@@ -37,6 +39,7 @@ async def test_consume_double(
 
 @pytest.mark.asyncio
 @pytest.mark.slow
+@pytest.mark.rabbit
 async def test_different_consume(
     mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
 ):

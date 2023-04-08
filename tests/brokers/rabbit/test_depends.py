@@ -4,6 +4,7 @@ from propan.utils.context import Depends, use_context
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 async def test_broker_depends(mock, queue, broker: RabbitBroker, wait_for_mock):
     @use_context
     def sync_depends(b, message):
@@ -38,6 +39,7 @@ async def test_broker_depends(mock, queue, broker: RabbitBroker, wait_for_mock):
 
 @pytest.mark.asyncio
 @pytest.mark.slow
+@pytest.mark.rabbit
 async def test_different_consumers_has_different_messages(
     mock, context, wait_for_mock, broker: RabbitBroker
 ):
