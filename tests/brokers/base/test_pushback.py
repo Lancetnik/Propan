@@ -1,5 +1,3 @@
-from unittest.mock import AsyncMock
-
 import pytest
 from propan.brokers.push_back_watcher import (
     FakePushBackWatcher,
@@ -7,9 +5,12 @@ from propan.brokers.push_back_watcher import (
     WatcherContext,
 )
 
+from tests.tools.marks import needs_py38
+
 
 @pytest.mark.asyncio
-async def test_push_back_correct(async_mock: AsyncMock):
+@needs_py38
+async def test_push_back_correct(async_mock):
     message_id = 1
 
     watcher = PushBackWatcher(3)
@@ -30,7 +31,8 @@ async def test_push_back_correct(async_mock: AsyncMock):
 
 
 @pytest.mark.asyncio
-async def test_push_back_endless_correct(async_mock: AsyncMock):
+@needs_py38
+async def test_push_back_endless_correct(async_mock):
     message_id = 1
 
     watcher = FakePushBackWatcher()
@@ -50,7 +52,8 @@ async def test_push_back_endless_correct(async_mock: AsyncMock):
 
 
 @pytest.mark.asyncio
-async def test_push_back_watcher(async_mock: AsyncMock):
+@needs_py38
+async def test_push_back_watcher(async_mock):
     watcher = PushBackWatcher(3)
 
     context = WatcherContext(
@@ -74,7 +77,8 @@ async def test_push_back_watcher(async_mock: AsyncMock):
 
 
 @pytest.mark.asyncio
-async def test_push_endless_back_watcher(async_mock: AsyncMock):
+@needs_py38
+async def test_push_endless_back_watcher(async_mock):
     watcher = FakePushBackWatcher()
 
     context = WatcherContext(

@@ -64,22 +64,24 @@ Source = "https://github.com/Lancetnik/Propan"
 propan = "propan.__main__:cli"
 
 [project.optional-dependencies]
-async_rabbit = [
-    "pika-stubs",
+async-rabbit = [
     "aio-pika>=9",
 ]
 
-async_nats = [
+async-nats = [
     "nats-py>=2"
 ]
 
 test = [
-    "propan[async_rabbit]",
-    "propan[async_nats]",
+    "propan[async-rabbit]",
+    "propan[async-nats]",
 
     "coverage[toml]>=7.2",
     "pytest>=7",
     "pytest-asyncio>=0.21",
+    "pytest-xdist[psutil]",
+
+    "asyncmock; python_version < '3.8'",
 ]
 
 dev = [
@@ -87,7 +89,7 @@ dev = [
 
     "mypy==1.1.1",
     "black==23.3.0",
-    "isort==5.12.0",
+    "isort>=5",
     "ruff==0.0.261",
     "typer[all]",
 ]
@@ -154,8 +156,20 @@ extend-immutable-calls = [
     "typer.Argument", "typer.Option",
 ]
 
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = ""
+testpaths = [
+    "tests",
+]
+
 [tool.coverage.run]
 parallel = true
+branch = true
+concurrency = [
+    "multiprocessing",
+    "thread"
+]
 source = [
     "propan",
     "tests"

@@ -1,8 +1,16 @@
 import asyncio
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
+import sys
+if sys.version_info < (3, 8):
+    from asyncmock import AsyncMock
+else:
+    from unittest.mock import AsyncMock
 
 import pytest
 from propan.utils import context as global_context
+from propan.__about__ import __version__
+
+from tests.tools import marks
 
 
 @pytest.fixture
@@ -13,6 +21,11 @@ def mock():
 @pytest.fixture
 def async_mock():
     return AsyncMock()
+
+
+@pytest.fixture(scope="session")
+def version():
+    return __version__
 
 
 @pytest.fixture(scope="session")

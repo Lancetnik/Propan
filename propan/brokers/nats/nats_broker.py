@@ -29,10 +29,12 @@ class NatsBroker(BrokerUsecase):
     def handle(
         self, subject: str, queue: str = "", retry: Union[bool, int] = False
     ) -> Callable[[Callable[..., Any]], None]:
-        if (i := len(subject)) > self.__max_subject_len:
+        i = len(subject)
+        if i > self.__max_subject_len:
             self.__max_subject_len = i
 
-        if (i := len(queue)) > self.__max_queue_len:
+        i = len(queue)
+        if i > self.__max_queue_len:
             self.__max_queue_len = i
 
         parent = super()

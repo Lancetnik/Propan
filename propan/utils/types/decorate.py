@@ -15,11 +15,10 @@ def apply_types(func: Callable[..., Any]) -> Callable[..., Any]:
 
     annotations = {}
     for name, param in sig.items():
-        if type(param.default) not in NOT_CAST and any(
-            (
-                (has_annotation := (param.annotation != param.empty)),
-                (has_default := (param.default != param.empty)),
-            )
+        has_annotation = (param.annotation != param.empty)
+        has_default = (param.default != param.empty)
+        if type(param.default) not in NOT_CAST and (
+            has_annotation or has_default
         ):
             annotations[name] = ModelField(
                 name=name,
@@ -31,7 +30,8 @@ def apply_types(func: Callable[..., Any]) -> Callable[..., Any]:
             )
 
     def _cast_type(arg_name: str, arg_value: Any, values: Dict[str, Any]) -> Any:
-        if (arg_type := annotations.get(arg_name)) is not None:
+        arg_type = annotations.get(arg_name)
+        if arg_type is not None:
             arg_value, err = arg_type.validate(arg_value, values, loc=arg_type.alias)
             if err:
                 raise ValueError(err)
