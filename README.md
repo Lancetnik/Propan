@@ -3,6 +3,9 @@
 </p>
 
 <p align="center">
+    <a href="https://github.com/Lancetnik/Propan/actions/workflows/tests.yml" target="_blank">
+        <img src="https://github.com/Lancetnik/Propan/actions/workflows/tests.yml/badge.svg" alt="Tests coverage"/>
+    </a>
     <a href="https://smokeshow.helpmanual.io/2p3n1z2c5q39130x176i/" target="_blank">
         <img src="docs/files/coverage.svg" alt="Tests coverage"/>
     </a>
@@ -12,6 +15,7 @@
     <a href="https://pepy.tech/project/propan" target="_blank">
         <img src="https://static.pepy.tech/personalized-badge/propan?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads" alt="downloads"/>
     </a>
+    <br/>
     <a href="https://pypi.org/project/propan" target="_blank">
         <img src="https://img.shields.io/pypi/pyversions/propan.svg" alt="Supported Python versions">
     </a>
