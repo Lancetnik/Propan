@@ -62,15 +62,10 @@ jobs:
       - run: ls -la coverage
       - run: coverage combine coverage
       - run: coverage report
-      - run: coverage json --show-contexts
+      - run: coverage html --show-contexts --title "pydantic coverage for ${{ github.sha }}"
 
-      - name: Store coverage JSON
+      - name: Store coverage html
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-json
-          path: coverage.json
-      
-      - run: mv coverage.json ./coverage/coverage-summary.json
-
-      - name: Update Coverage Badge
-        uses: we-cli/coverage-badge-action@main
+          name: coverage-html
+          path: htmlcov
