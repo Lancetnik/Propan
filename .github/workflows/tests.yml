@@ -61,7 +61,7 @@ jobs:
       - run: ls -la coverage
       - run: coverage combine coverage
       - run: coverage report
-      - run: coverage html --show-contexts --title "Coverage for ${{ github.sha }}"
+      - run: coverage json --show-contexts
 
       - name: Store coverage HTML
         uses: actions/upload-artifact@v3
