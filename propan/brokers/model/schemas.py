@@ -1,6 +1,12 @@
+from enum import Enum
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
+
+
+class ContentTypes(str, Enum):
+    text = "text/plain"
+    json = "application/json"
 
 
 class NameRequired(BaseModel):

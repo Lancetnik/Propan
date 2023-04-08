@@ -1,14 +1,15 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Sequence
+from typing import Optional, Sequence
 
 from nats.aio.subscription import Subscription
 from nats.js.api import DEFAULT_PREFIX
+from propan.types import DecoratedCallable
 from pydantic import BaseModel
 
 
 @dataclass
 class Handler:
-    callback: Callable[..., Any]
+    callback: DecoratedCallable
     subject: str
     queue: str = ""
 

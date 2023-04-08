@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 from typing import Dict, Optional, Union
 
-import anyio
 import typer
 from propan.__about__ import __version__
 from propan.cli.app import PropanApp
@@ -47,6 +46,7 @@ def main(
     Generate, run and manage Propan apps to greater development experience
     """
 
+
 @cli.command()
 def create(appname: str) -> None:
     """Create a new Propan project at [APPNAME] directory"""
@@ -68,10 +68,7 @@ def run(
         1, show_default=False, help="Run [workers] applications with process spawning"
     ),
     log_level: LogLevels = typer.Option(
-        LogLevels.info,
-        case_sensitive=False,
-        show_default=False,
-        help="[INFO] default"
+        LogLevels.info, case_sensitive=False, show_default=False, help="[INFO] default"
     ),
     reload: bool = typer.Option(
         False, "--reload", is_flag=True, help="Restart app at directory files changes"
@@ -123,7 +120,9 @@ def _run(
             if sys.version_info >= (3, 11):
                 with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
                     runner.run(propan_app.run(log_level))
+                    return
+
             else:
                 uvloop.install()
 
-        anyio.run(propan_app.run, log_level)
+        asyncio.run(propan_app.run(log_level))

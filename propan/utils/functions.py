@@ -1,8 +1,10 @@
 from inspect import isawaitable, signature
-from typing import Any, Callable, Dict
+from typing import Any, Dict
+
+from propan.types import DecoratedCallable
 
 
-async def call_or_await(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+async def call_or_await(func: DecoratedCallable, *args: Any, **kwargs: Any) -> Any:
     f = func(*args, **kwargs)
     if isawaitable(f):
         f = await f
@@ -10,7 +12,7 @@ async def call_or_await(func: Callable[..., Any], *args: Any, **kwargs: Any) -> 
 
 
 def remove_useless_arguments(
-    func: Callable[..., Any], *args: Any, **kwargs: Any
+    func: DecoratedCallable, *args: Any, **kwargs: Any
 ) -> Dict[str, Any]:
     sig = signature(func).parameters
     arg_names = tuple(sig.keys())

@@ -2,7 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from functools import wraps
 from time import perf_counter
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from propan.brokers.push_back_watcher import (
     BaseWatcher,
@@ -10,6 +10,7 @@ from propan.brokers.push_back_watcher import (
     PushBackWatcher,
 )
 from propan.log import access_logger
+from propan.types import DecoratedCallable
 from propan.utils import apply_types, use_context
 from propan.utils.context import context
 from propan.utils.context import message as message_context
@@ -18,8 +19,9 @@ from propan.utils.context import message as message_context
 class BrokerUsecase(ABC):
     logger: Optional[logging.Logger]
     log_level: int
-    _connection: Any = None
-    _fmt: str = "%(asctime)s %(levelname)s - %(message)s"
+    handlers: List[Any]
+    _connection: Any
+    _fmt: str
 
     def __init__(
         self,
@@ -27,14 +29,18 @@ class BrokerUsecase(ABC):
         apply_types: bool = True,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
+        log_fmt: str = "%(asctime)s %(levelname)s - %(message)s",
         **kwargs: Any,
     ):
         self.logger = logger
         self.log_level = log_level
+        self._fmt = log_fmt
 
+        self._connection = None
         self._is_apply_types = apply_types
         self._connection_args = args
         self._connection_kwargs = kwargs
+        self.handlers = []
 
         context.set_context("logger", logger)
         context.set_context("broker", self)
@@ -64,8 +70,8 @@ class BrokerUsecase(ABC):
 
     @abstractmethod
     def _process_message(
-        self, func: Callable[..., Any], watcher: Optional[BaseWatcher]
-    ) -> Callable[..., Any]:
+        self, func: DecoratedCallable, watcher: Optional[BaseWatcher]
+    ) -> DecoratedCallable:
         raise NotImplementedError()
 
     async def start(self) -> None:
@@ -83,7 +89,7 @@ class BrokerUsecase(ABC):
         *broker_args: Any,
         retry: Union[bool, int] = False,
         **broker_kwargs: Any,
-    ) -> Callable[[Callable[..., Any]], None]:
+    ) -> Callable[[DecoratedCallable], None]:
         raise NotImplementedError()
 
     @property
@@ -95,7 +101,7 @@ class BrokerUsecase(ABC):
             formatter = handler.formatter
             if formatter is not None:
                 if getattr(formatter, "use_colors", None) is not None:
-                    kwargs = { "use_colors": formatter.use_colors }
+                    kwargs = {"use_colors": formatter.use_colors}
                 else:
                     kwargs = {}
                 handler.setFormatter(type(formatter)(self.fmt, **kwargs))
@@ -108,8 +114,8 @@ class BrokerUsecase(ABC):
         await self.close()
 
     def _wrap_handler(
-        self, func: Callable[..., Any], retry: Union[bool, int], **broker_args: Any
-    ) -> Callable[..., Any]:
+        self, func: DecoratedCallable, retry: Union[bool, int], **broker_args: Any
+    ) -> DecoratedCallable:
         func = use_context(func)
 
         if self._is_apply_types:
@@ -126,7 +132,7 @@ class BrokerUsecase(ABC):
 
         return func
 
-    def _wrap_decode_message(self, func: Callable[..., Any]) -> Callable[..., Any]:
+    def _wrap_decode_message(self, func: DecoratedCallable) -> DecoratedCallable:
         @wraps(func)
         async def wrapper(message: Any) -> Any:
             return await func(await self._decode_message(message))
@@ -135,8 +141,8 @@ class BrokerUsecase(ABC):
 
     def _log_execution(
         self, logger: logging.Logger, **broker_args: Any
-    ) -> Callable[[Callable[..., Any]], Any]:
-        def decor(func: Callable[..., Any]) -> Callable[..., Any]:
+    ) -> Callable[[DecoratedCallable], Any]:
+        def decor(func: DecoratedCallable) -> DecoratedCallable:
             @wraps(func)
             async def wrapper(message: Any) -> Any:
                 start = perf_counter()
@@ -172,7 +178,7 @@ def _get_watcher(
     return watcher
 
 
-def _set_message_context(func: Callable[..., Any]) -> Callable[[Any], Any]:
+def _set_message_context(func: DecoratedCallable) -> Callable[[Any], Any]:
     @wraps(func)
     async def wrapper(message: Any) -> Any:
         message_context.set(message)

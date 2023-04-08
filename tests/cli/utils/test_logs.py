@@ -1,16 +1,17 @@
 import logging
 
 import pytest
-
-from propan.cli.utils.logs import set_log_level, LogLevels, LOG_LEVELS
+from propan.cli.utils.logs import LOG_LEVELS, LogLevels, set_log_level
 from propan.log import access_logger, logger
 
 
-
-@pytest.mark.parametrize("level", (
-    *LogLevels._member_map_.values(),
-    *LogLevels.__members__.values(),
-))
+@pytest.mark.parametrize(
+    "level",
+    (
+        *LogLevels._member_map_.values(),
+        *LogLevels.__members__.values(),
+    ),
+)
 def test_set_level(level):
     set_log_level(level)
     if isinstance(level, LogLevels):

@@ -6,29 +6,34 @@ from uuid import uuid4
 import nats
 from nats.aio.client import Client
 from nats.aio.msg import Msg
-from propan.brokers.model import BrokerUsecase
+from propan.brokers.model import BrokerUsecase, ContentTypes
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
+from propan.types import DecoratedCallable
 from propan.utils.context.main import log_context
 
 
 class NatsBroker(BrokerUsecase):
-    handlers: List[Handler] = []
-    _connection: Optional[Client] = None
+    handlers: List[Handler]
+    _connection: Optional[Client]
 
-    __max_queue_len = 0
-    __max_subject_len = 4
+    __max_queue_len: int
+    __max_subject_len: int
 
     def __init__(self, *args: Any, log_fmt: Optional[str] = None, **kwargs: Any):
-        super().__init__(*args, **kwargs)
-        self._fmt = log_fmt
+        super().__init__(*args, log_fmt=log_fmt, **kwargs)
+
+        self._connection = None
+
+        self.__max_queue_len = 0
+        self.__max_subject_len = 4
 
     async def _connect(self, *args: Any, **kwargs: Any) -> Client:
         return await nats.connect(*args, **kwargs)
 
     def handle(
         self, subject: str, queue: str = "", retry: Union[bool, int] = False
-    ) -> Callable[[Callable[..., Any]], None]:
+    ) -> Callable[[DecoratedCallable], None]:
         i = len(subject)
         if i > self.__max_subject_len:
             self.__max_subject_len = i
@@ -39,7 +44,7 @@ class NatsBroker(BrokerUsecase):
 
         parent = super()
 
-        def wrapper(func: Callable[..., Any]) -> None:
+        def wrapper(func: DecoratedCallable) -> None:
             for handler in self.handlers:
                 if handler.subject == subject and handler.queue == queue:
                     raise ValueError(
@@ -77,12 +82,12 @@ class NatsBroker(BrokerUsecase):
             message = json.dumps(message)
             headers = {
                 **publish_args.pop("headers", {}),
-                "content-type": "application/json",
+                "content-type": ContentTypes.json.value,
             }
         else:
             headers = {
                 **publish_args.pop("headers", {}),
-                "content-type": "text/plain",
+                "content-type": ContentTypes.text.value,
             }
 
         return await self._connection.publish(
@@ -123,15 +128,19 @@ class NatsBroker(BrokerUsecase):
         )
 
     @staticmethod
-    async def _decode_message(message: Msg) -> Union[str, dict]:
-        body = message.data.decode()
-        if message.header and message.header.get("content-type") == "application/json":
-            body = json.loads(body)
+    async def _decode_message(message: Msg) -> Union[str, dict, bytes]:
+        body = message.data
+        if message.header:
+            content_type = message.header.get("content-type", "")
+            if ContentTypes.json.value in content_type:
+                body = json.loads(body.decode())
+            elif ContentTypes.text.value in content_type:
+                body = body.decode()
         return body
 
     @staticmethod
     def _process_message(
-        func: Callable[..., Any], watcher: Optional[BaseWatcher] = None
+        func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
     ) -> Callable[[Msg], Any]:
         @wraps(func)
         async def wrapper(message: Msg):

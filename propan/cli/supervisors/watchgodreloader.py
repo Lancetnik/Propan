@@ -1,9 +1,10 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
 from propan.cli.supervisors.basereload import BaseReload
 from propan.cli.supervisors.utils import Config
 from propan.log import logger
+from propan.types import DecoratedCallable
 from watchgod import DefaultWatcher
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -98,7 +99,7 @@ class CustomWatcher(DefaultWatcher):
 class WatchGodReload(BaseReload):
     def __init__(
         self,
-        target: Callable[..., Any],
+        target: DecoratedCallable,
         args: Tuple[Any, ...],
         reload_delay: Optional[float] = 0.5,
     ) -> None:

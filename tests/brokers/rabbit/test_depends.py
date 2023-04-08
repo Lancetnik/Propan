@@ -37,6 +37,7 @@ async def test_broker_depends(mock, queue, broker: RabbitBroker, wait_for_mock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.slow
 async def test_different_consumers_has_different_messages(
     mock, context, wait_for_mock, broker: RabbitBroker
 ):

@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from propan.types import DecoratedCallable
 
 
 class Alias:
@@ -7,7 +7,7 @@ class Alias:
 
 
 class Depends:
-    def __init__(self, func: Callable[..., Any]):
+    def __init__(self, func: DecoratedCallable):
         self.func = func
 
     def __repr__(self) -> str:

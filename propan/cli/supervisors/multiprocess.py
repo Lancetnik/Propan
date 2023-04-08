@@ -1,13 +1,14 @@
 from multiprocessing.context import SpawnProcess
-from typing import Any, Callable, List, Tuple
+from typing import Any, List, Tuple
 
 from propan.cli.supervisors.basereload import BaseReload
 from propan.log import logger
+from propan.types import DecoratedCallable
 
 
 class Multiprocess(BaseReload):
     def __init__(
-        self, target: Callable[..., Any], args: Tuple[Any, ...], workers: int
+        self, target: DecoratedCallable, args: Tuple[Any, ...], workers: int
     ) -> None:
         super().__init__(target, args, None)
 

@@ -36,6 +36,7 @@ async def test_consume_double(
 
 
 @pytest.mark.asyncio
+@pytest.mark.slow
 async def test_different_consume(
     mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
 ):
@@ -57,6 +58,6 @@ async def test_different_consume(
 
 @pytest.mark.asyncio
 async def test_same_consume(queue: RabbitQueue, broker: RabbitBroker):
+    broker.handle(queue)(lambda: None)
     with pytest.raises(ValueError):
-        broker.handle(queue)(lambda: None)
         broker.handle(queue)(lambda: None)
