@@ -1,3 +1,5 @@
+from typing import Union
+
 from pathlib import Path
 
 
@@ -12,9 +14,6 @@ def create(project_dir: Path, version: str) -> Path:
 
 def _create_project_dir(dirname: Path, version: str) -> Path:
     project_dir = _touch_dir(dirname)
-
-    if project_dir.exists() is False:
-        project_dir.mkdir()
 
     _write_file(project_dir / "README.md")
 
@@ -211,7 +210,10 @@ def _create_apps_dir(apps: Path) -> Path:
     return apps_dir
 
 
-def _touch_dir(dir: Path) -> Path:
+def _touch_dir(dir: Union[Path, str]) -> Path:
+    if isinstance(dir, str) is True:
+        dir = Path(dir).resolve()
+
     if dir.exists() is False:
         dir.mkdir()
     return dir

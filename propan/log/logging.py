@@ -19,11 +19,12 @@ LOGGING_CONFIG: Dict[str, Any] = {
         "default": {
             "()": partial(configure_formatter, DefaultFormatter),
             "fmt": "%(asctime)s %(levelname)s - %(message)s",
-            "use_colors": None,
+            "use_colors": True,
         },
         "access": {
             "()": partial(configure_formatter, AccessFormatter),
             "fmt": "%(asctime)s %(levelname)s - %(message)s",
+            "use_colors": True,
         },
     },
     "handlers": {

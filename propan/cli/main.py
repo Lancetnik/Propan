@@ -33,6 +33,20 @@ def version_callback(version: bool) -> None:
         raise typer.Exit()
 
 
+@cli.callback()
+def main(
+    version: Optional[bool] = typer.Option(
+        False,
+        "--version",
+        callback=version_callback,
+        is_eager=True,
+        help="Show current platform, python and propan version",
+    )
+):
+    """
+    Generate, run and manage Propan apps to greater development experience
+    """
+
 @cli.command()
 def create(appname: str) -> None:
     """Create a new Propan project at [APPNAME] directory"""
@@ -57,8 +71,7 @@ def run(
         LogLevels.info,
         case_sensitive=False,
         show_default=False,
-        help="[INFO] default",
-        autocompletion=lambda: list(LogLevels._member_map_.keys()),
+        help="[INFO] default"
     ),
     reload: bool = typer.Option(
         False, "--reload", is_flag=True, help="Restart app at directory files changes"
@@ -86,21 +99,6 @@ def run(
 
     else:
         _run(*args)
-
-
-@cli.callback()
-def main(
-    version: Optional[bool] = typer.Option(
-        False,
-        "--version",
-        callback=version_callback,
-        is_eager=True,
-        help="Show current platform, python and propan version",
-    )
-):
-    """
-    Generate, run and manage Propan apps to greater development experience
-    """
 
 
 def _run(

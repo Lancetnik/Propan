@@ -1,7 +1,7 @@
 import asyncio
 import json
 from functools import partial, wraps
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union, Tuple
 
 import aio_pika
 import aiormq
@@ -59,10 +59,13 @@ class RabbitBroker(BrokerUsecase):
     ) -> Callable[[Callable[..., Any]], None]:
         queue, exchange = _validate_exchange_and_queue(queue, exchange)
 
-        if exchange and (i := len(exchange.name)) > self.__max_exchange_len:
-            self.__max_exchange_len = i
+        if exchange:
+            i = len(exchange.name)
+            if i > self.__max_exchange_len:
+                self.__max_exchange_len = i
 
-        if (i := len(queue.name)) > self.__max_queue_len:
+        i = len(queue.name)
+        if i > self.__max_queue_len:
             self.__max_queue_len = i
 
         parent = super()
@@ -212,7 +215,7 @@ class RabbitBroker(BrokerUsecase):
 
 def _validate_exchange_and_queue(
     queue: Union[str, RabbitQueue], exchange: Union[str, RabbitExchange, None] = None
-) -> tuple[RabbitQueue, Optional[RabbitExchange]]:
+) -> Tuple[RabbitQueue, Optional[RabbitExchange]]:
     if isinstance(queue, str):
         queue = RabbitQueue(name=queue)
     elif not isinstance(queue, RabbitQueue):

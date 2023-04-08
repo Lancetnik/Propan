@@ -1,6 +1,6 @@
 from functools import wraps
 from inspect import iscoroutinefunction, signature
-from typing import Any, Callable, Dict, List, TypeVar
+from typing import Any, Callable, Dict, List, TypeVar, Tuple
 
 from propan.utils.context.main import context as global_context
 from propan.utils.context.types import Alias, Depends
@@ -32,7 +32,7 @@ def use_context(func: Callable[..., Any]) -> Callable[..., Any]:
         aliases.keys()
     )
 
-    def _cast_context(*args: Any, **kwargs: Any) -> tuple[Any, Any]:
+    def _cast_context(*args: Any, **kwargs: Any) -> Tuple[Any, Any]:
         context = global_context.context
 
         context_keys = context.keys()

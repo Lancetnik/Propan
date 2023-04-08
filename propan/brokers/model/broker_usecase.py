@@ -92,8 +92,13 @@ class BrokerUsecase(ABC):
 
     def _init_logger(self, logger: logging.Logger) -> None:
         for handler in logger.handlers:
-            if handler.formatter is not None:
-                handler.setFormatter(type(handler.formatter)(self.fmt))
+            formatter = handler.formatter
+            if formatter is not None:
+                if getattr(formatter, "use_colors", None) is not None:
+                    kwargs = { "use_colors": formatter.use_colors }
+                else:
+                    kwargs = {}
+                handler.setFormatter(type(formatter)(self.fmt, **kwargs))
 
     async def __aenter__(self) -> "BrokerUsecase":
         await self.connect()

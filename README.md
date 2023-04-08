@@ -41,9 +41,9 @@ The key features are:
 Install using `pip`:
 
 ```shell
-$ pip install "propan[async_rabbit]"
+$ pip install "propan[async-rabbit]"
 # or
-$ pip install "propan[async_nats]"
+$ pip install "propan[async-nats]"
 ```
 
 ### Basic usage

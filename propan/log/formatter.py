@@ -2,14 +2,14 @@ import logging
 import sys
 from collections import defaultdict
 from copy import copy
-from typing import Callable, Literal, Optional
+from typing import Callable, Optional
 
 import click
 from propan.utils.context.main import log_context
 
 
 class ColourizedFormatter(logging.Formatter):
-    level_name_colors: defaultdict[str, Callable[[str], str]] = defaultdict(
+    level_name_colors: "defaultdict[str, Callable[[str], str]]" = defaultdict(
         lambda: str,
         **{
             str(logging.DEBUG): lambda level_name: click.style(
@@ -34,9 +34,21 @@ class ColourizedFormatter(logging.Formatter):
         self,
         fmt: Optional[str] = None,
         datefmt: Optional[str] = None,
-        style: Literal["%", "{", "$"] = "%",
+        style: str = "%",
         use_colors: Optional[bool] = None,
     ):
+        """
+        Initialize the formatter with specified format strings.
+
+        Initialize the formatter either with the specified format string, or a
+        default as described above. Allow for specialized date formatting with
+        the optional datefmt argument. If datefmt is omitted, you get an
+        ISO8601-like (or RFC 3339-like) format.
+
+        Use a style parameter of '%', '{' or '$' to specify that you want to
+        use one of %-formatting, :meth:`str.format` (``{}``) formatting or
+        :class:`string.Template` formatting in your format string.
+        """
         if use_colors in (True, False):
             self.use_colors = use_colors
         else:
@@ -45,9 +57,6 @@ class ColourizedFormatter(logging.Formatter):
 
     def color_level_name(self, level_name: str, level_no: int) -> str:
         return self.level_name_colors[str(level_no)](level_name)
-
-    def should_use_colors(self) -> bool:
-        return True
 
     def formatMessage(self, record: logging.LogRecord) -> str:
         recordcopy = copy(record)
@@ -59,17 +68,14 @@ class ColourizedFormatter(logging.Formatter):
 
 
 class DefaultFormatter(ColourizedFormatter):
-    def should_use_colors(self) -> bool:
-        return sys.stderr.isatty()
+    pass
 
 
 class AccessFormatter(ColourizedFormatter):
-    def should_use_colors(self) -> bool:
-        return sys.stderr.isatty()
-
     def formatMessage(self, record: logging.LogRecord) -> str:
         recordcopy = copy(record)
-        if context := log_context.get():
+        context = log_context.get()
+        if context:
             recordcopy.__dict__.update(context)
         return super().formatMessage(recordcopy)
 
