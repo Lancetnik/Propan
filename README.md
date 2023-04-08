@@ -2,6 +2,8 @@
     <img src="docs/files/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
 </p>
 
+[![cov](https://lancetnik.github.io/propan/badges/coverage.svg)](https://github.com/lancetnik/propan/actions)
+
 <p align="center">
     <a href="https://pypi.org/project/propan" target="_blank">
         <img src="https://img.shields.io/pypi/v/propan?label=pypi%20package" alt="Package version">

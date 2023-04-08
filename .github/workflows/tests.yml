@@ -68,3 +68,6 @@ jobs:
         with:
           name: coverage-json
           path: coverage.json
+
+      - name: Update Coverage Badge
+        uses: we-cli/coverage-badge-action@main
