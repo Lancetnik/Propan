@@ -2,9 +2,10 @@
     <img src="docs/files/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
 </p>
 
-[![cov](https://lancetnik.github.io/propan/badges/coverage.svg)](https://github.com/lancetnik/propan/actions)
-
 <p align="center">
+    <a href="https://smokeshow.helpmanual.io/2p3n1z2c5q39130x176i/" target="_blank">
+        <img src="docs/files/coverage.svg" alt="Tests coverage"/>
+    </a>
     <a href="https://pypi.org/project/propan" target="_blank">
         <img src="https://img.shields.io/pypi/v/propan?label=pypi%20package" alt="Package version">
     </a>
