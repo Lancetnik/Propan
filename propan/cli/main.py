@@ -7,7 +7,7 @@ from typing import Dict, Optional, Union
 import typer
 from propan.__about__ import __version__
 from propan.cli.app import PropanApp
-from propan.cli.utils.imports import get_app_object
+from propan.cli.utils.imports import get_app_object, get_app_path
 from propan.cli.utils.logs import LogLevels, set_log_level
 from propan.cli.utils.parser import parse_cli_args
 from propan.log import logger
@@ -77,7 +77,12 @@ def run(
     """Run [MODULE:APP] Propan application"""
     app, extra = parse_cli_args(app, *ctx.args)
 
-    args = (app, extra)
+    module, app = get_app_path(app)
+
+    app_dir = module.parent
+    sys.path.insert(0, str(app_dir))
+
+    args = (module, app, extra)
 
     if reload and workers > 1:
         raise ValueError("You can't use reload option with multiprocessing")
@@ -85,9 +90,9 @@ def run(
     set_log_level(log_level)
 
     if reload is True:
-        from propan.cli.supervisors.watchgodreloader import WatchGodReload
+        from propan.cli.supervisors.watchfiles import WatchReloader
 
-        WatchGodReload(target=_run, args=args).run()
+        WatchReloader(target=_run, args=args, reload_dirs=(app_dir,)).run()
 
     elif workers > 1:
         from propan.cli.supervisors.multiprocess import Multiprocess
@@ -99,16 +104,17 @@ def run(
 
 
 def _run(
-    app: PropanApp,
+    module: Path,
+    app: str,
     context_kwargs: Dict[str, Union[bool, str]],
     log_level: int = logging.INFO,
 ) -> None:
     try:
-        propan_app = get_app_object(app)
+        propan_app = get_app_object(module, app)
 
     except (ValueError, FileNotFoundError, AttributeError) as e:
         logger.error(e)
-        logger.error("Please, input module like python_file:propan_app_name")
+        logger.error("Please, input module like [python_file:propan_app_name]")
         exit()
 
     else:

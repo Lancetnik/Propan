@@ -46,7 +46,7 @@ classifiers = [
 
 dependencies = [
     "pydantic>=1.8",
-    "watchgod",
+    "watchfiles",
     "anyio",
     "typer",
     "uvloop>=0.14.0,!=0.15.0,!=0.15.1; sys_platform != 'win32' and (sys_platform != 'cygwin' and platform_python_implementation != 'PyPy')",
