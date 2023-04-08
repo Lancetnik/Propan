@@ -29,6 +29,7 @@ def settings():
 
 
 @pytest_asyncio.fixture
+@pytest.mark.rabbit
 async def broker(settings):
     broker = RabbitBroker(settings.url)
     yield broker

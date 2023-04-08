@@ -16,12 +16,14 @@ async def _connect(broker):
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 async def test_init_connect_by_url(settings):
     broker = RabbitBroker(url=settings.url)
     assert await _connect(broker)
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 async def test_init_connect_by_raw_data(settings):
     broker = RabbitBroker(
         host=settings.host,
@@ -33,6 +35,7 @@ async def test_init_connect_by_raw_data(settings):
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 async def test_connection_by_url(settings):
     broker = RabbitBroker()
     await broker.connect(
@@ -45,6 +48,7 @@ async def test_connection_by_url(settings):
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 async def test_connection_params(settings):
     broker = RabbitBroker()
     await broker.connect(settings.url)

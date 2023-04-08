@@ -179,6 +179,8 @@ testpaths = [
 ]
 markers = [
     "slow",
+    "rabbit",
+    "nats",
     "all",
 ]
 
