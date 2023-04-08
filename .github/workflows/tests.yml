@@ -63,8 +63,8 @@ jobs:
       - run: coverage report
       - run: coverage json --show-contexts
 
-      - name: Store coverage HTML
+      - name: Store coverage JSON
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-html
-          path: htmlcov
+          name: coverage-json
+          path: coverage.json
