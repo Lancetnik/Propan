@@ -1,6 +1,5 @@
-from typing import Union
-
 from pathlib import Path
+from typing import Union
 
 
 def create(project_dir: Path, version: str) -> Path:

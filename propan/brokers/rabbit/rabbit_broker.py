@@ -1,23 +1,24 @@
 import asyncio
 import json
 from functools import partial, wraps
-from typing import Any, Callable, Dict, List, Optional, Union, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import aio_pika
 import aiormq
-from propan.brokers.model import BrokerUsecase
+from propan.brokers.model import BrokerUsecase, ContentTypes
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
+from propan.types import DecoratedCallable
 from propan.utils.context.main import log_context
 
 
 class RabbitBroker(BrokerUsecase):
-    handlers: List[Handler] = []
-    _connection: Optional[aio_pika.RobustConnection] = None
-    _channel: Optional[aio_pika.RobustChannel] = None
+    handlers: List[Handler]
+    _connection: Optional[aio_pika.RobustConnection]
+    _channel: Optional[aio_pika.RobustChannel]
 
-    __max_queue_len = 4
-    __max_exchange_len = 4
+    __max_queue_len: int
+    __max_exchange_len: int
 
     def __init__(
         self,
@@ -26,9 +27,14 @@ class RabbitBroker(BrokerUsecase):
         log_fmt: Optional[str] = None,
         **kwargs: Any,
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, log_fmt=log_fmt, **kwargs)
         self._max_consumers = consumers
-        self._fmt = log_fmt
+
+        self._channel = None
+        self.handlers = []
+
+        self.__max_queue_len = 4
+        self.__max_exchange_len = 4
 
     async def __aenter__(self) -> "RabbitBroker":
         await self.connect()
@@ -47,8 +53,10 @@ class RabbitBroker(BrokerUsecase):
 
             max_consumers = max_consumers or self._max_consumers
             self._channel = await self._connection.channel()
-            if max_consumers and self.logger:
-                self.logger.info(f"Set max consumers to {max_consumers}")
+
+            if max_consumers:
+                if self.logger:
+                    self.logger.info(f"Set max consumers to {max_consumers}")
                 await self._channel.set_qos(prefetch_count=int(max_consumers))
 
     def handle(
@@ -56,7 +64,7 @@ class RabbitBroker(BrokerUsecase):
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-    ) -> Callable[[Callable[..., Any]], None]:
+    ) -> Callable[[DecoratedCallable], None]:
         queue, exchange = _validate_exchange_and_queue(queue, exchange)
 
         if exchange:
@@ -70,7 +78,7 @@ class RabbitBroker(BrokerUsecase):
 
         parent = super()
 
-        def wrapper(func: Callable[..., Any]) -> None:
+        def wrapper(func: DecoratedCallable) -> None:
             for handler in self.handlers:
                 if handler.exchange == exchange and handler.queue == queue:
                     raise ValueError(
@@ -115,10 +123,12 @@ class RabbitBroker(BrokerUsecase):
         if not isinstance(message, aio_pika.Message):
             if isinstance(message, dict):
                 message = aio_pika.Message(
-                    json.dumps(message).encode(), content_type="application/json"
+                    json.dumps(message).encode(), content_type=ContentTypes.json.value
                 )
             else:
-                message = aio_pika.Message(message.encode(), content_type="text/plain")
+                message = aio_pika.Message(
+                    message.encode(), content_type=ContentTypes.text.value
+                )
 
         if exchange is None:
             exchange_obj = self._channel.default_exchange
@@ -132,7 +142,7 @@ class RabbitBroker(BrokerUsecase):
         )
 
     async def close(self) -> None:
-        if self._connection:
+        if self._connection is not None:
             await self._connection.close()
 
     async def _init_handler(self, handler: Handler) -> aio_pika.abc.AbstractRobustQueue:
@@ -185,16 +195,18 @@ class RabbitBroker(BrokerUsecase):
     @staticmethod
     async def _decode_message(
         message: aio_pika.IncomingMessage,
-    ) -> Union[str, Dict[str, Any]]:
-        body = message.body.decode()
-        if message.content_type == "application/json":
-            body = json.loads(body)
+    ) -> Union[str, Dict[str, Any], bytes]:
+        body = message.body
+        if ContentTypes.text.value in message.content_type:
+            body = body.decode()
+        elif ContentTypes.json.value in message.content_type:
+            body = json.loads(body.decode())
         return body
 
     @staticmethod
     def _process_message(
-        func: Callable[..., Any], watcher: Optional[BaseWatcher] = None
-    ) -> Callable[..., Any]:
+        func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
+    ) -> DecoratedCallable:
         @wraps(func)
         async def wrapper(message: aio_pika.Message):
             if watcher is None:

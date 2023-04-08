@@ -1,7 +1,8 @@
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from aio_pika.abc import ExchangeType, TimeoutType
 from propan.brokers.model.schemas import NameRequired, Queue
+from propan.types import DecoratedCallable
 from pydantic import BaseModel, Field
 
 __all__ = (
@@ -36,6 +37,6 @@ class RabbitExchange(NameRequired):
 
 
 class Handler(BaseModel):
-    callback: Callable[..., Any]
+    callback: DecoratedCallable
     queue: RabbitQueue
     exchange: Optional[RabbitExchange] = None

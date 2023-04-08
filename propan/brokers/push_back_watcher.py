@@ -39,10 +39,11 @@ class FakePushBackWatcher(BaseWatcher):
 
 
 class PushBackWatcher(BaseWatcher):
-    memory: "Counter[str]" = Counter()
+    memory: "Counter[str]"
 
     def __init__(self, max_tries: int = 3, logger: Optional[Logger] = None):
         super().__init__(logger=logger, max_tries=max_tries)
+        self.memory = Counter()
 
     def add(self, message_id: str) -> None:
         self.memory[message_id] += 1

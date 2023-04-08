@@ -9,6 +9,7 @@ from propan.brokers.model import BrokerUsecase
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.rabbit.schemas import RabbitExchange, RabbitQueue
 from propan.log import access_logger
+from propan.types import DecoratedCallable
 from yarl import URL
 
 class RabbitBroker(BrokerUsecase):
@@ -104,7 +105,7 @@ class RabbitBroker(BrokerUsecase):
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-    ) -> Callable[[Callable[..., Any]], None]:
+    ) -> Callable[[DecoratedCallable], None]:
         """
         retry: Union[bool, int] - at exeption message will returns to queue `int` times or endless if `True`
         """
@@ -118,8 +119,8 @@ class RabbitBroker(BrokerUsecase):
     ) -> Union[str, Dict[str, Any]]: ...
     @staticmethod
     def _process_message(
-        func: Callable[..., Any], watcher: Optional[BaseWatcher] = None
-    ) -> Callable[..., Any]: ...
+        func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
+    ) -> DecoratedCallable: ...
     def _get_log_context(
         self,
         message: Optional[aio_pika.Message],

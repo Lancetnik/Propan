@@ -1,7 +1,8 @@
 from functools import wraps
 from inspect import signature
-from typing import Any, Callable, Dict
+from typing import Any, Dict
 
+from propan.types import DecoratedCallable
 from propan.utils.context.types import Alias, Depends
 from pydantic import BaseConfig
 from pydantic.fields import ModelField, Undefined
@@ -9,17 +10,15 @@ from pydantic.fields import ModelField, Undefined
 NOT_CAST = (Alias, Depends)
 
 
-def apply_types(func: Callable[..., Any]) -> Callable[..., Any]:
+def apply_types(func: DecoratedCallable) -> DecoratedCallable:
     sig = signature(func).parameters
     arg_names = tuple(sig.keys())
 
     annotations = {}
     for name, param in sig.items():
-        has_annotation = (param.annotation != param.empty)
-        has_default = (param.default != param.empty)
-        if type(param.default) not in NOT_CAST and (
-            has_annotation or has_default
-        ):
+        has_annotation = param.annotation != param.empty
+        has_default = param.default != param.empty
+        if type(param.default) not in NOT_CAST and (has_annotation or has_default):
             annotations[name] = ModelField(
                 name=name,
                 type_=param.annotation if has_annotation else type(param.default),

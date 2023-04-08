@@ -1,15 +1,16 @@
 import os
 import threading
 from multiprocessing.context import SpawnProcess
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from propan.cli.supervisors.utils import get_subprocess, set_exit
 from propan.log import logger
+from propan.types import DecoratedCallable
 
 
 class BaseReload:
     _process: SpawnProcess
-    _target: Callable[..., Any]
+    _target: DecoratedCallable
     _args: Tuple[Any, ...]
 
     reload_delay: Optional[float]
@@ -19,7 +20,7 @@ class BaseReload:
 
     def __init__(
         self,
-        target: Callable[..., Any],
+        target: DecoratedCallable,
         args: Tuple[Any, ...],
         reload_delay: Optional[float] = 0.5,
     ) -> None:

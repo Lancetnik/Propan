@@ -8,6 +8,7 @@ from types import FrameType
 from typing import Any, Callable, List, Optional, Sequence, Tuple, TypeVar, Union
 
 from propan.log import logger
+from propan.types import DecoratedCallableNone
 
 multiprocessing.allow_connection_pickling()
 spawn = multiprocessing.get_context("spawn")
@@ -28,7 +29,7 @@ def set_exit(func: Callable[[int, Optional[FrameType]], Any]) -> None:
         signal.signal(sig, func)
 
 
-def get_subprocess(target: Callable[..., None], args: Any) -> SpawnProcess:
+def get_subprocess(target: DecoratedCallableNone, args: Any) -> SpawnProcess:
     stdin_fileno: Optional[int]
     try:
         stdin_fileno = sys.stdin.fileno()
@@ -44,7 +45,7 @@ def get_subprocess(target: Callable[..., None], args: Any) -> SpawnProcess:
 
 def subprocess_started(
     *args: Any,
-    t: Callable[..., None],
+    t: DecoratedCallableNone,
     stdin_fileno: Optional[int],
 ) -> None:
     if stdin_fileno is not None:
