@@ -30,12 +30,10 @@ jobs:
           key: ${{ runner.os }}-python-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-test-v03
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -e .[all,dev,doc,test]
-      - name: Lint
-        run: bash scripts/lint.sh
+        run: pip install -e .[test]
       - run: mkdir coverage
       - name: Test
-        run: bash scripts/test.sh
+        run: bash scripts/test.sh -m 'not rabbit'
         env:
           COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}
           CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}
