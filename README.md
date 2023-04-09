@@ -41,6 +41,15 @@ The key features are:
     * framework-independent way to rule application environment
     * application code hot reloading
 
+
+Supported MQ brokers:
+| Broker       | async                         | sync            |
+|--------------|:-----------------------------:|:---------------:|
+| **RabbitMQ** | :zap: <g>stable</g>           | <b>planning</b> |
+| **Nats**     | :warning: <w>beta</w>         | <b>planning</b> |
+| **NatsJS**   | :wrench: <pr>in progress</pr> | <b>planning</b> |
+| **Kafka**    | <b>planning</b>               | <b>planning</b> |
+
 ---
 
 ## Quickstart
@@ -228,3 +237,9 @@ async def stop_broker():
 
 To see more framework usages go to [**examples/**](https://github.com/Lancetnik/Propan/tree/main/examples)
 
+<style>
+w { color: #FFA726 }
+g { color: #4CAF50 }
+b { color: #90CAF9 }
+pr { color: #D4E157 }
+</style>
