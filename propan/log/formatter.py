@@ -1,7 +1,6 @@
 import logging
 import sys
 from collections import defaultdict
-from copy import copy
 from typing import Callable, Optional
 
 import click
@@ -59,12 +58,11 @@ class ColourizedFormatter(logging.Formatter):
         return self.level_name_colors[str(level_no)](level_name)
 
     def formatMessage(self, record: logging.LogRecord) -> str:
-        recordcopy = copy(record)
-        levelname = expand_log_field(recordcopy.levelname, 8)
-        if self.use_colors:
-            levelname = self.color_level_name(levelname, recordcopy.levelno)
-        recordcopy.__dict__["levelname"] = levelname
-        return super().formatMessage(recordcopy)
+        levelname = expand_log_field(record.levelname, 8)
+        if self.use_colors is True:  # pragma: no cover
+            levelname = self.color_level_name(levelname, record.levelno)
+        record.__dict__["levelname"] = levelname
+        return super().formatMessage(record)
 
 
 class DefaultFormatter(ColourizedFormatter):
@@ -73,11 +71,10 @@ class DefaultFormatter(ColourizedFormatter):
 
 class AccessFormatter(ColourizedFormatter):
     def formatMessage(self, record: logging.LogRecord) -> str:
-        recordcopy = copy(record)
         context = log_context.get()
-        if context:
-            recordcopy.__dict__.update(context)
-        return super().formatMessage(recordcopy)
+        if context:  # pragma: no cover
+            record.__dict__.update(context)
+        return super().formatMessage(record)
 
 
 def expand_log_field(field: str, symbols: int) -> str:

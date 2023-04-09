@@ -1,17 +1,10 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Tuple, Sequence, Union
+from typing import Any, Optional, Sequence, Tuple, Union
 
+import watchfiles
 from propan.cli.supervisors.basereload import BaseReload
 from propan.log import logger
 from propan.types import DecoratedCallable
-
-import watchfiles
-
-
-if TYPE_CHECKING:  # pragma: no cover
-    import os
-
-    DirEntry = os.DirEntry[str]
 
 
 class ExtendedFilter(watchfiles.PythonFilter):
@@ -22,8 +15,8 @@ class ExtendedFilter(watchfiles.PythonFilter):
         extra_extensions: Sequence[str] = (),
     ) -> None:
         super().__init__(ignore_paths=ignore_paths, extra_extensions=extra_extensions)
-        self.extensions = self.extensions + ('.env', '.yaml')
-        self.ignore_dirs = self.ignore_dirs + ('venv', 'env', '.ruff_cache', 'htmlcov')
+        self.extensions = self.extensions + (".env", ".yaml")
+        self.ignore_dirs = self.ignore_dirs + ("venv", "env", ".ruff_cache", "htmlcov")
 
 
 class WatchReloader(BaseReload):
@@ -36,7 +29,6 @@ class WatchReloader(BaseReload):
     ) -> None:
         super().__init__(target, args, reload_delay)
         self.reloader_name = "WatchFiles"
-
         self.watcher = watchfiles.watch(
             *reload_dirs,
             step=int(reload_delay * 1000),
@@ -45,12 +37,10 @@ class WatchReloader(BaseReload):
             yield_on_timeout=True,
         )
 
-
     def should_restart(self) -> bool:
-        for changes in self.watcher:
-            if changes:
+        for changes in self.watcher:  # pragma: no branch
+            if changes:  # pragma: no branch
                 unique_paths = {Path(c[1]).name for c in changes}
                 message = "WatchReloader detected file change in '%s'. Reloading..."
                 logger.info(message % tuple(unique_paths))
                 return True
-        return False

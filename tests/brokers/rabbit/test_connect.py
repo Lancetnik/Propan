@@ -3,7 +3,7 @@ from propan.brokers.rabbit import RabbitBroker
 
 
 async def _init_channel(broker):
-    await broker.init_channel()
+    await broker._init_channel()
     try:
         return True
     finally:

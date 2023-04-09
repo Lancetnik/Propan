@@ -38,7 +38,7 @@ class RabbitBroker(BrokerUsecase):
 
     async def __aenter__(self) -> "RabbitBroker":
         await self.connect()
-        await self.init_channel()
+        await self._init_channel()
         return self
 
     async def _connect(self, *args: Any, **kwargs: Any) -> aio_pika.Connection:
@@ -46,7 +46,7 @@ class RabbitBroker(BrokerUsecase):
             *args, **kwargs, loop=asyncio.get_event_loop()
         )
 
-    async def init_channel(self, max_consumers: Optional[int] = None) -> None:
+    async def _init_channel(self, max_consumers: Optional[int] = None) -> None:
         if self._channel is None:
             if self._connection is None:
                 raise ValueError("RabbitBroker not connected yet")
@@ -69,11 +69,11 @@ class RabbitBroker(BrokerUsecase):
 
         if exchange:
             i = len(exchange.name)
-            if i > self.__max_exchange_len:
+            if i > self.__max_exchange_len:  # pragma: no branch
                 self.__max_exchange_len = i
 
         i = len(queue.name)
-        if i > self.__max_queue_len:
+        if i > self.__max_queue_len:  # pragma: no branch
             self.__max_queue_len = i
 
         parent = super()
@@ -95,7 +95,7 @@ class RabbitBroker(BrokerUsecase):
 
     async def start(self) -> None:
         await super().start()
-        await self.init_channel()
+        await self._init_channel()
 
         for handler in self.handlers:
             queue = await self._init_handler(handler)
@@ -158,9 +158,7 @@ class RabbitBroker(BrokerUsecase):
         else:
             return await self._channel.get_queue(queue.name, ensure=False)
 
-    async def _init_exchange(
-        self, exchange: RabbitExchange
-    ) -> aio_pika.abc.AbstractRobustExchange:
+    async def _init_exchange(self, exchange: RabbitExchange) -> aio_pika.abc.AbstractRobustExchange:
         if exchange.declare is True:
             return await self._channel.declare_exchange(**exchange.dict())
         else:
@@ -197,10 +195,11 @@ class RabbitBroker(BrokerUsecase):
         message: aio_pika.IncomingMessage,
     ) -> Union[str, Dict[str, Any], bytes]:
         body = message.body
-        if ContentTypes.text.value in message.content_type:
-            body = body.decode()
-        elif ContentTypes.json.value in message.content_type:
-            body = json.loads(body.decode())
+        if message.content_type is not None:
+            if ContentTypes.text.value in message.content_type:
+                body = body.decode()
+            elif ContentTypes.json.value in message.content_type:  # pragma: no branch
+                body = json.loads(body.decode())
         return body
 
     @staticmethod

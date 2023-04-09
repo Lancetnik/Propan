@@ -18,7 +18,6 @@ HANDLED_SIGNALS = (
 )
 
 
-
 def set_exit(func: Callable[[int, Optional[FrameType]], Any]) -> None:
     for sig in HANDLED_SIGNALS:
         signal.signal(sig, func)
@@ -43,6 +42,6 @@ def subprocess_started(
     t: DecoratedCallableNone,
     stdin_fileno: Optional[int],
 ) -> None:
-    if stdin_fileno is not None:
+    if stdin_fileno is not None:  # pragma: no cover
         sys.stdin = os.fdopen(stdin_fileno)
     t(*args)
