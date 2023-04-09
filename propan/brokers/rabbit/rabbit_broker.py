@@ -158,7 +158,9 @@ class RabbitBroker(BrokerUsecase):
         else:
             return await self._channel.get_queue(queue.name, ensure=False)
 
-    async def _init_exchange(self, exchange: RabbitExchange) -> aio_pika.abc.AbstractRobustExchange:
+    async def _init_exchange(
+        self, exchange: RabbitExchange
+    ) -> aio_pika.abc.AbstractRobustExchange:
         if exchange.declare is True:
             return await self._channel.declare_exchange(**exchange.dict())
         else:

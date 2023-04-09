@@ -1,6 +1,5 @@
-from aio_pika import Message
 import pytest
-
+from aio_pika import Message
 from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
 
 from tests.tools.marks import needs_py38
@@ -110,12 +109,13 @@ async def test_consume_with_get_old(
     broker.handle(
         queue=RabbitQueue(name=queue.name, declare=False),
         exchange=RabbitExchange(name=exchange.name, declare=False),
-        retry=1)(async_mock)
+        retry=1,
+    )(async_mock)
     await broker.start()
 
-    await broker.publish_message(Message(b"hello"),
-                                 queue=queue.name,
-                                 exchange=exchange.name)
+    await broker.publish_message(
+        Message(b"hello"), queue=queue.name, exchange=exchange.name
+    )
 
     await wait_for_mock(async_mock)
 
