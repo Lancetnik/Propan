@@ -6,9 +6,6 @@ __pycache__
 venv
 app
 poetry.lock
-TODO.md
-test.py
-serve.py
 docker-compose.yaml
 .pytest_cache
 poetry.lock

@@ -20,7 +20,7 @@ def version_callback(version: bool) -> None:
         import platform
 
         typer.echo(
-            "Running propan %s with %s %s on %s"
+            "Running Propan %s with %s %s on %s"
             % (
                 __version__,
                 platform.python_implementation(),
