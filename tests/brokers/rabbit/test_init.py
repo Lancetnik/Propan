@@ -3,6 +3,7 @@ from propan.brokers.rabbit import RabbitBroker
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 async def test_set_max():
     broker = RabbitBroker(logger=None, consumers=10)
     await broker.start()
@@ -11,6 +12,7 @@ async def test_set_max():
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 async def test_set_max_by_method():
     broker = RabbitBroker(logger=None, consumers=10)
     await broker.connect()
@@ -21,7 +23,7 @@ async def test_set_max_by_method():
 
 
 @pytest.mark.asyncio
-async def test_init_vefore_started():
+async def test_init_before_started():
     broker = RabbitBroker()
     with pytest.raises(ValueError):
         await broker._init_channel()
