@@ -57,9 +57,9 @@ def use_context(func: DecoratedCallable) -> DecoratedCallable:
         @wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             args, kwargs = _cast_context(*args, **kwargs)
-            for k, f in dependencies.items():
-                kw = remove_useless_arguments(f, *args, **kwargs)
-                kwargs[k] = await call_or_await(f, **kw)
+            for k, dep_func in dependencies.items():
+                kw = remove_useless_arguments(dep_func, *args, **kwargs)
+                kwargs[k] = await call_or_await(dep_func, **kw)
             return await func(*args, **kwargs)
 
     else:
@@ -67,12 +67,12 @@ def use_context(func: DecoratedCallable) -> DecoratedCallable:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             args, kwargs = _cast_context(*args, **kwargs)
-            for k, f in dependencies.items():
-                if iscoroutinefunction(f) is True:
+            for k, dep_func in dependencies.items():
+                if iscoroutinefunction(dep_func) is True:
                     raise ValueError("You can't use async Depends with sync function")
 
-                kw = remove_useless_arguments(f, *args, **kwargs)
-                kwargs[k] = f(**kw)
+                kw = remove_useless_arguments(dep_func, *args, **kwargs)
+                kwargs[k] = dep_func(**kw)
             return func(*args, **kwargs)
 
     return wrapper

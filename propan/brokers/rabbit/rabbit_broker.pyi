@@ -1,18 +1,25 @@
 import logging
 from ssl import SSLContext
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import aio_pika
 import aiormq
 from pamqp.common import FieldTable
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.push_back_watcher import BaseWatcher
-from propan.brokers.rabbit.schemas import RabbitExchange, RabbitQueue
+from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.log import access_logger
 from propan.types import DecoratedCallable
 from yarl import URL
 
 class RabbitBroker(BrokerUsecase):
+    handlers: List[Handler]
+    _connection: Optional[aio_pika.RobustConnection]
+    _channel: Optional[aio_pika.RobustChannel]
+
+    __max_queue_len: int
+    __max_exchange_len: int
+
     async def __init__(
         self,
         url: Union[str, URL, None] = None,
@@ -31,6 +38,7 @@ class RabbitBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        use_context: bool = True,
         consumers: Optional[int] = None,
     ):
         """
@@ -128,3 +136,4 @@ class RabbitBroker(BrokerUsecase):
         exchange: Optional[RabbitExchange] = None,
         **kwrags,
     ) -> Dict[str, Any]: ...
+    async def _init_channel(self, max_consumers: Optional[int] = None) -> None: ...

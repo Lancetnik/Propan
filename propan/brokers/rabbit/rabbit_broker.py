@@ -38,7 +38,7 @@ class RabbitBroker(BrokerUsecase):
 
     async def __aenter__(self) -> "RabbitBroker":
         await self.connect()
-        await self.init_channel()
+        await self._init_channel()
         return self
 
     async def _connect(self, *args: Any, **kwargs: Any) -> aio_pika.Connection:
@@ -46,7 +46,7 @@ class RabbitBroker(BrokerUsecase):
             *args, **kwargs, loop=asyncio.get_event_loop()
         )
 
-    async def init_channel(self, max_consumers: Optional[int] = None) -> None:
+    async def _init_channel(self, max_consumers: Optional[int] = None) -> None:
         if self._channel is None:
             if self._connection is None:
                 raise ValueError("RabbitBroker not connected yet")
@@ -95,7 +95,7 @@ class RabbitBroker(BrokerUsecase):
 
     async def start(self) -> None:
         await super().start()
-        await self.init_channel()
+        await self._init_channel()
 
         for handler in self.handlers:
             queue = await self._init_handler(handler)

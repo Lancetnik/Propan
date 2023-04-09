@@ -18,7 +18,6 @@ HANDLED_SIGNALS = (
 )
 
 
-
 def set_exit(func: Callable[[int, Optional[FrameType]], Any]) -> None:
     for sig in HANDLED_SIGNALS:
         signal.signal(sig, func)

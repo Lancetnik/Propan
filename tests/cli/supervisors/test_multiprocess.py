@@ -4,7 +4,7 @@ import signal
 from propan.cli.supervisors.multiprocess import Multiprocess
 
 
-def exit(parent_id):
+def exit(parent_id):  # pragma: no cover
     os.kill(parent_id, signal.SIGINT)
 
 

@@ -7,7 +7,7 @@ from typing import Dict, Optional, Union
 import typer
 from propan.__about__ import __version__
 from propan.cli.app import PropanApp
-from propan.cli.utils.imports import import_object, get_app_path
+from propan.cli.utils.imports import get_app_path, import_object
 from propan.cli.utils.logs import LogLevels, set_log_level
 from propan.cli.utils.parser import parse_cli_args
 from propan.log import logger

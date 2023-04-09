@@ -1,11 +1,10 @@
 from pathlib import Path
-from typing import Any, Optional, Tuple, Sequence, Union
+from typing import Any, Optional, Sequence, Tuple, Union
 
+import watchfiles
 from propan.cli.supervisors.basereload import BaseReload
 from propan.log import logger
 from propan.types import DecoratedCallable
-
-import watchfiles
 
 
 class ExtendedFilter(watchfiles.PythonFilter):
@@ -16,8 +15,8 @@ class ExtendedFilter(watchfiles.PythonFilter):
         extra_extensions: Sequence[str] = (),
     ) -> None:
         super().__init__(ignore_paths=ignore_paths, extra_extensions=extra_extensions)
-        self.extensions = self.extensions + ('.env', '.yaml')
-        self.ignore_dirs = self.ignore_dirs + ('venv', 'env', '.ruff_cache', 'htmlcov')
+        self.extensions = self.extensions + (".env", ".yaml")
+        self.ignore_dirs = self.ignore_dirs + ("venv", "env", ".ruff_cache", "htmlcov")
 
 
 class WatchReloader(BaseReload):

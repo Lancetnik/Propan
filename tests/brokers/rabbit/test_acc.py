@@ -1,62 +1,65 @@
-from unittest.mock import Mock
-
 import pytest
-from propan.brokers.rabbit import RabbitBroker, RabbitQueue
+from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
+
+from tests.tools.marks import needs_py38
 
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
+@needs_py38
 async def test_consume(
-    mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
+    async_mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
 ):
     async with broker:
-        broker.handle(queue)(mock.method)
+        broker.handle(queue)(async_mock)
         await broker.start()
 
         await broker.publish_message(message="hello", queue=queue)
-        await wait_for_mock(mock.method)
+        await wait_for_mock(async_mock)
 
-    mock.method.assert_called_once()
+    async_mock.assert_awaited_once()
 
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
+@needs_py38
 async def test_consume_double(
-    mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
+    async_mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
 ):
     async with broker:
-        broker.handle(queue)(mock.method)
+        broker.handle(queue)(async_mock)
         await broker.start()
 
         await broker.publish_message("hello", queue=queue)
-        await wait_for_mock(mock.method)
+        await wait_for_mock(async_mock)
 
         await broker.publish_message("hello", queue=queue)
-        await wait_for_mock(mock.method)
+        await wait_for_mock(async_mock)
 
-    assert mock.method.call_count == 2
+    assert async_mock.await_count == 2
 
 
 @pytest.mark.asyncio
 @pytest.mark.slow
 @pytest.mark.rabbit
+@needs_py38
 async def test_different_consume(
-    mock: Mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
+    async_mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
 ):
     another_queue = RabbitQueue(**queue.dict(exclude={"name"}), name=queue.name + "1")
     async with broker:
-        broker.handle(queue)(mock.method)
-        broker.handle(another_queue)(mock.method2)
+        broker.handle(queue)(async_mock.method)
+        broker.handle(another_queue)(async_mock.method2)
         await broker.start()
 
         await broker.publish_message(message="hello", queue=queue)
         await broker.publish_message(message="hello", queue=another_queue)
 
-        await wait_for_mock(mock.method)
-        await wait_for_mock(mock.method2)
+        await wait_for_mock(async_mock.method)
+        await wait_for_mock(async_mock.method2)
 
-    mock.method.assert_called_once()
-    mock.method2.assert_called_once()
+    async_mock.method.assert_awaited_once()
+    async_mock.method2.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -64,3 +67,24 @@ async def test_same_consume(queue: RabbitQueue, broker: RabbitBroker):
     broker.handle(queue)(lambda: None)
     with pytest.raises(ValueError):
         broker.handle(queue)(lambda: None)
+
+
+@pytest.mark.asyncio
+@pytest.mark.rabbit
+@needs_py38
+async def test_consume_from_exchange(
+    async_mock,
+    queue: RabbitQueue,
+    exchange: RabbitExchange,
+    broker: RabbitBroker,
+    wait_for_mock,
+):
+    async with broker:
+        broker.handle(queue=queue, exchange=exchange)(async_mock)
+        await broker.start()
+
+        await broker.publish_message({"msg": "helo"}, queue=queue, exchange=exchange)
+
+        await wait_for_mock(async_mock)
+
+    async_mock.assert_awaited_once()

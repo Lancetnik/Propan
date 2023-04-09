@@ -1,10 +1,9 @@
 from tempfile import TemporaryDirectory
 
 import pytest
-from typer.testing import CliRunner
-
 from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
+from typer.testing import CliRunner
 
 
 @pytest.fixture

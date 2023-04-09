@@ -1,7 +1,7 @@
-import sys
 import logging
+import sys
 
-from propan.log.formatter import DefaultFormatter, AccessFormatter
+from propan.log.formatter import AccessFormatter, DefaultFormatter
 from propan.utils.context import log_context
 
 
@@ -12,7 +12,9 @@ def test_init():
 
 
 def test_use_colors():
-    formatter = DefaultFormatter(fmt="%(asctime)s %(levelname)s - %(message)s", use_colors=True)
+    formatter = DefaultFormatter(
+        fmt="%(asctime)s %(levelname)s - %(message)s", use_colors=True
+    )
     record = logging.LogRecord("test", logging.INFO, "test", 1, "hello", None, None)
     assert "\033" in formatter.format(record)
 
@@ -23,7 +25,7 @@ def test_context():
             super().formatMessage(record)
             assert getattr(record, "key", None) == 1
 
-    log_context.set({ "key": 1 })
+    log_context.set({"key": 1})
 
     formatter = PatchedFormatter(use_colors=True)
 

@@ -1,12 +1,12 @@
-from pathlib import Path
 from importlib.util import module_from_spec, spec_from_file_location
-from typing import Tuple, Any
+from pathlib import Path
+from typing import Any, Tuple
 
 
 def import_object(module: Path, app: str) -> Any:
     spec = spec_from_file_location("mode", f"{module}.py")
 
-    if spec is None: # pragma: no cover
+    if spec is None:  # pragma: no cover
         raise FileNotFoundError(module)
 
     mod = module_from_spec(spec)

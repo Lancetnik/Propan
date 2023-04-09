@@ -1,8 +1,7 @@
-import pytest
 from pathlib import Path
 
+import pytest
 from propan.cli.utils.imports import get_app_path, import_object
-
 
 test_object = Path(__file__)
 
@@ -21,10 +20,13 @@ def test_import_wrong():
     assert f"{dir}.py" in str(excinfo.value)
 
 
-@pytest.mark.parametrize("test_input,exp_module,exp_app", (
-    ("module:app", "module", "app"),
-    ("module.module.module:app", "module/module/module", "app"),
-))
+@pytest.mark.parametrize(
+    "test_input,exp_module,exp_app",
+    (
+        ("module:app", "module", "app"),
+        ("module.module.module:app", "module/module/module", "app"),
+    ),
+)
 def test_get_app_path(test_input, exp_module, exp_app):
     dir, app = get_app_path(test_input)
     assert app == exp_app

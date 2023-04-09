@@ -206,7 +206,7 @@ skip_empty = true
 exclude_lines = [
     ".*# pragma: no cover",
     "if __name__ == .__main__.:",
-    "is self.logger",
+    "self.logger",
     "def __repr__",
     "lambda: None",
     "from .*",
@@ -214,6 +214,7 @@ exclude_lines = [
     '@(abc\.)?abstractmethod',
     "raise NotImplementedError",
     'raise AssertionError',
+    'raise ValueError',
     'logger\..*',
     "pass",
     '\.\.\.',
