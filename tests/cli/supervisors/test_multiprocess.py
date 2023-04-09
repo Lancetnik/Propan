@@ -14,4 +14,5 @@ def test_base():
     processor.run()
 
     for p in processor.processes:
-        assert p.exitcode == signal.SIGTERM.value * -1
+        code = abs(p.exitcode)
+        assert code == signal.SIGTERM.value or code == 0

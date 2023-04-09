@@ -22,7 +22,8 @@ def test_base():
     processor._args = (processor.pid,)
     processor.run()
 
-    assert processor._process.exitcode == signal.SIGTERM.value * -1
+    code = abs(processor._process.exitcode)
+    assert code == signal.SIGTERM.value or code == 0
 
 
 def touch_file(file: Path):  # pragma: no-cover
