@@ -50,9 +50,35 @@ $ python -m propan ...
 
 ### Tests
 
+#### Pytests
 To run tests with your current Propan application and Python environment use:
+
 ```bash
+$ pytest tests
+# or
+$ bash ./scripts/test.sh
+# with coverage output
 $ bash ./scripts/test-cov.sh
+```
+
+There are some *pytest marks* at project:
+* **slow**
+* **rabbit**
+* **nats**
+* **all**
+
+Default *pytest* calling runs "not slow" tests.
+
+To run all tests use:
+
+```bash
+$ pytest -m 'all'
+```
+
+Also if you didn't up local rabbit or nats intance, run tests without that dependencies
+
+```bash
+$ pytest -m 'not rabbit and not nats'
 ```
 
 To run all tests based on RabbitMQ, NATS or another dependencies you should run first following *docker-compose.yml*
@@ -74,4 +100,37 @@ services:
 
 ```bash
 $ docker compose up -d
+```
+
+#### Hatch
+
+If you are using **hatch** use following environments to run tests:
+
+##### **TEST**
+
+Run tests at all python 3.7-3.11 versions.
+
+All python versions should be avalilable at your system.
+
+```bash
+# Run fast smoketesting at all python 3.7-3.11 versions
+$ hatch run test:run
+
+# Run all tests at all python versions
+$ hatch run test:run-all
+```
+
+##### **TEST-LAST**
+
+Run tests at python 3.11 version.
+
+```bash
+# Run smoke tests at python 3.11
+$ hatch run test-last:run
+
+# Run all tests at python 3.11
+$ hatch run test-last:run-all
+
+# Run all tests at python 3.11 and show coverage
+$ hatch run test-last:cov
 ```

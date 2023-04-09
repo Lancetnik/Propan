@@ -205,13 +205,13 @@ show_missing = true
 skip_empty = true
 exclude_lines = [
     "if __name__ == .__main__.:",
+    "is self.logger",
     "def __repr__",
     "from .*",
     "import .*",
     '@(abc\.)?abstractmethod',
     "raise NotImplementedError",
     'raise AssertionError',
-    'if self.logger is not None:',
     'logger\..*',
     "pass",
     '\.\.\.',

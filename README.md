@@ -226,5 +226,5 @@ async def stop_broker():
 
 ## Examples
 
-To see more framework usages go to `examples/`
+To see more framework usages go to [**examples/**](https://github.com/Lancetnik/Propan/tree/main/examples)
 
