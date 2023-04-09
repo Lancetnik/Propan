@@ -1,26 +1,24 @@
 from pathlib import Path
 from importlib.util import module_from_spec, spec_from_file_location
-from typing import Tuple
-
-from propan.cli.app import PropanApp
+from typing import Tuple, Any
 
 
-def get_app_object(module: Path, app: str) -> PropanApp:
+def import_object(module: Path, app: str) -> Any:
     spec = spec_from_file_location("mode", f"{module}.py")
-    if spec is None:
-        raise FileNotFoundError(f"{module}.py not found")
+
+    if spec is None: # pragma: no cover
+        raise FileNotFoundError(module)
 
     mod = module_from_spec(spec)
     loader = spec.loader
-    if loader is None:
+
+    if loader is None:  # pragma: no cover
         raise ValueError(f"{spec} has no loader")
 
     loader.exec_module(mod)
-    app_obj = getattr(mod, app)
-    if not isinstance(app_obj, PropanApp):
-        raise ValueError(f"{app_obj} is not a PropanApp")
+    obj = getattr(mod, app)
 
-    return app_obj
+    return obj
 
 
 def get_app_path(app: str) -> Tuple[Path, str]:

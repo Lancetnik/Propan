@@ -204,9 +204,11 @@ omit = [
 show_missing = true
 skip_empty = true
 exclude_lines = [
+    ".*# pragma: no cover",
     "if __name__ == .__main__.:",
     "is self.logger",
     "def __repr__",
+    "lambda: None",
     "from .*",
     "import .*",
     '@(abc\.)?abstractmethod',

@@ -43,6 +43,6 @@ def subprocess_started(
     t: DecoratedCallableNone,
     stdin_fileno: Optional[int],
 ) -> None:
-    if stdin_fileno is not None:
+    if stdin_fileno is not None:  # pragma: no cover
         sys.stdin = os.fdopen(stdin_fileno)
     t(*args)

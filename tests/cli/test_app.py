@@ -4,32 +4,12 @@ import signal
 from unittest.mock import Mock, patch
 
 import pytest
+from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
-from propan.cli.app import PropanApp
 from propan.log import logger
 from propan.utils import Context
 
 from tests.tools.marks import needs_py38
-
-
-@pytest.fixture
-def broker():
-    yield RabbitBroker()
-
-
-@pytest.fixture
-def app_without_logger(broker):
-    return PropanApp(broker, None)
-
-
-@pytest.fixture
-def app_without_broker():
-    return PropanApp()
-
-
-@pytest.fixture
-def app(broker):
-    return PropanApp(broker)
 
 
 def test_init(app: PropanApp, context: Context, broker: RabbitBroker):
