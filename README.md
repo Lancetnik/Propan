@@ -6,7 +6,7 @@
     <a href="https://github.com/Lancetnik/Propan/actions/workflows/tests.yml" target="_blank">
         <img src="https://github.com/Lancetnik/Propan/actions/workflows/tests.yml/badge.svg" alt="Tests coverage"/>
     </a>
-    <a href="https://smokeshow.helpmanual.io/392066260o722j6v6g5e/" target="_blank">
+    <a href="https://smokeshow.helpmanual.io/3g255s5a5n5v2q5s2h5z/" target="_blank">
         <img src="docs/files/coverage.svg" alt="Tests coverage"/>
     </a>
     <a href="https://pypi.org/project/propan" target="_blank">
