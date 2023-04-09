@@ -41,15 +41,13 @@ The key features are:
     * framework-independent way to rule application environment
     * application code hot reloading
 
-:::attention
-
 Supported MQ brokers:
-| Broker       | async                                             | sync                                  |
-|--------------|---------------------------------------------------|---------------------------------------|
-| **RabbitMQ** | :zap: <p style="color:#FFA726">stable</p>         | <p style="color:#90CAF9">planning</p> |
-| **Nats**     | :warning: <p style="color:#4CAF50">beta</p>       | <p style="color:#90CAF9">planning</p> |
-| **NatsJS**   | :wrench: <p style="color:#D4E157">in progress</p> | <p style="color:#90CAF9">planning</p> |
-| **Kafka**    | <p style="color:#90CAF9">planning</p>             | <p style="color:#90CAF9">planning</p> |
+| Broker       | async                | sync     |
+|--------------|----------------------|----------|
+| **RabbitMQ** | :zap: stable         | planning |
+| **Nats**     | :warning: beta       | planning |
+| **NatsJS**   | :wrench: in progress | planning |
+| **Kafka**    | planning             | planning |
 
 ---
 
