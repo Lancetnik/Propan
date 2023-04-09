@@ -42,12 +42,12 @@ The key features are:
     * application code hot reloading
 
 Supported MQ brokers:
-| Broker       | async                | sync     |
-|--------------|----------------------|----------|
-| **RabbitMQ** | :zap: stable         | planning |
-| **Nats**     | :warning: beta       | planning |
-| **NatsJS**   | :wrench: in progress | planning |
-| **Kafka**    | planning             | planning |
+| Broker       | async                                                   | sync                 |
+|--------------|:-------------------------------------------------------:|:--------------------:|
+| **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Nats**     | :warning: **beta** :warning:                            | :mag: planning :mag: |
+| **NatsJS**   | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
+| **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
 
 ---
 
