@@ -6,7 +6,7 @@
     <a href="https://github.com/Lancetnik/Propan/actions/workflows/tests.yml" target="_blank">
         <img src="https://github.com/Lancetnik/Propan/actions/workflows/tests.yml/badge.svg" alt="Tests coverage"/>
     </a>
-    <a href="https://smokeshow.helpmanual.io/2p3n1z2c5q39130x176i/" target="_blank">
+    <a href="https://smokeshow.helpmanual.io/392066260o722j6v6g5e/" target="_blank">
         <img src="docs/files/coverage.svg" alt="Tests coverage"/>
     </a>
     <a href="https://pypi.org/project/propan" target="_blank">
@@ -28,7 +28,7 @@
 
 Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-The key features are:
+### The key features are:
 
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
@@ -41,13 +41,20 @@ The key features are:
     * framework-independent way to rule application environment
     * application code hot reloading
 
-Supported MQ brokers:
-| Broker       | async                                                   | sync                 |
+### Supported MQ brokers:
+|              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Nats**     | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **NatsJS**   | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
 | **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
+
+
+### Community
+
+If you are interested at this project, please give me feedback by star or/and watch repository.
+
+If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions) or publick [telegram group](https://t.me/propan_python).
 
 ---
 

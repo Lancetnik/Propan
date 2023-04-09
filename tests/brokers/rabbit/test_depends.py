@@ -1,3 +1,4 @@
+import aio_pika
 import pytest
 from propan.brokers.rabbit import RabbitBroker
 from propan.utils.context import Depends, use_context
@@ -5,7 +6,7 @@ from propan.utils.context import Depends, use_context
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
-async def test_broker_depends(mock, queue, broker: RabbitBroker, wait_for_mock):
+async def test_broker_depends(mock, queue, full_broker: RabbitBroker, wait_for_mock):
     @use_context
     def sync_depends(b, message):
         return message
@@ -14,25 +15,24 @@ async def test_broker_depends(mock, queue, broker: RabbitBroker, wait_for_mock):
     async def async_depends(b, message):
         return message
 
-    async with broker:
-        check_message = None
+    check_message = None
 
-        async def consumer(
-            message, k1=Depends(sync_depends), k2=Depends(async_depends)
-        ):
-            nonlocal check_message
-            check_message = message is k1 is k2
-            mock()
+    async def consumer(b, message, k1=Depends(sync_depends), k2=Depends(async_depends)):
+        nonlocal check_message
+        check_message = (
+            isinstance(message, aio_pika.Message)
+            and (message is k1)
+            and (message is k2)
+        )
+        mock()
 
-        mock.side_effect = consumer
+    mock.side_effect = consumer
 
-        broker.handle(queue)(consumer)
+    full_broker.handle(queue)(consumer)
+    await full_broker.start()
 
-        await broker.start()
-
-        await broker.publish_message(message="hello", queue=queue)
-
-        await wait_for_mock(mock)
+    await full_broker.publish_message(message={"msg": "hello"}, queue=queue)
+    await wait_for_mock(mock)
 
     assert check_message is True
 
@@ -41,36 +41,38 @@ async def test_broker_depends(mock, queue, broker: RabbitBroker, wait_for_mock):
 @pytest.mark.slow
 @pytest.mark.rabbit
 async def test_different_consumers_has_different_messages(
-    mock, context, wait_for_mock, broker: RabbitBroker
+    mock, context, wait_for_mock, full_broker: RabbitBroker
 ):
     message1 = None
 
-    async def consumer1(message):
+    async def consumer1(b, message):
         nonlocal message1
         mock.first()
         message1 = message
 
     message2 = None
 
-    async def consumer2(message):
+    async def consumer2(b, message):
         nonlocal message2
         mock.second()
         message2 = message
 
-    async with broker:
-        broker.handle("test_different_consume_1")(consumer1)
+    full_broker.handle("test_different_consume_1")(consumer1)
+    full_broker.handle("test_different_consume_2")(consumer2)
 
-        broker.handle("test_different_consume_2")(consumer2)
+    await full_broker.start()
 
-        await broker.start()
+    await full_broker.publish_message(
+        message="hello1", queue="test_different_consume_1"
+    )
+    await full_broker.publish_message(
+        message="hello2", queue="test_different_consume_2"
+    )
 
-        await broker.publish_message(message="hello1", queue="test_different_consume_1")
-        await broker.publish_message(message="hello2", queue="test_different_consume_2")
+    await wait_for_mock(mock.first)
+    await wait_for_mock(mock.second)
 
-        await wait_for_mock(mock.first)
-        await wait_for_mock(mock.second)
-
-    assert message1 is not None
-    assert message2 is not None
+    assert isinstance(message1, aio_pika.Message)
+    assert isinstance(message2, aio_pika.Message)
     assert message1 != message2
-    assert context.context["message"] is None
+    assert context.message is None

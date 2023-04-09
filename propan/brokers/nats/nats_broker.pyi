@@ -69,6 +69,7 @@ class NatsBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        use_context: bool = True,
         consumers: Optional[int] = None,
     ) -> None: ...
     async def connect(

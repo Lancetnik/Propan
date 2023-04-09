@@ -27,6 +27,7 @@ class BrokerUsecase(ABC):
         self,
         *args: Any,
         apply_types: bool = True,
+        use_context: bool = True,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: str = "%(asctime)s %(levelname)s - %(message)s",
@@ -38,6 +39,7 @@ class BrokerUsecase(ABC):
 
         self._connection = None
         self._is_apply_types = apply_types
+        self._is_use_context = use_context
         self._connection_args = args
         self._connection_kwargs = kwargs
         self.handlers = []
@@ -116,7 +118,8 @@ class BrokerUsecase(ABC):
     def _wrap_handler(
         self, func: DecoratedCallable, retry: Union[bool, int], **broker_args: Any
     ) -> DecoratedCallable:
-        func = use_context(func)
+        if self._is_use_context:
+            func = use_context(func)
 
         if self._is_apply_types:
             func = apply_types(func)

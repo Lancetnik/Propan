@@ -2,17 +2,19 @@
 Depends parameter allows to call function before
 natural handler with providing all arguments and context
 inside dependency function
+
+Dependecies argument names should be calling same as a handler arguments
+Dependency decorated by `use_context` as a default if hanler was decorated
 """
 from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
-from propan.utils import Depends, use_context
+from propan.utils import Depends
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
 app = PropanApp(broker)
 
 
-@use_context
 async def async_dependency(body, logger):
     logger.info(f"Async calls with: {body}")
     return True
