@@ -1,4 +1,6 @@
+from aio_pika import Message
 import pytest
+
 from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
 
 from tests.tools.marks import needs_py38
@@ -80,11 +82,41 @@ async def test_consume_from_exchange(
     wait_for_mock,
 ):
     async with broker:
-        broker.handle(queue=queue, exchange=exchange)(async_mock)
+        broker.handle(queue=queue, exchange=exchange, retry=True)(async_mock)
         await broker.start()
 
-        await broker.publish_message({"msg": "helo"}, queue=queue, exchange=exchange)
+        await broker.publish_message({"msg": "hello"}, queue=queue, exchange=exchange)
 
         await wait_for_mock(async_mock)
+
+    async_mock.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.rabbit
+@needs_py38
+async def test_consume_with_get_old(
+    async_mock,
+    queue: RabbitQueue,
+    exchange: RabbitExchange,
+    broker: RabbitBroker,
+    wait_for_mock,
+):
+    await broker.connect()
+    await broker._init_channel()
+    await broker._init_queue(queue)
+    await broker._init_exchange(exchange)
+
+    broker.handle(
+        queue=RabbitQueue(name=queue.name, declare=False),
+        exchange=RabbitExchange(name=exchange.name, declare=False),
+        retry=1)(async_mock)
+    await broker.start()
+
+    await broker.publish_message(Message(b"hello"),
+                                 queue=queue.name,
+                                 exchange=exchange.name)
+
+    await wait_for_mock(async_mock)
 
     async_mock.assert_awaited_once()

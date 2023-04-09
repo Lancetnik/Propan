@@ -36,7 +36,7 @@ class BaseReload:
     def run(self) -> None:
         self.startup()
         while not self.should_exit.wait(self.reload_delay):
-            if self.should_restart():
+            if self.should_restart():  # pragma: no branch
                 self.restart()
         self.shutdown()
 

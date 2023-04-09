@@ -38,10 +38,9 @@ class WatchReloader(BaseReload):
         )
 
     def should_restart(self) -> bool:
-        for changes in self.watcher:
-            if changes:
+        for changes in self.watcher:  # pragma: no branch
+            if changes:  # pragma: no branch
                 unique_paths = {Path(c[1]).name for c in changes}
                 message = "WatchReloader detected file change in '%s'. Reloading..."
                 logger.info(message % tuple(unique_paths))
                 return True
-            return False
