@@ -42,12 +42,17 @@ The key features are:
     * application code hot reloading
 
 Supported MQ brokers:
-| Broker       | async                                                   | sync                 |
+|              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Nats**     | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **NatsJS**   | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
 | **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
+
+
+If you are interesting in this project, please give me feedback by star or/and watch repository.
+
+If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions) or publick telegram [group](https://t.me/propan_python).
 
 ---
 
