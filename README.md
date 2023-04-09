@@ -28,7 +28,7 @@
 
 Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-The key features are:
+### The key features are:
 
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
@@ -41,7 +41,7 @@ The key features are:
     * framework-independent way to rule application environment
     * application code hot reloading
 
-Supported MQ brokers:
+### Supported MQ brokers:
 |              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
@@ -50,7 +50,9 @@ Supported MQ brokers:
 | **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
 
 
-If you are interesting in this project, please give me feedback by star or/and watch repository.
+### Community
+
+If you are interested at this project, please give me feedback by star or/and watch repository.
 
 If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions) or publick telegram [group](https://t.me/propan_python).
 
