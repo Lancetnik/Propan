@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/en/files/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
+    <img src="docs/en/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
 </p>
 
 <p align="center">
@@ -28,7 +28,7 @@
 
 Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-### The key features are:
+### The key features are
 
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
@@ -41,13 +41,16 @@ Propan is a modern framework for building Applications based on <a href="https:/
     * framework-independent way to rule application environment
     * application code hot reloading
 
-### Supported MQ brokers:
+### Supported MQ brokers
 |              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Nats**     | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **NatsJS**   | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
+| **MQTT**     | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **REDIS**    | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **SQS**      | :mag: planning :mag:                                    | :mag: planning :mag: |
 
 
 ### Community
