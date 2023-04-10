@@ -1,14 +1,15 @@
 import asyncio
 import json
+import logging
 from functools import partial, wraps
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import aio_pika
 import aiormq
 from propan.brokers.model import BrokerUsecase, ContentTypes
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
-from propan.types import DecoratedCallable
+from propan.types import DecodedMessage, DecoratedCallable, Wrapper
 from propan.utils.context.main import log_context
 
 
@@ -55,8 +56,7 @@ class RabbitBroker(BrokerUsecase):
             self._channel = await self._connection.channel()
 
             if max_consumers:
-                if self.logger:
-                    self.logger.info(f"Set max consumers to {max_consumers}")
+                self._log(f"Set max consumers to {max_consumers}", logging.INFO)
                 await self._channel.set_qos(prefetch_count=int(max_consumers))
 
     def handle(
@@ -64,7 +64,7 @@ class RabbitBroker(BrokerUsecase):
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-    ) -> Callable[[DecoratedCallable], None]:
+    ) -> Wrapper:
         queue, exchange = _validate_exchange_and_queue(queue, exchange)
 
         if exchange:
@@ -78,7 +78,7 @@ class RabbitBroker(BrokerUsecase):
 
         parent = super()
 
-        def wrapper(func: DecoratedCallable) -> None:
+        def wrapper(func: DecoratedCallable) -> Any:
             for handler in self.handlers:
                 if handler.exchange == exchange and handler.queue == queue:
                     raise ValueError(
@@ -102,7 +102,7 @@ class RabbitBroker(BrokerUsecase):
 
             func = handler.callback
 
-            if self.logger:
+            if self.logger is not None:
                 self._get_log_context(None, handler.queue, handler.exchange)
                 self.logger.info(f"`{func.__name__}` waiting for messages")
 
@@ -113,6 +113,8 @@ class RabbitBroker(BrokerUsecase):
         message: Union[aio_pika.Message, str, Dict[str, Any]],
         queue: Union[RabbitQueue, str] = "",
         exchange: Union[RabbitExchange, str, None] = None,
+        *,
+        routing_key: str = "",
         **publish_args,
     ) -> Optional[aiormq.abc.ConfirmationFrameType]:
         if self._channel is None:
@@ -137,7 +139,7 @@ class RabbitBroker(BrokerUsecase):
 
         return await exchange_obj.publish(
             message=message,
-            routing_key=queue.name,
+            routing_key=routing_key or queue.name,
             **publish_args,
         )
 
@@ -149,7 +151,7 @@ class RabbitBroker(BrokerUsecase):
         queue = await self._init_queue(handler.queue)
         if handler.exchange is not None:
             exchange = await self._init_exchange(handler.exchange)
-            await queue.bind(exchange)
+            await queue.bind(exchange, handler.queue.routing_key or handler.queue.name)
         return queue
 
     async def _init_queue(self, queue: RabbitQueue) -> aio_pika.abc.AbstractRobustQueue:
@@ -195,7 +197,7 @@ class RabbitBroker(BrokerUsecase):
     @staticmethod
     async def _decode_message(
         message: aio_pika.IncomingMessage,
-    ) -> Union[str, Dict[str, Any], bytes]:
+    ) -> DecodedMessage:
         body = message.body
         if message.content_type is not None:
             if ContentTypes.text.value in message.content_type:
@@ -221,20 +223,25 @@ class RabbitBroker(BrokerUsecase):
                     on_max=partial(message.reject, False),
                 )
             async with context:
-                return await func(message)
+                r = await func(message)
+                return r
 
         return wrapper
 
 
 def _validate_exchange_and_queue(
-    queue: Union[str, RabbitQueue], exchange: Union[str, RabbitExchange, None] = None
+    queue: Union[str, RabbitQueue, None],
+    exchange: Union[str, RabbitExchange, None] = None,
 ) -> Tuple[RabbitQueue, Optional[RabbitExchange]]:
-    if isinstance(queue, str):
-        queue = RabbitQueue(name=queue)
-    elif not isinstance(queue, RabbitQueue):
-        raise ValueError(f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance")
+    if queue is not None:  # pragma: no branch
+        if isinstance(queue, str):
+            queue = RabbitQueue(name=queue)
+        elif not isinstance(queue, RabbitQueue):
+            raise ValueError(
+                f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance"
+            )
 
-    if exchange is not None:
+    if exchange is not None:  # pragma: no branch
         if isinstance(exchange, str):
             exchange = RabbitExchange(name=exchange)
         elif not isinstance(exchange, RabbitExchange):

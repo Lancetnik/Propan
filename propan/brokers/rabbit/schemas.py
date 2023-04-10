@@ -21,7 +21,9 @@ class RabbitQueue(Queue):
     arguments: Optional[Dict[str, Any]] = None
     timeout: TimeoutType = None
     robust: bool = True
+
     declare: bool = Field(default=True, exclude=True)
+    routing_key: str = Field(default="", exclude=True)
 
 
 class RabbitExchange(NameRequired):
@@ -33,6 +35,7 @@ class RabbitExchange(NameRequired):
     arguments: Optional[Dict[str, Any]] = None
     timeout: TimeoutType = None
     robust: bool = True
+
     declare: bool = Field(default=True, exclude=True)
 
 
