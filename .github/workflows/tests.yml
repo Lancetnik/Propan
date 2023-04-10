@@ -15,11 +15,11 @@ jobs:
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
       fail-fast: false
     
-    # services:
-    #   redis:
-    #     image: rabbitmq
-    #     ports:
-    #       - 5672:5672
+    services:
+      redis:
+        image: rabbitmq
+        ports:
+          - 5672:5672
 
     steps:
       - uses: actions/checkout@v3
@@ -39,7 +39,7 @@ jobs:
         run: pip install -e .[test]
       - run: mkdir coverage
       - name: Test
-        run: bash scripts/test.sh -m 'not rabbit'
+        run: bash scripts/test.sh -m 'all'
         env:
           COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}
           CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}

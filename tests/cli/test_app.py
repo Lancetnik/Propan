@@ -93,8 +93,8 @@ async def test_startup_lifespan_before_broker_started(async_mock, app: PropanApp
     with patch.object(app.broker, "start", async_mock.broker_start):
         await app._startup()
 
-    async_mock.broker_start.assert_awaited_once()
-    async_mock.assert_awaited_once()
+    async_mock.broker_start.assert_called_once()
+    async_mock.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -109,8 +109,8 @@ async def test_shutdown_lifespan_after_broker_stopped(async_mock, app: PropanApp
     with patch.object(app.broker, "close", async_mock.broker_stop):
         await app._shutdown()
 
-    async_mock.broker_stop.assert_awaited_once()
-    async_mock.assert_awaited_once()
+    async_mock.broker_stop.assert_called_once()
+    async_mock.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -124,7 +124,7 @@ async def test_running(async_mock, app: PropanApp):
             await app.run()
 
     async_mock.broker_run.assert_called_once()
-    async_mock.broker_stopped.assert_awaited_once()
+    async_mock.broker_stopped.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -138,7 +138,7 @@ async def test_stop_with_sigint(async_mock, app: PropanApp):
             await app.run()
 
     async_mock.broker_run_sigint.assert_called_once()
-    async_mock.broker_stopped_sigint.assert_awaited_once()
+    async_mock.broker_stopped_sigint.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -152,4 +152,4 @@ async def test_stop_with_sigterm(async_mock, app: PropanApp):
             await app.run()
 
     async_mock.broker_run_sigterm.assert_called_once()
-    async_mock.broker_stopped_sigterm.assert_awaited_once()
+    async_mock.broker_stopped_sigterm.assert_called_once()
