@@ -39,7 +39,7 @@ jobs:
         run: pip install -e .[test]
       - run: mkdir coverage
       - name: Test
-        run: bash scripts/test.sh -m 'not rabbit'
+        run: bash scripts/test.sh -m 'all'
         env:
           COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}
           CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}
