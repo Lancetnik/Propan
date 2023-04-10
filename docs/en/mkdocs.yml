@@ -1,0 +1,73 @@
+site_name: Propan
+site_description: Propan is a modern framework for building Applications based on Messaging Architecture.
+site_url: https://lancetnik.github.io/Propan/
+theme:
+  name: material
+  palette:
+  - media: '(prefers-color-scheme: light)'
+    scheme: default
+    primary: red
+    accent: amber
+    toggle:
+      icon: material/lightbulb
+      name: Switch to light mode
+  - media: '(prefers-color-scheme: dark)'
+    scheme: slate
+    primary: red
+    accent: amber
+    toggle:
+      icon: material/lightbulb-outline
+      name: Switch to dark mode
+  features:
+  - search.suggest
+  - search.highlight
+  - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github-alt
+  logo: img/logo-white.png
+  favicon: img/favicon.png
+  language: en
+repo_name: lancetnik/propan
+repo_url: https://github.com/lancetnik/propan
+edit_uri: ''
+plugins:
+- search
+- markdownextradata:
+    data: data
+nav:
+- Propan: index.md
+markdown_extensions:
+- toc:
+    permalink: true
+- markdown.extensions.codehilite:
+    guess_lang: false
+- mdx_include:
+    base_path: docs
+- admonition
+- codehilite
+- extra
+- pymdownx.emoji:
+    emoji_index: !!python/name:materialx.emoji.twemoji ''
+    emoji_generator: !!python/name:materialx.emoji.to_svg ''
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: !!python/name:pymdownx.superfences.fence_code_format ''
+- pymdownx.tabbed:
+    alternate_style: true
+- attr_list
+- md_in_html
+extra:
+  social:
+  - icon: fontawesome/brands/github-alt
+    link: https://github.com/lancetnik/propan
+  alternate:
+  - link: /
+    name: en - English
+extra_css:
+- css/termynal.css
+- css/custom.css
+extra_javascript:
+- js/termynal.js
+- js/custom.js

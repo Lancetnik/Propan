@@ -17,3 +17,4 @@ wtf
 .ruff_cache
 .mypy_cache
 coverage.json
+site
