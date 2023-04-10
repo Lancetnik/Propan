@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/en/docs/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
+    <img src="https://lancetnik.github.io/Propan/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
 </p>
 
 <p align="center">
@@ -27,6 +27,14 @@
 # Propan
 
 Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
+
+---
+
+**Documentation**: <a href="https://lancetnik.github.io/Propan/" target="_blank">https://lancetnik.github.io/Propan/</a>
+
+**Sources**: <a href="https://github.com/Lancetnik/Propan/" target="_blank">https://github.com/Lancetnik/Propan/</a>
+
+---
 
 ### The key features are
 
