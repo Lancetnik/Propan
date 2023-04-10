@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/en/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
+    <img src="img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
 </p>
 
 <p align="center">
@@ -28,7 +28,7 @@
 
 Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-### The key features are
+### The key features are:
 
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
@@ -41,7 +41,7 @@ Propan is a modern framework for building Applications based on <a href="https:/
     * framework-independent way to rule application environment
     * application code hot reloading
 
-### Supported MQ brokers
+### Supported MQ brokers:
 |              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
@@ -65,37 +65,44 @@ If you have any questions or ideas about features to implement, welcome to [disc
 
 Install using `pip`:
 
-```shell
-$ pip install "propan[async-rabbit]"
-# or
-$ pip install "propan[async-nats]"
-```
+=== "RabbitMQ"
+    <div class="termy">
+    ```console
+    $ pip install "propan[async-rabbit]"
+    ---> 100%
+    ```
+    </div>
+
+=== "NATS"
+    <div class="termy">
+    ```console
+    $ pip install "propan[async-nats]"
+    ---> 100%
+    ```
+    </div>
 
 ### Basic usage
 
 Create an application with the following code at `serve.py`:
 
-```python
-from propan import PropanApp
-from propan.brokers.rabbit import RabbitBroker
-# from propan.brokers.nats import NatsBroker
+=== "RabbitMQ"
+    ```python
+    {!> ../../../docs_src/index/01_rabbit_base.py!}
+    ```
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-# broker = NatsBroker("nats://localhost:4222")
-
-app = PropanApp(broker)
-
-@broker.handle("test")
-async def base_handler(body):
-    '''Handle all default exchange messages with `test` routing key'''
-    print(body)
-```
+=== "NATS"
+    ```python
+    {!> ../../../docs_src/index/01_nats_base.py!}
+    ```
 
 And just run it:
 
-```shell
+<div class="termy">
+```console
 $ propan run serve:app
+---> 100%
 ```
+</div>
 
 ---
 
@@ -103,22 +110,15 @@ $ propan run serve:app
 
 Propan uses `pydantic` to cast incoming function arguments to type according their type annotation.
 
-```python
-from pydantic import BaseModel
-from propan import PropanApp, Context
-from propan.brokers.rabbit import RabbitBroker
+=== "RabbitMQ"
+    ```python
+    {!> ../../../docs_src/index/02_rabbit_type_casting.py!}
+    ```
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-app = PropanApp(broker)
-
-class SimpleMessage(BaseModel):
-    key: int
-
-@broker.handle("test2")
-async def second_handler(body: SimpleMessage):
-    assert isinstance(body.key, int)
-
-```
+=== "NATS"
+    ```python
+    {!> ../../../docs_src/index/02_nats_type_casting.py!}
+    ```
 
 ---
 
@@ -134,28 +134,15 @@ If you call not existed field it returns *None* value.
 But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
 and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 
-```python
-from logging import Logger
+=== "RabbitMQ"
+    ```python
+    {!> ../../../docs_src/index/03_rabbit_dependencies.py!}
+    ```
 
-import aio_pika
-from propan import PropanApp, Context
-from propan.brokers.rabbit import RabbitBroker
-
-rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
-app = PropanApp(rabbit_broker)
-
-@rabbit_broker.handle("test")
-async def base_handler(body: dict,
-                       app: PropanApp,
-                       broker: RabbitBroker,
-                       context: Context,
-                       logger: Logger,
-                       message: aio_pika.Message,
-                       not_existed_field):
-    assert broker is rabbit_broker
-    assert not_existed_field is None
-```
+=== "NATS"
+    ```python
+    {!> ../../../docs_src/index/03_nats_dependencies.py!}
+    ```
 
 ---
 
@@ -170,47 +157,49 @@ Propan has own cli tool providing following features:
 ### Context passing
 
 For example: pass your current *.env* project setting to context
-```bash
+<div class="termy">
+```console
 $ propan run serve:app --env=.env.dev
+---> 100%
 ```
+</div>
 
-```python
-from propan import PropanApp, Context
-from propan.brokers.rabbit import RabbitBroker
-from pydantic import BaseSettings
+=== "RabbitMQ"
+    ```python
+    {!> ../../../docs_src/index/04_rabbit_context.py!}
+    ```
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
-app = PropanApp(broker)
-
-class Settings(BaseSettings):
-    ...
-
-@app.on_startup
-async def setup(env: str, context: Context):
-    settings = Settings(_env_file=env)
-    context.set_context("settings", settings)
-```
+=== "NATS"
+    ```python
+    {!> ../../../docs_src/index/04_nats_context.py!}
+    ```
 
 ### Project template
 
 Also **propan cli** is able to generate production-ready application template:
 
-```shell
+<div class="termy">
+```console
 $ propan create [projectname]
+---> 100%
 ```
+</div>
 
 *Notice: project template require* `pydantic[dotenv]` *installation.*
 
 Run created project:
 
-```shell
-# Run rabbimq first
+<div class="termy">
+```console
+### Run rabbimq first
 $ docker compose --file [projectname]/docker-compose.yaml up -d
+---> 100%
 
-# Run project
+### Run project
 $ propan run [projectname].app.serve:app --env=.env --reload
+---> 100%
 ```
+</div>
 
 Now you can enjoy a new development experience!
 
@@ -221,26 +210,15 @@ Now you can enjoy a new development experience!
 You can use Propan MQBrokers without PropanApp.
 Just *start* and *stop* them according your application lifespan.
 
-```python
-from fastapi import FastAPI
-from propan.brokers.rabbit import RabbitBroker
+=== "RabbitMQ"
+    ```python
+    {!> ../../../docs_src/index/05_rabbit_http_example.py!}
+    ```
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
-app = FastAPI()
-
-@broker.handle("test")
-async def base_handler(body):
-    print(body)
-
-@app.on_event("startup")
-async def start_broker():
-    await broker.start()
-
-@app.on_event("shutdown")
-async def stop_broker():
-    await broker.close()
-```
+=== "NATS"
+    ```python
+    {!> ../../../docs_src/index/05_nats_http_example.py!}
+    ```
 
 ## Examples
 

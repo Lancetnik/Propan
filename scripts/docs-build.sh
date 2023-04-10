@@ -1,0 +1,1 @@
+python ./scripts/docs.py build-all
