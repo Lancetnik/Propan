@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/en/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
+    <img src="docs/en/docs/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
 </p>
 
 <p align="center">
