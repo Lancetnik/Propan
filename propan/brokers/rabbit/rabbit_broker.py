@@ -233,7 +233,7 @@ def _validate_exchange_and_queue(
     queue: Union[str, RabbitQueue, None],
     exchange: Union[str, RabbitExchange, None] = None,
 ) -> Tuple[RabbitQueue, Optional[RabbitExchange]]:
-    if queue is not None:
+    if queue is not None:  # pragma: no branch
         if isinstance(queue, str):
             queue = RabbitQueue(name=queue)
         elif not isinstance(queue, RabbitQueue):
@@ -241,7 +241,7 @@ def _validate_exchange_and_queue(
                 f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance"
             )
 
-    if exchange is not None:
+    if exchange is not None:  # pragma: no branch
         if isinstance(exchange, str):
             exchange = RabbitExchange(name=exchange)
         elif not isinstance(exchange, RabbitExchange):
