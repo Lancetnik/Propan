@@ -113,6 +113,8 @@ class RabbitBroker(BrokerUsecase):
         message: Union[aio_pika.Message, str, Dict[str, Any]],
         queue: Union[RabbitQueue, str] = "",
         exchange: Union[RabbitExchange, str, None] = None,
+        *,
+        routing_key: str = "",
         **publish_args,
     ) -> Optional[aiormq.abc.ConfirmationFrameType]:
         if self._channel is None:
@@ -137,7 +139,7 @@ class RabbitBroker(BrokerUsecase):
 
         return await exchange_obj.publish(
             message=message,
-            routing_key=queue.name,
+            routing_key=routing_key or queue.name,
             **publish_args,
         )
 
@@ -149,7 +151,7 @@ class RabbitBroker(BrokerUsecase):
         queue = await self._init_queue(handler.queue)
         if handler.exchange is not None:
             exchange = await self._init_exchange(handler.exchange)
-            await queue.bind(exchange)
+            await queue.bind(exchange, handler.queue.routing_key or handler.queue.name)
         return queue
 
     async def _init_queue(self, queue: RabbitQueue) -> aio_pika.abc.AbstractRobustQueue:
@@ -227,12 +229,13 @@ class RabbitBroker(BrokerUsecase):
 
 
 def _validate_exchange_and_queue(
-    queue: Union[str, RabbitQueue], exchange: Union[str, RabbitExchange, None] = None
+    queue: Union[str, RabbitQueue, None], exchange: Union[str, RabbitExchange, None] = None
 ) -> Tuple[RabbitQueue, Optional[RabbitExchange]]:
-    if isinstance(queue, str):
-        queue = RabbitQueue(name=queue)
-    elif not isinstance(queue, RabbitQueue):
-        raise ValueError(f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance")
+    if queue is not None:
+        if isinstance(queue, str):
+            queue = RabbitQueue(name=queue)
+        elif not isinstance(queue, RabbitQueue):
+            raise ValueError(f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance")
 
     if exchange is not None:
         if isinstance(exchange, str):

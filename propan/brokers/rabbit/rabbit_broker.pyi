@@ -104,6 +104,8 @@ class RabbitBroker(BrokerUsecase):
         message: Union[aio_pika.Message, str, Dict[str, Any]],
         queue: Union[RabbitQueue, str] = "",
         exchange: Union[RabbitExchange, str, None] = None,
+        *,
+        routing_key: str = "",
         mandatory: bool = True,
         immediate: bool = False,
         timeout: aio_pika.abc.TimeoutType = None,
