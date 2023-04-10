@@ -10,10 +10,11 @@ from propan.brokers.push_back_watcher import (
     PushBackWatcher,
 )
 from propan.log import access_logger
-from propan.types import DecoratedCallable
+from propan.types import DecodedMessage, DecoratedCallable, Wrapper
 from propan.utils import apply_types, use_context
 from propan.utils.context import context
 from propan.utils.context import message as message_context
+from propan.utils.functions import call_or_await
 
 
 class BrokerUsecase(ABC):
@@ -67,19 +68,18 @@ class BrokerUsecase(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    async def _decode_message(self, message: Any) -> Union[str, Dict[str, Any]]:
+    async def _decode_message(self, message: Any) -> DecodedMessage:
         raise NotImplementedError()
 
     @abstractmethod
     def _process_message(
         self, func: DecoratedCallable, watcher: Optional[BaseWatcher]
-    ) -> DecoratedCallable:
+    ) -> Wrapper:
         raise NotImplementedError()
 
     async def start(self) -> None:
         if self.logger is not None:
             self._init_logger(self.logger)
-
         await self.connect()
 
     def _get_log_context(self, **kwargs: Any) -> Dict[str, Any]:
@@ -118,43 +118,44 @@ class BrokerUsecase(ABC):
     def _wrap_handler(
         self, func: DecoratedCallable, retry: Union[bool, int], **broker_args: Any
     ) -> DecoratedCallable:
-        if self._is_use_context:
+        if self.logger is not None:
+            func = self._log_execution(self.logger, **broker_args)(func)
+
+        if self._is_use_context is True:
             func = use_context(func)
 
-        if self._is_apply_types:
+        if self._is_apply_types is True:
             func = apply_types(func)
 
         func = self._wrap_decode_message(func)
 
         func = self._process_message(func, _get_watcher(self.logger, retry))
 
-        if self.logger is not None:
-            func = self._log_execution(self.logger, **broker_args)(func)
-
         func = _set_message_context(func)
 
         return func
 
-    def _wrap_decode_message(self, func: DecoratedCallable) -> DecoratedCallable:
+    def _wrap_decode_message(self, func: DecoratedCallable) -> Wrapper:
         @wraps(func)
         async def wrapper(message: Any) -> Any:
             return await func(await self._decode_message(message))
-
         return wrapper
 
     def _log_execution(
         self, logger: logging.Logger, **broker_args: Any
-    ) -> Callable[[DecoratedCallable], Any]:
-        def decor(func: DecoratedCallable) -> DecoratedCallable:
+    ) -> Callable[[DecoratedCallable], Wrapper]:
+        def decor(func: DecoratedCallable) -> Wrapper:
             @wraps(func)
-            async def wrapper(message: Any) -> Any:
+            async def wrapper(*args: Any, **kwargs: Any) -> Any:
+                message = message_context.get()
+
                 start = perf_counter()
 
                 self._get_log_context(message=message, **broker_args)
                 logger.log(self.log_level, "Received")
 
                 try:
-                    r = await func(message)
+                    r = await call_or_await(func, *args, **kwargs)
                 except Exception as e:
                     logger.error(repr(e))
                 else:
@@ -166,6 +167,10 @@ class BrokerUsecase(ABC):
             return wrapper
 
         return decor
+
+    def _log(self, message: str, log_level: Optional[int] = None) -> None:
+        if self.logger is not None:
+            self.logger.log(message, log_level or self.log_level)
 
 
 def _get_watcher(
@@ -181,7 +186,7 @@ def _get_watcher(
     return watcher
 
 
-def _set_message_context(func: DecoratedCallable) -> Callable[[Any], Any]:
+def _set_message_context(func: DecoratedCallable) -> Wrapper:
     @wraps(func)
     async def wrapper(message: Any) -> Any:
         message_context.set(message)

@@ -1,6 +1,6 @@
 import logging
 from ssl import SSLContext
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import aio_pika
 import aiormq
@@ -9,7 +9,7 @@ from propan.brokers.model import BrokerUsecase
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.log import access_logger
-from propan.types import DecoratedCallable
+from propan.types import DecodedMessage, DecoratedCallable, Wrapper
 from yarl import URL
 
 class RabbitBroker(BrokerUsecase):
@@ -115,7 +115,7 @@ class RabbitBroker(BrokerUsecase):
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-    ) -> Callable[[DecoratedCallable], None]:
+    ) -> Wrapper:
         """
         retry: Union[bool, int] - at exeption message will returns to queue `int` times or endless if `True`
         """
@@ -126,7 +126,7 @@ class RabbitBroker(BrokerUsecase):
     @staticmethod
     async def _decode_message(
         message: aio_pika.IncomingMessage,
-    ) -> Union[str, Dict[str, Any]]: ...
+    ) -> DecodedMessage: ...
     @staticmethod
     def _process_message(
         func: DecoratedCallable, watcher: Optional[BaseWatcher] = None

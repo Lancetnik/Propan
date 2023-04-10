@@ -1,14 +1,18 @@
-from inspect import isawaitable, signature
+from functools import partial
+from inspect import iscoroutinefunction, signature
 from typing import Any, Dict
 
+import anyio
 from propan.types import DecoratedCallable
 
 
 async def call_or_await(func: DecoratedCallable, *args: Any, **kwargs: Any) -> Any:
-    f = func(*args, **kwargs)
-    if isawaitable(f):
-        f = await f
-    return f
+    if iscoroutinefunction(func) is True:
+        return await func(*args, **kwargs)
+    else:
+        if kwargs:  # pragma: no cover
+            func = partial(func, **kwargs)
+        return await anyio.to_thread.run_sync(func, *args)
 
 
 def remove_useless_arguments(
