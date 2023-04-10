@@ -2,7 +2,7 @@ from functools import wraps
 from inspect import iscoroutinefunction, signature
 from typing import Any, Dict, List, Tuple, TypeVar
 
-from propan.types import DecoratedCallable
+from propan.types import DecoratedCallable, Wrapper
 from propan.utils.context.main import context as global_context
 from propan.utils.context.types import Alias, Depends
 from propan.utils.functions import call_or_await, remove_useless_arguments
@@ -11,7 +11,7 @@ FuncArgName = TypeVar("FuncArgName", bound=str)
 AliasStr = TypeVar("AliasStr", bound=str)
 
 
-def use_context(func: DecoratedCallable) -> DecoratedCallable:
+def use_context(func: DecoratedCallable) -> Wrapper:
     sig = signature(func).parameters
 
     aliases: Dict[AliasStr, FuncArgName] = {}
@@ -70,7 +70,6 @@ def use_context(func: DecoratedCallable) -> DecoratedCallable:
             for k, dep_func in dependencies.items():
                 if iscoroutinefunction(dep_func) is True:
                     raise ValueError("You can't use async Depends with sync function")
-
                 kw = remove_useless_arguments(dep_func, *args, **kwargs)
                 kwargs[k] = dep_func(**kw)
             return func(*args, **kwargs)

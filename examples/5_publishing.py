@@ -4,6 +4,7 @@ just use Broker as context manager and publish whatever you want!
 """
 import asyncio
 
+from aio_pika import Message
 from propan.brokers.rabbit import RabbitBroker
 
 
@@ -17,6 +18,8 @@ async def main():
             },
             queue="test",
         )
+
+        await broker.publish_message(Message(b"hi"), queue="test")
 
 
 if __name__ == "__main__":
