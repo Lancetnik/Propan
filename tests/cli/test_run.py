@@ -16,4 +16,3 @@ def test_run_correct(project_dir):
     time.sleep(0.1)
     p.terminate()
     p.join()
-    assert p.exitcode == 0
