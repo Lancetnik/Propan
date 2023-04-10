@@ -26,7 +26,7 @@ async def test_push_back_correct(async_mock):
     async with context:
         await async_mock()
 
-    async_mock.on_success.assert_awaited_once()
+    async_mock.on_success.assert_called_once()
     assert not watcher.memory.get(message_id)
 
 
@@ -48,7 +48,7 @@ async def test_push_back_endless_correct(async_mock):
     async with context:
         await async_mock()
 
-    async_mock.on_success.assert_awaited_once()
+    async_mock.on_success.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -73,7 +73,7 @@ async def test_push_back_watcher(async_mock):
 
     assert not async_mock.on_success.called
     assert async_mock.on_error.call_count == 3
-    async_mock.on_max.assert_awaited_once()
+    async_mock.on_max.assert_called_once()
 
 
 @pytest.mark.asyncio

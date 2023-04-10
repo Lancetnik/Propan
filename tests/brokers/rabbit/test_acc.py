@@ -18,7 +18,7 @@ async def test_consume(
         await broker.publish_message(message="hello", queue=queue)
         await wait_for_mock(async_mock)
 
-    async_mock.assert_awaited_once()
+    async_mock.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -37,7 +37,7 @@ async def test_consume_double(
         await broker.publish_message("hello", queue=queue)
         await wait_for_mock(async_mock)
 
-    assert async_mock.await_count == 2
+    assert async_mock.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -59,8 +59,8 @@ async def test_different_consume(
         await wait_for_mock(async_mock.method)
         await wait_for_mock(async_mock.method2)
 
-    async_mock.method.assert_awaited_once()
-    async_mock.method2.assert_awaited_once()
+    async_mock.method.assert_called_once()
+    async_mock.method2.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -88,7 +88,7 @@ async def test_consume_from_exchange(
 
         await wait_for_mock(async_mock)
 
-    async_mock.assert_awaited_once()
+    async_mock.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -119,4 +119,4 @@ async def test_consume_with_get_old(
 
     await wait_for_mock(async_mock)
 
-    async_mock.assert_awaited_once()
+    async_mock.assert_called_once()
