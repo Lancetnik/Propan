@@ -1,6 +1,6 @@
 # INTEGRATIONS
 
-{! docs/ru/helpful/in-progress.md !}
+{! docs/en/helpful/in-progress.md !}
 
 === "Fastapi"
     ```python hl_lines="6 13 15 18-20"
