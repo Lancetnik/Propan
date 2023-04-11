@@ -15,11 +15,6 @@ async def base_handler(body):
     print(body)
 
 
-@app.get("/")
-async def hello_world(request):
-    return text("Hello, world.")
-
-
 @app.after_server_start
 async def start_broker(app, loop):
     await broker.start()
@@ -28,3 +23,8 @@ async def start_broker(app, loop):
 @app.after_server_stop
 async def stop_broker(app, loop):
     await broker.close()
+
+
+@app.get("/")
+async def hello_world(request):
+    return text("Hello, world.")

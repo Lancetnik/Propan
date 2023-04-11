@@ -1,0 +1,129 @@
+site_name: Propan
+site_description: Propan is a modern framework for building Applications based on Messaging Architecture.
+site_url: https://lancetnik.github.io/Propan/
+dev_addr: 127.0.0.1:8000
+
+repo_name: lancetnik/propan
+repo_url: https://github.com/lancetnik/propan
+edit_uri: https://github.com/lancetnik/propan
+
+copyright: Copyright &copy; 2019 - 2023 Pastukhov Nikita
+
+docs_dir: docs
+
+extra_css:
+  - assets/stylesheets/termynal.css
+  - assets/stylesheets/custom.css
+
+extra_javascript:
+  - assets/javascripts/termynal.js
+  - assets/javascripts/custom.js
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: red
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: red
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  features:
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+  i18n:
+    prev: 'Previous'
+    next: 'Next'
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/img/logo-white.png
+  favicon: assets/img/favicon.png
+
+plugins:
+  - search
+  - markdownextradata:
+      data: data
+  - i18n:
+      default_language: en
+      docs_structure: folder
+      material_alternate: true
+      languages:
+        en:
+          name: English
+          build: true
+        ru:
+          name: Русский
+          build: true
+
+markdown_extensions:  # do not reorder
+  - toc:
+      permalink: true
+  - markdown.extensions.codehilite:
+      guess_lang: false
+  - mdx_include:
+      base_path: .
+  - admonition
+  - codehilite
+  - extra
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+      - name: mermaid
+        class: mermaid
+        format: !!python/name:pymdownx.superfences.fence_code_format ''
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji ""
+      emoji_generator: !!python/name:materialx.emoji.to_svg ""
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/lancetnik/propan
+    - icon: simple/telegram
+      link: https://t.me/propan_python
+
+nav:
+  - Home: index.md
+  - Features: features.md
+  - Getting Started:
+    - Hello, Propan!: quick-start.md
+    - Lifespans: tutorial/lifespans.md
+    - Dependcy Injection:
+      - Dependcy Injection - INTRO: dependency/di-index.md
+      - Context object: dependency/context.md
+      - Aliases: dependency/alias.md
+      - Dependcies: dependency/depends.md
+  - RabbitMQ:
+    - RabbitMQ - INTRO: rabbit/rabbit-index.md
+    - Exchanges: rabbit/exchanges.md
+    - Queues and Bindings: rabbit/queues.md
+  - NATS:
+    - NATS - INTRO: nats/nats-index.md
+  - Integrations: integrations/integrations-index.md
+  - Avanced:
+    - Advanced - INTRO: advanced/advanced-index.md
+    - Logging:
+      - Settings: advanced/logging.md
+      - Custom Loggers: advanced/logging-custom.md
+  - CLI Tool: cli.md
+  - Help Propan: help.md
+  - Contributing:
+    - CONTRIBUTING - INTRO: contributing/contributing-index.md
+    - TODO: contributing/todo.md
+    - Adapters: contributing/adapters.md
+    - Ideas: contributing/ideas.md
+  - Community: community.md
+  - Release Notes: CHANGELOG.md
