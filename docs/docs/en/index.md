@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://lancetnik.github.io/Propan/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
+    <img src="assets/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
 </p>
 
 <p align="center">
@@ -26,15 +26,9 @@
 
 # Propan
 
+Привет!
+
 Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
-
----
-
-**Documentation**: <a href="https://lancetnik.github.io/Propan/" target="_blank">https://lancetnik.github.io/Propan/</a>
-
-**Sources**: <a href="https://github.com/Lancetnik/Propan/" target="_blank">https://github.com/Lancetnik/Propan/</a>
-
----
 
 ### The key features are
 
@@ -73,37 +67,53 @@ If you have any questions or ideas about features to implement, welcome to [disc
 
 Install using `pip`:
 
-```shell
-$ pip install "propan[async-rabbit]"
-# or
-$ pip install "propan[async-nats]"
-```
+=== "RabbitMQ"
+    <div class="termy">
+    ```console
+    $ pip install "propan[async-rabbit]"
+    ---> 100%
+
+    ### Run test container
+    docker run -d --rm -p 5672:5672 --name test-mq rabbitmq
+    ```
+    </div>
+
+=== "NATS"
+    <div class="termy">
+    ```console
+    $ pip install "propan[async-nats]"
+    ---> 100%
+
+    ### Run test container
+    docker run -d --rm -p 4222:4222 --name test-mq nats
+    ```
+    </div>
 
 ### Basic usage
 
 Create an application with the following code at `serve.py`:
 
-```python
-from propan import PropanApp
-from propan.brokers.rabbit import RabbitBroker
-# from propan.brokers.nats import NatsBroker
+=== "RabbitMQ"
+    ```python
+    {!> docs_src/index/01_rabbit_base.py!}
+    ```
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-# broker = NatsBroker("nats://localhost:4222")
-
-app = PropanApp(broker)
-
-@broker.handle("test")
-async def base_handler(body):
-    '''Handle all default exchange messages with `test` routing key'''
-    print(body)
-```
+=== "NATS"
+    ```python
+    {!> docs_src/index/01_nats_base.py!}
+    ```
 
 And just run it:
 
-```shell
+<div class="termy">
+```console
 $ propan run serve:app
+
+2023-04-10 23:39:41,145 INFO     - Propan app starting...
+2023-04-10 23:39:41,151 INFO     - `base_handler` waiting for messages
+2023-04-10 23:39:41,152 INFO     - Propan app started successfully! To exit press CTRL+C
 ```
+</div>
 
 ---
 
@@ -111,22 +121,15 @@ $ propan run serve:app
 
 Propan uses `pydantic` to cast incoming function arguments to type according their type annotation.
 
-```python
-from pydantic import BaseModel
-from propan import PropanApp, Context
-from propan.brokers.rabbit import RabbitBroker
+=== "RabbitMQ"
+    ```python hl_lines="12"
+    {!> docs_src/index/02_rabbit_type_casting.py!}
+    ```
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-app = PropanApp(broker)
-
-class SimpleMessage(BaseModel):
-    key: int
-
-@broker.handle("test2")
-async def second_handler(body: SimpleMessage):
-    assert isinstance(body.key, int)
-
-```
+=== "NATS"
+    ```python hl_lines="12"
+    {!> docs_src/index/02_nats_type_casting.py!}
+    ```
 
 ---
 
@@ -142,28 +145,15 @@ If you call not existed field it returns *None* value.
 But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
 and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 
-```python
-from logging import Logger
+=== "RabbitMQ"
+    ```python hl_lines="12-17"
+    {!> docs_src/index/03_rabbit_dependencies.py!}
+    ```
 
-import aio_pika
-from propan import PropanApp, Context
-from propan.brokers.rabbit import RabbitBroker
-
-rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
-app = PropanApp(rabbit_broker)
-
-@rabbit_broker.handle("test")
-async def base_handler(body: dict,
-                       app: PropanApp,
-                       broker: RabbitBroker,
-                       context: Context,
-                       logger: Logger,
-                       message: aio_pika.Message,
-                       not_existed_field):
-    assert broker is rabbit_broker
-    assert not_existed_field is None
-```
+=== "NATS"
+    ```python hl_lines="12-17"
+    {!> docs_src/index/03_nats_dependencies.py!}
+    ```
 
 ---
 
@@ -178,47 +168,55 @@ Propan has own cli tool providing following features:
 ### Context passing
 
 For example: pass your current *.env* project setting to context
-```bash
+<div class="termy">
+```console
 $ propan run serve:app --env=.env.dev
+
+2023-04-10 23:39:41,145 INFO     - Propan app starting...
+2023-04-10 23:39:41,151 INFO     - `base_handler` waiting for messages
+2023-04-10 23:39:41,152 INFO     - Propan app started successfully! To exit press CTRL+C
 ```
+</div>
 
-```python
-from propan import PropanApp, Context
-from propan.brokers.rabbit import RabbitBroker
-from pydantic import BaseSettings
+=== "RabbitMQ"
+    ```python hl_lines="3 9 14-15"
+    {!> docs_src/index/04_rabbit_context.py!}
+    ```
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
-app = PropanApp(broker)
-
-class Settings(BaseSettings):
-    ...
-
-@app.on_startup
-async def setup(env: str, context: Context):
-    settings = Settings(_env_file=env)
-    context.set_context("settings", settings)
-```
+=== "NATS"
+    ```python hl_lines="3 9 14-15"
+    {!> docs_src/index/04_nats_context.py!}
+    ```
 
 ### Project template
 
 Also **propan cli** is able to generate production-ready application template:
 
-```shell
+<div class="termy">
+```console
 $ propan create [projectname]
+Create Propan project template at: /home/user/projectname
 ```
+</div>
 
 *Notice: project template require* `pydantic[dotenv]` *installation.*
 
 Run created project:
 
-```shell
-# Run rabbimq first
+<div class="termy">
+```console
+### Run rabbimq first
 $ docker compose --file [projectname]/docker-compose.yaml up -d
 
-# Run project
+### Run project
 $ propan run [projectname].app.serve:app --env=.env --reload
+
+2023-04-10 23:39:41,140 INFO     - Started reloader process [115536] using WatchFiles
+2023-04-10 23:39:41,145 INFO     - Propan app starting...
+2023-04-10 23:39:41,151 INFO     - `base_handler` waiting for messages
+2023-04-10 23:39:41,152 INFO     - Propan app started successfully! To exit press CTRL+C
 ```
+</div>
 
 Now you can enjoy a new development experience!
 
@@ -229,27 +227,23 @@ Now you can enjoy a new development experience!
 You can use Propan MQBrokers without PropanApp.
 Just *start* and *stop* them according your application lifespan.
 
-```python
-from contextlib import asynccontextmanager
+=== "RabbitMQ"
+    ```python hl_lines="12-14 16-18"
+    {!> docs_src/index/05_rabbit_http_example.py!}
+    ```
 
-from fastapi import FastAPI
-from propan.brokers.rabbit import RabbitBroker
-
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
-app = FastAPI()
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await broker.start()
-    yield
-    await broker.close()
-
-@broker.handle("test")
-async def base_handler(body):
-    print(body)
-```
+=== "NATS"
+    ```python hl_lines="6 12-14 16-18"
+    {!> docs_src/index/05_nats_http_example.py!}
+    ```
 
 ## Examples
 
 To see more framework usages go to [**examples/**](https://github.com/Lancetnik/Propan/tree/main/examples)
+
+??? tip "Don't forget to stop test container"
+    <div class="termy">
+    ```console
+    $ docker container stop test-mq
+    ```
+    </div>
