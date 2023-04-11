@@ -26,8 +26,6 @@
 
 # Propan
 
-Привет!
-
 Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
 ### The key features are
