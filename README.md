@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://lancetnik.github.io/Propan/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
+    <img src="https://lancetnik.github.io/Propan/assets/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
 </p>
 
 <p align="center">
