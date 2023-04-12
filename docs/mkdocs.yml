@@ -101,17 +101,17 @@ nav:
     - Hello, Propan!: quick-start.md
     - CLI Tool: cli.md
     - Lifespan: tutorial/lifespans.md
-    - Dependcy Injection:
-      - Dependcy Injection - INTRO: dependency/di-index.md
+    - Dependency Injection:
+      - Dependency Basics: dependency/di-index.md
       - Context object: dependency/context.md
       - Aliases: dependency/alias.md
       - Dependcies: dependency/depends.md
   - RabbitMQ:
-    - RabbitMQ - INTRO: rabbit/rabbit-index.md
+    - RabbitMQ Basics: rabbit/rabbit-index.md
     - Exchanges: rabbit/exchanges.md
     - Queues and Bindings: rabbit/queues.md
   - NATS:
-    - NATS - INTRO: nats/nats-index.md
+    - NATS Basics: nats/nats-index.md
   - Integrations: integrations/integrations-index.md
   - Avanced:
     - Advanced - INTRO: advanced/advanced-index.md
@@ -119,7 +119,7 @@ nav:
       - Settings: advanced/logging.md
       - Custom Loggers: advanced/logging-custom.md
   - Contributing:
-    - CONTRIBUTING - INTRO: contributing/contributing-index.md
+    - Environment: contributing/contributing-index.md
     - Documentation: contributing/docs.md
     - TODOS: contributing/todo.md
     - Adapters: contributing/adapters.md
