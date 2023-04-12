@@ -96,11 +96,11 @@ extra:
       link: https://t.me/propan_python
 
 nav:
-  - Home: index.md
-  - Features: features.md
+  - Welcome: index.md
   - Getting Started:
     - Hello, Propan!: quick-start.md
-    - Lifespans: tutorial/lifespans.md
+    - CLI Tool: cli.md
+    - Lifespan: tutorial/lifespans.md
     - Dependcy Injection:
       - Dependcy Injection - INTRO: dependency/di-index.md
       - Context object: dependency/context.md
@@ -118,12 +118,12 @@ nav:
     - Logging:
       - Settings: advanced/logging.md
       - Custom Loggers: advanced/logging-custom.md
-  - CLI Tool: cli.md
-  - Help Propan: help.md
   - Contributing:
     - CONTRIBUTING - INTRO: contributing/contributing-index.md
-    - TODO: contributing/todo.md
+    - Documentation: contributing/docs.md
+    - TODOS: contributing/todo.md
     - Adapters: contributing/adapters.md
     - Ideas: contributing/ideas.md
+  - Help Propan: help.md
   - Community: community.md
   - Release Notes: CHANGELOG.md

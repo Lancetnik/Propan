@@ -26,22 +26,51 @@
 
 # Propan
 
-Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
+**Propan** - это современный высокопроизводительный фреймоворк для построения приложений в соответсвии с <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-### The key features are
+**Propan** - высокоуровневый фреймворк, он разработан на основе популярных *python* библиотек для работы со специфичными брокерами, а в его основе лежит [*pydantic*](https://docs.pydantic.dev/) и идеи [*fastapi*](https://fastapi.tiangolo.com/ru/), [*pytest*](https://docs.pytest.org/en/7.3.x/).
 
-* **Easy**: Designed to be easy to use and learn.
-* **Intuitive**: Great editor support. Autocompletion everywhere.
-* [**Dependencies management**](#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
-* [**Integrations**](#http-frameworks-integrations): Propan is ready to using in pair with [any http framework](https://github.com/Lancetnik/Propan/tree/main/examples/http_frameworks_integrations) you want
-* **MQ independent**: Single interface to popular MQ:
-    * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
-    * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
-* [**Greate to develop**](#cli-power): cli tool provides great development expireince:
-    * framework-independent way to rule application environment
-    * application code hot reloading
 
-### Supported MQ brokers
+!!! warning "В разработке"
+    Основные концепции уже заложены, большая часть фич реализована, а тестов - написано. Однако, изменения, нарушающие обратную совместимость, все еще возможны до выхода версии **0.1.0**. Такие изменения будут отражены в [CHANGELOG](https://lancetnik.github.io/Propan/CHANGELOG/), поэтому следите за обновлениями.
+
+---
+
+## Ключевые особенности
+
+* **Простота**: спроектирован для максимальной простоты изучения и использования.
+* **Интуитивность**: Отличная поддержка IDE, автодополнение даже в *vim*`е.
+* [**Управление зависимостями**](#dependencies): Эффективное переиспользование за счет аннотации типов. Доступ к зависимостями во всем стеке вызова.
+* [**Интeграция**](#http-frameworks-integrations): Propan полностью совместим с [любыми http фреймворками](https://lancetnik.github.io/Propan/integrations/integrations-index/)
+* **Независимость от брокеров**: Единый интерфейс для популярных брокеров:
+    * **NATS** (основан на [nats-py](https://github.com/nats-io/nats.py)) 
+    * **RabbitMQ** (основан на [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
+* [**Скорость разработки**](#cli-power): собственный *cli* инструмент предоставляет отличный опыт разработки:
+    * Полностью совместимый с вашим фреймворком способ управлять окружением проекта
+    * *hotreloading* при изменениях в коде (мне этого не хватало)
+    * Готовые шаблоны проекта
+
+---
+
+## О фреймворке
+
+*Python* богат на http-фреймворки, однако, если вы планируете активно работать с брокерами сообщений, ваш инструментарий резко сужается, а удобство и скорость разработки - падают.
+
+Традиционные библиотеки для работы с популярными брокерами: *Kafka*, *RabbitMQ*, *Nats* и другими имеют далеко не самые удобные интерфейсы, к которым привыкло большинство веб разработчиков.
+
+Кроме этого, они требуют глубокого погружения в нюансы архитектуры выбранного брокера, даже если вы хотите "просто попробовать".
+
+**Propan** призван исправить эти досадные упущения: фреймворк предоставляет унифицированный интерфейс для работы с различными брокерами сообщений, который будет привычен большинству *python* разработчиков.
+
+В простейшем случае фреймворк избавит вас от необходимости тратить время на изучение особенностей выбранного брокера: *Hello, World!* сможет написть любой школьник.
+
+Для более искушенных разработчиков **Propan** оставляет возможность использовать все особенности выбранного брокера, оставаясь открытым для расширения на самом низком уровне. Также **Propan** предоставляет минимальный необходимый набор для удобства разработки: полная поддержка аннотации типов и автодополнений, hotreloading, управление окружением приложения через *cli*, а также поставка готовых шаблонов приложений.
+
+## Поддерживаемые брокеры
+
+!!! note "Нужна ваша помощь"
+    Фреймоворк сейчас активно развивается и расширяется. У нас очень длинный список того, что еще предстоит реализовать и различные брокеры - только его часть. Если вы хотите реализовать что-то из этого списка или помочь любым другим способом - загляните [сюда](https://lancetnik.github.io/Propan/contributing/contributing-index/)
+
 |              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
@@ -52,196 +81,3 @@ Propan is a modern framework for building Applications based on <a href="https:/
 | **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **SQS**      | :mag: planning :mag:                                    | :mag: planning :mag: |
 
-
-### Community
-
-If you are interested at this project, please give me feedback by star or/and watch repository.
-
-If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions) or publick [telegram group](https://t.me/propan_python).
-
----
-
-## Quickstart
-
-Install using `pip`:
-
-=== "RabbitMQ"
-    <div class="termy">
-    ```console
-    $ pip install "propan[async-rabbit]"
-    ---> 100%
-
-    ### Run test container
-    docker run -d --rm -p 5672:5672 --name test-mq rabbitmq
-    ```
-    </div>
-
-=== "NATS"
-    <div class="termy">
-    ```console
-    $ pip install "propan[async-nats]"
-    ---> 100%
-
-    ### Run test container
-    docker run -d --rm -p 4222:4222 --name test-mq nats
-    ```
-    </div>
-
-### Basic usage
-
-Create an application with the following code at `serve.py`:
-
-=== "RabbitMQ"
-    ```python
-    {!> docs_src/index/01_rabbit_base.py!}
-    ```
-
-=== "NATS"
-    ```python
-    {!> docs_src/index/01_nats_base.py!}
-    ```
-
-And just run it:
-
-<div class="termy">
-```console
-$ propan run serve:app
-
-2023-04-10 23:39:41,145 INFO     - Propan app starting...
-2023-04-10 23:39:41,151 INFO     - `base_handler` waiting for messages
-2023-04-10 23:39:41,152 INFO     - Propan app started successfully! To exit press CTRL+C
-```
-</div>
-
----
-
-## Type casting
-
-Propan uses `pydantic` to cast incoming function arguments to type according their type annotation.
-
-=== "RabbitMQ"
-    ```python hl_lines="12"
-    {!> docs_src/index/02_rabbit_type_casting.py!}
-    ```
-
-=== "NATS"
-    ```python hl_lines="12"
-    {!> docs_src/index/02_nats_type_casting.py!}
-    ```
-
----
-
-## Dependencies
-
-Propan has dependencies management policy close to `pytest fixtures`.
-You can specify in functions arguments which dependencies
-you would to use. Framework passes them from the global Context object.
-
-Default context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
-If you call not existed field it returns *None* value.
-
-But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
-and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
-
-=== "RabbitMQ"
-    ```python hl_lines="12-17"
-    {!> docs_src/index/03_rabbit_dependencies.py!}
-    ```
-
-=== "NATS"
-    ```python hl_lines="12-17"
-    {!> docs_src/index/03_nats_dependencies.py!}
-    ```
-
----
-
-## CLI power
-
-Propan has own cli tool providing following features:
-* project generation
-* multiprocessing workers
-* project hot reloading
-* custom context arguments passing
-
-### Context passing
-
-For example: pass your current *.env* project setting to context
-<div class="termy">
-```console
-$ propan run serve:app --env=.env.dev
-
-2023-04-10 23:39:41,145 INFO     - Propan app starting...
-2023-04-10 23:39:41,151 INFO     - `base_handler` waiting for messages
-2023-04-10 23:39:41,152 INFO     - Propan app started successfully! To exit press CTRL+C
-```
-</div>
-
-=== "RabbitMQ"
-    ```python hl_lines="3 9 14-15"
-    {!> docs_src/index/04_rabbit_context.py!}
-    ```
-
-=== "NATS"
-    ```python hl_lines="3 9 14-15"
-    {!> docs_src/index/04_nats_context.py!}
-    ```
-
-### Project template
-
-Also **propan cli** is able to generate production-ready application template:
-
-<div class="termy">
-```console
-$ propan create [projectname]
-Create Propan project template at: /home/user/projectname
-```
-</div>
-
-*Notice: project template require* `pydantic[dotenv]` *installation.*
-
-Run created project:
-
-<div class="termy">
-```console
-### Run rabbimq first
-$ docker compose --file [projectname]/docker-compose.yaml up -d
-
-### Run project
-$ propan run [projectname].app.serve:app --env=.env --reload
-
-2023-04-10 23:39:41,140 INFO     - Started reloader process [115536] using WatchFiles
-2023-04-10 23:39:41,145 INFO     - Propan app starting...
-2023-04-10 23:39:41,151 INFO     - `base_handler` waiting for messages
-2023-04-10 23:39:41,152 INFO     - Propan app started successfully! To exit press CTRL+C
-```
-</div>
-
-Now you can enjoy a new development experience!
-
----
-
-## HTTP Frameworks integrations
-
-You can use Propan MQBrokers without PropanApp.
-Just *start* and *stop* them according your application lifespan.
-
-=== "RabbitMQ"
-    ```python hl_lines="6 12-14 16-18"
-    {!> docs_src/index/05_rabbit_http_example.py!}
-    ```
-
-=== "NATS"
-    ```python hl_lines="6 12-14 16-18"
-    {!> docs_src/index/05_nats_http_example.py!}
-    ```
-
-## Examples
-
-To see more framework usages go to [**examples/**](https://github.com/Lancetnik/Propan/tree/main/examples)
-
-??? tip "Don't forget to stop test container"
-    <div class="termy">
-    ```console
-    $ docker container stop test-mq
-    ```
-    </div>
