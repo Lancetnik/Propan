@@ -3,10 +3,11 @@ import pytest
 from propan.annotations import RabbitMessage
 from propan.brokers.rabbit import RabbitBroker
 from propan.utils import Depends
-
+from tests.tools.marks import needs_py38
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
+@needs_py38
 async def test_broker_depends(mock, queue, full_broker: RabbitBroker, wait_for_mock):
     def sync_depends(b, message: RabbitMessage):
         return message
@@ -44,6 +45,7 @@ async def test_broker_depends(mock, queue, full_broker: RabbitBroker, wait_for_m
 @pytest.mark.asyncio
 @pytest.mark.slow
 @pytest.mark.rabbit
+@needs_py38
 async def test_different_consumers_has_different_messages(
     mock, context, wait_for_mock, full_broker: RabbitBroker
 ):
