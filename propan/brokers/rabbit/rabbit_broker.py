@@ -181,6 +181,7 @@ class RabbitBroker(BrokerUsecase):
             "queue": queue.name,
             "message_id": message.message_id[:10] if message else "",
         }
+
         log_context.set(context)
         return context
 

@@ -37,12 +37,6 @@ def test_log(app: PropanApp, app_without_logger: PropanApp):
     app_without_logger._log(logging.INFO, "test")
 
 
-def test_set_context(app: PropanApp, context: Context):
-    key = 1000
-    app.set_context(key=key)
-    assert context.key is key
-
-
 @pytest.mark.asyncio
 async def test_startup_calls_lifespans(mock: Mock, app_without_broker: PropanApp):
     def call1():
@@ -94,12 +88,12 @@ async def test_startup_lifespan_before_broker_started(async_mock, app: PropanApp
         await app._startup()
 
     async_mock.broker_start.assert_called_once()
-    async_mock.assert_called_once()
+    async_mock.assert_awaited_once()
 
 
 @pytest.mark.asyncio
 @needs_py38
-async def test_shutdown_lifespan_after_broker_stopped(async_mock, app: PropanApp):
+async def test_shutdown_lifespan_after_broker_stopped(mock, async_mock, app: PropanApp):
     async def call():
         await async_mock()
         assert async_mock.broker_stop.called
@@ -110,7 +104,7 @@ async def test_shutdown_lifespan_after_broker_stopped(async_mock, app: PropanApp
         await app._shutdown()
 
     async_mock.broker_stop.assert_called_once()
-    async_mock.assert_called_once()
+    async_mock.assert_awaited_once()
 
 
 @pytest.mark.asyncio

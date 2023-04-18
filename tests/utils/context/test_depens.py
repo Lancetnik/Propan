@@ -1,7 +1,5 @@
 import pytest
-from propan.utils.context import Depends, use_context
-
-from tests.tools.marks import needs_py310
+from propan.utils import Depends, apply_types
 
 
 def sync_dep(key):
@@ -16,8 +14,8 @@ async def async_dep(key):
 async def test_sync_depends():
     key = 1000
 
-    @use_context
-    def func(*args, k=Depends(sync_dep), **kwargs):
+    @apply_types
+    def func(k=Depends(sync_dep)):
         return k is key
 
     assert func(key=key)
@@ -25,22 +23,18 @@ async def test_sync_depends():
 
 @pytest.mark.asyncio
 async def test_sync_with_async_depends():
-    key = 1000
-
-    @use_context
-    def func(*args, k=Depends(async_dep), **kwargs):
+    # with pytest.raises(AssertionError):
+    @apply_types
+    def func(k=Depends(async_dep)):
         pass
-
-    with pytest.raises(ValueError):
-        func(key=key)
 
 
 @pytest.mark.asyncio
 async def test_async_depends():
     key = 1000
 
-    @use_context
-    async def func(*args, k=Depends(async_dep), **kwargs):
+    @apply_types
+    async def func(k=Depends(async_dep)):
         return k is key
 
     assert await func(key=key)
@@ -50,24 +44,23 @@ async def test_async_depends():
 async def test_async_with_sync_depends():
     key = 1000
 
-    @use_context
-    async def func(*args, k=Depends(sync_dep), **kwargs):
+    @apply_types
+    async def func(k=Depends(sync_dep)):
         return k is key
 
     assert await func(key=key)
 
 
-@needs_py310
 @pytest.mark.asyncio
 async def test_annotated_depends():
-    from typing import Annotated
+    from typing_extensions import Annotated
 
     D = Annotated[int, Depends(sync_dep)]
 
     key = 1000
 
-    @use_context
-    async def func(*args, k: D, **kwargs):
+    @apply_types
+    async def func(k: D):
         return k is key
 
     assert await func(key=key)

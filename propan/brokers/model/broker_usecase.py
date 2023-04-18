@@ -11,7 +11,7 @@ from propan.brokers.push_back_watcher import (
 )
 from propan.log import access_logger
 from propan.types import DecodedMessage, DecoratedCallable, Wrapper
-from propan.utils import apply_types, use_context
+from propan.utils import apply_types
 from propan.utils.context import context
 from propan.utils.context import message as message_context
 from propan.utils.functions import call_or_await
@@ -28,7 +28,6 @@ class BrokerUsecase(ABC):
         self,
         *args: Any,
         apply_types: bool = True,
-        use_context: bool = True,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: str = "%(asctime)s %(levelname)s - %(message)s",
@@ -40,7 +39,6 @@ class BrokerUsecase(ABC):
 
         self._connection = None
         self._is_apply_types = apply_types
-        self._is_use_context = use_context
         self._connection_args = args
         self._connection_kwargs = kwargs
         self.handlers = []
@@ -118,14 +116,11 @@ class BrokerUsecase(ABC):
     def _wrap_handler(
         self, func: DecoratedCallable, retry: Union[bool, int], **broker_args: Any
     ) -> DecoratedCallable:
-        if self.logger is not None:
-            func = self._log_execution(self.logger, **broker_args)(func)
-
-        if self._is_use_context is True:
-            func = use_context(func)
-
         if self._is_apply_types is True:
             func = apply_types(func)
+
+        if self.logger is not None:
+            func = self._log_execution(self.logger, **broker_args)(func)
 
         func = self._wrap_decode_message(func)
 
@@ -139,6 +134,7 @@ class BrokerUsecase(ABC):
         @wraps(func)
         async def wrapper(message: Any) -> Any:
             return await func(await self._decode_message(message))
+
         return wrapper
 
     def _log_execution(

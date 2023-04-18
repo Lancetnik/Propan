@@ -1,28 +1,15 @@
-from functools import partial
-from inspect import iscoroutinefunction, signature
-from typing import Any, Dict
+from functools import wraps
+from typing import Callable, TypeVar
 
-import anyio
-from propan.types import DecoratedCallable
+from fast_depends.injector import run_async as call_or_await
+from propan.types import P
 
-
-async def call_or_await(func: DecoratedCallable, *args: Any, **kwargs: Any) -> Any:
-    if iscoroutinefunction(func) is True:
-        return await func(*args, **kwargs)
-    else:
-        if kwargs:  # pragma: no cover
-            func = partial(func, **kwargs)
-        return await anyio.to_thread.run_sync(func, *args)
+T = TypeVar("T")
 
 
-def remove_useless_arguments(
-    func: DecoratedCallable, *args: Any, **kwargs: Any
-) -> Dict[str, Any]:
-    sig = signature(func).parameters
-    arg_names = tuple(sig.keys())
+def to_async(func: Callable[[P], T]) -> Callable[[P], T]:
+    @wraps(func)
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        return await call_or_await(func, *args, **kwargs)
 
-    return {
-        arg_name: arg_value
-        for arg_name, arg_value in (*zip(arg_names, args), *kwargs.items())
-        if arg_name in arg_names
-    }
+    return wrapper

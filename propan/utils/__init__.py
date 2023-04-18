@@ -1,11 +1,11 @@
-from .context import Alias, Context, Depends, context, use_context
-from .types.decorate import apply_types
+from .context import Context, ContextRepo, context
+
+from fast_depends import inject as apply_types, Depends
 
 __all__ = (
     "apply_types",
-    "use_context",
     "context",
     "Context",
-    "Alias",
+    "ContextRepo",
     "Depends",
 )

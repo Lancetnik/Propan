@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from ctypes import Union
+from typing import Dict, List, Optional
 
 from anyio import create_memory_object_stream, create_task_group
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
@@ -8,8 +9,8 @@ from propan.brokers.model.broker_usecase import BrokerUsecase
 from propan.cli.supervisors.utils import set_exit
 from propan.log import logger
 from propan.types import DecoratedCallableNone
-from propan.utils.context import context, use_context
-from propan.utils.functions import call_or_await
+from propan.utils import apply_types, context
+from propan.utils.functions import to_async
 
 
 class PropanApp:
@@ -33,21 +34,18 @@ class PropanApp:
         self._on_shutdown_calling = []
         self._stop_stream = None
         self._receive_stream = None
+        self._command_line_options: Dict[str, Union[str, bool]] = {}
 
     def set_broker(self, broker: BrokerUsecase) -> None:
         self.broker = broker
 
     def on_startup(self, func: DecoratedCallableNone) -> DecoratedCallableNone:
-        self._on_startup_calling.append(use_context(func))
+        self._on_startup_calling.append(apply_types(to_async(func)))
         return func
 
     def on_shutdown(self, func: DecoratedCallableNone) -> DecoratedCallableNone:
-        self._on_shutdown_calling.append(use_context(func))
+        self._on_shutdown_calling.append(apply_types(to_async(func)))
         return func
-
-    def set_context(self, **context_kwargs: Dict[str, Any]) -> None:
-        for k, v in context_kwargs.items():
-            self.context.set_context(k, v)
 
     async def run(self, log_level: int = logging.INFO) -> None:
         self._init_async_cycle()
@@ -78,7 +76,7 @@ class PropanApp:
 
     async def _startup(self) -> None:
         for func in self._on_startup_calling:
-            await call_or_await(func)
+            await func(**self._command_line_options)
 
         if self.broker is not None:
             await self.broker.start()
@@ -91,4 +89,4 @@ class PropanApp:
             await self.broker.close()
 
         for func in self._on_shutdown_calling:
-            await call_or_await(func)
+            await func()

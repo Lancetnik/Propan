@@ -1,7 +1,8 @@
 """
 Alias is able to provide access to specific attributes of dependency
 """
-from propan import Alias, Context, PropanApp
+from propan import Context, PropanApp
+from propan.annotations import ContextRepo
 from propan.brokers.rabbit import RabbitBroker
 from pydantic import BaseSettings, Field
 
@@ -17,11 +18,11 @@ class Settings(BaseSettings):
 
 
 @app.on_startup
-async def setup_later(context: Context):
+async def setup(context: ContextRepo):
     settings = Settings(key=KEY)
     context.set_context("settings", settings)
 
 
 @app.on_startup
-def setup(key: str = Alias("settings.key")):
+def setup_later(key: str = Context("settings.key")):
     assert key is KEY
