@@ -24,6 +24,6 @@ jobs:
         with:
           key: ${{ github.ref }}
           path: .cache
-      - run: pip install mkdocs-material mdx-include mkdocs-markdownextradata-plugin
+      - run: pip install mkdocs-material mkdocs-static-i18n mdx-include mkdocs-markdownextradata-plugin
       - working-directory: ./docs
         run: mkdocs gh-deploy --force
