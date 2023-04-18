@@ -1,6 +1,6 @@
 # CHANGELOG 
 
-## **0.9.0** 2023-04-18
+## **0.0.9** 2023-04-18
 
 Release is timed to accompany the release of [fast-depends](https://lancetnik.github.io/FastDepends/).
 Now it's used as the **Propan** Dependency Injection system deep inside. Context is an *fast-depends CustomField* child now.
