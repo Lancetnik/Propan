@@ -1,5 +1,6 @@
 import pytest
-from propan.utils import Context, use_context
+from propan.utils import Context, apply_types
+from pydantic.error_wrappers import ValidationError
 
 
 def test_context_getattr(context):
@@ -15,8 +16,8 @@ async def test_context_apply(context):
     a = 1000
     context.set_context("key", a)
 
-    @use_context
-    async def use(key):
+    @apply_types
+    async def use(key=Context()):
         return key is a
 
     assert await use()
@@ -27,9 +28,9 @@ async def test_context_ignore(context):
     a = 3
     context.set_context("key", a)
 
-    @use_context
+    @apply_types
     async def use():
-        pass
+        return None
 
     assert await use() is None
 
@@ -42,20 +43,20 @@ async def test_context_apply_multi(context):
     b = 1000
     context.set_context("key_b", b)
 
-    @use_context
-    async def use1(key_a):
+    @apply_types
+    async def use1(key_a=Context()):
         return key_a is a
 
     assert await use1()
 
-    @use_context
-    async def use2(key_b):
+    @apply_types
+    async def use2(key_b=Context()):
         return key_b is b
 
     assert await use2()
 
-    @use_context
-    async def use3(key_a, key_b):
+    @apply_types
+    async def use3(key_a=Context(), key_b=Context()):
         return key_a is a and key_b is b
 
     assert await use3()
@@ -69,8 +70,8 @@ async def test_context_overrides(context):
     b = 1000
     context.set_context("test", b)
 
-    @use_context
-    async def use(test):
+    @apply_types
+    async def use(test=Context()):
         return test is b
 
     assert await use()
@@ -81,12 +82,12 @@ async def test_context_nested_apply(context):
     a = 1000
     context.set_context("key", a)
 
-    @use_context
-    def use_nested(key):
+    @apply_types
+    def use_nested(key=Context()):
         return key
 
-    @use_context
-    async def use(key):
+    @apply_types
+    async def use(key=Context()):
         return key is use_nested() is a
 
     assert await use()
@@ -98,11 +99,12 @@ async def test_remove_context(context: Context):
     context.set_context("key", a)
     context.remove_context("key")
 
-    @use_context
-    async def use(key):
+    @apply_types
+    async def use(key=Context()):  # pragma: no cover
         return key is None
 
-    assert await use()
+    with pytest.raises(ValidationError):
+        await use()
 
 
 @pytest.mark.asyncio
@@ -111,8 +113,8 @@ async def test_clear_context(context: Context):
     context.set_context("key", a)
     context.clear()
 
-    @use_context
-    async def use(key):
+    @apply_types
+    async def use(key=Context(required=False)):
         return key is None
 
     assert await use()

@@ -106,7 +106,7 @@ def run(
 def _run(
     module: Path,
     app: str,
-    context_kwargs: Dict[str, Union[bool, str]],
+    extra_options: Dict[str, Union[bool, str]],
     log_level: int = logging.INFO,
 ) -> None:
     try:
@@ -121,7 +121,7 @@ def _run(
         exit()
 
     else:
-        propan_app.set_context(**context_kwargs)
+        propan_app._command_line_options = extra_options
 
         if sys.platform not in ("win32", "cygwin", "cli"):
             import uvloop

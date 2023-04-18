@@ -26,9 +26,11 @@
 
 # Propan
 
-**Propan** - это современный высокопроизводительный фреймоворк для построения приложений в соответсвии с <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
+**Propan** - это *<s>еще один HTTP</s>* **первый declarative MQ фреймворк в Python мире**. Он идет по стопам [*fastapi*](https://fastapi.tiangolo.com/ru/), максимально упрощая написание кода и предоставляя все удобства инструментов, которые существуют в мире HTTP фремворков, однако, создан для работы с различными брокерами сообщений на основе AMQP, MQTT и др. протоколов.
 
-**Propan** - высокоуровневый фреймворк, он разработан на основе популярных *python* библиотек для работы со специфичными брокерами, а в его основе лежит [*pydantic*](https://docs.pydantic.dev/) и идеи [*fastapi*](https://fastapi.tiangolo.com/ru/), [*pytest*](https://docs.pytest.org/en/7.3.x/).
+Он идеально подходит для создания реактивных микросервисов на основе архитектуры <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging</a>.
+
+Это современный, высокоуровневый фреймворк, разработанный на основе популярных *python* библиотек для работы со специфичными брокерами, а в его основе лежит [*pydantic*](https://docs.pydantic.dev/), идеи [*fastapi*](https://fastapi.tiangolo.com/ru/) and [*pytest*](https://docs.pytest.org/en/7.3.x/).
 
 
 !!! warning "В разработке"

@@ -10,7 +10,7 @@ def cast_int(t: int = 1) -> Tuple[bool, int]:
 
 
 @apply_types
-def cast_default(t=1) -> Tuple[bool, int]:
+def cast_default(t: int = 1) -> Tuple[bool, int]:
     return isinstance(t, int), t
 
 

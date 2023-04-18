@@ -4,9 +4,9 @@ All Context dependencies also available from on_startup hook
 
 You can use it to setup your custom context fields.
 """
-from propan import PropanApp
+from propan import Context, PropanApp
+from propan.annotations import ContextRepo
 from propan.brokers.rabbit import RabbitBroker
-from propan.utils import Context
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
@@ -14,10 +14,10 @@ app = PropanApp(broker)
 
 
 @app.on_startup
-def setup(context: Context):
+def setup(context: ContextRepo):
     context.set_context("my_dependency", True)
 
 
 @broker.handle("test")
-async def base_handler(body: dict, my_dependency: bool):
+async def base_handler(body: dict, my_dependency: bool = Context()):
     assert my_dependency is True

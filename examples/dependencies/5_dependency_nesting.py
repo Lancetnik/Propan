@@ -1,12 +1,11 @@
 """
-@use_context decorator allows pass context dependencies
+@apply_types decorator allows pass context dependencies
 to all functions with the same context through the functions
 calling stack.
 """
-import aio_pika
-from propan import PropanApp
+from propan import PropanApp, apply_types
+from propan.annotations import Logger, RabbitMessage
 from propan.brokers.rabbit import RabbitBroker
-from propan.utils import use_context
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
@@ -18,6 +17,6 @@ async def base_handler(body: dict):
     await nested_funcion()
 
 
-@use_context
-async def nested_funcion(logger, message: aio_pika.Message):
+@apply_types
+async def nested_funcion(logger: Logger, message: RabbitMessage):
     logger.info(f"Message `{message}` processing")

@@ -13,9 +13,8 @@ __all__ = (  # noqa: F405
     ## types
     "apply_types",
     ## context
-    "use_context",
     "context",
     "Context",
-    "Alias",
+    "ContextRepo" "Alias",
     "Depends",
 )

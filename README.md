@@ -26,7 +26,12 @@
 
 # Propan
 
-Propan is a modern framework for building Applications based on <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
+**Propan** - just *<s>an another one HTTP</s>* a **declarative Python MQ framework**. It's following by [*fastapi*](https://fastapi.tiangolo.com/ru/),
+simplify Message Brokers around code writing and provides helpful development toolkit, existed only at HTTP-frameworks world until now.
+
+It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
+
+It is a modern, highlevel framework on top of popular Python specific brokers libraries, based on [*pydantic*](https://docs.pydantic.dev/) and [*fastapi*](https://fastapi.tiangolo.com/ru/), [*pytest*](https://docs.pytest.org/en/7.3.x/) concepts.
 
 ---
 
@@ -66,6 +71,59 @@ Propan is a modern framework for building Applications based on <a href="https:/
 If you are interested at this project, please give me feedback by star or/and watch repository.
 
 If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions) or publick [telegram group](https://t.me/propan_python).
+
+---
+
+## Declarative?
+
+At declarative tools you should define **what you need to get**. At traditional imperative tools you should write **what you need to do**.
+
+Take a look at classic imperative tools, such as [aio-pika](), [pika](), [nats-py](), etc are. 
+
+This is the **Quickstart** with the *aio-pika*:
+
+```python
+import asyncio
+import aio_pika
+
+async def main():
+    connection = await aio_pika.connect_robust(
+        "amqp://guest:guest@127.0.0.1/"
+    )
+
+    queue_name = "test_queue"
+
+    async with connection:
+        channel = await connection.channel()
+
+        queue = await channel.declare_queue(queue_name)
+
+        async with queue.iterator() as queue_iter:
+            async for message in queue_iter:
+                async with message.process():
+                    print(message.body)
+
+asyncio.run(main())
+```
+
+**aio-pika** is a really great tool with a really easy learning curve. But it's still imperative. You need to connect, declare channel, queues, exchanges by yourself. Also, you need to manage connection, message, queue context to avoid any troubles.
+
+It is not a bad way, but it can be easy.
+
+```python
+from propan import PropanApp
+from propan.brokers.rabbit import RabbitBroker
+
+broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
+
+app = PropanApp(broker)
+
+@broker.handle("test_queue")
+async def base_handler(body):
+    print(body)
+```
+
+This is the **Propan** declarative way to write the same code. That is so much easier, isn't it?
 
 ---
 
@@ -109,7 +167,7 @@ $ propan run serve:app
 
 ## Type casting
 
-Propan uses `pydantic` to cast incoming function arguments to type according their type annotation.
+Propan uses `pydantic` to cast incoming function arguments to types according their annotation.
 
 ```python
 from pydantic import BaseModel
@@ -136,8 +194,8 @@ Propan has dependencies management policy close to `pytest fixtures`.
 You can specify in functions arguments which dependencies
 you would to use. Framework passes them from the global Context object.
 
-Default context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
-If you call not existed field it returns *None* value.
+Already existed context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
+If you call not existed field, raises *pydantic.error_wrappers.ValidationError* value.
 
 But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
 and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
@@ -155,25 +213,19 @@ app = PropanApp(rabbit_broker)
 
 @rabbit_broker.handle("test")
 async def base_handler(body: dict,
-                       app: PropanApp,
-                       broker: RabbitBroker,
-                       context: Context,
-                       logger: Logger,
-                       message: aio_pika.Message,
-                       not_existed_field):
+                       broker: RabbitBroker = Context()):
     assert broker is rabbit_broker
-    assert not_existed_field is None
 ```
 
 ---
 
 ## CLI power
 
-Propan has own cli tool providing following features:
+Propan has own cli tool provided the following features:
 * project generation
 * multiprocessing workers
 * project hot reloading
-* custom context arguments passing
+* custom command line arguments passing
 
 ### Context passing
 
@@ -183,7 +235,8 @@ $ propan run serve:app --env=.env.dev
 ```
 
 ```python
-from propan import PropanApp, Context
+from propan import PropanApp
+from propan.annotations import ContextRepo
 from propan.brokers.rabbit import RabbitBroker
 from pydantic import BaseSettings
 
@@ -195,7 +248,7 @@ class Settings(BaseSettings):
     ...
 
 @app.on_startup
-async def setup(env: str, context: Context):
+async def setup(env: str, context: ContextRepo):
     settings = Settings(_env_file=env)
     context.set_context("settings", settings)
 ```

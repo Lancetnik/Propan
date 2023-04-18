@@ -1,15 +1,28 @@
-from propan.types import DecoratedCallable
+from typing import Any
+
+from fast_depends.library import CustomField
+from propan.utils.context import context
 
 
-class Alias:
-    def __init__(self, real_name: str):
+class Context(CustomField):
+    def __init__(
+        self, real_name: str = "", *, cast: bool = False, required: bool = True
+    ):
         self.name = real_name
+        super().__init__(cast=cast, required=required)
+
+    def use(self, **kwargs):
+        name = self.name or self.param_name
+        return {**kwargs, self.param_name: resolve_context(name)}
 
 
-class Depends:
-    def __init__(self, func: DecoratedCallable):
-        self.func = func
+def resolve_context(argument: str) -> Any:
+    keys = argument.split(".")
 
-    def __repr__(self) -> str:
-        attr = getattr(self.func, "__name__", type(self.func).__name__)
-        return f"{self.__class__.__name__}({attr})"
+    v = context.context.get(keys[0])
+    for i in keys[1:]:
+        v = getattr(v, i, None)
+        if v is None:
+            return v
+
+    return v

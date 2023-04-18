@@ -1,23 +1,27 @@
 import aio_pika
 import pytest
+from propan.annotations import RabbitMessage
 from propan.brokers.rabbit import RabbitBroker
-from propan.utils.context import Depends, use_context
+from propan.utils import Depends
 
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
 async def test_broker_depends(mock, queue, full_broker: RabbitBroker, wait_for_mock):
-    @use_context
-    def sync_depends(b, message):
+    def sync_depends(b, message: RabbitMessage):
         return message
 
-    @use_context
-    async def async_depends(b, message):
+    async def async_depends(b, message: RabbitMessage):
         return message
 
     check_message = None
 
-    async def consumer(b, message, k1=Depends(sync_depends), k2=Depends(async_depends)):
+    async def consumer(
+        b: dict,
+        message: RabbitMessage,
+        k1=Depends(sync_depends),
+        k2=Depends(async_depends),
+    ):
         nonlocal check_message
         check_message = (
             isinstance(message, aio_pika.Message)
@@ -45,14 +49,14 @@ async def test_different_consumers_has_different_messages(
 ):
     message1 = None
 
-    async def consumer1(b, message):
+    async def consumer1(b, message: RabbitMessage):
         nonlocal message1
         mock.first()
         message1 = message
 
     message2 = None
 
-    async def consumer2(b, message):
+    async def consumer2(b, message: RabbitMessage):
         nonlocal message2
         mock.second()
         message2 = message

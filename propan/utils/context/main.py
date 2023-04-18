@@ -7,7 +7,7 @@ message: ContextVar[Optional[str]] = ContextVar("message", default=None)
 log_context: ContextVar[Dict[str, Any]] = ContextVar("message", default={})
 
 
-class Context(Singlethon):
+class ContextRepo(Singlethon):
     _context: Dict[str, Any] = {}
 
     def set_context(self, key: str, v: Any) -> None:
@@ -27,4 +27,4 @@ class Context(Singlethon):
         return {**self._context, "context": self, "message": message.get()}
 
 
-context: Context = Context()
+context: ContextRepo = ContextRepo()

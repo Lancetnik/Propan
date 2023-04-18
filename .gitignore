@@ -18,3 +18,5 @@ wtf
 .mypy_cache
 coverage.json
 site
+fastapi
+alternatives.md

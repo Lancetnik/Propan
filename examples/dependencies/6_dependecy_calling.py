@@ -4,11 +4,10 @@ natural handler with providing all arguments and context
 inside dependency function
 
 Dependecies argument names should be calling same as a handler arguments
-Dependency decorated by `use_context` as a default if hanler was decorated
+Dependency decorated by `apply_types` as a default if hanler was decorated
 """
-from propan import PropanApp
+from propan import Depends, PropanApp
 from propan.brokers.rabbit import RabbitBroker
-from propan.utils import Depends
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
