@@ -39,9 +39,10 @@ class BrokerUsecase(ABC):
 
         self._connection = None
         self._is_apply_types = apply_types
+        self.handlers = []
+
         self._connection_args = args
         self._connection_kwargs = kwargs
-        self.handlers = []
 
         context.set_context("logger", logger)
         context.set_context("broker", self)

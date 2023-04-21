@@ -122,7 +122,7 @@ class RabbitBroker(BrokerUsecase):
 
         queue, exchange = _validate_exchange_and_queue(queue, exchange)
 
-        if not isinstance(message, aio_pika.Message):
+        if not isinstance(message, aio_pika.message.Message):
             if isinstance(message, dict):
                 message = aio_pika.Message(
                     json.dumps(message).encode(), content_type=ContentTypes.json.value

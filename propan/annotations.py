@@ -16,7 +16,7 @@ try:
     from propan.brokers.rabbit import RabbitBroker as RB
 
     RabbitBroker = Annotated[RB, ContextField("broker")]
-    RabbitMessage = Annotated[aio_pika.IncomingMessage, ContextField("message")]
+    RabbitMessage = Annotated[aio_pika.message.IncomingMessage, ContextField("message")]
 except Exception:
     pass
 

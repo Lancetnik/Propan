@@ -1,7 +1,7 @@
 site_name: Propan
 site_description: Propan is a modern framework for building Applications based on Messaging Architecture.
 site_url: https://lancetnik.github.io/Propan/
-dev_addr: 127.0.0.1:8000
+dev_addr: 0.0.0.0:8000
 
 repo_name: lancetnik/propan
 repo_url: https://github.com/lancetnik/propan
@@ -40,6 +40,7 @@ theme:
     - search.suggest
     - search.highlight
     - content.tabs.link
+    - content.code.copy
   i18n:
     prev: 'Previous'
     next: 'Next'
@@ -98,32 +99,39 @@ extra:
 nav:
   - Welcome: index.md
   - Getting Started:
-    - Hello, Propan!: quick-start.md
-    - CLI Tool: cli.md
-    - Lifespan: tutorial/lifespans.md
+    - Hello, Propan!: 2_getting_started/1_quick-start.md
+    - CLI Tool: 2_getting_started/2_cli.md
+    - Application: 2_getting_started/3_app.md
+    - Brokers:
+      - Basics: 2_getting_started/4_broker/1_index.md
+      - Routing and Errors: 2_getting_started/4_broker/2_routing.md
+      - Incoming Messages: 2_getting_started/4_broker/3_type-casting.md
     - Dependency Injection:
-      - Dependency Basics: dependency/di-index.md
-      - Context object: dependency/context.md
-      - Aliases: dependency/alias.md
-      - Dependcies: dependency/depends.md
+      - Dependency Basics: 2_getting_started/5_dependency/1_di-index.md
+      - Context object: 2_getting_started/5_dependency/2_context.md
+      - Aliases: 2_getting_started/5_dependency/3_alias.md
+      - Dependcies: 2_getting_started/5_dependency/4_depends.md
+    - Lifespan: 2_getting_started/6_lifespans.md
   - RabbitMQ:
-    - RabbitMQ Basics: rabbit/rabbit-index.md
-    - Exchanges: rabbit/exchanges.md
-    - Queues and Bindings: rabbit/queues.md
+    - RabbitMQ Basics: 3_rabbit/1_rabbit-index.md
+    - Routing: 3_rabbit/2_routing.md
+    - Exchanges: 3_rabbit/3_exchanges.md
+    - Queues and Bindings: 3_rabbit/4_queues.md
   - NATS:
-    - NATS Basics: nats/nats-index.md
-  - Integrations: integrations/integrations-index.md
+    - NATS Basics: 4_nats/1_nats-index.md
+    - Routing: 4_nats/2_routing.md
+  - Integrations: 5_integrations/1_integrations-index.md
   - Avanced:
-    - Advanced - INTRO: advanced/advanced-index.md
+    - Advanced - INTRO: 6_advanced/1_advanced-index.md
     - Logging:
-      - Settings: advanced/logging.md
-      - Custom Loggers: advanced/logging-custom.md
+      - Settings: 6_advanced/2_logging/1_logging.md
+      - Custom Loggers: 6_advanced/2_logging/2_logging-custom.md
   - Contributing:
-    - Environment: contributing/contributing-index.md
-    - Documentation: contributing/docs.md
-    - TODOS: contributing/todo.md
-    - Adapters: contributing/adapters.md
-    - Ideas: contributing/ideas.md
-  - Help Propan: help.md
-  - Community: community.md
-  - Release Notes: CHANGELOG.md
+    - TODOS: 7_contributing/1_todo.md
+    - Environment: 7_contributing/2_contributing-index.md
+    - Documentation: 7_contributing/3_docs.md
+    - Adapters: 7_contributing/4_adapters.md
+  - Alternatives: 8_alternatives.md
+  - Help Propan: 9_help.md
+  - Community: 10_community.md
+  - Release Notes: 11_CHANGELOG.md
