@@ -53,7 +53,7 @@ class NatsBroker(BrokerUsecase):
                         f"`{queue}` queue"
                     )
 
-            func = parent.handle(func, retry, queue=queue, subject=subject)
+            func = parent._wrap_handler(func, retry, queue=queue, subject=subject)
             handler = Handler(callback=func, subject=subject, queue=queue)
             self.handlers.append(handler)
 

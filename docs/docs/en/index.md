@@ -26,12 +26,14 @@
 
 # Propan
 
-**Propan** - just *<s>an another one HTTP</s>* a **declarative Python MQ framework**. It's following by [*fastapi*](https://fastapi.tiangolo.com/ru/),
-simplify Message Brokers around code writing and provides helpful development toolkit, existed only at HTTP-frameworks world until now.
+**Propan** - just *<s>an another one HTTP</s>* a **declarative Python MQ framework**. It's following by [*fastapi*](https://fastapi.tiangolo.com/ru/), simplify Message Brokers around code writing and provides helpful development toolkit, existed only at HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
 It is a modern, highlevel framework on top of popular Python specific brokers libraries, based on [*pydantic*](https://docs.pydantic.dev/) and [*fastapi*](https://fastapi.tiangolo.com/ru/), [*pytest*](https://docs.pytest.org/en/7.3.x/) concepts.
+
+!!! warning "Under development"
+    The main functional was written, as a tests were. But, breaking changes still able to be until **0.1.0** version. All of these changes will be described at [CHANGELOG](/Propan/11_CHANGELOG/), so watch by releases.
 
 ### The key features
 
@@ -244,7 +246,7 @@ $ propan run serve:app --env=.env.dev
     {!> docs_src/index/04_nats_context.py!}
     ```
 
-#### Project template
+### Project template
 
 Also **propan cli** is able to generate production-ready application template:
 

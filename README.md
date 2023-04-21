@@ -1,5 +1,7 @@
 <p align="center">
-    <img src="https://lancetnik.github.io/Propan/assets/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
+    <a href="https://lancetnik.github.io/Propan/" target="_blank">
+        <img src="https://lancetnik.github.io/Propan/assets/img/logo-no-background.png" alt="Propan logo" style="height: 250px; width: 600px;"/>
+    </a>
 </p>
 
 <p align="center">
@@ -111,8 +113,7 @@ asyncio.run(main())
 It is not a bad way, but it can be easy.
 
 ```python
-from propan import PropanApp
-from propan.brokers.rabbit import RabbitBroker
+from propan import PropanApp, RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
@@ -143,8 +144,8 @@ Create an application with the following code at `serve.py`:
 
 ```python
 from propan import PropanApp
-from propan.brokers.rabbit import RabbitBroker
-# from propan.brokers.nats import NatsBroker
+from propan import RabbitBroker
+# from propan import NatsBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 # broker = NatsBroker("nats://localhost:4222")
@@ -171,8 +172,7 @@ Propan uses `pydantic` to cast incoming function arguments to types according th
 
 ```python
 from pydantic import BaseModel
-from propan import PropanApp, Context
-from propan.brokers.rabbit import RabbitBroker
+from propan import PropanApp, Context, RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(broker)
@@ -204,8 +204,7 @@ and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 from logging import Logger
 
 import aio_pika
-from propan import PropanApp, Context
-from propan.brokers.rabbit import RabbitBroker
+from propan import PropanApp, Context, RabbitBroker
 
 rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
@@ -235,9 +234,8 @@ $ propan run serve:app --env=.env.dev
 ```
 
 ```python
-from propan import PropanApp
+from propan import PropanApp, RabbitBroker
 from propan.annotations import ContextRepo
-from propan.brokers.rabbit import RabbitBroker
 from pydantic import BaseSettings
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
@@ -286,7 +284,7 @@ Just *start* and *stop* them according your application lifespan.
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from propan.brokers.rabbit import RabbitBroker
+from propan import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
