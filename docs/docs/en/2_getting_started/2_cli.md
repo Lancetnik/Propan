@@ -41,14 +41,14 @@ Create Propan project template at: ./app
 
 The template includes:
 
-* simple but working *Dockerfile*
+* simple, but working *Dockerfile*
 * *docker-compose.yml* configured for development
 * a project configured to use *pydantic* as an environment manager
 
 ## Reloading the project
 
 Thanks to [*watchfiles*](https://watchfiles.helpmanual.io /), written in *Rust*, you can
-work with your project easily and at ease. Edit the code as much as you like - the new version has already been launched and is waiting for your requests!
+work with your project easily. Edit the code as much as you like - the new version has already been launched and is waiting for your requests!
 
 <div class="termy">
 ```console

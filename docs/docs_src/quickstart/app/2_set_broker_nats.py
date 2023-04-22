@@ -4,5 +4,5 @@ app = PropanApp()
 
 @app.on_startup
 def init_broker():
-    broker = NatsBroker()
+    broker = NatsBroker("nats://localhost:4222")
     app.set_broker(broker)
