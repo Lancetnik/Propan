@@ -3,9 +3,8 @@
 to all functions with the same context through the functions
 calling stack.
 """
-from propan import PropanApp, apply_types
+from propan import PropanApp, RabbitBroker, apply_types
 from propan.annotations import Logger, RabbitMessage
-from propan.brokers.rabbit import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

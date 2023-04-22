@@ -5,7 +5,7 @@ just use Broker as context manager and publish whatever you want!
 import asyncio
 
 from aio_pika import Message
-from propan.brokers.rabbit import RabbitBroker
+from propan import RabbitBroker
 
 
 async def main():

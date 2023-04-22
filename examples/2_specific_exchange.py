@@ -2,13 +2,8 @@
 You can set specific queue and exchange to listening
 with all amqp supported flags
 """
-from propan import PropanApp
-from propan.brokers.rabbit import (
-    ExchangeType,
-    RabbitBroker,
-    RabbitExchange,
-    RabbitQueue,
-)
+from propan import PropanApp, RabbitBroker
+from propan.brokers.rabbit import ExchangeType, RabbitExchange, RabbitQueue
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

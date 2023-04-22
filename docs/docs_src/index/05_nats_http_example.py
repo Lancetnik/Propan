@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from propan.brokers.nats import NatsBroker
+from propan import NatsBroker
 
 broker = NatsBroker("nats://localhost:4222")
 

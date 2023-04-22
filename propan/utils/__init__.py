@@ -1,6 +1,7 @@
-from .context import Context, ContextRepo, context
+from fast_depends import Depends
+from fast_depends import inject as apply_types
 
-from fast_depends import inject as apply_types, Depends
+from .context import Context, ContextRepo, context
 
 __all__ = (
     "apply_types",

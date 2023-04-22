@@ -34,4 +34,9 @@ assert any(
         all((RabbitBroker, RabbitMessage)),
         all((NatsBroker, NatsMessage)),
     )
-), "You should specify using broker!"
+), (
+    "You should specify using broker!\n"
+    "Install it using one of the following commands:\n"
+    'pip install "propan[async-rabbit]"\n'
+    'pip install "propan[async-nats]"\n'
+)

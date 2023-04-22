@@ -32,7 +32,7 @@ class NatsBroker(BrokerUsecase):
         return await nats.connect(*args, **kwargs)
 
     def handle(
-        self, subject: str, queue: str = "", retry: Union[bool, int] = False
+        self, subject: str, queue: str = "", *, retry: Union[bool, int] = False
     ) -> Callable[[DecoratedCallable], None]:
         i = len(subject)
         if i > self.__max_subject_len:

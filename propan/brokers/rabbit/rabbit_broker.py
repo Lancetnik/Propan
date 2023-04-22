@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from functools import partial, wraps
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import aio_pika
 import aiormq
@@ -63,9 +63,10 @@ class RabbitBroker(BrokerUsecase):
         self,
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
+        *,
         retry: Union[bool, int] = False,
     ) -> Wrapper:
-        queue, exchange = _validate_exchange_and_queue(queue, exchange)
+        queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
         if exchange:
             i = len(exchange.name)
@@ -120,7 +121,7 @@ class RabbitBroker(BrokerUsecase):
         if self._channel is None:
             raise ValueError("RabbitBroker channel not started yet")
 
-        queue, exchange = _validate_exchange_and_queue(queue, exchange)
+        queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
         if not isinstance(message, aio_pika.message.Message):
             if isinstance(message, dict):
@@ -149,7 +150,7 @@ class RabbitBroker(BrokerUsecase):
 
     async def _init_handler(self, handler: Handler) -> aio_pika.abc.AbstractRobustQueue:
         queue = await self._init_queue(handler.queue)
-        if handler.exchange is not None:
+        if handler.exchange is not None and handler.exchange.name != "default":
             exchange = await self._init_exchange(handler.exchange)
             await queue.bind(exchange, handler.queue.routing_key or handler.queue.name)
         return queue
@@ -230,18 +231,9 @@ class RabbitBroker(BrokerUsecase):
         return wrapper
 
 
-def _validate_exchange_and_queue(
-    queue: Union[str, RabbitQueue, None],
+def _validate_exchange(
     exchange: Union[str, RabbitExchange, None] = None,
-) -> Tuple[RabbitQueue, Optional[RabbitExchange]]:
-    if queue is not None:  # pragma: no branch
-        if isinstance(queue, str):
-            queue = RabbitQueue(name=queue)
-        elif not isinstance(queue, RabbitQueue):
-            raise ValueError(
-                f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance"
-            )
-
+) -> Optional[RabbitExchange]:
     if exchange is not None:  # pragma: no branch
         if isinstance(exchange, str):
             exchange = RabbitExchange(name=exchange)
@@ -250,4 +242,17 @@ def _validate_exchange_and_queue(
                 f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance"
             )
 
-    return queue, exchange
+    return exchange
+
+
+def _validate_queue(
+    queue: Union[str, RabbitQueue, None] = None
+) -> Optional[RabbitQueue]:
+    if queue is not None:  # pragma: no branch
+        if isinstance(queue, str):
+            queue = RabbitQueue(name=queue)
+        elif not isinstance(queue, RabbitQueue):
+            raise ValueError(
+                f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance"
+            )
+    return queue

@@ -6,8 +6,7 @@ inside dependency function
 Dependecies argument names should be calling same as a handler arguments
 Dependency decorated by `apply_types` as a default if hanler was decorated
 """
-from propan import Depends, PropanApp
-from propan.brokers.rabbit import RabbitBroker
+from propan import Depends, PropanApp, RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

@@ -4,9 +4,8 @@ All Context dependencies also available from on_startup hook
 
 You can use it to setup your custom context fields.
 """
-from propan import Context, PropanApp
+from propan import Context, PropanApp, RabbitBroker
 from propan.annotations import ContextRepo
-from propan.brokers.rabbit import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

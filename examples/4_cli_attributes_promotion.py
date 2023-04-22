@@ -15,8 +15,7 @@ Or you can pass a boolean flags
 ... --use-smth  # passes as use_smth=True
 ... --no-use-smth  # passes as use_smth=False
 """
-from propan import Context, PropanApp
-from propan.brokers.rabbit import RabbitBroker
+from propan import Context, PropanApp, RabbitBroker
 from pydantic import BaseSettings
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
