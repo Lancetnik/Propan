@@ -4,5 +4,5 @@ app = PropanApp()
 
 @app.on_startup
 def init_broker():
-    broker = RabbitBroker()
+    broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
     app.set_broker(broker)

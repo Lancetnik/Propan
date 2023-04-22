@@ -41,6 +41,7 @@ theme:
     - search.highlight
     - content.tabs.link
     - content.code.copy
+    - content.code.annotate
   i18n:
     prev: 'Previous'
     next: 'Next'
@@ -110,7 +111,6 @@ nav:
       - Dependency Basics: 2_getting_started/5_dependency/1_di-index.md
       - Context object: 2_getting_started/5_dependency/2_context.md
       - Aliases: 2_getting_started/5_dependency/3_alias.md
-      - Dependcies: 2_getting_started/5_dependency/4_depends.md
     - Lifespan: 2_getting_started/6_lifespans.md
   - RabbitMQ:
     - RabbitMQ Basics: 3_rabbit/1_rabbit-index.md
