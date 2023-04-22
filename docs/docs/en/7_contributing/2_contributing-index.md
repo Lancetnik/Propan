@@ -43,7 +43,7 @@ And if you update that local Propan source code, as it is installed with `-e`, w
 
 That way, you don't have to "install" your local version to be able to test every change.
 
-To use your local Propan cli type:
+To use your local **Propan CLI** type:
 ```bash
 python -m propan ...
 ```

@@ -3,7 +3,6 @@ from propan.cli.app import *  # noqa: F403
 from propan.log import *  # noqa: F403
 from propan.utils import *  # noqa: F403
 
-
 try:
     from propan.brokers.rabbit import RabbitBroker
 except Exception:
@@ -14,9 +13,12 @@ try:
 except Exception:
     pass
 
-assert any(
-    (RabbitBroker, NatsBroker)
-), "You should specify using broker!"
+assert any((RabbitBroker, NatsBroker)), (
+    "You should specify using broker!\n"
+    "Install it using one of the following commands:\n"
+    'pip install "propan[async-rabbit]"\n'
+    'pip install "propan[async-nats]"\n'
+)
 
 
 __all__ = (  # noqa: F405
@@ -35,5 +37,5 @@ __all__ = (  # noqa: F405
     "Depends",
     # brokers
     "NatsBroker",
-    "RabbitBroker"
+    "RabbitBroker",
 )

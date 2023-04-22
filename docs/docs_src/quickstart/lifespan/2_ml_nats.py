@@ -1,6 +1,5 @@
-from propan import PropanApp, Context
+from propan import PropanApp, Context, NatsBroker
 from propan.annotations import ContextRepo
-from propan.brokers.nats import NatsBroker
 
 broker = NatsBroker("nats://localhost:4222")
 app = PropanApp(broker)

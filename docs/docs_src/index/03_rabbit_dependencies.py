@@ -1,5 +1,4 @@
-from propan import PropanApp, Context
-from propan.brokers.rabbit import RabbitBroker
+from propan import PropanApp, Context, RabbitBroker
 
 gl_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(gl_broker)

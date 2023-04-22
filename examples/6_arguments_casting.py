@@ -5,9 +5,7 @@ arguments to type according their type annotation.
 If you doesn't create broker as `RabbitBroker(apply_types=False)`,
 all broker handlers are wrapped by @apply_types by default.
 """
-from propan import PropanApp
-from propan.brokers.rabbit import RabbitBroker
-from propan.utils import apply_types
+from propan import PropanApp, RabbitBroker, apply_types
 from pydantic import BaseModel
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")

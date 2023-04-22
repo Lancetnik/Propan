@@ -69,7 +69,6 @@ class NatsBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
-        consumers: Optional[int] = None,
     ) -> None: ...
     async def connect(
         self,
@@ -113,7 +112,7 @@ class NatsBroker(BrokerUsecase):
         headers: Optional[Dict[str, str]] = None,
     ) -> None: ...
     def handle(
-        self, subject: str, queue: str = "", retry: Union[bool, int] = False
+        self, subject: str, queue: str = "", *, retry: Union[bool, int] = False
     ) -> Callable[[DecoratedCallable], None]: ...
     async def __aenter__(self) -> "NatsBroker": ...
     async def _connect(self, *args: Any, **kwargs: Any) -> Client: ...

@@ -1,7 +1,6 @@
 from typing import Any, Callable, Dict, TypeVar, Union
 
-from fast_depends.types import DecoratedCallable, P, AnyDict, AnyCallable
-
+from fast_depends.types import AnyCallable, AnyDict, DecoratedCallable, P
 
 __all__ = (
     "DecoratedCallable",
@@ -9,8 +8,7 @@ __all__ = (
     "AnyDict",
     "AnyCallable",
     "DecodedMessage",
-    "DecoratedCallableNone"
-    "Wrapper"
+    "DecoratedCallableNone" "Wrapper",
 )
 
 DecoratedCallableNone = TypeVar("DecoratedCallableNone", bound=Callable[..., None])

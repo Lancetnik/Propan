@@ -1,9 +1,8 @@
 """
 Alias is able to provide access to specific attributes of dependency
 """
-from propan import Context, PropanApp
+from propan import Context, PropanApp, RabbitBroker
 from propan.annotations import ContextRepo
-from propan.brokers.rabbit import RabbitBroker
 from pydantic import BaseSettings, Field
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")

@@ -2,8 +2,7 @@
 Using Alias allows you rename context dependencies passing
 to your function
 """
-from propan import Context, PropanApp
-from propan.brokers.rabbit import RabbitBroker
+from propan import Context, PropanApp, RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

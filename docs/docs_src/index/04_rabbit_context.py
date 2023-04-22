@@ -1,6 +1,5 @@
-from propan import PropanApp
+from propan import PropanApp, RabbitBroker
 from propan.annotations import ContextRepo
-from propan.brokers.rabbit import RabbitBroker
 from pydantic import BaseSettings
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")

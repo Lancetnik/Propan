@@ -1,5 +1,4 @@
-from propan import PropanApp, Context
-from propan.brokers.nats import NatsBroker
+from propan import PropanApp, Context, NatsBroker
 
 gl_broker = NatsBroker("nats://localhost:4222")
 app = PropanApp(gl_broker)

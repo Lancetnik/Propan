@@ -1,5 +1,4 @@
-from propan import PropanApp
-from propan.brokers.nats import NatsBroker
+from propan import PropanApp, NatsBroker
 
 broker = NatsBroker("nats://localhost:4222")
 

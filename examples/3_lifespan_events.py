@@ -5,9 +5,7 @@ application lifecycle hooks
 All `on_startup` hooks runs before broker has been started
 All `on_shutdown` hooks runs after broker has been stopped
 """
-
-from propan import PropanApp
-from propan.brokers.rabbit import RabbitBroker
+from propan import PropanApp, RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

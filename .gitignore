@@ -4,7 +4,6 @@ __pycache__
 .vscode
 .pypirc
 venv
-app
 serve.py
 test.py
 poetry.lock
@@ -19,4 +18,3 @@ wtf
 coverage.json
 site
 fastapi
-alternatives.md

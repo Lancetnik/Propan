@@ -1,6 +1,5 @@
-from propan import PropanApp
+from propan import PropanApp, NatsBroker
 from propan.annotations import ContextRepo
-from propan.brokers.nats import NatsBroker
 from pydantic import BaseSettings
 
 broker = NatsBroker("nats://localhost:4222")

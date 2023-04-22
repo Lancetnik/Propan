@@ -29,11 +29,11 @@
 # Propan
 
 **Propan** - just *<s>an another one HTTP</s>* a **declarative Python MQ framework**. It's following by [*fastapi*](https://fastapi.tiangolo.com/ru/),
-simplify Message Brokers around code writing and provides helpful development toolkit, existed only at HTTP-frameworks world until now.
+simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-It is a modern, highlevel framework on top of popular Python specific brokers libraries, based on [*pydantic*](https://docs.pydantic.dev/) and [*fastapi*](https://fastapi.tiangolo.com/ru/), [*pytest*](https://docs.pytest.org/en/7.3.x/) concepts.
+It is a modern, high-level framework on top of popular specific Python brokers libraries, based on [*pydantic*](https://docs.pydantic.dev/) and [*fastapi*](https://fastapi.tiangolo.com/ru/), [*pytest*](https://docs.pytest.org/en/7.3.x/) concepts.
 
 ---
 
@@ -48,11 +48,11 @@ It is a modern, highlevel framework on top of popular Python specific brokers li
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
 * [**Dependencies management**](#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
-* [**Integrations**](#http-frameworks-integrations): Propan is ready to using in pair with [any http framework](https://github.com/Lancetnik/Propan/tree/main/examples/http_frameworks_integrations) you want
+* [**Integrations**](#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](https://lancetnik.github.io/Propan/5_integrations/1_integrations-index/) you want
 * **MQ independent**: Single interface to popular MQ:
     * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
     * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
-* [**Greate to develop**](#cli-power): cli tool provides great development expireince:
+* [**Greate to develop**](#cli-power): CLI tool provides great development experience:
     * framework-independent way to rule application environment
     * application code hot reloading
 
@@ -70,17 +70,17 @@ It is a modern, highlevel framework on top of popular Python specific brokers li
 
 ### Community
 
-If you are interested at this project, please give me feedback by star or/and watch repository.
+If you are interested in this project, please give me feedback by star or/and watch repository.
 
-If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions) or publick [telegram group](https://t.me/propan_python).
+If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions) or public [telegram group](https://t.me/propan_python).
 
 ---
 
 ## Declarative?
 
-At declarative tools you should define **what you need to get**. At traditional imperative tools you should write **what you need to do**.
+With declarative tools you should define **what you need to get**. With traditional imperative tools you should write **what you need to do**.
 
-Take a look at classic imperative tools, such as [aio-pika](), [pika](), [nats-py](), etc are. 
+Take a look at classic imperative tools, such as [aio-pika](https://aio-pika.readthedocs.io/en/latest/), [pika](https://pika.readthedocs.io/en/stable/), [nats-py](https://github.com/nats-io/nats.py), etc. 
 
 This is the **Quickstart** with the *aio-pika*:
 
@@ -108,7 +108,7 @@ async def main():
 asyncio.run(main())
 ```
 
-**aio-pika** is a really great tool with a really easy learning curve. But it's still imperative. You need to connect, declare channel, queues, exchanges by yourself. Also, you need to manage connection, message, queue context to avoid any troubles.
+**aio-pika** is a really great tool with a really easy learning curve. But it's still imperative. You need to *connect*, declare *channel*, *queues*, *exchanges* by yourself. Also, you need to manage *connection*, *message*, *queue* context to avoid any troubles.
 
 It is not a bad way, but it can be easy.
 
@@ -168,7 +168,7 @@ $ propan run serve:app
 
 ## Type casting
 
-Propan uses `pydantic` to cast incoming function arguments to types according their annotation.
+Propan uses `pydantic` to cast incoming function arguments to types according to their annotation.
 
 ```python
 from pydantic import BaseModel
@@ -190,12 +190,12 @@ async def second_handler(body: SimpleMessage):
 
 ## Dependencies
 
-Propan has dependencies management policy close to `pytest fixtures`.
+**Propan** a has dependencies management policy close to `pytest fixtures`.
 You can specify in functions arguments which dependencies
 you would to use. Framework passes them from the global Context object.
 
 Already existed context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
-If you call not existed field, raises *pydantic.error_wrappers.ValidationError* value.
+If you call not existing field, raises *pydantic.error_wrappers.ValidationError* value.
 
 But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
 and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
@@ -220,7 +220,7 @@ async def base_handler(body: dict,
 
 ## CLI power
 
-Propan has own cli tool provided the following features:
+**Propan** has its own CLI tool that provided the following features:
 * project generation
 * multiprocessing workers
 * project hot reloading
@@ -253,7 +253,7 @@ async def setup(env: str, context: ContextRepo):
 
 ### Project template
 
-Also **propan cli** is able to generate production-ready application template:
+Also, **Propan CLI** is able to generate a production-ready application template:
 
 ```shell
 $ propan create [projectname]
@@ -261,7 +261,7 @@ $ propan create [projectname]
 
 *Notice: project template require* `pydantic[dotenv]` *installation.*
 
-Run created project:
+Run the created project:
 
 ```shell
 # Run rabbimq first
@@ -277,8 +277,8 @@ Now you can enjoy a new development experience!
 
 ## HTTP Frameworks integrations
 
-You can use Propan MQBrokers without PropanApp.
-Just *start* and *stop* them according your application lifespan.
+You can use **Propan** `MQBrokers` without `PropanApp`.
+Just *start* and *stop* them according to your application lifespan.
 
 ```python
 from contextlib import asynccontextmanager

@@ -113,6 +113,7 @@ class RabbitBroker(BrokerUsecase):
         self,
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
+        *,
         retry: Union[bool, int] = False,
     ) -> Wrapper:
         """

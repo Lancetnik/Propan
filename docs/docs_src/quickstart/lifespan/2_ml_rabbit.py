@@ -1,6 +1,5 @@
-from propan import PropanApp, Context
+from propan import PropanApp, Context, RabbitBroker
 from propan.annotations import ContextRepo
-from propan.brokers.rabbit import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(broker)

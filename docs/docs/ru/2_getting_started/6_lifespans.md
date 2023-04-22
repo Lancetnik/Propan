@@ -22,7 +22,7 @@
 Также, давайте представим, что у вас есть несколько `.env`, `.env.development`, `.env.test`, `.env.production` файлов с настройками вашего приложения,
 и вы хотите переключать их при запуске без изменений в коде.
 
-За счет [передачи опциональных аргументов командой строки](/Propan/2_getting_started/2_cli/#_3) в ваш код **Propan** позволяет вам с легкостью это сделать.
+За счет [passing optional arguments with the command line](/Propan/2_getting_started/2_cli/#environment-management) в ваш код **Propan** позволяет вам с легкостью это сделать.
 
 ## Lifespan
 
@@ -49,27 +49,27 @@ $ propan run serve:app --env .env.test
 
 Для начала, мы использовали декоратор 
 ```python linenums="12" hl_lines="1"
-{!> docs_src/quickstart/lifespan/1_rabbit.py [ln:12-16] !}
+{!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
 ```
 для объявления функции, которая должна запускаться при старте нашего приложения
 
 Следующим шагом мы объявили аргументы, которые будет получать наша функция
 ```python linenums="12" hl_lines="2"
-{!> docs_src/quickstart/lifespan/1_rabbit.py [ln:12-16] !}
+{!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
 ```
 При этом поле `env` будет передано в функцию `setup` из аргументов командой строки
 !!! tip
     Функции жизненного цикла по умолчанию используются с декоратором `@apply_types`,
-    поэтому в них доступны все [поля контекста](/Propan/2_getting_started/4_dependency/2_context) и [зависимости](/Propan/2_getting_started/4_dependency/1_di-index)
+    поэтому в них доступны все [поля контекста](/Propan/2_getting_started/5_dependency/2_context) и [зависимости](/Propan/2_getting_started/5_dependency/1_di-index)
 
 Затем, мы инициализировали настройки нашего приложения с использованием переданного нам из командой строки файла
 ```python linenums="12" hl_lines="3"
-{!> docs_src/quickstart/lifespan/1_rabbit.py [ln:12-16] !}
+{!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
 ```
 
 И поместили эти настройки в глобальный контекст
 ```python linenums="12" hl_lines="4"
-{!> docs_src/quickstart/lifespan/1_rabbit.py [ln:12-16] !}
+{!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
 ```
 
 ??? note
@@ -84,12 +84,12 @@ $ propan run serve:app --env .env.test
 Последним шагом мы инициализировали нашего брокера: теперь, при старте приложения он будет готов принимать сообщения
 === "RabbitMQ"
     ```python linenums="12" hl_lines="5"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:12-16] !}
+    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
     ```
 
 === "NATS"
     ```python linenums="12" hl_lines="5"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:12-16] !}
+    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
     ```
 
 
@@ -107,12 +107,12 @@ $ propan run serve:app --env .env.test
 Также, мы не хотим, чтобы модель окончила свою работу при остановке приложения некорректно. Чтобы избежать этого, нам понадобиться хук `@app.on_shutdown`
 
 === "RabbitMQ"
-    ```python linenums="1" hl_lines="13 19"
+    ```python linenums="1" hl_lines="12 18"
     {!> docs_src/quickstart/lifespan/2_ml_rabbit.py !}
     ```
 
 === "NATS"
-    ```python linenums="1" hl_lines="13 19"
+    ```python linenums="1" hl_lines="12 18"
     {!> docs_src/quickstart/lifespan/2_ml_nats.py !}
     ```
 
