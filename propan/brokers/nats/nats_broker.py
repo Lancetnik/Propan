@@ -57,6 +57,8 @@ class NatsBroker(BrokerUsecase):
             handler = Handler(callback=func, subject=subject, queue=queue)
             self.handlers.append(handler)
 
+            return func
+
         return wrapper
 
     async def start(self) -> None:
@@ -72,7 +74,7 @@ class NatsBroker(BrokerUsecase):
             sub = await self._connection.subscribe(handler.subject, cb=func)
             handler.subscription = sub
 
-    async def publish_message(
+    async def publish(
         self, message: Union[str, Dict[str, Any]], subject: str, **publish_args: Any
     ) -> None:
         if self._connection is None:

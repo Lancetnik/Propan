@@ -42,6 +42,8 @@ theme:
     - content.tabs.link
     - content.code.copy
     - content.code.annotate
+    - navigation.path
+    - navigation.top
   i18n:
     prev: 'Previous'
     next: 'Next'
@@ -107,6 +109,7 @@ nav:
       - Basics: 2_getting_started/4_broker/1_index.md
       - Routing and Errors: 2_getting_started/4_broker/2_routing.md
       - Incoming Messages: 2_getting_started/4_broker/3_type-casting.md
+      - RPC over MQ: 2_getting_started/4_broker/4_rpc.md
     - Dependency Injection:
       - Dependency Basics: 2_getting_started/5_dependency/1_di-index.md
       - Context object: 2_getting_started/5_dependency/2_context.md
@@ -121,6 +124,7 @@ nav:
     - NATS Basics: 4_nats/1_nats-index.md
     - Routing: 4_nats/2_routing.md
   - Integrations: 5_integrations/1_integrations-index.md
+  - FastAPI Plugin: 5_integrations/2_fastapi-plugin.md
   - Avanced:
     - Advanced - INTRO: 6_advanced/1_advanced-index.md
     - Logging:

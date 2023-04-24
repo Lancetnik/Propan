@@ -19,8 +19,8 @@ class SimpleMessage(BaseModel):
 
 @app.on_startup
 async def publish(broker: RabbitBroker):
-    await broker.publish_message("123", queue="test")
-    await broker.publish_message(SimpleMessage(key=123).dict(), queue="test2")
+    await broker.publish("123", queue="test")
+    await broker.publish(SimpleMessage(key=123).dict(), queue="test2")
 
 
 @broker.handle("test")

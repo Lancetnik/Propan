@@ -10,6 +10,7 @@ from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.log import access_logger
 from propan.types import DecodedMessage, DecoratedCallable, Wrapper
+from pydantic import BaseModel
 from yarl import URL
 
 class RabbitBroker(BrokerUsecase):
@@ -98,16 +99,35 @@ class RabbitBroker(BrokerUsecase):
         .. _official Python documentation: https://goo.gl/pty9xA
         """
         ...
-    async def publish_message(
+    async def publish(
         self,
-        message: Union[aio_pika.Message, str, Dict[str, Any]],
+        message: Union[aio_pika.Message, str, Dict[str, Any], BaseModel] = "",
         queue: Union[RabbitQueue, str] = "",
         exchange: Union[RabbitExchange, str, None] = None,
         *,
+        # publish kwargs
         routing_key: str = "",
         mandatory: bool = True,
         immediate: bool = False,
         timeout: aio_pika.abc.TimeoutType = None,
+        # callback kwargs
+        callback: bool = False,
+        callback_timeout: float | None = 30.0,
+        raise_timeout: bool = False,
+        # message kwargs
+        headers: Optional[aio_pika.abc.HeadersType] = None,
+        content_type: Optional[str] = None,
+        content_encoding: Optional[str] = None,
+        delivery_mode: Union[aio_pika.abc.DeliveryMode, int, None] = None,
+        priority: Optional[int] = None,
+        correlation_id: Optional[str] = None,
+        reply_to: Optional[str] = None,
+        expiration: Optional[aio_pika.abc.DateType] = None,
+        message_id: Optional[str] = None,
+        timestamp: Optional[aio_pika.abc.DateType] = None,
+        type: Optional[str] = None,
+        user_id: Optional[str] = None,
+        app_id: Optional[str] = None,
     ) -> Optional[aiormq.abc.ConfirmationFrameType]: ...
     def handle(
         self,

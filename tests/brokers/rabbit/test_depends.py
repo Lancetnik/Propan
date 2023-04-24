@@ -38,7 +38,7 @@ async def test_broker_depends(mock, queue, full_broker: RabbitBroker, wait_for_m
     full_broker.handle(queue)(consumer)
     await full_broker.start()
 
-    await full_broker.publish_message(message={"msg": "hello"}, queue=queue)
+    await full_broker.publish(message={"msg": "hello"}, queue=queue)
     await wait_for_mock(mock)
 
     assert check_message is True
@@ -70,12 +70,8 @@ async def test_different_consumers_has_different_messages(
 
     await full_broker.start()
 
-    await full_broker.publish_message(
-        message="hello1", queue="test_different_consume_1"
-    )
-    await full_broker.publish_message(
-        message="hello2", queue="test_different_consume_2"
-    )
+    await full_broker.publish(message="hello1", queue="test_different_consume_1")
+    await full_broker.publish(message="hello2", queue="test_different_consume_2")
 
     await wait_for_mock(mock.first)
     await wait_for_mock(mock.second)

@@ -82,7 +82,7 @@ Already existed context fields are: *app*, *broker*, *context* (itself), *logger
 If you call not existing field, raises *pydantic.error_wrappers.ValidationError* value.
 
 But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
-and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
+and [more](../5_dependency/1_di-index).
 
 
 === "RabbitMQ"
@@ -134,21 +134,38 @@ Now you can enjoy a new development experience!
 
 ## HTTP Frameworks integrations
 
+### Any Framework
+
 You can use **Propan** `MQBrokers` without `PropanApp`.
 Just *start* and *stop* them according to your application lifespan.
 
 === "RabbitMQ"
-    ```python linenums="1" hl_lines="6 12-14 16-18"
+    ```python linenums="1" hl_lines="5 11-13 16-17"
     {!> docs_src/index/05_rabbit_http_example.py!}
     ```
 
 === "NATS"
-    ```python linenums="1" hl_lines="6 12-14 16-18"
+    ```python linenums="1" hl_lines="5 11-13 16-17"
     {!> docs_src/index/05_nats_http_example.py!}
     ```
 
+### **FastAPI** Plugin
+
+Also, **Propan** can be used as part of **FastAPI**.
+
+Just import a **PropanRouter** you need and declare the message handler
+using the `@event` decorator. This decorator is similar to the decorator `@handle` for the corresponding brokers.
+
+!!! tip
+    When used in this way, **Propan** does not use its own dependency system, but integrates into **FastAPI**.
+    That is, you can use `Depends`, `Background Tasks` and other tools **Facet API** as if it were a regular HTTP endpoint.
+
+```python linenums="1" hl_lines="7 15 19"
+{!> docs_src/index/06_rabbit_native_fastapi.py!}
+```
+
 !!! note
-    More integration examples you can find [here](https://lancetnik.github.io/Propan/integrations/integrations-index/)
+    More integration examples you can find [here](../../5_integrations/1_integrations-index/)
 
 ??? tip "Don't forget to stop test broker container"
     ```bash

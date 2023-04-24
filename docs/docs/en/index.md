@@ -43,12 +43,13 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
-* [**Dependencies management**](#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
-* [**Integrations**](#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](https://lancetnik.github.io/Propan/5_integrations/1_integrations-index/) you want
+* [**Dependencies management**](2_getting_started/1_quick-start/#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
+* [**Integrations**](2_getting_started/1_quick-start/#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](5_integrations/1_integrations-index/) you want
 * **MQ independent**: Single interface to popular MQ:
     * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
     * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
-* [**Greate to develop**](#cli-power): CLI tool provides great development experience:
+* [**RPC**](2_getting_started/4_broker/4_rpc/): The framework supports RPC requests on top of message brokers, which will allow performing long operations on remote services asynchronously.
+* [**Greate to develop**](2_getting_started/2_cli/): CLI tool provides great development experience:
     * framework-independent way to rule application environment
     * application code hot reloading
 
@@ -109,7 +110,7 @@ This is the **Propan** declarative way to write the same code. That is so much e
 ## Supported MQ brokers
 
 !!! note "Need your help"
-    The framework is now actively developing. We have a very long list of what has yet to be implemented and various brokers are only part of it. If you want to implement something from this list or help in any other way, take a look [here](/Propan/7_contributing/1_todo/)
+    The framework is now actively developing. We have a very long list of what has yet to be implemented and various brokers are only part of it. If you want to implement something from this list or help in any other way, take a look [here](7_contributing/1_todo/)
 
 |              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|

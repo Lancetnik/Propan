@@ -9,7 +9,6 @@ Logger = Annotated[logging.Logger, ContextField("logger")]
 App = Annotated[PropanApp, ContextField("app")]
 ContextRepo = Annotated[CR, ContextField("context")]
 
-RabbitBroker = NatsBroker = RabbitMessage = NatsMessage = None
 
 try:
     import aio_pika
@@ -18,7 +17,7 @@ try:
     RabbitBroker = Annotated[RB, ContextField("broker")]
     RabbitMessage = Annotated[aio_pika.message.IncomingMessage, ContextField("message")]
 except Exception:
-    pass
+    RabbitBroker = RabbitMessage = None
 
 try:
     from nats.aio.msg import Msg
@@ -27,7 +26,7 @@ try:
     NatsBroker = Annotated[NB, ContextField("broker")]
     NatsMessage = Annotated[Msg, ContextField("message")]
 except Exception:
-    pass
+    NatsBroker = NatsMessage = None
 
 assert any(
     (

@@ -64,7 +64,7 @@ Data for connecting **Propan Broker** to your message broker can be transmitted 
 
 In the simplest cases, the first method of data transmission for connection is enough for you - through the constructor.
 
-However, in more complex scenarios: for example, when configuring a project via [environment variables] (/Propan/2_getting_started/2_cli/#_3), you may need the second option. The full example is described [here](/Propan/2_getting_started/6_lifespans/#lifespan)
+However, in more complex scenarios: for example, when configuring a project via [environment variables](../../2_cli/#environment-management), you may need the second option. The full example is described [here](../../6_lifespans/#lifespan)
 
 !!! note
     The parameters passed to `connect` overrides the parameters passed to the constructor. Be careful with this.

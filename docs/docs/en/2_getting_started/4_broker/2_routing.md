@@ -14,8 +14,8 @@ This behavior is similar for all brokers, however, the parameters passed to `@br
 
 To learn more about the behavior of specialized brokers, go to the following sections:
 
-* [RabbitBroker](/Propan/3_rabbit/2_rounting)
-* [NatsBroker](/Propan/4_nats/2_rounting)
+* [RabbitBroker](../../../3_rabbit/2_routing)
+* [NatsBroker](../../../4_nats/2_routing)
 
 ## Error handling
 

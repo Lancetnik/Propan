@@ -6,12 +6,12 @@ from propan.utils import *  # noqa: F403
 try:
     from propan.brokers.rabbit import RabbitBroker
 except Exception:
-    pass
+    RabbitBroker = None
 
 try:
     from propan.brokers.nats import NatsBroker
 except Exception:
-    pass
+    NatsBroker = None
 
 assert any((RabbitBroker, NatsBroker)), (
     "You should specify using broker!\n"
