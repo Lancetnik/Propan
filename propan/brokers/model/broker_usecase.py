@@ -11,10 +11,9 @@ from propan.brokers.push_back_watcher import (
 )
 from propan.log import access_logger
 from propan.types import DecodedMessage, DecoratedCallable, Wrapper
-from propan.utils import apply_types
-from propan.utils.context import context
+from propan.utils import apply_types, context
 from propan.utils.context import message as message_context
-from propan.utils.functions import call_or_await
+from propan.utils.functions import to_async
 
 
 class BrokerUsecase(ABC):
@@ -59,7 +58,15 @@ class BrokerUsecase(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    async def publish_message(self, message: Any, *args: Any, **kwargs: Any) -> Any:
+    async def publish(
+        self,
+        message: Any,
+        *args: Any,
+        callback: bool = False,
+        callback_timeout: Optional[float] = None,
+        raise_timeout: bool = False,
+        **kwargs: Any,
+    ) -> Any:
         raise NotImplementedError()
 
     @abstractmethod
@@ -117,6 +124,8 @@ class BrokerUsecase(ABC):
     def _wrap_handler(
         self, func: DecoratedCallable, retry: Union[bool, int], **broker_args: Any
     ) -> DecoratedCallable:
+        func = to_async(func)
+
         if self._is_apply_types is True:
             func = apply_types(func)
 
@@ -128,6 +137,8 @@ class BrokerUsecase(ABC):
         func = self._process_message(func, _get_watcher(self.logger, retry))
 
         func = _set_message_context(func)
+
+        func = suppress(func)
 
         return func
 
@@ -152,9 +163,10 @@ class BrokerUsecase(ABC):
                 logger.log(self.log_level, "Received")
 
                 try:
-                    r = await call_or_await(func, *args, **kwargs)
+                    r = await func(*args, **kwargs)
                 except Exception as e:
                     logger.error(repr(e))
+                    raise e
                 else:
                     logger.log(
                         self.log_level, f"Processed by {(perf_counter() - start):.4f}"
@@ -188,5 +200,16 @@ def _set_message_context(func: DecoratedCallable) -> Wrapper:
     async def wrapper(message: Any) -> Any:
         message_context.set(message)
         return await func(message)
+
+    return wrapper
+
+
+def suppress(func: DecoratedCallable) -> Wrapper:
+    @wraps(func)
+    async def wrapper(message: Any) -> Any:
+        try:
+            return await func(message)
+        except Exception:
+            pass
 
     return wrapper

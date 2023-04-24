@@ -10,16 +10,16 @@ from propan import RabbitBroker
 
 async def main():
     async with RabbitBroker("amqp://guest:guest@localhost:5672/") as broker:
-        await broker.publish_message("Hello, Propan!", queue="test")
+        await broker.publish("Hello, Propan!", queue="test")
 
-        await broker.publish_message(
+        await broker.publish(
             {
                 "hello": "again!",
             },
             queue="test",
         )
 
-        await broker.publish_message(Message(b"hi"), queue="test")
+        await broker.publish(Message(b"hi"), queue="test")
 
 
 if __name__ == "__main__":

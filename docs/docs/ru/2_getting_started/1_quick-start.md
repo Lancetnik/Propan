@@ -84,7 +84,7 @@ Propan имеет систему управления зависимостями
 
 Также, вы можете вызывать функции в качестве зависимостей (по аналогии с `Fastapi Depends`) и делать некоторые другие трюки.
 
-Подробнее будет [чуть дальше](/Propan/2_getting_started/4_dependency/1_di-index).
+Подробнее будет [чуть дальше](../5_dependency/1_di-index).
 
 === "RabbitMQ"
     ```python linenums="1" hl_lines="12-17"
@@ -135,21 +135,38 @@ $ propan run [projectname].app.serve:app --env=.env --reload
 
 ## Использование с HTTP фреймворками
 
+### С любыми фреймворками
+
 Вы можете использовать брокеры Propan без самого Propan приложения.
 Просто *запустите* и *остановите* его вместе с вашим HTTP приложением.
 
 === "RabbitMQ"
-    ```python linenums="1" hl_lines="6 12-14 16-18"
+    ```python linenums="1" hl_lines="5 11-13 16-17"
     {!> docs_src/index/05_rabbit_http_example.py!}
     ```
 
 === "NATS"
-    ```python linenums="1" hl_lines="6 12-14 16-18"
+    ```python linenums="1" hl_lines="5 11-13 16-17"
     {!> docs_src/index/05_nats_http_example.py!}
     ```
 
+### С **FastAPI**
+
+Также, **Propan** может использоваться как часть **FastAPI**.
+
+Для этого просто импортируйте нужный вам **PropanRouter** и объявите обработчик сообщений
+с помощью декоратора `@event`. Этот декоратор аналогичен декоратору `@handle` у соответсвующих брокеров.
+
+!!! tip
+    При использовании таким образом **Propan** не использует собственную систему зависимостей, а интегрируется в **FastAPI**.
+    Т.е. вы можете использовать `Depends`, `BackgroundTasks` и прочие инструменты **FastAPI** так, если бы это был обычный HTTP-endpoint.
+
+```python linenums="1" hl_lines="7 15 19"
+{!> docs_src/index/06_rabbit_native_fastapi.py!}
+```
+
 !!! note
-    Больше примеров использования с другими фреймворками вы найдете [здесь](https://lancetnik.github.io/Propan/integrations/integrations-index/)
+    Больше примеров использования с другими фреймворками вы найдете [здесь](../../5_integrations/1_integrations-index/)
 
 ??? tip "Не забудьте остановить тестовый контейнер"
     ```bash

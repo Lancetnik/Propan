@@ -22,7 +22,7 @@ Let's imagine that your application uses **pydantic** as your settings manager.
 Also, let's imagine that you have several `.env`, `.env.development`, `.env.test`, `.env.production` files with your application settings,
 and you want to switch them at startup without any code changes.
 
-By [passing optional arguments with the command line](/Propan/2_getting_started/2_cli/#environment-management) to your code **Propan** allows you to do this easily.
+By [passing optional arguments with the command line](../2_cli/#environment-management) to your code **Propan** allows you to do this easily.
 
 ## Lifespan
 
@@ -60,7 +60,7 @@ The next step is to declare the arguments that our function will receive
 In this case, the `env` field will be passed to the `setup` function from the arguments with the command line
 !!! tip
     The default lifecycle functions are used with the decorator `@apply_types',
-    therefore, all [context fields](/Propan/2_getting_started/5_dependency/2_context) and [dependencies](/Propan/2_getting_started/5_dependency/1_di-index) are available in them
+    therefore, all [context fields](../5_dependency/2_context) and [dependencies](../5_dependency/1_di-index) are available in them
 
 Then, we initialized the settings of our application using the file passed to us from the command line
 ```python linenums="12" hl_lines="3"

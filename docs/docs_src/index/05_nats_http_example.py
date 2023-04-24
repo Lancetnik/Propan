@@ -1,18 +1,17 @@
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI
 from propan import NatsBroker
+from sanic import Sanic
 
+app = Sanic("MyHelloWorldApp")
 broker = NatsBroker("nats://localhost:4222")
-
-app = FastAPI()
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await broker.start()
-    yield
-    await broker.close()
 
 @broker.handle("test")
 async def base_handler(body):
     print(body)
+
+@app.after_server_start
+async def start_broker(app, loop):
+    await broker.start()
+
+@app.after_server_stop
+async def stop_broker(app, loop):
+    await broker.close()

@@ -7,6 +7,10 @@
 Большинство HTTP ферймворков имеют для этого встроенные хуки жизненного цикла.
 
 === "Fastapi"
+    !!! tip
+        Если вы хотите использовать **Propan** совместно с **FastAPI**, возможно, вам стоит использовать специальный
+        [плагин](../2_fastapi-plugin/)
+        
     ```python hl_lines="6 13 15 18-20" linenums="1"
     {!> ../examples/http_frameworks_integrations/fastapi.py [ln:5-29]!}
     ```

@@ -16,7 +16,14 @@ class ExtendedFilter(watchfiles.PythonFilter):
     ) -> None:
         super().__init__(ignore_paths=ignore_paths, extra_extensions=extra_extensions)
         self.extensions = self.extensions + (".env", ".yaml")
-        self.ignore_dirs = self.ignore_dirs + ("venv", "env", ".ruff_cache", "htmlcov")
+        self.ignore_dirs = self.ignore_dirs + (
+            "venv",
+            "env",
+            ".github",
+            ".mypy_cache",
+            ".pytest_cache",
+            ".ruff_cache",
+        )
 
 
 class WatchReloader(BaseReload):

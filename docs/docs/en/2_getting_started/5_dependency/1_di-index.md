@@ -46,7 +46,7 @@ To implement dependencies in **Propan**, a special class **Depends** is used
 **The first step**: we need to declare a dependency - it can be any `Callable` object.
 
 ??? note "Callable"
-"Callable" is an object that can be "called". It can be a function, a class, or a class method.
+    "Callable" is an object that can be "called". It can be a function, a class, or a class method.
 
     In other words: if you can write such code `my_object()` - `my_object` will be `Callable`
 
@@ -129,7 +129,7 @@ You can use the decorator `@apply_types` not only together with your `@broker.ha
 
 ## Casting dependency types
 
-**FastDepends**, used by **Propan**, also gives the type `return'. This means that the value returned by the dependency will be
+**FastDepends**, used by **Propan**, also gives the type `return`. This means that the value returned by the dependency will be
 be cast to the type twice: as `return` these are dependencies and as the input argument of the main function. This does not incur additional costs if
 these types have the same annotation. Just keep it in mind. Or not... Anyway, I've warned you.
 

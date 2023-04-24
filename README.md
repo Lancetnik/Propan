@@ -39,8 +39,6 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 **Documentation**: <a href="https://lancetnik.github.io/Propan/" target="_blank">https://lancetnik.github.io/Propan/</a>
 
-**Sources**: <a href="https://github.com/Lancetnik/Propan/" target="_blank">https://github.com/Lancetnik/Propan/</a>
-
 ---
 
 ### The key features are
@@ -51,7 +49,8 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 * [**Integrations**](#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](https://lancetnik.github.io/Propan/5_integrations/1_integrations-index/) you want
 * **MQ independent**: Single interface to popular MQ:
     * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
-    * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
+    * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/))
+* [**RPC**](https://lancetnik.github.io/Propan/2_getting_started/4_broker/4_rpc/): The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
 * [**Greate to develop**](#cli-power): CLI tool provides great development experience:
     * framework-independent way to rule application environment
     * application code hot reloading
@@ -277,28 +276,58 @@ Now you can enjoy a new development experience!
 
 ## HTTP Frameworks integrations
 
+### Any Framework
+
 You can use **Propan** `MQBrokers` without `PropanApp`.
 Just *start* and *stop* them according to your application lifespan.
 
 ```python
-from contextlib import asynccontextmanager
+from propan import NatsBroker
+from sanic import Sanic
 
-from fastapi import FastAPI
-from propan import RabbitBroker
-
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
-app = FastAPI()
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await broker.start()
-    yield
-    await broker.close()
+app = Sanic("MyHelloWorldApp")
+broker = NatsBroker("nats://localhost:4222")
 
 @broker.handle("test")
 async def base_handler(body):
     print(body)
+
+@app.after_server_start
+async def start_broker(app, loop):
+    await broker.start()
+
+@app.after_server_stop
+async def stop_broker(app, loop):
+    await broker.close()
+```
+
+### FastAPI Plugin
+
+Also, **Propan** can be used as part of **FastAPI**.
+
+Just import a **PropanRouter** you need and declare the message handler
+using the `@event` decorator. This decorator is similar to the decorator `@handle` for the corresponding brokers.
+
+```python
+from fastapi import Depends, FastAPI
+from pydantic import BaseModel
+from propan.fastapi import RabbitRouter
+
+app = FastAPI()
+
+router = RabbitRouter("amqp://guest:guest@localhost:5672")
+
+class Incoming(BaseModel):
+    m: dict
+
+def call():
+    return True
+
+@router.event("test")
+async def hello(m: Incoming, d = Depends(call)) -> dict:
+    return { "response": "Hello, Propan!" }
+
+app.include_router(router)
 ```
 
 ## Examples

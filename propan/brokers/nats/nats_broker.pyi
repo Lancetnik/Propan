@@ -104,7 +104,7 @@ class NatsBroker(BrokerUsecase):
         pending_size: int = DEFAULT_PENDING_SIZE,
         flush_timeout: Optional[float] = None,
     ) -> Client: ...
-    async def publish_message(
+    async def publish(
         self,
         message: Union[str, Dict[str, Any]],
         subject: str,

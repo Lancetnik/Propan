@@ -15,7 +15,7 @@ async def test_consume(
         broker.handle(queue)(async_mock)
         await broker.start()
 
-        await broker.publish_message(message="hello", queue=queue)
+        await broker.publish(message="hello", queue=queue)
         await wait_for_mock(async_mock)
 
     async_mock.assert_called_once()
@@ -31,10 +31,10 @@ async def test_consume_double(
         broker.handle(queue)(async_mock)
         await broker.start()
 
-        await broker.publish_message("hello", queue=queue)
+        await broker.publish("hello", queue=queue)
         await wait_for_mock(async_mock)
 
-        await broker.publish_message("hello", queue=queue)
+        await broker.publish("hello", queue=queue)
         await wait_for_mock(async_mock)
 
     assert async_mock.call_count == 2
@@ -53,8 +53,8 @@ async def test_different_consume(
         broker.handle(another_queue)(async_mock.method2)
         await broker.start()
 
-        await broker.publish_message(message="hello", queue=queue)
-        await broker.publish_message(message="hello", queue=another_queue)
+        await broker.publish(message="hello", queue=queue)
+        await broker.publish(message="hello", queue=another_queue)
 
         await wait_for_mock(async_mock.method)
         await wait_for_mock(async_mock.method2)
@@ -84,7 +84,7 @@ async def test_consume_from_exchange(
         broker.handle(queue=queue, exchange=exchange, retry=True)(async_mock)
         await broker.start()
 
-        await broker.publish_message({"msg": "hello"}, queue=queue, exchange=exchange)
+        await broker.publish({"msg": "hello"}, queue=queue, exchange=exchange)
 
         await wait_for_mock(async_mock)
 
@@ -113,9 +113,7 @@ async def test_consume_with_get_old(
     )(async_mock)
     await broker.start()
 
-    await broker.publish_message(
-        Message(b"hello"), queue=queue.name, exchange=exchange.name
-    )
+    await broker.publish(Message(b"hello"), queue=queue.name, exchange=exchange.name)
 
     await wait_for_mock(async_mock)
 

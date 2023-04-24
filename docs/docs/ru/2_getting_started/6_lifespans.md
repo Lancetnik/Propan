@@ -22,7 +22,7 @@
 Также, давайте представим, что у вас есть несколько `.env`, `.env.development`, `.env.test`, `.env.production` файлов с настройками вашего приложения,
 и вы хотите переключать их при запуске без изменений в коде.
 
-За счет [passing optional arguments with the command line](/Propan/2_getting_started/2_cli/#environment-management) в ваш код **Propan** позволяет вам с легкостью это сделать.
+За счет [передачи аргументов командной строки](../2_cli/#_3) в ваш код **Propan** позволяет вам с легкостью это сделать.
 
 ## Lifespan
 
@@ -60,7 +60,7 @@ $ propan run serve:app --env .env.test
 При этом поле `env` будет передано в функцию `setup` из аргументов командой строки
 !!! tip
     Функции жизненного цикла по умолчанию используются с декоратором `@apply_types`,
-    поэтому в них доступны все [поля контекста](/Propan/2_getting_started/5_dependency/2_context) и [зависимости](/Propan/2_getting_started/5_dependency/1_di-index)
+    поэтому в них доступны все [поля контекста](../5_dependency/2_context) и [зависимости](../5_dependency/1_di-index)
 
 Затем, мы инициализировали настройки нашего приложения с использованием переданного нам из командой строки файла
 ```python linenums="12" hl_lines="3"

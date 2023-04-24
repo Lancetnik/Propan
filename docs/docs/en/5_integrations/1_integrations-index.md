@@ -7,6 +7,10 @@ your application.
 Most HTTP frameworks have built-in lifecycle hooks for this.
 
 === "Fastapi"
+    !!! tip
+        If you want to use **Propan** in conjunction with **Facetapi**, perhaps you should use a special
+        [plugin](../2_fastapi-plugin/)
+
     ```python hl_lines="6 13 15 18-20"
     {!> ../examples/http_frameworks_integrations/fastapi.py [ln:5-29]!}
     ```
