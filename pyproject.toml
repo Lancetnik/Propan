@@ -129,12 +129,12 @@ features = [
   "test",
 ]
 
+[[tool.hatch.envs.test.matrix]]
+python = ["37", "38", "39", "310", "311"]
+
 [tool.hatch.envs.test.scripts]
 run = "pytest -q -m 'not slow'"
 run-all = "pytest -m 'all'"
-
-[[tool.hatch.envs.test.matrix]]
-python = ["37", "38", "39", "310", "311"]
 
 [tool.hatch.envs.test-last]
 python = "3.11"
@@ -150,10 +150,11 @@ cov = "bash ./scripts/test-cov.sh -v -m 'all'"
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
+disallow_subclassing_any = true
 
 [tool.isort]
 profile = "black"
-known_third_party = ["propan", "pydantic", "aio-pika", "nats-py"]
+known_first_party = ["propan"]
 
 [tool.ruff]
 select = [
@@ -169,15 +170,12 @@ ignore = [
     "C901",  # too complex
 ]
 
-[tool.ruff.isort]
-known-third-party = ["propan", "pydantic", "aio-pika", "nats-py"]
-
 [tool.ruff.flake8-bugbear]
 extend-immutable-calls = [
-    "propan.Depends", "propan.Alias",
-    "propan.utils.Depends", "propan.utils.Alias",
-    "propan.utils.context.Depends", "propan.utils.context.Alias",
-    "typer.Argument", "typer.Option",
+    "propan.Depends", "propan.Context",
+    "propan.utils.Depends", "propan.utils.Context",
+    "propan.utils.context.Depends", "propan.utils.context.Context",
+    "typer.Argument", "typer.Option", "fastapi.Depends",
 ]
 
 [tool.pytest.ini_options]

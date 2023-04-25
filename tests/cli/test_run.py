@@ -3,6 +3,7 @@ import time
 from multiprocessing import Process
 
 import pytest
+
 from propan.cli.main import _run
 from propan.cli.utils.imports import get_app_path
 

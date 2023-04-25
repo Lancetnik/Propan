@@ -14,7 +14,7 @@ app = PropanApp(broker)
 
 @app.on_startup
 def setup(context: ContextRepo):
-    context.set_context("my_dependency", True)
+    context.set_global("my_dependency", True)
 
 
 @broker.handle("test")

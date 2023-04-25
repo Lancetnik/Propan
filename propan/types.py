@@ -1,17 +1,17 @@
-from typing import Any, Callable, Dict, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, Union
 
-from fast_depends.types import AnyCallable, AnyDict, DecoratedCallable, P
+from typing_extensions import TypeAlias
 
-__all__ = (
-    "DecoratedCallable",
-    "P",
-    "AnyDict",
-    "AnyCallable",
-    "DecodedMessage",
-    "DecoratedCallableNone" "Wrapper",
-)
+AsyncFunc: TypeAlias = Callable[..., Awaitable[Any]]
 
-DecoratedCallableNone = TypeVar("DecoratedCallableNone", bound=Callable[..., None])
+AnyDict: TypeAlias = Dict[str, Any]
+AnyCallable: TypeAlias = Callable[..., Any]
+NoneCallable: TypeAlias = Callable[..., None]
 
-Wrapper = Callable[[DecoratedCallable], DecoratedCallable]
-DecodedMessage = Union[str, Dict[str, Any], bytes]
+DecoratedCallable: TypeAlias = AnyCallable
+DecoratedCallableNone: TypeAlias = NoneCallable
+DecoratedAsync: TypeAlias = AsyncFunc
+
+Wrapper: TypeAlias = Callable[[AnyCallable], DecoratedCallable]
+AsyncWrapper: TypeAlias = Callable[[AnyCallable], DecoratedAsync]
+DecodedMessage: TypeAlias = Union[str, AnyDict, bytes]

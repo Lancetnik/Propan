@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import pytest
+
 from propan.utils import apply_types
 
 

@@ -5,13 +5,14 @@ from typing import Any, Dict, List, Optional, Union
 import aio_pika
 import aiormq
 from pamqp.common import FieldTable
+from pydantic import BaseModel
+from yarl import URL
+
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.log import access_logger
-from propan.types import DecodedMessage, DecoratedCallable, Wrapper
-from pydantic import BaseModel
-from yarl import URL
+from propan.types import AnyDict, DecodedMessage, DecoratedCallable, Wrapper
 
 class RabbitBroker(BrokerUsecase):
     handlers: List[Handler]
@@ -21,7 +22,7 @@ class RabbitBroker(BrokerUsecase):
     __max_queue_len: int
     __max_exchange_len: int
 
-    async def __init__(
+    def __init__(
         self,
         url: Union[str, URL, None] = None,
         host: str = "localhost",
@@ -40,7 +41,7 @@ class RabbitBroker(BrokerUsecase):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         consumers: Optional[int] = None,
-    ):
+    ) -> None:
         """
         URL string might be contain ssl parameters e.g.
         `amqps://user:pass@host//?ca_certs=ca.pem&certfile=crt.pem&keyfile=key.pem`
@@ -99,7 +100,7 @@ class RabbitBroker(BrokerUsecase):
         .. _official Python documentation: https://goo.gl/pty9xA
         """
         ...
-    async def publish(
+    async def publish(  # type: ignore[override]
         self,
         message: Union[aio_pika.Message, str, Dict[str, Any], BaseModel] = "",
         queue: Union[RabbitQueue, str] = "",
@@ -129,7 +130,7 @@ class RabbitBroker(BrokerUsecase):
         user_id: Optional[str] = None,
         app_id: Optional[str] = None,
     ) -> Optional[aiormq.abc.ConfirmationFrameType]: ...
-    def handle(
+    def handle(  # type: ignore[override]
         self,
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
@@ -151,12 +152,12 @@ class RabbitBroker(BrokerUsecase):
     def _process_message(
         func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
     ) -> DecoratedCallable: ...
-    def _get_log_context(
+    def _get_log_context(  # type: ignore[override]
         self,
         message: Optional[aio_pika.Message],
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
-        **kwrags,
+        **kwrags: AnyDict,
     ) -> Dict[str, Any]: ...
     async def _init_channel(self, max_consumers: Optional[int] = None) -> None: ...
     async def _init_handler(

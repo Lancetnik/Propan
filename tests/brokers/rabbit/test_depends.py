@@ -1,9 +1,9 @@
 import aio_pika
 import pytest
+
 from propan.annotations import RabbitMessage
 from propan.brokers.rabbit import RabbitBroker
 from propan.utils import Depends
-
 from tests.tools.marks import needs_py38
 
 

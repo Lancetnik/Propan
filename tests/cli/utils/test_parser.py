@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import pytest
+
 from propan.cli.utils.parser import parse_cli_args
 
 APPLICATION = "module:app"

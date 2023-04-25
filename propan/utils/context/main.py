@@ -1,30 +1,63 @@
-from contextvars import ContextVar
-from typing import Any, Dict, Optional
+from contextlib import contextmanager
+from contextvars import ContextVar, Token
+from typing import Any, Dict, Iterator, TypeVar
 
 from propan.utils.classes import Singlethon
 
-message: ContextVar[Optional[str]] = ContextVar("message", default=None)
-log_context: ContextVar[Dict[str, Any]] = ContextVar("message", default={})
+T = TypeVar("T")
 
 
 class ContextRepo(Singlethon):
-    _context: Dict[str, Any] = {}
+    _global_context: Dict[str, Any]
+    _scope_context: Dict[str, ContextVar[Any]]
 
-    def set_context(self, key: str, v: Any) -> None:
-        self._context[key] = v
+    def __init__(self) -> None:
+        self._global_context = {}
+        self._scope_context = {}
 
-    def remove_context(self, key: str) -> None:
-        self._context.pop(key, None)
+    def set_global(self, key: str, v: Any) -> None:
+        self._global_context[key] = v
+
+    def reset_global(self, key: str) -> None:
+        self._global_context.pop(key, None)
+
+    def set_local(self, key: str, value: T) -> Token[T]:
+        context_var = self._scope_context.get(key)
+        if context_var is None:
+            context_var = ContextVar(key, default=None)
+            self._scope_context[key] = context_var
+        return context_var.set(value)
+
+    def reset_local(self, key: str, tag: Token[Any]) -> None:
+        self._scope_context[key].reset(tag)
+
+    def get_local(self, key: str) -> Any:
+        context_var = self._scope_context.get(key)
+        if context_var is not None:
+            return context_var.get()
 
     def clear(self) -> None:
-        self._context = {}
+        self._global_context = {}
+        self._scope_context = {}
+
+    def get(self, key: str) -> Any:
+        return self.context.get(key)
 
     def __getattr__(self, __name: str) -> Any:
-        return self.context.get(__name)
+        return self.get(__name)
 
     @property
     def context(self) -> Dict[str, Any]:
-        return {**self._context, "context": self, "message": message.get()}
+        return {
+            **{i: j.get() for i, j in self._scope_context.items()},
+            **self._global_context,
+        }
+
+    @contextmanager
+    def scope(self, key: str, value: Any) -> Iterator[None]:
+        token = self.set_local(key, value)
+        yield
+        self.reset_local(key, token)
 
 
 context: ContextRepo = ContextRepo()

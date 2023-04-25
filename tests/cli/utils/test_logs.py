@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+
 from propan.cli.utils.logs import LOG_LEVELS, LogLevels, set_log_level
 from propan.log import access_logger, logger
 

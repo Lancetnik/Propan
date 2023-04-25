@@ -1,20 +1,21 @@
 import pytest
-from propan.utils import Context, apply_types
 from pydantic.error_wrappers import ValidationError
 
+from propan.utils import Context, ContextRepo, apply_types
 
-def test_context_getattr(context):
+
+def test_context_getattr(context: ContextRepo):
     a = 1000
-    context.set_context("key", a)
+    context.set_global("key", a)
 
     assert context.key is a
     assert context.key2 is None
 
 
 @pytest.mark.asyncio
-async def test_context_apply(context):
+async def test_context_apply(context: ContextRepo):
     a = 1000
-    context.set_context("key", a)
+    context.set_global("key", a)
 
     @apply_types
     async def use(key=Context()):
@@ -24,9 +25,9 @@ async def test_context_apply(context):
 
 
 @pytest.mark.asyncio
-async def test_context_ignore(context):
+async def test_context_ignore(context: ContextRepo):
     a = 3
-    context.set_context("key", a)
+    context.set_global("key", a)
 
     @apply_types
     async def use():
@@ -36,12 +37,12 @@ async def test_context_ignore(context):
 
 
 @pytest.mark.asyncio
-async def test_context_apply_multi(context):
+async def test_context_apply_multi(context: ContextRepo):
     a = 1001
-    context.set_context("key_a", a)
+    context.set_global("key_a", a)
 
     b = 1000
-    context.set_context("key_b", b)
+    context.set_global("key_b", b)
 
     @apply_types
     async def use1(key_a=Context()):
@@ -63,12 +64,12 @@ async def test_context_apply_multi(context):
 
 
 @pytest.mark.asyncio
-async def test_context_overrides(context):
+async def test_context_overrides(context: ContextRepo):
     a = 1001
-    context.set_context("test", a)
+    context.set_global("test", a)
 
     b = 1000
-    context.set_context("test", b)
+    context.set_global("test", b)
 
     @apply_types
     async def use(test=Context()):
@@ -78,9 +79,9 @@ async def test_context_overrides(context):
 
 
 @pytest.mark.asyncio
-async def test_context_nested_apply(context):
+async def test_context_nested_apply(context: ContextRepo):
     a = 1000
-    context.set_context("key", a)
+    context.set_global("key", a)
 
     @apply_types
     def use_nested(key=Context()):
@@ -94,10 +95,10 @@ async def test_context_nested_apply(context):
 
 
 @pytest.mark.asyncio
-async def test_remove_context(context: Context):
+async def test_reset_global(context: ContextRepo):
     a = 1000
-    context.set_context("key", a)
-    context.remove_context("key")
+    context.set_global("key", a)
+    context.reset_global("key")
 
     @apply_types
     async def use(key=Context()):  # pragma: no cover
@@ -108,13 +109,27 @@ async def test_remove_context(context: Context):
 
 
 @pytest.mark.asyncio
-async def test_clear_context(context: Context):
+async def test_clear_context(context: ContextRepo):
     a = 1000
-    context.set_context("key", a)
+    context.set_global("key", a)
     context.clear()
 
     @apply_types
-    async def use(key=Context(required=False)):
+    async def use(key=Context(default=None)):
         return key is None
 
     assert await use()
+
+
+def test_scope(context: ContextRepo):
+    @apply_types
+    def use(key=Context(), key2=Context()):
+        assert key == 1
+        assert key2 == 1
+
+    with context.scope("key", 1):
+        with context.scope("key2", 1):
+            use()
+
+    assert context.get("key") is None
+    assert context.get("key2") is None

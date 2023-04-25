@@ -24,7 +24,7 @@ async def base_handler(
     context: ContextRepo,
     logger: Logger,
     message: RabbitMessage,
-    not_found_field=Context(required=False),
+    not_found_field=Context(default=None),
 ):
     assert not_found_field is None
     assert broker is rabbit_broker

@@ -1,10 +1,10 @@
 import pytest
+
 from propan.brokers.push_back_watcher import (
     FakePushBackWatcher,
     PushBackWatcher,
     WatcherContext,
 )
-
 from tests.tools.marks import needs_py38
 
 

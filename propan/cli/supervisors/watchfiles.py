@@ -2,12 +2,15 @@ from pathlib import Path
 from typing import Any, Optional, Sequence, Tuple, Union
 
 import watchfiles
+
 from propan.cli.supervisors.basereload import BaseReload
 from propan.log import logger
 from propan.types import DecoratedCallable
 
 
 class ExtendedFilter(watchfiles.PythonFilter):
+    ignore_dirs: Tuple[str, ...]
+
     def __init__(
         self,
         *,
@@ -32,7 +35,7 @@ class WatchReloader(BaseReload):
         target: DecoratedCallable,
         args: Tuple[Any, ...],
         reload_dirs: Sequence[Union[Path, str]],
-        reload_delay: Optional[float] = 0.3,
+        reload_delay: float = 0.3,
     ) -> None:
         super().__init__(target, args, reload_delay)
         self.reloader_name = "WatchFiles"
@@ -51,3 +54,4 @@ class WatchReloader(BaseReload):
                 message = "WatchReloader detected file change in '%s'. Reloading..."
                 logger.info(message % tuple(unique_paths))
                 return True
+        return False  # pragma: no cover

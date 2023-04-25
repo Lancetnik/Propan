@@ -15,8 +15,9 @@ Or you can pass a boolean flags
 ... --use-smth  # passes as use_smth=True
 ... --no-use-smth  # passes as use_smth=False
 """
-from propan import Context, PropanApp, RabbitBroker
 from pydantic import BaseSettings
+
+from propan import Context, PropanApp, RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
@@ -30,4 +31,4 @@ class Settings(BaseSettings):
 @app.on_startup
 async def setup_later(env: str, context: Context):
     settings = Settings(_env_file=env)
-    context.set_context("settings", settings)
+    context.set_global("settings", settings)

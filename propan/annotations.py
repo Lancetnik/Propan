@@ -1,9 +1,10 @@
 import logging
 
+from typing_extensions import Annotated
+
 from propan.cli.app import PropanApp
 from propan.utils.context import Context as ContextField
 from propan.utils.context import ContextRepo as CR
-from typing_extensions import Annotated
 
 Logger = Annotated[logging.Logger, ContextField("logger")]
 App = Annotated[PropanApp, ContextField("app")]
@@ -12,21 +13,23 @@ ContextRepo = Annotated[CR, ContextField("context")]
 
 try:
     import aio_pika
+
     from propan.brokers.rabbit import RabbitBroker as RB
 
     RabbitBroker = Annotated[RB, ContextField("broker")]
     RabbitMessage = Annotated[aio_pika.message.IncomingMessage, ContextField("message")]
 except Exception:
-    RabbitBroker = RabbitMessage = None
+    RabbitBroker = RabbitMessage = None  # type: ignore
 
 try:
     from nats.aio.msg import Msg
+
     from propan.brokers.nats import NatsBroker as NB
 
     NatsBroker = Annotated[NB, ContextField("broker")]
     NatsMessage = Annotated[Msg, ContextField("message")]
 except Exception:
-    NatsBroker = NatsMessage = None
+    NatsBroker = NatsMessage = None  # type: ignore
 
 assert any(
     (

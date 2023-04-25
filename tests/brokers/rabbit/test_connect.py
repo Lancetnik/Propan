@@ -1,5 +1,6 @@
 import pytest
-from propan import RabbitBroker
+
+from propan.brokers.rabbit import RabbitBroker
 
 
 async def _init_channel(broker):

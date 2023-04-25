@@ -1,9 +1,10 @@
 from typing import Any, Dict, Optional, Union
 
 from aio_pika.abc import ExchangeType, TimeoutType
+from pydantic import BaseModel, Field
+
 from propan.brokers.model.schemas import NameRequired, Queue
 from propan.types import DecoratedCallable
-from pydantic import BaseModel, Field
 
 __all__ = (
     "RabbitQueue",

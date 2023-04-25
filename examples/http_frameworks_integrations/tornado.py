@@ -5,6 +5,7 @@ Just start and stop them whenever you want
 import asyncio
 
 import tornado.web
+
 from propan import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
