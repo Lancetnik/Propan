@@ -113,7 +113,7 @@ class RabbitBroker(BrokerUsecase):
         timeout: aio_pika.abc.TimeoutType = None,
         # callback kwargs
         callback: bool = False,
-        callback_timeout: float | None = 30.0,
+        callback_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
         # message kwargs
         headers: Optional[aio_pika.abc.HeadersType] = None,

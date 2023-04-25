@@ -125,7 +125,7 @@ class RabbitBroker(BrokerUsecase):
         immediate: bool = False,
         timeout: TimeoutType = None,
         callback: bool = False,
-        callback_timeout: float | None = 30.0,
+        callback_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
         **message_kwargs,
     ) -> Union[aiormq.abc.ConfirmationFrameType, Dict, str, bytes, None]:
