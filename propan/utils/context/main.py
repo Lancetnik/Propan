@@ -21,14 +21,14 @@ class ContextRepo(Singlethon):
     def reset_global(self, key: str) -> None:
         self._global_context.pop(key, None)
 
-    def set_local(self, key: str, value: T) -> Token[T]:
+    def set_local(self, key: str, value: T) -> "Token[T]":
         context_var = self._scope_context.get(key)
         if context_var is None:
             context_var = ContextVar(key, default=None)
             self._scope_context[key] = context_var
         return context_var.set(value)
 
-    def reset_local(self, key: str, tag: Token[Any]) -> None:
+    def reset_local(self, key: str, tag: "Token[Any]") -> None:
         self._scope_context[key].reset(tag)
 
     def get_local(self, key: str) -> Any:

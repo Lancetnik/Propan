@@ -1,7 +1,8 @@
 import logging
 import sys
 from collections import defaultdict
-from typing import Callable, Literal, Optional
+from typing import Callable, Optional
+from typing_extensions import Literal
 
 import click
 
