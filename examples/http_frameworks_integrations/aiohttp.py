@@ -3,6 +3,7 @@ You can use Propan MQBrokers without PropanApp
 Just start and stop them whenever you want
 """
 from aiohttp import web
+
 from propan import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")

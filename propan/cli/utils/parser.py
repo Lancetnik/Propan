@@ -1,16 +1,20 @@
 from functools import reduce
 from typing import Dict, List, Tuple, Union
 
+from typing_extensions import TypeAlias
 
-def parse_cli_args(*args: str) -> Tuple[str, Dict[str, Union[bool, str]]]:
-    extra_kwargs: Dict[str, Union[bool, str]] = {}
+SettingField: TypeAlias = Union[bool, str, List[str]]
+
+
+def parse_cli_args(*args: str) -> Tuple[str, Dict[str, SettingField]]:
+    extra_kwargs: Dict[str, SettingField] = {}
 
     k: str = ""
-    v: Union[bool, str, None] = None
+    v: SettingField
 
     field_args: List[str] = []
     app = ""
-    for item in reduce(lambda acc, x: acc + x.split("="), args, []) + ["-"]:
+    for item in reduce(lambda acc, x: acc + x.split("="), args, []) + ["-"]:  # type: ignore
         if ":" in item:
             app = item
 

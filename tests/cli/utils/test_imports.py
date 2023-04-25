@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from propan.cli.utils.imports import get_app_path, import_object
 
 test_object = Path(__file__)

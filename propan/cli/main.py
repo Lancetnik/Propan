@@ -2,14 +2,15 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, Optional
 
 import typer
+
 from propan.__about__ import __version__
 from propan.cli.app import PropanApp
 from propan.cli.utils.imports import get_app_path, import_object
 from propan.cli.utils.logs import LogLevels, set_log_level
-from propan.cli.utils.parser import parse_cli_args
+from propan.cli.utils.parser import SettingField, parse_cli_args
 from propan.log import logger
 
 cli = typer.Typer()
@@ -41,7 +42,7 @@ def main(
         is_eager=True,
         help="Show current platform, python and propan version",
     )
-):
+) -> None:
     """
     Generate, run and manage Propan apps to greater development experience
     """
@@ -100,13 +101,13 @@ def run(
         Multiprocess(target=_run, args=(*args, logging.DEBUG), workers=workers).run()
 
     else:
-        _run(*args)
+        _run(module=module, app=app, extra_options=extra)
 
 
 def _run(
     module: Path,
     app: str,
-    extra_options: Dict[str, Union[bool, str]],
+    extra_options: Dict[str, SettingField],
     log_level: int = logging.INFO,
 ) -> None:
     try:

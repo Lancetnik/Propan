@@ -2,8 +2,9 @@ from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
 from pydantic import BaseSettings
+
+from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
 
 
 class Settings(BaseSettings):

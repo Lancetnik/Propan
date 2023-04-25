@@ -1,7 +1,7 @@
 import pytest
 from aio_pika import Message
-from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
 
+from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
 from tests.tools.marks import needs_py38
 
 

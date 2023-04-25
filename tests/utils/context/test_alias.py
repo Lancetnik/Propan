@@ -1,16 +1,16 @@
 from typing import Any
 
 import pytest
-from propan.utils import Context, apply_types
 from typing_extensions import Annotated
 
+from propan.utils import Context, ContextRepo, apply_types
 from tests.tools.marks import needs_py310
 
 
 @pytest.mark.asyncio
-async def test_base_context_alias(context: Context):
+async def test_base_context_alias(context: ContextRepo):
     key = 1000
-    context.set_context("key", key)
+    context.set_global("key", key)
 
     @apply_types
     async def func(k=Context("key")):
@@ -20,15 +20,15 @@ async def test_base_context_alias(context: Context):
 
 
 @pytest.mark.asyncio
-async def test_nested_context_alias(context: Context):
+async def test_nested_context_alias(context: ContextRepo):
     model = SomeModel(field=SomeModel(field=1000))
-    context.set_context("model", model)
+    context.set_global("model", model)
 
     @apply_types
     async def func(
         m=Context("model.field.field"),
-        m2=Context("model.not_existed", required=False),
-        m3=Context("model.not_existed.not_existed", required=False),
+        m2=Context("model.not_existed", default=None),
+        m3=Context("model.not_existed.not_existed", default=None),
     ):
         return m is model.field.field and m2 is None and m3 is None
 
@@ -37,9 +37,9 @@ async def test_nested_context_alias(context: Context):
 
 @needs_py310
 @pytest.mark.asyncio
-async def test_annotated_alias(context: Context):
+async def test_annotated_alias(context: ContextRepo):
     model = SomeModel(field=SomeModel(field=1000))
-    context.set_context("model", model)
+    context.set_global("model", model)
 
     @apply_types
     async def func(m: Annotated[int, Context("model.field.field")]):

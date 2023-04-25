@@ -2,18 +2,18 @@ import asyncio
 import json
 import logging
 from functools import wraps
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
 import aio_pika
 import aiormq
+from pydantic import BaseModel
+
 from propan.brokers.model import BrokerUsecase, ContentTypes
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
-from propan.types import DecodedMessage, DecoratedCallable, Wrapper
-from propan.utils.context.main import log_context
+from propan.types import AnyDict, DecodedMessage, DecoratedCallable, Wrapper
 from propan.utils.functions import async_partial
-from pydantic import BaseModel
 
 TimeoutType = Optional[Union[int, float]]
 
@@ -28,11 +28,11 @@ class RabbitBroker(BrokerUsecase):
 
     def __init__(
         self,
-        *args: Any,
+        *args: Tuple[Any, ...],
         consumers: Optional[int] = None,
         log_fmt: Optional[str] = None,
-        **kwargs: Any,
-    ):
+        **kwargs: AnyDict,
+    ) -> None:
         super().__init__(*args, log_fmt=log_fmt, **kwargs)
         self._max_consumers = consumers
 
@@ -208,7 +208,6 @@ class RabbitBroker(BrokerUsecase):
             "message_id": message.message_id[:10] if message else "",
         }
 
-        log_context.set(context)
         return context
 
     @property
@@ -297,7 +296,7 @@ def _validate_message(
 ) -> aio_pika.Message:
     if not isinstance(message, aio_pika.message.Message):
         if isinstance(message, BaseModel):
-            message = json.dumps(message.dict())
+            message = message.json()
             content_type = ContentTypes.json.value
         elif isinstance(message, dict):
             message = json.dumps(message)

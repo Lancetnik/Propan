@@ -3,8 +3,9 @@ from typing import Optional, Sequence
 
 from nats.aio.subscription import Subscription
 from nats.js.api import DEFAULT_PREFIX
-from propan.types import DecoratedCallable
 from pydantic import BaseModel
+
+from propan.types import DecoratedCallable
 
 
 @dataclass

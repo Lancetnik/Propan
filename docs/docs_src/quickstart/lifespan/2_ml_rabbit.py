@@ -13,7 +13,7 @@ def fake_answer_to_everything_ml_model(x: float):
 async def setup_model(context: ContextRepo):
     # Load the ML model
     ml_models["answer_to_everything"] = fake_answer_to_everything_ml_model
-    context.set_context("model", ml_models)
+    context.set_global("model", ml_models)
 
 @app.on_shutdown
 async def shutdown_model(model: dict = Context()):

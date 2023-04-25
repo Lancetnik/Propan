@@ -1,6 +1,6 @@
 import logging
 import ssl
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from nats.aio.client import (
     DEFAULT_CONNECT_TIMEOUT,
@@ -20,11 +20,12 @@ from nats.aio.client import (
     SignatureCallback,
 )
 from nats.aio.msg import Msg
+
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import DecoratedCallable
+from propan.types import AnyDict, DecodedMessage, DecoratedCallable, Wrapper
 
 class NatsBroker(BrokerUsecase):
     logger: logging.Logger
@@ -104,25 +105,25 @@ class NatsBroker(BrokerUsecase):
         pending_size: int = DEFAULT_PENDING_SIZE,
         flush_timeout: Optional[float] = None,
     ) -> Client: ...
-    async def publish(
+    async def publish(  # type: ignore[override]
         self,
         message: Union[str, Dict[str, Any]],
         subject: str,
         reply: str = "",
         headers: Optional[Dict[str, str]] = None,
     ) -> None: ...
-    def handle(
+    def handle(  # type: ignore[override]
         self, subject: str, queue: str = "", *, retry: Union[bool, int] = False
-    ) -> Callable[[DecoratedCallable], None]: ...
+    ) -> Wrapper: ...
     async def __aenter__(self) -> "NatsBroker": ...
     async def _connect(self, *args: Any, **kwargs: Any) -> Client: ...
     async def close(self) -> None: ...
-    def _get_log_context(
-        self, message: Optional[Msg], subject: str, queue: str = "", **kwargs
+    def _get_log_context(  # type: ignore[override]
+        self, message: Optional[Msg], subject: str, queue: str = "", **kwargs: AnyDict
     ) -> Dict[str, Any]: ...
     @staticmethod
-    async def _decode_message(message: Msg) -> Union[str, dict]: ...
+    async def _decode_message(message: Msg) -> DecodedMessage: ...
     @staticmethod
     def _process_message(
         func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
-    ) -> Callable[[Msg], Any]: ...
+    ) -> Wrapper: ...

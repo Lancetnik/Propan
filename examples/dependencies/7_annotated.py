@@ -4,8 +4,9 @@ typing.Annotated class as a shortcut to Depends and Alias
 """
 import logging
 
-from propan import Context, Depends, PropanApp, RabbitBroker, apply_types
 from typing_extensions import Annotated
+
+from propan import Context, Depends, PropanApp, RabbitBroker, apply_types
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 

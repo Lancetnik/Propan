@@ -6,11 +6,11 @@ from uuid import uuid4
 import nats
 from nats.aio.client import Client
 from nats.aio.msg import Msg
+
 from propan.brokers.model import BrokerUsecase, ContentTypes
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
-from propan.types import DecoratedCallable
-from propan.utils.context.main import log_context
+from propan.types import AnyDict, DecoratedCallable
 
 
 class NatsBroker(BrokerUsecase):
@@ -20,7 +20,7 @@ class NatsBroker(BrokerUsecase):
     __max_queue_len: int
     __max_subject_len: int
 
-    def __init__(self, *args: Any, log_fmt: Optional[str] = None, **kwargs: Any):
+    def __init__(self, *args: Any, log_fmt: Optional[str] = None, **kwargs: AnyDict):
         super().__init__(*args, log_fmt=log_fmt, **kwargs)
 
         self._connection = None
@@ -116,7 +116,6 @@ class NatsBroker(BrokerUsecase):
             "message_id": message.message_id[:10] if message else "",
         }
 
-        log_context.set(context)
         return context
 
     @property

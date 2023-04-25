@@ -8,6 +8,7 @@ else:
     from unittest.mock import AsyncMock
 
 import pytest
+
 from propan.__about__ import __version__
 from propan.utils import context as global_context
 

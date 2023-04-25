@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union
+from typing import Union, cast
 
 
 def create(project_dir: Path, version: str) -> Path:
@@ -98,7 +98,7 @@ def _create_app_dir(app: Path) -> Path:
         "@app.on_startup",
         "async def init_app(broker: RabbitBroker, env: Optional[str], context: Context):",
         "    settings = init_settings(env)",
-        '    context.set_context("settings", settings)',
+        '    context.set_global("settings", settings)',
         "",
         "    logger_level = logging.DEBUG if settings.debug else logging.INFO",
         "    app.logger.setLevel(logger_level)",
@@ -213,6 +213,7 @@ def _touch_dir(dir: Union[Path, str]) -> Path:
     if isinstance(dir, str) is True:
         dir = Path(dir).resolve()
 
+    dir = cast(Path, dir)
     if dir.exists() is False:
         dir.mkdir()
     return dir

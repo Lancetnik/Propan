@@ -2,9 +2,10 @@
 You can use Propan MQBrokers without PropanApp
 Just start and stop them whenever you want
 """
-from propan import RabbitBroker
 from sanic import Sanic
 from sanic.response import text
+
+from propan import RabbitBroker
 
 app = Sanic("MyHelloWorldApp")
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")

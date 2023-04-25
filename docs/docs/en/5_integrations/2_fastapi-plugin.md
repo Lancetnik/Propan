@@ -1,5 +1,7 @@
 # **FastAPI** Plugin
 
+## Handle messages
+
 **Propan** can be used as a part of **FastAPI**.
 
 Just import a **PropanRouter** you need and declare the message handler
@@ -20,3 +22,17 @@ in any way convenient for you. The message header is placed in `headers`.
 
 Also, this router can be fully used as an `HttpRouter` (of which it is the inheritor). So you can
 use it to declare any `get`, `post`, `put` and other HTTP methods. For example, this is done at  **19** line .
+
+## Publish messages
+
+There is a related broker inside each router. You can easily access it to send messages to MQ.
+
+```python linenums="1" hl_lines="6 10"
+{!> docs_src/integrations/fastapi_plugin_rabbit_send.py!}
+```
+
+You can access the broker by `Depends` if you want to use it in different parts of your program.
+
+```python linenums="1" hl_lines="8 14-15"
+{!> docs_src/integrations/fastapi_plugin_rabbit_depends.py!}
+```

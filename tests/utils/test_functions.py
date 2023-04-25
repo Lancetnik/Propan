@@ -1,4 +1,5 @@
 import pytest
+
 from propan.utils.functions import call_or_await
 
 

@@ -75,6 +75,7 @@ markdown_extensions:  # do not reorder
       guess_lang: false
   - mdx_include:
       base_path: .
+  - tables
   - admonition
   - codehilite
   - extra
@@ -109,20 +110,22 @@ nav:
       - Basics: 2_getting_started/4_broker/1_index.md
       - Routing and Errors: 2_getting_started/4_broker/2_routing.md
       - Incoming Messages: 2_getting_started/4_broker/3_type-casting.md
-      - RPC over MQ: 2_getting_started/4_broker/4_rpc.md
+      - Publish Messages: 2_getting_started/4_broker/4_publishing.md
+      - RPC over MQ: 2_getting_started/4_broker/5_rpc.md
     - Dependency Injection:
-      - Dependency Basics: 2_getting_started/5_dependency/1_di-index.md
-      - Context object: 2_getting_started/5_dependency/2_context.md
-      - Aliases: 2_getting_started/5_dependency/3_alias.md
+      - Depends: 2_getting_started/5_dependency/1_di-index.md
+      - Context: 2_getting_started/5_dependency/2_context.md
     - Lifespan: 2_getting_started/6_lifespans.md
   - RabbitMQ:
     - RabbitMQ Basics: 3_rabbit/1_rabbit-index.md
     - Routing: 3_rabbit/2_routing.md
     - Exchanges: 3_rabbit/3_exchanges.md
     - Queues and Bindings: 3_rabbit/4_queues.md
+    - Rabbit Pubslishing: 3_rabbit/5_publishing.md
   - NATS:
     - NATS Basics: 4_nats/1_nats-index.md
     - Routing: 4_nats/2_routing.md
+    - Nats Pubslishing: 4_nats/3_publishing.md
   - Integrations: 5_integrations/1_integrations-index.md
   - FastAPI Plugin: 5_integrations/2_fastapi-plugin.md
   - Avanced:

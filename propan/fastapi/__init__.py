@@ -1,3 +1,3 @@
-from propan.fastapi.rabbit.rabbit_router import RabbitRouter
+from propan.fastapi.rabbit import RabbitRouter
 
 __all__ = ("RabbitRouter",)

@@ -22,7 +22,7 @@ From the server side (the receiving side), you do not need to change the code: `
 !!! note
     The result of your function must match the valid types of the `message` parameter of the `broker.publish` function.
 
-    Acceptable types are `str`, `dict`, `pydantic.BaseModel`, as well as a native message of the library used for the broker.
+    Acceptable types are `str`, `dict`, `pydantic.BaseModel`, `bytes` and a native message of the library used for the broker.
 
 === "RabbitMQ"
     ```python linenums="1" hl_lines="7"
@@ -74,3 +74,7 @@ To process the response outside of the main execution loop, you can initialize a
     ```python linenums="1" hl_lines="6 16"
     {!> docs_src/quickstart/broker/rpc/6_noblocking_client_rabbit.py !}
     ```
+
+!!! note
+    Note that for non-blocking messages to work, `broker` must be running. That means we can't
+    work with such messages using `broker` as a context manager.

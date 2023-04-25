@@ -1,10 +1,11 @@
 import logging
 import sys
 from collections import defaultdict
-from typing import Callable, Optional
+from typing import Callable, Literal, Optional
 
 import click
-from propan.utils.context.main import log_context
+
+from propan.utils.context.main import context
 
 
 class ColourizedFormatter(logging.Formatter):
@@ -33,7 +34,7 @@ class ColourizedFormatter(logging.Formatter):
         self,
         fmt: Optional[str] = None,
         datefmt: Optional[str] = None,
-        style: str = "%",
+        style: Literal["%", "{", "$"] = "%",
         use_colors: Optional[bool] = None,
     ):
         """
@@ -71,9 +72,9 @@ class DefaultFormatter(ColourizedFormatter):
 
 class AccessFormatter(ColourizedFormatter):
     def formatMessage(self, record: logging.LogRecord) -> str:
-        context = log_context.get()
-        if context:  # pragma: no cover
-            record.__dict__.update(context)
+        c = context.get_local("log_context")
+        if c:  # pragma: no cover
+            record.__dict__.update(c)
         return super().formatMessage(record)
 
 

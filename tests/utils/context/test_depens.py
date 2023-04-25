@@ -1,4 +1,5 @@
 import pytest
+
 from propan.utils import Depends, apply_types
 
 
@@ -22,11 +23,13 @@ async def test_sync_depends():
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail
 async def test_sync_with_async_depends():
-    # with pytest.raises(AssertionError):
-    @apply_types
-    def func(k=Depends(async_dep)):
-        pass
+    with pytest.raises(AssertionError):
+
+        @apply_types
+        def func(k=Depends(async_dep)):
+            pass
 
 
 @pytest.mark.asyncio

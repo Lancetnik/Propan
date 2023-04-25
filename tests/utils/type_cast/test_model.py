@@ -1,8 +1,9 @@
 from typing import Tuple
 
 import pytest
-from propan.utils import apply_types
 from pydantic import BaseModel
+
+from propan.utils import apply_types
 
 
 class Base(BaseModel):

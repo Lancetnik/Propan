@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI
-from propan.fastapi import RabbitRouter
 from pydantic import BaseModel
+
+from propan.fastapi import RabbitRouter
 
 app = FastAPI()
 

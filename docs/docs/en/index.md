@@ -48,7 +48,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 * **MQ independent**: Single interface to popular MQ:
     * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
     * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
-* [**RPC**](2_getting_started/4_broker/4_rpc/): The framework supports RPC requests on top of message brokers, which will allow performing long operations on remote services asynchronously.
+* [**RPC**](2_getting_started/4_broker/5_rpc/): The framework supports RPC requests on top of message brokers, which will allow performing long operations on remote services asynchronously.
 * [**Greate to develop**](2_getting_started/2_cli/): CLI tool provides great development experience:
     * framework-independent way to rule application environment
     * application code hot reloading

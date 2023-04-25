@@ -1,44 +1,44 @@
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
-from core.route import MQRoute
 from fastapi import APIRouter, params
 from fastapi.datastructures import Default
 from fastapi.routing import APIRoute
 from fastapi.types import DecoratedCallable
 from fastapi.utils import generate_unique_id
-from pydantic import BaseModel, create_model
 from starlette import routing
 from starlette.responses import JSONResponse, Response
-from starlette.routing import BaseRoute
 from starlette.types import ASGIApp
+from typing_extensions import ClassVar
 
-RabbitParamsErrorModel: Type[BaseModel] = create_model("RabbitConnection")
+from propan.brokers.model import BrokerUsecase
+from propan.fastapi.core.route import PropanRoute
+from propan.types import AnyDict
 
 
-class MQRouter(APIRouter):
-    mq_route_class: MQRoute
+class PropanRouter(APIRouter):
+    broker_class: ClassVar[Type[BrokerUsecase]]
+    broker: BrokerUsecase
 
     @property
-    def mq_routes(self) -> Tuple[MQRoute]:
-        return tuple(filter(lambda x: isinstance(x, self.mq_route_class), self.routes))
+    def mq_routes(self) -> Tuple[PropanRoute, ...]:
+        return tuple(filter(lambda x: isinstance(x, PropanRoute), self.routes))
 
     async def _connect(self) -> None:
-        self._connection = None
+        await self.broker.start()
 
     async def _close(self) -> None:
-        if self._connection is not None:
-            await self._connection.close()
+        await self.broker.close()
 
     def __init__(
         self,
-        *,
+        *connection_args: Tuple[Any, ...],
         prefix: str = "",
         tags: Optional[List[Union[str, Enum]]] = None,
         dependencies: Optional[Sequence[params.Depends]] = None,
         default_response_class: Type[Response] = Default(JSONResponse),
         responses: Optional[Dict[Union[int, str], Dict[str, Any]]] = None,
-        callbacks: Optional[List[BaseRoute]] = None,
+        callbacks: Optional[List[routing.BaseRoute]] = None,
         routes: Optional[List[routing.BaseRoute]] = None,
         redirect_slashes: bool = True,
         default: Optional[ASGIApp] = None,
@@ -51,10 +51,17 @@ class MQRouter(APIRouter):
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
         ),
+        **connection_kwars: AnyDict,
     ) -> None:
         assert (
-            self.mq_route_class
-        ), "You should specify `mq_route_class` at your implementation"
+            self.broker_class
+        ), "You should specify `broker_class` at your implementation"
+
+        self.broker = self.broker_class(
+            *connection_args,
+            **{**connection_kwars, "apply_types": False},  # type: ignore
+        )
+
         on_startup = [] if on_startup is None else list(on_startup)
         on_shutdown = [] if on_shutdown is None else list(on_shutdown)
         super().__init__(
@@ -82,13 +89,14 @@ class MQRouter(APIRouter):
         *,
         endpoint: Callable[..., Any],
         name: Optional[str] = None,
-        **broker_kwargs,
+        **broker_kwargs: AnyDict,
     ) -> None:
-        route = self.mq_route_class(
+        route = PropanRoute(
             path,
             endpoint=endpoint,
             name=name,
             dependency_overrides_provider=self.dependency_overrides_provider,
+            broker=self.broker,
             **broker_kwargs,
         )
         self.routes.append(route)
