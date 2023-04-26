@@ -33,23 +33,28 @@ class PropanRoute(BaseRoute):
         self.name = name if name else get_name(endpoint)
         self.dependant = get_dependant(path=path, call=self.endpoint)
 
-        broker.handle(path, **hanle_kwargs)(  # type: ignore
-            PropanMessage.get_session(self.dependant, dependency_overrides_provider)
+        handler = PropanMessage.get_session(
+            self.dependant, dependency_overrides_provider
         )
+        broker.handle(path, **hanle_kwargs)(handler)  # type: ignore
 
 
 class PropanMessage(Request):
     scope: AnyDict
     _cookies: AnyDict
-    _headers: AnyDict
-    _body: AnyDict
-    _query_params: AnyDict
+    _headers: AnyDict       # type: ignore
+    _body: AnyDict          # type: ignore
+    _query_params: AnyDict  # type: ignore
 
-    def __init__(self, body: AnyDict, headers: Optional[AnyDict] = None):
+    def __init__(
+        self,
+        body: Optional[AnyDict] = None,
+        headers: Optional[AnyDict] = None,
+    ):
         self.scope = {}
         self._cookies = {}
         self._headers = headers or {}
-        self._body = body
+        self._body = body or {}
         self._query_params = self._body
 
     @classmethod
@@ -67,21 +72,26 @@ class PropanMessage(Request):
             dropwhile(
                 lambda i: i in dependencies_names,
                 inspect.signature(dependant.call).parameters,
-            )
+            ),
+            None,
         )
 
         async def app(message: NativeMessage) -> Any:
-            if not isinstance(message, dict):
-                message = {first_arg: message}
+            if first_arg is not None:
+                if not isinstance(message, dict):  # pragma: no branch
+                    message = {first_arg: message}
 
-            session = connection_class(message)
+                session = connection_class(message)
+            else:
+                session = connection_class()
             return await func(session)
 
         return app
 
 
 def get_app(
-    dependant: Dependant, dependency_overrides_provider: Optional[Any] = None
+    dependant: Dependant,
+    dependency_overrides_provider: Optional[Any] = None,
 ) -> Callable[[PropanMessage], Coroutine[Any, Any, Any]]:
     async def app(request: PropanMessage) -> Any:
         solved_result = await solve_dependencies(

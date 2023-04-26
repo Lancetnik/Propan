@@ -17,8 +17,7 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
 {!> docs_src/integrations/fastapi_plugin_rabbit.py!}
 ```
 
-When processing a message from a broker, the entire message body is placed simultaneously in both the `body` and `path` request parameters: you can get access to them
-in any way convenient for you. The message header is placed in `headers`.
+When processing a message from a broker, the entire message body is placed simultaneously in both the `body` and `path` request parameters: you can get access to them in any way convenient for you. The message header is placed in `headers`.
 
 Also, this router can be fully used as an `HttpRouter` (of which it is the inheritor). So you can
 use it to declare any `get`, `post`, `put` and other HTTP methods. For example, this is done at  **19** line .

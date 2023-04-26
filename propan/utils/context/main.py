@@ -33,7 +33,7 @@ class ContextRepo(Singlethon):
 
     def get_local(self, key: str) -> Any:
         context_var = self._scope_context.get(key)
-        if context_var is not None:
+        if context_var is not None:  # pragma: no branch
             return context_var.get()
 
     def clear(self) -> None:

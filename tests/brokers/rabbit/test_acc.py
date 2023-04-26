@@ -1,5 +1,8 @@
+import asyncio
+
 import pytest
 from aio_pika import Message
+from pydantic import BaseModel
 
 from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
 from tests.tools.marks import needs_py38
@@ -118,3 +121,43 @@ async def test_consume_with_get_old(
     await wait_for_mock(async_mock)
 
     async_mock.assert_called_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.rabbit
+@needs_py38
+async def test_rpc(async_mock, queue: RabbitQueue, broker: RabbitBroker):
+    class Message(BaseModel):
+        r: str
+
+    response = Message(r="hello!")
+
+    async with broker:
+        async_mock.return_value = response
+        broker.handle(queue)(async_mock)
+        await broker.start()
+
+        r = await broker.publish(message="hello", queue=queue, callback=True)
+        assert r == response
+
+
+@pytest.mark.asyncio
+@pytest.mark.rabbit
+@needs_py38
+async def test_rpc_timeout(queue: RabbitQueue, broker: RabbitBroker):
+    async with broker:
+
+        @broker.handle(queue)
+        async def m():  # pragma: no cover
+            asyncio.sleep(1)
+
+        await broker.start()
+
+        with pytest.raises(asyncio.TimeoutError):
+            await broker.publish(
+                message="hello",
+                queue=queue,
+                callback=True,
+                raise_timeout=True,
+                callback_timeout=0,
+            )
