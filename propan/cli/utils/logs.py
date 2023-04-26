@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 from enum import Enum
-from typing import Union
+from typing import DefaultDict, Union
 
 from propan.log import access_logger, logger
 
@@ -14,7 +14,7 @@ class LogLevels(str, Enum):
     debug = "debug"
 
 
-LOG_LEVELS: "defaultdict[str, int]" = defaultdict(
+LOG_LEVELS: DefaultDict[str, int] = defaultdict(
     lambda: logging.INFO,
     **{
         "critical": logging.CRITICAL,

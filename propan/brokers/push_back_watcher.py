@@ -4,6 +4,8 @@ from logging import Logger
 from types import TracebackType
 from typing import Callable, Optional, Type
 
+from typing_extensions import Counter as CounterType
+
 from propan.utils.functions import call_or_await
 
 
@@ -39,7 +41,7 @@ class FakePushBackWatcher(BaseWatcher):
 
 
 class PushBackWatcher(BaseWatcher):
-    memory: "Counter[str]"
+    memory: CounterType[str]
 
     def __init__(self, max_tries: int = 3, logger: Optional[Logger] = None):
         super().__init__(logger=logger, max_tries=max_tries)

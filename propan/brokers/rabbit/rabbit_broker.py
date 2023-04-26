@@ -159,11 +159,11 @@ class RabbitBroker(BrokerUsecase):
             return r
 
         else:
-            async with callback_queue.iterator() as queue_iterator:
+            async with callback_queue.iterator(timeout=callback_timeout) as queue_iterator:
                 try:
-                    message = await asyncio.wait_for(
-                        anext(queue_iterator), timeout=callback_timeout
-                    )
+                    async for m in queue_iterator:
+                        message = m
+                        break
                 except asyncio.TimeoutError as e:
                     if raise_timeout is True:  # pragma: no branch
                         raise e

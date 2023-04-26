@@ -42,8 +42,8 @@ class PropanRoute(BaseRoute):
 class PropanMessage(Request):
     scope: AnyDict
     _cookies: AnyDict
-    _headers: AnyDict       # type: ignore
-    _body: AnyDict          # type: ignore
+    _headers: AnyDict  # type: ignore
+    _body: AnyDict  # type: ignore
     _query_params: AnyDict  # type: ignore
 
     def __init__(

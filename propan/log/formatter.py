@@ -1,7 +1,7 @@
 import logging
 import sys
 from collections import defaultdict
-from typing import Callable, Optional
+from typing import Callable, DefaultDict, Optional
 
 import click
 from typing_extensions import Literal
@@ -10,7 +10,7 @@ from propan.utils.context.main import context
 
 
 class ColourizedFormatter(logging.Formatter):
-    level_name_colors: "defaultdict[str, Callable[[str], str]]" = defaultdict(
+    level_name_colors: DefaultDict[str, Callable[[str], str]] = defaultdict(
         lambda: str,
         **{
             str(logging.DEBUG): lambda level_name: click.style(
