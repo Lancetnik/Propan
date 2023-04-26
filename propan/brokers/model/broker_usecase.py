@@ -93,6 +93,7 @@ class BrokerUsecase(ABC):
             self._init_logger(self.logger)
         await self.connect()
 
+    @abstractmethod
     def _get_log_context(self, **kwargs: Any) -> Dict[str, Any]:
         return {}
 
@@ -106,7 +107,7 @@ class BrokerUsecase(ABC):
         raise NotImplementedError()
 
     @property
-    def fmt(self) -> str:
+    def fmt(self) -> str:  # pragma: no cover
         return self._fmt
 
     def _init_logger(self, logger: logging.Logger) -> None:

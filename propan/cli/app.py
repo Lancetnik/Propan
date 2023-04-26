@@ -96,5 +96,5 @@ class PropanApp:
             await func()
 
     async def __exit(self, flag: bool) -> None:
-        if self._stop_stream is not None:
+        if self._stop_stream is not None:  # pragma: no branch
             await self._stop_stream.send(flag)

@@ -80,6 +80,8 @@ test = [
     "pytest-asyncio>=0.21",
     "pytest-xdist[psutil]",
 
+    "fastapi",
+
     "asyncmock; python_version < '3.8'",
 ]
 
@@ -175,7 +177,8 @@ extend-immutable-calls = [
     "propan.Depends", "propan.Context",
     "propan.utils.Depends", "propan.utils.Context",
     "propan.utils.context.Depends", "propan.utils.context.Context",
-    "typer.Argument", "typer.Option", "fastapi.Depends",
+    "typer.Argument", "typer.Option",
+    "fastapi.Depends", "fastapi.datastructures.Default",
 ]
 
 [tool.pytest.ini_options]
@@ -230,4 +233,5 @@ omit = [
     '*/__about__.py',
     '*/__main__.py',
     '*/__init__.py',
+    '*/annotations.py',
 ]

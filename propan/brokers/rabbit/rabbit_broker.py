@@ -13,7 +13,7 @@ from propan.brokers.model import BrokerUsecase, ContentTypes
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.types import AnyDict, DecodedMessage, DecoratedCallable, Wrapper
-from propan.utils.functions import async_partial
+from propan.utils.context import context as global_context
 
 TimeoutType = Optional[Union[int, float]]
 
@@ -109,7 +109,8 @@ class RabbitBroker(BrokerUsecase):
             func = handler.callback
 
             if self.logger is not None:
-                self._get_log_context(None, handler.queue, handler.exchange)
+                context = self._get_log_context(None, handler.queue, handler.exchange)
+                global_context.set_local("log_context", context)
                 self.logger.info(f"`{func.__name__}` waiting for messages")
 
             await queue.consume(func)
@@ -164,7 +165,7 @@ class RabbitBroker(BrokerUsecase):
                         anext(queue_iterator), timeout=callback_timeout
                     )
                 except asyncio.TimeoutError as e:
-                    if raise_timeout is True:
+                    if raise_timeout is True:  # pragma: no branch
                         raise e
                 else:
                     return await self._decode_message(message)
@@ -244,8 +245,8 @@ class RabbitBroker(BrokerUsecase):
                     watcher,
                     message.message_id,
                     on_success=message.ack,
-                    on_error=async_partial(message.reject, True),
-                    on_max=async_partial(message.reject, False),
+                    on_error=message.nack,
+                    on_max=message.reject,
                 )
 
             async with context:

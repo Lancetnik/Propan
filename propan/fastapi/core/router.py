@@ -22,7 +22,9 @@ class PropanRouter(APIRouter):
 
     @property
     def mq_routes(self) -> Tuple[PropanRoute, ...]:
-        return tuple(filter(lambda x: isinstance(x, PropanRoute), self.routes))
+        return tuple(
+            filter(lambda x: isinstance(x, PropanRoute), self.routes)  # type: ignore
+        )
 
     async def _connect(self) -> None:
         await self.broker.start()

@@ -2,9 +2,9 @@ import logging
 import sys
 from collections import defaultdict
 from typing import Callable, Optional
-from typing_extensions import Literal
 
 import click
+from typing_extensions import Literal
 
 from propan.utils.context.main import context
 
