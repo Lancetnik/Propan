@@ -8,7 +8,7 @@ from fastapi.dependencies.utils import get_dependant, solve_dependencies
 from fastapi.routing import run_endpoint_function
 from pydantic import ValidationError, create_model
 from starlette.requests import Request
-from starlette.routing import BaseRoute, get_name
+from starlette.routing import BaseRoute
 
 from propan.brokers.model import BrokerUsecase
 from propan.types import AnyDict
@@ -23,15 +23,12 @@ class PropanRoute(BaseRoute):
         endpoint: Callable[..., Any],
         broker: BrokerUsecase,
         *,
-        name: Optional[str] = None,
         dependency_overrides_provider: Optional[Any] = None,
         **hanle_kwargs: AnyDict,
     ) -> None:
-        self.broker = broker
         self.path = path
-        self.endpoint = endpoint
-        self.name = name if name else get_name(endpoint)
-        self.dependant = get_dependant(path=path, call=self.endpoint)
+        self.broker = broker
+        self.dependant = get_dependant(path=path, call=endpoint)
 
         handler = PropanMessage.get_session(
             self.dependant, dependency_overrides_provider
@@ -59,7 +56,7 @@ class PropanMessage(Request):
 
     @classmethod
     def get_session(
-        connection_class,
+        cls,
         dependant: Dependant,
         dependency_overrides_provider: Optional[Any] = None,
     ) -> Callable[[NativeMessage], Any]:
@@ -81,9 +78,9 @@ class PropanMessage(Request):
                 if not isinstance(message, dict):  # pragma: no branch
                     message = {first_arg: message}
 
-                session = connection_class(message)
+                session = cls(message)
             else:
-                session = connection_class()
+                session = cls()
             return await func(session)
 
         return app

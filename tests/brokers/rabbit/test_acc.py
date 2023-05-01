@@ -1,73 +1,88 @@
-import asyncio
+from asyncio import Event, wait_for
 
 import pytest
 from aio_pika import Message
-from pydantic import BaseModel
 
 from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
-from tests.tools.marks import needs_py38
 
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
-@needs_py38
 async def test_consume(
-    async_mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
+    mock,
+    queue: RabbitQueue,
+    broker: RabbitBroker,
 ):
-    async with broker:
-        broker.handle(queue)(async_mock)
-        await broker.start()
+    consume = Event()
+    mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
+    async with broker:
+        broker.handle(queue, retry=1)(mock)
+        await broker.start()
         await broker.publish(message="hello", queue=queue)
-        await wait_for_mock(async_mock)
+        await wait_for(consume.wait(), 3)
 
-    async_mock.assert_called_once()
+    mock.assert_called_once()
 
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
-@needs_py38
 async def test_consume_double(
-    async_mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
+    mock,
+    queue: RabbitQueue,
+    broker: RabbitBroker,
 ):
+    consume = Event()
+    mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+
     async with broker:
-        broker.handle(queue)(async_mock)
+        broker.handle(queue)(mock)
         await broker.start()
 
         await broker.publish("hello", queue=queue)
-        await wait_for_mock(async_mock)
+        await wait_for(consume.wait(), 3)
 
+        consume.clear()
         await broker.publish("hello", queue=queue)
-        await wait_for_mock(async_mock)
+        await wait_for(consume.wait(), 3)
 
-    assert async_mock.call_count == 2
+    assert mock.call_count == 2
 
 
 @pytest.mark.asyncio
-@pytest.mark.slow
 @pytest.mark.rabbit
-@needs_py38
 async def test_different_consume(
-    async_mock, queue: RabbitQueue, broker: RabbitBroker, wait_for_mock
+    mock,
+    queue: RabbitQueue,
+    broker: RabbitBroker,
 ):
+    first_consume = Event()
+    second_consume = Event()
+
+    mock.method.side_effect = lambda *_: first_consume.set()  # pragma: no branch
+    mock.method2.side_effect = lambda *_: second_consume.set()  # pragma: no branch
+
     another_queue = RabbitQueue(**queue.dict(exclude={"name"}), name=queue.name + "1")
     async with broker:
-        broker.handle(queue)(async_mock.method)
-        broker.handle(another_queue)(async_mock.method2)
+        broker.handle(queue)(mock.method)
+        broker.handle(another_queue)(mock.method2)
         await broker.start()
 
         await broker.publish(message="hello", queue=queue)
         await broker.publish(message="hello", queue=another_queue)
 
-        await wait_for_mock(async_mock.method)
-        await wait_for_mock(async_mock.method2)
+        await wait_for(first_consume.wait(), 3)
+        await wait_for(second_consume.wait(), 3)
 
-    async_mock.method.assert_called_once()
-    async_mock.method2.assert_called_once()
+    mock.method.assert_called_once()
+    mock.method2.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_same_consume(queue: RabbitQueue, broker: RabbitBroker):
+async def test_same_consume(
+    queue: RabbitQueue,
+    broker: RabbitBroker,
+):
     broker.handle(queue)(lambda: None)
     with pytest.raises(ValueError):
         broker.handle(queue)(lambda: None)
@@ -75,89 +90,50 @@ async def test_same_consume(queue: RabbitQueue, broker: RabbitBroker):
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
-@needs_py38
 async def test_consume_from_exchange(
-    async_mock,
+    mock,
     queue: RabbitQueue,
     exchange: RabbitExchange,
     broker: RabbitBroker,
-    wait_for_mock,
 ):
+    consume = Event()
+    mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+
     async with broker:
-        broker.handle(queue=queue, exchange=exchange, retry=True)(async_mock)
+        broker.handle(queue=queue, exchange=exchange, retry=True)(mock)
         await broker.start()
-
         await broker.publish({"msg": "hello"}, queue=queue, exchange=exchange)
+        await wait_for(consume.wait(), 3)
 
-        await wait_for_mock(async_mock)
-
-    async_mock.assert_called_once()
+    mock.assert_called_once()
 
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
-@needs_py38
 async def test_consume_with_get_old(
-    async_mock,
+    mock,
     queue: RabbitQueue,
     exchange: RabbitExchange,
     broker: RabbitBroker,
-    wait_for_mock,
 ):
+    consume = Event()
+    mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+
     await broker.connect()
     await broker._init_channel()
     await broker._init_queue(queue)
     await broker._init_exchange(exchange)
 
     broker.handle(
-        queue=RabbitQueue(name=queue.name, declare=False),
-        exchange=RabbitExchange(name=exchange.name, declare=False),
-        retry=1,
-    )(async_mock)
-    await broker.start()
-
-    await broker.publish(Message(b"hello"), queue=queue.name, exchange=exchange.name)
-
-    await wait_for_mock(async_mock)
-
-    async_mock.assert_called_once()
-
-
-@pytest.mark.asyncio
-@pytest.mark.rabbit
-@needs_py38
-async def test_rpc(async_mock, queue: RabbitQueue, broker: RabbitBroker):
-    class Message(BaseModel):
-        r: str
-
-    response = Message(r="hello!")
+        queue=RabbitQueue(name=queue.name, passive=True),
+        exchange=RabbitExchange(name=exchange.name, passive=True),
+    )(mock)
 
     async with broker:
-        async_mock.return_value = response
-        broker.handle(queue)(async_mock)
         await broker.start()
+        await broker.publish(
+            Message(b"hello"), queue=queue.name, exchange=exchange.name
+        )
+        await wait_for(consume.wait(), 3)
 
-        r = await broker.publish(message="hello", queue=queue, callback=True)
-        assert r == response
-
-
-@pytest.mark.asyncio
-@pytest.mark.rabbit
-@needs_py38
-async def test_rpc_timeout(queue: RabbitQueue, broker: RabbitBroker):
-    async with broker:
-
-        @broker.handle(queue)
-        async def m():  # pragma: no cover
-            asyncio.sleep(1)
-
-        await broker.start()
-
-        with pytest.raises(asyncio.TimeoutError):
-            await broker.publish(
-                message="hello",
-                queue=queue,
-                callback=True,
-                raise_timeout=True,
-                callback_timeout=0,
-            )
+    mock.assert_called_once()

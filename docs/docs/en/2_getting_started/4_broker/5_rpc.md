@@ -1,4 +1,4 @@
-# RPC 
+# RPC
 
 ## Reasons to use RPC over MQ
 
@@ -76,5 +76,4 @@ To process the response outside of the main execution loop, you can initialize a
     ```
 
 !!! note
-    Note that for non-blocking messages to work, `broker` must be running. That means we can't
-    work with such messages using `broker` as a context manager.
+    Note that the `broker` must be running to consume non-blocking messages. This means we cannot work with non-blocking RPC messages using `broker` as a context manager.

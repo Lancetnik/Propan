@@ -12,7 +12,11 @@ from propan.utils.functions import call_or_await
 class BaseWatcher(ABC):
     max_tries: int
 
-    def __init__(self, max_tries: int = 0, logger: Optional[Logger] = None):
+    def __init__(
+        self,
+        max_tries: int = 0,
+        logger: Optional[Logger] = None,
+    ):
         self.logger = logger
         self.max_tries = max_tries
 
@@ -43,7 +47,11 @@ class FakePushBackWatcher(BaseWatcher):
 class PushBackWatcher(BaseWatcher):
     memory: CounterType[str]
 
-    def __init__(self, max_tries: int = 3, logger: Optional[Logger] = None):
+    def __init__(
+        self,
+        max_tries: int = 3,
+        logger: Optional[Logger] = None,
+    ):
         super().__init__(logger=logger, max_tries=max_tries)
         self.memory = Counter()
 

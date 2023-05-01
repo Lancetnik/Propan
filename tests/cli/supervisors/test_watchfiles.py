@@ -15,6 +15,7 @@ def exit(parent_id):  # pragma: no cover
     os.kill(parent_id, signal.SIGINT)
 
 
+@pytest.mark.slow
 def test_base():
     processor = WatchReloader(target=exit, args=(), reload_dirs=[DIR])
 

@@ -28,7 +28,7 @@
 
 # Propan
 
-**Propan** - just *<s>an another one HTTP</s>* a **declarative Python MQ framework**. It's following by [*fastapi*](https://fastapi.tiangolo.com/ru/),
+**Propan** - dsd *~~an another one HTTP~~* a **declarative Python MQ framework**. It's following by [*fastapi*](https://fastapi.tiangolo.com/ru/),
 simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
@@ -48,12 +48,13 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 * [**Dependencies management**](#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
 * [**Integrations**](#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](https://lancetnik.github.io/Propan/5_integrations/1_integrations-index/) you want
 * **MQ independent**: Single interface to popular MQ:
-    * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
-    * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/))
-* [**RPC**](https://lancetnik.github.io/Propan/2_getting_started/4_broker/4_rpc/): The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
+  * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
+  * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/))
+* [**RPC**](https://lancetnik.github.io/Propan/2_getting_started/4_broker/5_rpc/): The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
 * [**Greate to develop**](#cli-power): CLI tool provides great development experience:
-    * framework-independent way to rule application environment
-    * application code hot reloading
+  * framework-independent way to rule application environment
+  * application code hot reloading
+* [**Testability**](https://lancetnik.github.io/Propan/2_getting_started/7_testing): **Propan** allows you to test your app without external dependencies: you shouldn't suit up a Message Broker, use a virtual one!
 
 ### Supported MQ brokers
 |              | async                                                   | sync                 |
@@ -194,24 +195,27 @@ You can specify in functions arguments which dependencies
 you would to use. Framework passes them from the global Context object.
 
 Already existed context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
-If you call not existing field, raises *pydantic.error_wrappers.ValidationError* value.
+If you call not existing field, raises *pydantic.ValidationError* value.
 
 But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
 and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 
 ```python
-from logging import Logger
-
 import aio_pika
-from propan import PropanApp, Context, RabbitBroker
+from propan import PropanApp, RabbitBroker, Context, Depends
 
 rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
 app = PropanApp(rabbit_broker)
 
+async def dependency(body: dict) -> bool:
+    return True
+
 @rabbit_broker.handle("test")
 async def base_handler(body: dict,
+                       dep: bool = Depends(dependency),
                        broker: RabbitBroker = Context()):
+    assert dep is True
     assert broker is rabbit_broker
 ```
 
@@ -220,6 +224,7 @@ async def base_handler(body: dict,
 ## CLI power
 
 **Propan** has its own CLI tool that provided the following features:
+
 * project generation
 * multiprocessing workers
 * project hot reloading
@@ -228,8 +233,9 @@ async def base_handler(body: dict,
 ### Context passing
 
 For example: pass your current *.env* project setting to context
+
 ```bash
-$ propan run serve:app --env=.env.dev
+propan run serve:app --env=.env.dev
 ```
 
 ```python
@@ -247,27 +253,27 @@ class Settings(BaseSettings):
 @app.on_startup
 async def setup(env: str, context: ContextRepo):
     settings = Settings(_env_file=env)
-    context.set_context("settings", settings)
+    context.set_global("settings", settings)
 ```
 
 ### Project template
 
 Also, **Propan CLI** is able to generate a production-ready application template:
 
-```shell
-$ propan create [projectname]
+```bash
+propan create [projectname]
 ```
 
 *Notice: project template require* `pydantic[dotenv]` *installation.*
 
 Run the created project:
 
-```shell
+```bash
 # Run rabbimq first
-$ docker compose --file [projectname]/docker-compose.yaml up -d
+docker compose --file [projectname]/docker-compose.yaml up -d
 
 # Run project
-$ propan run [projectname].app.serve:app --env=.env --reload
+propan run [projectname].app.serve:app --env=.env --reload
 ```
 
 Now you can enjoy a new development experience!

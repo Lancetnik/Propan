@@ -14,7 +14,7 @@ This behavior is similar for all brokers, however, the parameters passed to `@br
 
 To learn more about the behavior of specialized brokers, go to the following sections:
 
-* [RabbitBroker](../../../3_rabbit/2_routing)
+* [RabbitBroker](../../../3_rabbit/1_routing)
 * [NatsBroker](../../../4_nats/2_routing)
 
 ## Error handling
@@ -38,6 +38,7 @@ async def base_handler(body: str):
 ```
 
 When setting the value `int` as the flag, the number of retries will be limited to this number.
+
 ```python
 @broker.handle("test", retry=3)     # make up to 3 attempts
 async def base_handler(body: str):

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 from aio_pika.abc import ExchangeType, TimeoutType
 from pydantic import BaseModel, Field
@@ -23,12 +23,11 @@ class RabbitQueue(Queue):
     timeout: TimeoutType = None
     robust: bool = True
 
-    declare: bool = Field(default=True, exclude=True)
     routing_key: str = Field(default="", exclude=True)
 
 
 class RabbitExchange(NameRequired):
-    type: Union[ExchangeType, str] = ExchangeType.DIRECT
+    type: ExchangeType = ExchangeType.DIRECT
     durable: bool = False
     auto_delete: bool = False
     internal: bool = False
@@ -36,8 +35,6 @@ class RabbitExchange(NameRequired):
     arguments: Optional[Dict[str, Any]] = None
     timeout: TimeoutType = None
     robust: bool = True
-
-    declare: bool = Field(default=True, exclude=True)
 
 
 class Handler(BaseModel):

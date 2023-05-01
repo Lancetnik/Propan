@@ -116,29 +116,27 @@ nav:
       - Depends: 2_getting_started/5_dependency/1_di-index.md
       - Context: 2_getting_started/5_dependency/2_context.md
     - Lifespan: 2_getting_started/6_lifespans.md
+    - Testing: 2_getting_started/7_testing.md
+    - Logging:
+      - Settings: 2_getting_started/8_logging/1_logging.md
+      - Custom Loggers: 2_getting_started/8_logging/2_logging-custom.md
   - RabbitMQ:
-    - RabbitMQ Basics: 3_rabbit/1_rabbit-index.md
-    - Routing: 3_rabbit/2_routing.md
-    - Exchanges: 3_rabbit/3_exchanges.md
-    - Queues and Bindings: 3_rabbit/4_queues.md
-    - Rabbit Pubslishing: 3_rabbit/5_publishing.md
+    - Routing: 3_rabbit/1_routing.md
+    - Exchanges: 3_rabbit/2_exchanges.md
+    - Queues and Bindings: 3_rabbit/3_queues.md
+    - Rabbit Pubslishing: 3_rabbit/4_publishing.md
   - NATS:
     - NATS Basics: 4_nats/1_nats-index.md
     - Routing: 4_nats/2_routing.md
     - Nats Pubslishing: 4_nats/3_publishing.md
   - Integrations: 5_integrations/1_integrations-index.md
-  - FastAPI Plugin: 5_integrations/2_fastapi-plugin.md
-  - Avanced:
-    - Advanced - INTRO: 6_advanced/1_advanced-index.md
-    - Logging:
-      - Settings: 6_advanced/2_logging/1_logging.md
-      - Custom Loggers: 6_advanced/2_logging/2_logging-custom.md
+  - FastAPI Plugin: 5_integrations/2_fastapi-plugin.md  
   - Contributing:
-    - TODOS: 7_contributing/1_todo.md
-    - Environment: 7_contributing/2_contributing-index.md
-    - Documentation: 7_contributing/3_docs.md
-    - Adapters: 7_contributing/4_adapters.md
-  - Alternatives: 8_alternatives.md
-  - Help Propan: 9_help.md
-  - Community: 10_community.md
-  - Release Notes: 11_CHANGELOG.md
+    - TODOS: 6_contributing/1_todo.md
+    - Environment: 6_contributing/2_contributing-index.md
+    - Documentation: 6_contributing/3_docs.md
+    - Adapters: 6_contributing/4_adapters.md
+  - Alternatives: 7_alternatives.md
+  - Help Propan: 8_help.md
+  - Community: 9_community.md
+  - Release Notes: 10_CHANGELOG.md

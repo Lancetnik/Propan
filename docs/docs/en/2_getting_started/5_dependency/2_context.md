@@ -1,4 +1,4 @@
-# CONTEXT 
+# CONTEXT
 
 **Propan** stores the context of the application and each request. You can access them using a special class `Context`.
 
@@ -50,7 +50,7 @@ For your convenience, **Propan** already contains annotations for existing conte
 
 ### Default values
 
-If you try to access a field that does not exist in the global context, you will get the `pydantic.error_wrappers.ValidationError` exception.
+If you try to access a field that does not exist in the global context, you will get the `pydantic.ValidationError` exception.
 
 However, you can set the default value if you feel the need.
 

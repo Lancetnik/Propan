@@ -1,24 +1,36 @@
+import json
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
-from time import perf_counter
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
-from propan.brokers.push_back_watcher import (
-    BaseWatcher,
-    FakePushBackWatcher,
-    PushBackWatcher,
+from propan.brokers.model.schemas import (
+    ContentType,
+    ContentTypes,
+    PropanMessage,
+    SendableModel,
 )
+from propan.brokers.model.utils import (
+    change_logger_handlers,
+    get_watcher,
+    set_message_context,
+    suppress_decor,
+)
+from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
 from propan.types import (
     AnyCallable,
     DecodedMessage,
     DecoratedAsync,
     DecoratedCallable,
+    HandlerWrapper,
+    SendableMessage,
     Wrapper,
 )
 from propan.utils import apply_types, context
 from propan.utils.functions import to_async
+
+T = TypeVar("T")
 
 
 class BrokerUsecase(ABC):
@@ -65,7 +77,7 @@ class BrokerUsecase(ABC):
     @abstractmethod
     async def publish(
         self,
-        message: Any,
+        message: SendableMessage,
         *args: Any,
         callback: bool = False,
         callback_timeout: Optional[float] = None,
@@ -79,23 +91,19 @@ class BrokerUsecase(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    async def _decode_message(self, message: Any) -> DecodedMessage:
+    async def _parse_message(self, message: Any) -> PropanMessage:
         raise NotImplementedError()
 
     @abstractmethod
     def _process_message(
-        self, func: DecoratedCallable, watcher: Optional[BaseWatcher]
-    ) -> Wrapper:
+        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
+    ) -> Callable[[PropanMessage], T]:
         raise NotImplementedError()
 
-    async def start(self) -> None:
-        if self.logger is not None:
-            self._init_logger(self.logger)
-        await self.connect()
-
-    @abstractmethod
-    def _get_log_context(self, **kwargs: Any) -> Dict[str, Any]:
-        return {}
+    def _get_log_context(self, message: PropanMessage) -> Dict[str, Any]:
+        return {
+            "message_id": message.message_id[:10] if message else "",
+        }
 
     @abstractmethod
     def handle(
@@ -103,23 +111,32 @@ class BrokerUsecase(ABC):
         *broker_args: Any,
         retry: Union[bool, int] = False,
         **broker_kwargs: Any,
-    ) -> Wrapper:
+    ) -> HandlerWrapper:
         raise NotImplementedError()
+
+    @staticmethod
+    async def _decode_message(message: PropanMessage) -> DecodedMessage:
+        body = message.body
+        m: DecodedMessage = body
+        if message.content_type is not None:
+            if ContentTypes.text.value in message.content_type:
+                m = body.decode()
+            elif ContentTypes.json.value in message.content_type:  # pragma: no branch
+                m = json.loads(body.decode())
+        return m
+
+    @staticmethod
+    def _encode_message(msg: SendableMessage) -> Tuple[bytes, Optional[ContentType]]:
+        return SendableModel.to_send(msg)
 
     @property
     def fmt(self) -> str:  # pragma: no cover
         return self._fmt
 
-    def _init_logger(self, logger: logging.Logger) -> None:
-        for handler in logger.handlers:
-            formatter = handler.formatter
-            if formatter is not None:
-                use_colors = getattr(formatter, "use_colors", None)
-                if use_colors is not None:
-                    kwargs = {"use_colors": use_colors}
-                else:
-                    kwargs = {}
-                handler.setFormatter(type(formatter)(self.fmt, **kwargs))
+    async def start(self) -> None:
+        if self.logger is not None:
+            change_logger_handlers(self.logger, self.fmt)
+        await self.connect()
 
     async def __aenter__(self) -> "BrokerUsecase":
         await self.connect()
@@ -129,95 +146,80 @@ class BrokerUsecase(ABC):
         await self.close()
 
     def _wrap_handler(
-        self, func: AnyCallable, retry: Union[bool, int], **broker_args: Any
+        self,
+        func: AnyCallable,
+        retry: Union[bool, int] = False,
+        **broker_args: Any,
     ) -> DecoratedAsync:
-        func = to_async(func)
+        f = to_async(func)
 
         if self._is_apply_types is True:
-            func = apply_types(func)
+            f = apply_types(f)
 
         if self.logger is not None:
-            func = self._log_execution(self.logger, **broker_args)(func)
+            f = self._log_execution(**broker_args)(f)
 
-        func = self._wrap_decode_message(func)
+        f = self._wrap_decode_message(f)
 
-        func = self._process_message(func, _get_watcher(self.logger, retry))
+        f = self._process_message(f, get_watcher(self.logger, retry))
 
-        func = _set_message_context(func)
+        f = self._wrap_parse_message(f)
 
-        func = suppress(func)
+        f = set_message_context(f)
 
-        return func
+        f = suppress_decor(f)
 
-    def _wrap_decode_message(self, func: AnyCallable) -> DecoratedCallable:
+        return f
+
+    def _wrap_decode_message(
+        self, func: Callable[..., Awaitable[T]]
+    ) -> Callable[[PropanMessage], Awaitable[T]]:
         @wraps(func)
-        async def wrapper(message: Any) -> Any:
+        async def wrapper(message: PropanMessage) -> T:
             return await func(await self._decode_message(message))
 
         return wrapper
 
-    def _log_execution(self, logger: logging.Logger, **broker_args: Any) -> Wrapper:
+    def _wrap_parse_message(
+        self, func: Callable[[PropanMessage], Awaitable[T]]
+    ) -> Callable[[Any], Awaitable[T]]:
+        @wraps(func)
+        async def wrapper(message: Any) -> T:
+            return await func(await self._parse_message(message))
+
+        return wrapper
+
+    def _log_execution(
+        self,
+        **broker_args: Any,
+    ) -> Wrapper:
         def decor(func: AnyCallable) -> DecoratedCallable:
             @wraps(func)
             async def wrapper(*args: Any, **kwargs: Any) -> Any:
                 message = context.get("message")
 
-                start = perf_counter()
-
                 log_context = self._get_log_context(message=message, **broker_args)
 
                 with context.scope("log_context", log_context):
-                    logger.log(self.log_level, "Received")
+                    self._log("Received")
 
                     try:
                         r = await func(*args, **kwargs)
                     except Exception as e:
-                        logger.error(repr(e))
+                        self._log(repr(e), logging.ERROR)
                         raise e
                     else:
-                        logger.log(
-                            self.log_level,
-                            f"Processed by {(perf_counter() - start):.4f}",
-                        )
+                        self._log("Processed")
                         return r
 
             return wrapper
 
         return decor
 
-    def _log(self, message: str, log_level: Optional[int] = None) -> None:
+    def _log(
+        self,
+        message: str,
+        log_level: Optional[int] = None,
+    ) -> None:
         if self.logger is not None:
             self.logger.log(level=(log_level or self.log_level), msg=message)
-
-
-def _get_watcher(
-    logger: Optional[logging.Logger], try_number: Union[bool, int] = True
-) -> Optional[BaseWatcher]:
-    watcher: Optional[BaseWatcher]
-    if try_number is True:
-        watcher = FakePushBackWatcher()
-    elif try_number is False:
-        watcher = None
-    else:
-        watcher = PushBackWatcher(logger=logger, max_tries=try_number)
-    return watcher
-
-
-def _set_message_context(func: AnyCallable) -> DecoratedCallable:
-    @wraps(func)
-    async def wrapper(message: Any) -> Any:
-        with context.scope("message", message):
-            return await func(message)
-
-    return wrapper
-
-
-def suppress(func: AnyCallable) -> DecoratedCallable:
-    @wraps(func)
-    async def wrapper(message: Any) -> Any:
-        try:
-            return await func(message)
-        except Exception:
-            pass
-
-    return wrapper

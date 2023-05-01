@@ -11,7 +11,7 @@ await broker.pubslih(message, ...)
 
 Ознакомиться со всеми особенностями, специфичными для вашего брокеры, вы можете здесь:
 
-* [RabbitBroker](../../../3_rabbit/5_publishing)
+* [RabbitBroker](../../../3_rabbit/4_publishing)
 * [NatsBroker](../../../4_nats/3_publishing)
 
 ## Допустимые типы для отправки

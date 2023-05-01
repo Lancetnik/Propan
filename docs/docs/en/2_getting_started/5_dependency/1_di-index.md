@@ -1,4 +1,4 @@
-# Dependencies 
+# Dependencies
 
 **Propan** uses the secondary library [**FastDepends**](https://lancetnik.github.io/FastDepends/) for dependency management.
 This dependency system is literally borrowed from **FastAPI**, so if you know how to work with this framework, you know how to work with dependencies in Propan.

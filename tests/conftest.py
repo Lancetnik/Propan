@@ -1,4 +1,3 @@
-import asyncio
 import sys
 from unittest.mock import Mock
 
@@ -35,18 +34,6 @@ def async_mock():
 @pytest.fixture(scope="session")
 def version():
     return __version__
-
-
-@pytest.fixture(scope="session")
-def wait_for_mock():
-    async def _wait_for_message(mock: Mock, max_tries=20):
-        tries = 0
-        call_count = mock.call_count
-        while tries < max_tries and call_count == mock.call_count:
-            await asyncio.sleep(0.1)
-            tries += 1
-
-    return _wait_for_message
 
 
 @pytest.fixture
