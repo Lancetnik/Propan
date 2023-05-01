@@ -1,62 +1,62 @@
-# Message Publishing 
+# Message Publishing
 
-**Propan** has a unified method to send messages
+**Propan** uses a unified method to send messages
 
 ```python
 await broker.pubslih(message, ...)
 ```
 
-This method, regardless of the broker, takes `message` as the first argument. However, the remaining arguments are
+This method, regardless of the broker, takes `message` as the first argument. However, the rest of the arguments are
 specific to different brokers.
 
 You can get acquainted with all the features specific to your broker here:
 
-* [RabbitBroker](../../../3_rabbit/5_publishing)
+* [RabbitBroker](../../../3_rabbit/4_publishing)
 * [NatsBroker](../../../4_nats/3_publishing)
 
-## Acceptable types to send
+## Valid types to submit
 
-| Type | Header when sending | Method of conversion to bytes |
-| -------------------- | --------------------------- | ---------------------------- |
-| `dict`               | application/json            | json.dumps(message).encode() |
-| `pydantic.BaseModel` | application/json            | message.json().encode()      |
-| `str`                | text/plain                  | message.encode()             |
-| `bytes`              |                             | message                      |
+| Type                 | Send header           | Method of casting to bytes         |
+| -------------------- | --------------------- | ---------------------------------- |
+| `dict`               | application/json      | json.dumps(message).encode()       |
+| `pydantic.BaseModel` | application/json      | message.json().encode()            |
+| `str`                | text/plain            | message.encode()                   |
+| `bytes`              |                       | message                            |
 
-Also, some brokers support sending special types, which are described in the appropriate section of your broker's documentation.
+Also, some brokers support sending special types, which are described in the relevant section of your broker's documentation.
 
-## Initializing the broker before sending
+## Broker initialization
 
 To send a message to a queue, you must first connect to it.
 
-If you are already inside a running **Propan** application, don't do anything: the broker is already running.
-Just get access to it and send a message.
+If you are inside a running **Propan** application, you don't need to do anything: the broker is already running.
+Just access it and send a message.
 
 === "RabbitMQ"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/publishing/1_rabbit_inside_propan.py !}
-    ```
+     ```python linenums="1" hl_lines="8"
+     {!> docs_src/quickstart/broker/publishing/1_rabbit_inside_propan.py !}
+     ```
 
 === "NATS"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/publishing/1_nats_inside_propan.py !}
-    ```
+     ```python linenums="1" hl_lines="8"
+     {!> docs_src/quickstart/broker/publishing/1_nats_inside_propan.py !}
+     ```
 
-If you use **Propan** only to send asynchronous messages within another framework, you can use
-the broker as a context manager for sending.
+If you are only using **Propan** to send asynchronous messages within another framework, you can use
+broker as context manager to send.
 
 === "RabbitMQ"
-    ```python
-    {!> docs_src/quickstart/broker/publishing/2_rabbit_context.py !}
-    ```
+     ```python
+     {!> docs_src/quickstart/broker/publishing/2_rabbit_context.py !}
+     ```
 
 === "NATS"
-    ```python
-    {!> docs_src/quickstart/broker/publishing/2_nats_context.py !}
-    ```
+     ```python
+     {!> docs_src/quickstart/broker/publishing/2_nats_context.py !}
+     ```
 
-!!! tip
+!!! tips
     Within this context, you can send an unlimited number of messages, as well as synchronously wait for a response to them.
-    However, you cannot initialize the `handle` within this context: they will complete their execution with the context.
+    However, `handle` cannot be initialized within this context: they will complete their execution along with the context.
 
-    This will be discussed in more detail in the next section.
+    This will be discribed in more detail in the next section.

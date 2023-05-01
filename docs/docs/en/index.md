@@ -35,7 +35,7 @@ It's designed to create reactive microservices around <a href="https://microserv
 It is a modern, high-level framework on top of popular specific Python brokers libraries, based on [*pydantic*](https://docs.pydantic.dev/) and [*fastapi*](https://fastapi.tiangolo.com/ru/), [*pytest*](https://docs.pytest.org/en/7.3.x/) concepts.
 
 !!! warning "Under development"
-    The main functional was written, as tests were. But, breaking changes are still able to be until **0.1.0** version. All of these changes will be described at [CHANGELOG](/Propan/11_CHANGELOG/), so watch by releases.
+    The main functional was written, as tests were. But, breaking changes are still able to be until **0.1.0** version. All of these changes will be described at [CHANGELOG](10_CHANGELOG), so watch by releases.
 
 ---
 
@@ -46,12 +46,13 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 * [**Dependencies management**](2_getting_started/1_quick-start/#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
 * [**Integrations**](2_getting_started/1_quick-start/#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](5_integrations/1_integrations-index/) you want
 * **MQ independent**: Single interface to popular MQ:
-    * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
+    * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py))
     * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
 * [**RPC**](2_getting_started/4_broker/5_rpc/): The framework supports RPC requests on top of message brokers, which will allow performing long operations on remote services asynchronously.
 * [**Greate to develop**](2_getting_started/2_cli/): CLI tool provides great development experience:
     * framework-independent way to rule application environment
     * application code hot reloading
+* [**Testability**](2_getting_started/7_testing): **Propan** allows you to test your app without external dependencies: you shouldn't suit up a Message Broker, use a virtual one!
 
 ---
 
@@ -59,7 +60,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 With declarative tools you should define **what you need to get**. With traditional imperative tools you should write **what you need to do**.
 
-Take a look at classic imperative tools, such as [aio-pika](https://aio-pika.readthedocs.io/en/latest/), [pika](https://pika.readthedocs.io/en/stable/), [nats-py](https://github.com/nats-io/nats.py), etc. 
+Take a look at classic imperative tools, such as [aio-pika](https://aio-pika.readthedocs.io/en/latest/), [pika](https://pika.readthedocs.io/en/stable/), [nats-py](https://github.com/nats-io/nats.py), etc.
 
 This is the **Quickstart** with the *aio-pika*:
 
@@ -110,7 +111,7 @@ This is the **Propan** declarative way to write the same code. That is so much e
 ## Supported MQ brokers
 
 !!! note "Need your help"
-    The framework is now actively developing. We have a very long list of what has yet to be implemented and various brokers are only part of it. If you want to implement something from this list or help in any other way, take a look [here](7_contributing/1_todo/)
+    The framework is now actively developing. We have a very long list of what has yet to be implemented and various brokers are only part of it. If you want to implement something from this list or help in any other way, take a look [here](6_contributing/1_todo/)
 
 |              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|

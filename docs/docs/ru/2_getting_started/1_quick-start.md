@@ -87,12 +87,12 @@ Propan имеет систему управления зависимостями
 Подробнее будет [чуть дальше](../5_dependency/1_di-index).
 
 === "RabbitMQ"
-    ```python linenums="1" hl_lines="12-17"
+    ```python linenums="1" hl_lines="11-12"
     {!> docs_src/index/03_rabbit_dependencies.py!}
     ```
 
 === "NATS"
-    ```python linenums="1" hl_lines="12-17"
+    ```python linenums="1" hl_lines="11-12"
     {!> docs_src/index/03_nats_dependencies.py!}
     ```
 

@@ -9,6 +9,7 @@ from propan.cli.utils.imports import get_app_path
 
 
 @pytest.mark.rabbit
+@pytest.mark.slow
 def test_run_correct(project_dir):
     module, app = get_app_path(f'{project_dir / "app" / "serve"}:app')
     sys.path.insert(0, str(module.parent))

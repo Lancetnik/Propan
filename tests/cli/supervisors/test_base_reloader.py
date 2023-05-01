@@ -1,5 +1,7 @@
 import signal
 
+import pytest
+
 from propan.cli.supervisors.basereload import BaseReload
 
 
@@ -16,6 +18,7 @@ def empty():
     pass
 
 
+@pytest.mark.slow
 def test_base():
     processor = PatchedBaseReload(target=empty, args=())
 

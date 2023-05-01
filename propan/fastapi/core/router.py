@@ -90,13 +90,11 @@ class PropanRouter(APIRouter):
         path: str,
         *,
         endpoint: Callable[..., Any],
-        name: Optional[str] = None,
         **broker_kwargs: AnyDict,
     ) -> None:
         route = PropanRoute(
             path,
             endpoint=endpoint,
-            name=name,
             dependency_overrides_provider=self.dependency_overrides_provider,
             broker=self.broker,
             **broker_kwargs,
@@ -104,13 +102,14 @@ class PropanRouter(APIRouter):
         self.routes.append(route)
 
     def event(
-        self, path: str, *, name: Optional[str] = None, **broker_kwargs: Dict[str, Any]
+        self,
+        path: str,
+        **broker_kwargs: Dict[str, Any],
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         def decorator(func: DecoratedCallable) -> DecoratedCallable:
             self.add_api_mq_route(
                 path,
                 endpoint=func,
-                name=name,
                 **broker_kwargs,
             )
             return func

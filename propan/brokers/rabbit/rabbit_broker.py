@@ -1,21 +1,22 @@
 import asyncio
-import json
 import logging
 from functools import wraps
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union
 from uuid import uuid4
 
 import aio_pika
 import aiormq
-from pydantic import BaseModel
 
-from propan.brokers.model import BrokerUsecase, ContentTypes
+from propan.brokers.model import BrokerUsecase
+from propan.brokers.model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
-from propan.types import AnyDict, DecodedMessage, DecoratedCallable, Wrapper
+from propan.types import AnyDict, DecoratedCallable, SendableMessage, Wrapper
 from propan.utils.context import context as global_context
 
 TimeoutType = Optional[Union[int, float]]
+PikaSendableMessage = Union[aio_pika.message.Message, SendableMessage]
+T = TypeVar("T")
 
 
 class RabbitBroker(BrokerUsecase):
@@ -47,12 +48,23 @@ class RabbitBroker(BrokerUsecase):
         await self._init_channel()
         return self
 
-    async def _connect(self, *args: Any, **kwargs: Any) -> aio_pika.Connection:
+    async def close(self) -> None:
+        if self._connection is not None:
+            await self._connection.close()
+
+    async def _connect(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> aio_pika.Connection:
         return await aio_pika.connect_robust(
             *args, **kwargs, loop=asyncio.get_event_loop()
         )
 
-    async def _init_channel(self, max_consumers: Optional[int] = None) -> None:
+    async def _init_channel(
+        self,
+        max_consumers: Optional[int] = None,
+    ) -> None:
         if self._channel is None:
             if self._connection is None:
                 raise ValueError("RabbitBroker not connected yet")
@@ -68,19 +80,11 @@ class RabbitBroker(BrokerUsecase):
         self,
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
-        *,
-        retry: Union[bool, int] = False,
+        **original_kwargs,
     ) -> Wrapper:
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
-        if exchange:
-            i = len(exchange.name)
-            if i > self.__max_exchange_len:  # pragma: no branch
-                self.__max_exchange_len = i
-
-        i = len(queue.name)
-        if i > self.__max_queue_len:  # pragma: no branch
-            self.__max_queue_len = i
+        self.__setup_log_context(queue, exchange)
 
         def wrapper(func: DecoratedCallable) -> Any:
             for handler in self.handlers:
@@ -91,7 +95,12 @@ class RabbitBroker(BrokerUsecase):
                         f"`{exchange.name if exchange else 'default'}` exchange"
                     )
 
-            func = self._wrap_handler(func, retry, queue=queue, exchange=exchange)
+            func = self._wrap_handler(
+                func,
+                queue=queue,
+                exchange=exchange,
+                **original_kwargs,
+            )
             handler = Handler(callback=func, queue=queue, exchange=exchange)
             self.handlers.append(handler)
 
@@ -117,7 +126,7 @@ class RabbitBroker(BrokerUsecase):
 
     async def publish(
         self,
-        message: Union[aio_pika.Message, str, Dict[str, Any], BaseModel] = "",
+        message: PikaSendableMessage = "",
         queue: Union[RabbitQueue, str] = "",
         exchange: Union[RabbitExchange, str, None] = None,
         *,
@@ -145,7 +154,7 @@ class RabbitBroker(BrokerUsecase):
         else:
             exchange_obj = await self._init_exchange(exchange)
 
-        message = _validate_message(message, callback_queue, **message_kwargs)
+        message = self._validate_message(message, callback_queue, **message_kwargs)
 
         r = await exchange_obj.publish(
             message=message,
@@ -159,61 +168,54 @@ class RabbitBroker(BrokerUsecase):
             return r
 
         else:
-            async with callback_queue.iterator(timeout=callback_timeout) as queue_iterator:
-                try:
-                    async for m in queue_iterator:
-                        message = m
-                        break
-                except asyncio.TimeoutError as e:
-                    if raise_timeout is True:  # pragma: no branch
-                        raise e
-                else:
-                    return await self._decode_message(message)
+            try:
+                async with callback_queue.iterator(
+                    timeout=callback_timeout
+                ) as queue_iterator:
+                    async for m in queue_iterator:  # pragma: no branch
+                        return await self._decode_message(m)
+            except asyncio.TimeoutError as e:
+                if raise_timeout is True:  # pragma: no branch
+                    raise e
 
-    async def close(self) -> None:
-        if self._connection is not None:
-            await self._connection.close()
-
-    async def _init_handler(self, handler: Handler) -> aio_pika.abc.AbstractRobustQueue:
+    async def _init_handler(
+        self,
+        handler: Handler,
+    ) -> aio_pika.abc.AbstractRobustQueue:
         queue = await self._init_queue(handler.queue)
         if handler.exchange is not None and handler.exchange.name != "default":
             exchange = await self._init_exchange(handler.exchange)
             await queue.bind(exchange, handler.queue.routing_key or handler.queue.name)
         return queue
 
-    async def _init_queue(self, queue: RabbitQueue) -> aio_pika.abc.AbstractRobustQueue:
-        if queue.declare is True:
-            return await self._channel.declare_queue(**queue.dict())
-        else:
-            return await self._channel.get_queue(queue.name, ensure=False)
+    async def _init_queue(
+        self,
+        queue: RabbitQueue,
+    ) -> aio_pika.abc.AbstractRobustQueue:
+        return await self._channel.declare_queue(**queue.dict())
 
     async def _init_exchange(
-        self, exchange: RabbitExchange
+        self,
+        exchange: RabbitExchange,
     ) -> aio_pika.abc.AbstractRobustExchange:
-        if exchange.declare is True:
-            return await self._channel.declare_exchange(**exchange.dict())
-        else:
-            return await self._channel.get_exchange(exchange.name, ensure=False)
+        return await self._channel.declare_exchange(**exchange.dict())
 
     def _get_log_context(
         self,
-        message: Optional[aio_pika.Message],
+        message: Optional[PropanMessage],
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
-        **kwrags,
     ) -> Dict[str, Any]:
-        exchange_name = exchange.name if exchange else "default"
         context = {
-            "exchange": exchange_name,
             "queue": queue.name,
-            "message_id": message.message_id[:10] if message else "",
+            "exchange": exchange.name if exchange else "default",
+            **super()._get_log_context(message),
         }
-
         return context
 
     @property
     def fmt(self) -> str:
-        return self._fmt or (
+        return super().fmt or (
             "%(asctime)s %(levelname)s - "
             f"%(exchange)-{self.__max_exchange_len}s | "
             f"%(queue)-{self.__max_queue_len}s | "
@@ -222,45 +224,83 @@ class RabbitBroker(BrokerUsecase):
         )
 
     @staticmethod
-    async def _decode_message(
-        message: aio_pika.IncomingMessage,
-    ) -> DecodedMessage:
-        body = message.body
-        if message.content_type is not None:
-            if ContentTypes.text.value in message.content_type:
-                body = body.decode()
-            elif ContentTypes.json.value in message.content_type:  # pragma: no branch
-                body = json.loads(body.decode())
-        return body
+    async def _parse_message(
+        message: aio_pika.message.IncomingMessage,
+    ) -> PropanMessage:
+        return PropanMessage(
+            body=message.body,
+            headers=message.headers,
+            message_id=message.message_id,
+            content_type=message.content_type or "",
+            raw_message=message,
+        )
 
     def _process_message(
-        self, func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
-    ) -> DecoratedCallable:
+        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
+    ) -> Callable[[PropanMessage], T]:
         @wraps(func)
-        async def wrapper(message: aio_pika.IncomingMessage):
+        async def wrapper(message: PropanMessage) -> T:
+            pika_message = message.raw_message
             if watcher is None:
-                context = message.process()
+                context = pika_message.process()
             else:
                 context = WatcherContext(
                     watcher,
                     message.message_id,
-                    on_success=message.ack,
-                    on_error=message.nack,
-                    on_max=message.reject,
+                    on_success=pika_message.ack,
+                    on_error=pika_message.nack,
+                    on_max=pika_message.reject,
                 )
 
             async with context:
                 r = await func(message)
-                if message.reply_to:
+                if message.raw_message.reply_to:
                     await self.publish(
                         r,
-                        routing_key=message.reply_to,
-                        correlation_id=message.correlation_id,
+                        routing_key=pika_message.reply_to,
+                        correlation_id=pika_message.correlation_id,
                     )
 
                 return r
 
         return wrapper
+
+    @classmethod
+    def _validate_message(
+        cls: Type["RabbitBroker"],
+        message: PikaSendableMessage,
+        callback_queue: Optional[aio_pika.abc.AbstractRobustQueue] = None,
+        **message_kwargs: Dict[str, Any],
+    ) -> aio_pika.Message:
+        if not isinstance(message, aio_pika.message.Message):
+            message, content_type = super()._encode_message(message)
+
+            message = aio_pika.Message(
+                message,
+                **{
+                    "content_type": content_type,
+                    "reply_to": callback_queue,
+                    "correlation_id": str(uuid4()),
+                    **message_kwargs,
+                },
+            )
+
+        return message
+
+    def __setup_log_context(
+        self,
+        queue: Optional[RabbitQueue] = None,
+        exchange: Optional[RabbitExchange] = None,
+    ) -> None:
+        if exchange is not None:
+            i = len(exchange.name)
+            if i > self.__max_exchange_len:  # pragma: no branch
+                self.__max_exchange_len = i
+
+        if queue is not None:  # pragma: no branch
+            i = len(queue.name)
+            if i > self.__max_queue_len:  # pragma: no branch
+                self.__max_queue_len = i
 
 
 def _validate_exchange(
@@ -273,7 +313,6 @@ def _validate_exchange(
             raise ValueError(
                 f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance"
             )
-
     return exchange
 
 
@@ -288,31 +327,3 @@ def _validate_queue(
                 f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance"
             )
     return queue
-
-
-def _validate_message(
-    message: Union[aio_pika.Message, str, Dict[str, Any], BaseModel],
-    callback_queue: Optional[aio_pika.abc.AbstractRobustQueue] = None,
-    **message_kwargs: Dict[str, Any],
-) -> aio_pika.Message:
-    if not isinstance(message, aio_pika.message.Message):
-        if isinstance(message, BaseModel):
-            message = message.json()
-            content_type = ContentTypes.json.value
-        elif isinstance(message, dict):
-            message = json.dumps(message)
-            content_type = ContentTypes.json.value
-        else:
-            content_type = ContentTypes.text.value
-
-        message = aio_pika.Message(
-            message.encode(),
-            **{
-                "content_type": content_type,
-                "reply_to": callback_queue,
-                "correlation_id": str(uuid4()),
-                **message_kwargs,
-            },
-        )
-
-    return message

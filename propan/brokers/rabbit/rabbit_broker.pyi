@@ -1,18 +1,23 @@
 import logging
 from ssl import SSLContext
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Coroutine, Dict, List, Optional, Type, TypeVar, Union
 
 import aio_pika
 import aiormq
 from pamqp.common import FieldTable
-from pydantic import BaseModel
+from typing_extensions import ParamSpec
 from yarl import URL
 
 from propan.brokers.model import BrokerUsecase
+from propan.brokers.model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.log import access_logger
-from propan.types import AnyDict, DecodedMessage, DecoratedCallable, Wrapper
+from propan.types import SendableMessage
+
+P = ParamSpec("P")
+T = TypeVar("T")
+PikaSendableMessage = Union[aio_pika.message.Message, SendableMessage]
 
 class RabbitBroker(BrokerUsecase):
     handlers: List[Handler]
@@ -102,7 +107,7 @@ class RabbitBroker(BrokerUsecase):
         ...
     async def publish(  # type: ignore[override]
         self,
-        message: Union[aio_pika.Message, str, Dict[str, Any], BaseModel] = "",
+        message: PikaSendableMessage = "",
         queue: Union[RabbitQueue, str] = "",
         exchange: Union[RabbitExchange, str, None] = None,
         *,
@@ -136,37 +141,59 @@ class RabbitBroker(BrokerUsecase):
         exchange: Union[str, RabbitExchange, None] = None,
         *,
         retry: Union[bool, int] = False,
-    ) -> Wrapper:
+    ) -> Callable[
+        [
+            Callable[
+                P, Union[PikaSendableMessage, Coroutine[Any, Any, PikaSendableMessage]]
+            ]
+        ],
+        Callable[P, PikaSendableMessage],
+    ]:
         """
         retry: Union[bool, int] - at exeption message will returns to queue `int` times or endless if `True`
         """
         ...
     async def __aenter__(self) -> "RabbitBroker": ...
-    async def _connect(self, *args: Any, **kwargs: Any) -> aio_pika.Connection: ...
+    async def _connect(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> aio_pika.Connection: ...
     async def close(self) -> None: ...
-    @staticmethod
-    async def _decode_message(
-        message: aio_pika.IncomingMessage,
-    ) -> DecodedMessage: ...
-    @staticmethod
     def _process_message(
-        func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
-    ) -> DecoratedCallable: ...
+        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
+    ) -> Callable[[PropanMessage], T]: ...
     def _get_log_context(  # type: ignore[override]
         self,
-        message: Optional[aio_pika.Message],
+        message: Optional[PropanMessage],
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
-        **kwrags: AnyDict,
     ) -> Dict[str, Any]: ...
-    async def _init_channel(self, max_consumers: Optional[int] = None) -> None: ...
+    async def _init_channel(
+        self,
+        max_consumers: Optional[int] = None,
+    ) -> None: ...
     async def _init_handler(
-        self, handler: Handler
+        self,
+        handler: Handler,
     ) -> aio_pika.abc.AbstractRobustQueue: ...
     async def _init_queue(
-        self, queue: RabbitQueue
+        self,
+        queue: RabbitQueue,
     ) -> aio_pika.abc.AbstractRobustQueue: ...
     async def _init_exchange(
-        self, exchange: RabbitExchange
+        self,
+        exchange: RabbitExchange,
     ) -> aio_pika.abc.AbstractRobustExchange: ...
     async def start(self) -> None: ...
+    @classmethod
+    def _validate_message(
+        cls: Type["RabbitBroker"],
+        message: PikaSendableMessage,
+        callback_queue: Optional[aio_pika.abc.AbstractRobustQueue] = None,
+        **message_kwargs: Dict[str, Any],
+    ) -> aio_pika.Message: ...
+    @staticmethod
+    async def _parse_message(
+        message: aio_pika.message.IncomingMessage,
+    ) -> PropanMessage: ...

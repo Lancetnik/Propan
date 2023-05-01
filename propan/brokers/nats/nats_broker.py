@@ -1,16 +1,17 @@
-import json
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Union
-from uuid import uuid4
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import nats
 from nats.aio.client import Client
 from nats.aio.msg import Msg
 
-from propan.brokers.model import BrokerUsecase, ContentTypes
+from propan.brokers.model import BrokerUsecase
+from propan.brokers.model.schemas import PropanMessage
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
-from propan.types import AnyDict, DecoratedCallable
+from propan.types import AnyDict, DecoratedCallable, SendableMessage
+
+T = TypeVar("T")
 
 
 class NatsBroker(BrokerUsecase):
@@ -32,7 +33,10 @@ class NatsBroker(BrokerUsecase):
         return await nats.connect(*args, **kwargs)
 
     def handle(
-        self, subject: str, queue: str = "", *, retry: Union[bool, int] = False
+        self,
+        subject: str,
+        queue: str = "",
+        **original_kwargs,
     ) -> Callable[[DecoratedCallable], None]:
         i = len(subject)
         if i > self.__max_subject_len:
@@ -41,8 +45,6 @@ class NatsBroker(BrokerUsecase):
         i = len(queue)
         if i > self.__max_queue_len:
             self.__max_queue_len = i
-
-        parent = super()
 
         def wrapper(func: DecoratedCallable) -> None:
             for handler in self.handlers:
@@ -53,7 +55,9 @@ class NatsBroker(BrokerUsecase):
                         f"`{queue}` queue"
                     )
 
-            func = parent._wrap_handler(func, retry, queue=queue, subject=subject)
+            func = self._wrap_handler(
+                func, queue=queue, subject=subject, **original_kwargs
+            )
             handler = Handler(callback=func, subject=subject, queue=queue)
             self.handlers.append(handler)
 
@@ -75,25 +79,24 @@ class NatsBroker(BrokerUsecase):
             handler.subscription = sub
 
     async def publish(
-        self, message: Union[str, Dict[str, Any]], subject: str, **publish_args: Any
+        self,
+        message: SendableMessage,
+        subject: str,
+        **publish_args: Any,
     ) -> None:
         if self._connection is None:
             raise ValueError("NatsConnection not started yet")
 
-        if isinstance(message, dict):
-            message = json.dumps(message)
-            headers = {
-                **publish_args.pop("headers", {}),
-                "content-type": ContentTypes.json.value,
-            }
-        else:
-            headers = {
-                **publish_args.pop("headers", {}),
-                "content-type": ContentTypes.text.value,
-            }
+        msg, content_type = super()._encode_message(message)
 
         return await self._connection.publish(
-            subject, message.encode(), headers=headers, **publish_args
+            subject,
+            msg,
+            headers={
+                **publish_args.pop("headers", {}),
+                "content-type": content_type,
+            },
+            **publish_args,
         )
 
     async def close(self) -> None:
@@ -104,18 +107,16 @@ class NatsBroker(BrokerUsecase):
             await self._connection.drain()
 
     def _get_log_context(
-        self, message: Optional[Msg], subject: str, queue: str = "", **kwargs
+        self,
+        message: Optional[PropanMessage],
+        subject: str,
+        queue: str = "",
     ) -> Dict[str, Any]:
-        if message is not None:
-            message_id = message.reply or uuid4().hex
-            message.message_id = message_id
-
         context = {
             "subject": subject,
             "queue": queue,
-            "message_id": message.message_id[:10] if message else "",
+            **super()._get_log_context(message),
         }
-
         return context
 
     @property
@@ -128,23 +129,19 @@ class NatsBroker(BrokerUsecase):
             "- %(message)s"
         )
 
-    @staticmethod
-    async def _decode_message(message: Msg) -> Union[str, dict, bytes]:
-        body = message.data
-        if message.header:
-            content_type = message.header.get("content-type", "")
-            if ContentTypes.json.value in content_type:
-                body = json.loads(body.decode())
-            elif ContentTypes.text.value in content_type:
-                body = body.decode()
-        return body
+    async def _parse_message(self, message: Msg) -> PropanMessage:
+        return PropanMessage(
+            body=message.dat,
+            content_type=message.header.get("content-type", ""),
+            headers=message.header,
+            raw_message=message,
+        )
 
-    @staticmethod
     def _process_message(
-        func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
-    ) -> Callable[[Msg], Any]:
+        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher] = None
+    ) -> Callable[[PropanMessage], T]:
         @wraps(func)
-        async def wrapper(message: Msg):
+        async def wrapper(message: PropanMessage) -> T:
             return await func(message)
 
         return wrapper

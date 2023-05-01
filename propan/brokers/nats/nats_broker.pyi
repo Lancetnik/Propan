@@ -1,6 +1,6 @@
 import logging
 import ssl
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 
 from nats.aio.client import (
     DEFAULT_CONNECT_TIMEOUT,
@@ -22,15 +22,18 @@ from nats.aio.client import (
 from nats.aio.msg import Msg
 
 from propan.brokers.model import BrokerUsecase
+from propan.brokers.model.schemas import PropanMessage
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import AnyDict, DecodedMessage, DecoratedCallable, Wrapper
+from propan.types import HandlerWrapper, SendableMessage
+
+T = TypeVar("T")
 
 class NatsBroker(BrokerUsecase):
     logger: logging.Logger
-    handlers: List[Handler] = []
-    _connection: Optional[Client] = None
+    handlers: List[Handler]
+    _connection: Optional[Client]
 
     def __init__(
         self,
@@ -107,23 +110,31 @@ class NatsBroker(BrokerUsecase):
     ) -> Client: ...
     async def publish(  # type: ignore[override]
         self,
-        message: Union[str, Dict[str, Any]],
+        message: SendableMessage,
         subject: str,
         reply: str = "",
         headers: Optional[Dict[str, str]] = None,
     ) -> None: ...
     def handle(  # type: ignore[override]
-        self, subject: str, queue: str = "", *, retry: Union[bool, int] = False
-    ) -> Wrapper: ...
+        self,
+        subject: str,
+        queue: str = "",
+        *,
+        retry: Union[bool, int] = False,
+    ) -> HandlerWrapper: ...
     async def __aenter__(self) -> "NatsBroker": ...
     async def _connect(self, *args: Any, **kwargs: Any) -> Client: ...
     async def close(self) -> None: ...
     def _get_log_context(  # type: ignore[override]
-        self, message: Optional[Msg], subject: str, queue: str = "", **kwargs: AnyDict
+        self,
+        message: Optional[PropanMessage],
+        subject: str,
+        queue: str = "",
     ) -> Dict[str, Any]: ...
-    @staticmethod
-    async def _decode_message(message: Msg) -> DecodedMessage: ...
-    @staticmethod
     def _process_message(
-        func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
-    ) -> Wrapper: ...
+        self,
+        func: Callable[[PropanMessage], T],
+        watcher: Optional[BaseWatcher],
+    ) -> Callable[[PropanMessage], T]: ...
+    @staticmethod
+    async def _parse_message(message: Msg) -> PropanMessage: ...

@@ -4,6 +4,7 @@ import pytest
 from fastapi import FastAPI
 
 from propan.fastapi import RabbitRouter
+from propan.test import TestRabbitBroker
 
 
 @pytest.mark.asyncio
@@ -12,6 +13,8 @@ async def test_consume():
     name2 = name + "1"
 
     router = RabbitRouter("amqp://guest:guest@localhost:5672")
+    router.broker = TestRabbitBroker(router.broker)
+
     app = FastAPI()
     app.include_router(router)
 

@@ -8,7 +8,10 @@ from propan.types import DecoratedCallable
 
 class Multiprocess(BaseReload):
     def __init__(
-        self, target: DecoratedCallable, args: Tuple[Any, ...], workers: int
+        self,
+        target: DecoratedCallable,
+        args: Tuple[Any, ...],
+        workers: int,
     ) -> None:
         super().__init__(target, args, None)
 
