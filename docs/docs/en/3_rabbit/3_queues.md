@@ -32,4 +32,5 @@ The `RabbitQueue` constructor takes the following arguments:
   
 The parameters for connecting the queue to exchange are also passed in its constructor:
 
-* `routing_key`: str - routing key for connecting to exchange. If not specified, the `name` argument is used.
+* `routing_key`: str - routing key for connecting to exchange. If not specified, the `name` argument is used
+* `bind_arguments`: dict[str, Any] | None = None - arguments to header exchange routing

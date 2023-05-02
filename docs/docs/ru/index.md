@@ -26,11 +26,11 @@
 
 # Propan
 
-**Propan** - это *<s>еще один HTTP</s>* **декларативный Python MQ фреймворк**. Он идет по стопам [*fastapi*](https://fastapi.tiangolo.com/ru/), максимально упрощая написание кода и предоставляя все удобства инструментов, которые до этого существовали только в мире HTTP фремворков, однако, создан для работы с различными брокерами сообщений на основе AMQP, MQTT и др. протоколов.
+**Propan** - это *<s>еще один HTTP</s>* **декларативный Python MQ фреймворк**. Он идет по стопам [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"}, максимально упрощая написание кода и предоставляя все удобства инструментов, которые до этого существовали только в мире HTTP фремворков, однако, создан для работы с различными брокерами сообщений на основе AMQP, MQTT и др. протоколов.
 
-Он идеально подходит для создания реактивных микросервисов на основе архитектуры <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging</a>.
+Он идеально подходит для создания реактивных микросервисов на основе архитектуры [Messaging](https://microservices.io/patterns/communication-style/messaging.html){target="_blank"}.
 
-Это современный, высокоуровневый фреймворк, разработанный на основе популярных *python* библиотек для работы со специфичными брокерами, а в его основе лежит [*pydantic*](https://docs.pydantic.dev/), идеи [*fastapi*](https://fastapi.tiangolo.com/ru/) and [*pytest*](https://docs.pytest.org/en/7.3.x/).
+Это современный, высокоуровневый фреймворк, разработанный на основе популярных *python* библиотек для работы со специфичными брокерами, а в его основе лежит [*pydantic*](https://docs.pydantic.dev/){target="_blank"}, идеи [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"} and [*pytest*](https://docs.pytest.org/en/7.3.x/){target="_blank"}.
 
 !!! warning "В разработке"
     Основные концепции уже заложены, большая часть фич реализована, а тестов - написано. Однако, изменения, нарушающие обратную совместимость, все еще возможны до выхода версии **0.1.0**. Такие изменения будут отражены в [CHANGELOG](10_CHANGELOG), поэтому следите за обновлениями.
@@ -60,7 +60,7 @@
 Декларативные иснтрументы позволяют нам описывать **что мы хотим получить**, в то время как традиционные императивные инструменты
 заставляют нас писать **что мы хотим сделать**.
 
-К традиционным императивным библиотекам относятся [aio-pika](https://aio-pika.readthedocs.io/en/latest/), [pika](https://pika.readthedocs.io/en/stable/), [nats-py](https://github.com/nats-io/nats.py) и подобные.
+К традиционным императивным библиотекам относятся [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"}, [pika](https://pika.readthedocs.io/en/stable/){target="_blank"}, [nats-py](https://github.com/nats-io/nats.py){target="_blank"} и подобные.
 
 Например, это **Quickstart** из библиотеки *aio-pika*:
 

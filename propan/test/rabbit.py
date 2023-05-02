@@ -147,6 +147,5 @@ async def publish(
 def TestRabbitBroker(broker: RabbitBroker) -> RabbitBroker:
     broker._channel = AsyncMock()
     broker.connect = AsyncMock()  # type: ignore
-    broker._init_channel = AsyncMock()  # type: ignore
     broker.publish = MethodType(publish, broker)  # type: ignore
     return broker

@@ -117,14 +117,17 @@ nav:
       - Context: 2_getting_started/5_dependency/2_context.md
     - Lifespan: 2_getting_started/6_lifespans.md
     - Testing: 2_getting_started/7_testing.md
-    - Logging:
-      - Settings: 2_getting_started/8_logging/1_logging.md
-      - Custom Loggers: 2_getting_started/8_logging/2_logging-custom.md
+    - Logging: 2_getting_started/8_logging.md
   - RabbitMQ:
     - Routing: 3_rabbit/1_routing.md
     - Exchanges: 3_rabbit/2_exchanges.md
     - Queues and Bindings: 3_rabbit/3_queues.md
     - Rabbit Pubslishing: 3_rabbit/4_publishing.md
+    - Examples:
+      - Direct Exchange: 3_rabbit/5_examples/1_direct.md
+      - Fanout Exchange: 3_rabbit/5_examples/2_fanout.md
+      - Topic Exchange: 3_rabbit/5_examples/3_topic.md
+      - Header Exchange: 3_rabbit/5_examples/4_header.md
   - NATS:
     - NATS Basics: 4_nats/1_nats-index.md
     - Routing: 4_nats/2_routing.md
@@ -138,5 +141,4 @@ nav:
     - Adapters: 6_contributing/4_adapters.md
   - Alternatives: 7_alternatives.md
   - Help Propan: 8_help.md
-  - Community: 9_community.md
-  - Release Notes: 10_CHANGELOG.md
+  - Release Notes: 9_CHANGELOG.md

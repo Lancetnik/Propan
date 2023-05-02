@@ -45,7 +45,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fast-depends>=1.1.1",
+    "fast-depends>=1.1.3",
     "watchfiles",
     "typer",
     "uvloop>=0.14.0,!=0.15.0,!=0.15.1; sys_platform != 'win32' and (sys_platform != 'cygwin' and platform_python_implementation != 'PyPy')",

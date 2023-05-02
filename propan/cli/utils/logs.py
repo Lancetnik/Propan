@@ -1,9 +1,9 @@
 import logging
 from collections import defaultdict
 from enum import Enum
-from typing import DefaultDict, Union
+from typing import DefaultDict, Optional, Union
 
-from propan.log import access_logger, logger
+from propan.cli.app import PropanApp
 
 
 class LogLevels(str, Enum):
@@ -26,9 +26,21 @@ LOG_LEVELS: DefaultDict[str, int] = defaultdict(
 )
 
 
-def set_log_level(level: Union[LogLevels, str]) -> None:
+def get_log_level(level: Union[LogLevels, str, int]) -> int:
+    if isinstance(level, int):
+        return level
+
     if isinstance(level, LogLevels):
-        level = level.value
-    log_level = LOG_LEVELS[level]
-    logger.setLevel(log_level)
-    access_logger.setLevel(log_level)
+        return LOG_LEVELS[level.value]
+
+    if isinstance(level, str):  # pragma: no branch
+        return LOG_LEVELS[level.lower()]
+
+
+def set_log_level(level: int, app: PropanApp) -> None:
+    if app.logger:
+        app.logger.setLevel(level)
+
+    broker_logger: Optional[logging.Logger] = getattr(app.broker, "logger", None)
+    if broker_logger is not None:
+        broker_logger.setLevel(level)

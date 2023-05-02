@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import aio_pika
 import aiormq
+from aio_pika.abc import DeliveryMode
 
 from propan.brokers.model import BrokerUsecase
 from propan.brokers.model.schemas import PropanMessage
@@ -43,38 +44,33 @@ class RabbitBroker(BrokerUsecase):
         self.__max_queue_len = 4
         self.__max_exchange_len = 4
 
-    async def __aenter__(self) -> "RabbitBroker":
-        await self.connect()
-        await self._init_channel()
-        return self
-
     async def close(self) -> None:
+        if self._channel is not None:
+            await self._channel.close()
+            self._channel = None
+
         if self._connection is not None:
             await self._connection.close()
+            self._connection = None
 
     async def _connect(
         self,
         *args: Any,
         **kwargs: Any,
     ) -> aio_pika.Connection:
-        return await aio_pika.connect_robust(
+        connection = await aio_pika.connect_robust(
             *args, **kwargs, loop=asyncio.get_event_loop()
         )
 
-    async def _init_channel(
-        self,
-        max_consumers: Optional[int] = None,
-    ) -> None:
-        if self._channel is None:
-            if self._connection is None:
-                raise ValueError("RabbitBroker not connected yet")
-
-            max_consumers = max_consumers or self._max_consumers
-            self._channel = await self._connection.channel()
+        if self._channel is None:  # pragma: no branch
+            max_consumers = self._max_consumers
+            self._channel = await connection.channel()
 
             if max_consumers:
                 self._log(f"Set max consumers to {max_consumers}", logging.INFO)
-                await self._channel.set_qos(prefetch_count=int(max_consumers))
+                await self._channel.set_qos(prefetch_count=int(self._max_consumers))
+
+        return connection
 
     def handle(
         self,
@@ -87,14 +83,6 @@ class RabbitBroker(BrokerUsecase):
         self.__setup_log_context(queue, exchange)
 
         def wrapper(func: DecoratedCallable) -> Any:
-            for handler in self.handlers:
-                if handler.exchange == exchange and handler.queue == queue:
-                    raise ValueError(
-                        f"`{func.__name__}` uses already "
-                        f"using `{queue.name}` queue to listen "
-                        f"`{exchange.name if exchange else 'default'}` exchange"
-                    )
-
             func = self._wrap_handler(
                 func,
                 queue=queue,
@@ -110,7 +98,6 @@ class RabbitBroker(BrokerUsecase):
 
     async def start(self) -> None:
         await super().start()
-        await self._init_channel()
 
         for handler in self.handlers:
             queue = await self._init_handler(handler)
@@ -137,6 +124,7 @@ class RabbitBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
+        persist: bool = False,
         **message_kwargs,
     ) -> Union[aiormq.abc.ConfirmationFrameType, Dict, str, bytes, None]:
         if self._channel is None:
@@ -154,29 +142,33 @@ class RabbitBroker(BrokerUsecase):
         else:
             exchange_obj = await self._init_exchange(exchange)
 
-        message = self._validate_message(message, callback_queue, **message_kwargs)
+        message = self._validate_message(
+            message=message,
+            callback_queue=callback_queue,
+            persist=persist,
+            **message_kwargs,
+        )
 
         r = await exchange_obj.publish(
             message=message,
-            routing_key=routing_key or queue.name,
+            routing_key=routing_key or queue.routing or "",
             mandatory=mandatory,
             immediate=immediate,
             timeout=timeout,
         )
-
         if callback_queue is None:
             return r
 
         else:
+            iter = callback_queue.iterator()
+            await iter.consume()
             try:
-                async with callback_queue.iterator(
-                    timeout=callback_timeout
-                ) as queue_iterator:
-                    async for m in queue_iterator:  # pragma: no branch
-                        return await self._decode_message(m)
+                msg = await asyncio.wait_for(iter._queue.get(), callback_timeout)
             except asyncio.TimeoutError as e:
                 if raise_timeout is True:  # pragma: no branch
                     raise e
+            else:
+                return await self._decode_message(msg)
 
     async def _init_handler(
         self,
@@ -185,7 +177,11 @@ class RabbitBroker(BrokerUsecase):
         queue = await self._init_queue(handler.queue)
         if handler.exchange is not None and handler.exchange.name != "default":
             exchange = await self._init_exchange(handler.exchange)
-            await queue.bind(exchange, handler.queue.routing_key or handler.queue.name)
+            await queue.bind(
+                exchange,
+                routing_key=handler.queue.routing,
+                arguments=handler.queue.bind_arguments,
+            )
         return queue
 
     async def _init_queue(
@@ -256,7 +252,7 @@ class RabbitBroker(BrokerUsecase):
                 r = await func(message)
                 if message.raw_message.reply_to:
                     await self.publish(
-                        r,
+                        message=r,
                         routing_key=pika_message.reply_to,
                         correlation_id=pika_message.correlation_id,
                     )
@@ -269,15 +265,21 @@ class RabbitBroker(BrokerUsecase):
     def _validate_message(
         cls: Type["RabbitBroker"],
         message: PikaSendableMessage,
+        persist: bool = False,
         callback_queue: Optional[aio_pika.abc.AbstractRobustQueue] = None,
         **message_kwargs: Dict[str, Any],
     ) -> aio_pika.Message:
         if not isinstance(message, aio_pika.message.Message):
             message, content_type = super()._encode_message(message)
 
+            delivery_mode = (
+                DeliveryMode.PERSISTENT if persist else DeliveryMode.NOT_PERSISTENT
+            )
+
             message = aio_pika.Message(
                 message,
                 **{
+                    "delivery_mode": delivery_mode,
                     "content_type": content_type,
                     "reply_to": callback_queue,
                     "correlation_id": str(uuid4()),

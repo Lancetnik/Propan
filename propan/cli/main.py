@@ -9,7 +9,7 @@ import typer
 from propan.__about__ import __version__
 from propan.cli.app import PropanApp
 from propan.cli.utils.imports import get_app_path, import_object
-from propan.cli.utils.logs import LogLevels, set_log_level
+from propan.cli.utils.logs import LogLevels, get_log_level, set_log_level
 from propan.cli.utils.parser import SettingField, parse_cli_args
 from propan.log import logger
 
@@ -77,18 +77,17 @@ def run(
 ) -> None:
     """Run [MODULE:APP] Propan application"""
     app, extra = parse_cli_args(app, *ctx.args)
+    casted_log_level = get_log_level(log_level)
 
     module, app = get_app_path(app)
 
     app_dir = module.parent
     sys.path.insert(0, str(app_dir))
 
-    args = (module, app, extra)
+    args = (module, app, extra, casted_log_level)
 
     if reload and workers > 1:
         raise ValueError("You can't use reload option with multiprocessing")
-
-    set_log_level(log_level)
 
     if reload is True:
         from propan.cli.supervisors.watchfiles import WatchReloader
@@ -101,7 +100,7 @@ def run(
         Multiprocess(target=_run, args=(*args, logging.DEBUG), workers=workers).run()
 
     else:
-        _run(module=module, app=app, extra_options=extra)
+        _run(module=module, app=app, extra_options=extra, log_level=casted_log_level)
 
 
 def _run(
@@ -109,6 +108,7 @@ def _run(
     app: str,
     extra_options: Dict[str, SettingField],
     log_level: int = logging.INFO,
+    app_level: int = logging.INFO,
 ) -> None:
     try:
         propan_app = import_object(module, app)
@@ -122,6 +122,8 @@ def _run(
         exit()
 
     else:
+        set_log_level(log_level, propan_app)
+
         propan_app._command_line_options = extra_options
 
         if sys.platform not in ("win32", "cygwin", "cli"):
@@ -129,10 +131,10 @@ def _run(
 
             if sys.version_info >= (3, 11):
                 with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-                    runner.run(propan_app.run(log_level))
+                    runner.run(propan_app.run(log_level=app_level))
                     return
 
             else:
                 uvloop.install()
 
-        asyncio.run(propan_app.run(log_level))
+        asyncio.run(propan_app.run(log_level=app_level))

@@ -3,7 +3,7 @@
 **Propan** имеет собственный встроенный **CLI** инструмент для вашего максимального комфорта как разработчика.
 
 !!! quote ""
-    Спасибо [*typer*](https://typer.tiangolo.com/) и [*watchfiles*](https://watchfiles.helpmanual.io/). Их труд лежит в основе данного инструмента.
+    Спасибо [*typer*](https://typer.tiangolo.com/){target="_blank"} и [*watchfiles*](https://watchfiles.helpmanual.io/){target="_blank"}. Их труд лежит в основе данного инструмента.
 
 <div class="termy">
 ```console
@@ -47,7 +47,7 @@ Create Propan project template at: ./app
 
 ## Перезагрузка проекта
 
-Благодаря [*watchfiles*](https://watchfiles.helpmanual.io/), написанному на *Rust*, вы можете 
+Благодаря [*watchfiles*](https://watchfiles.helpmanual.io/){target="_blank"}, написанному на *Rust*, вы можете 
 работать со своим проектом легко и непринужденно. Правьте код сколько душе угодно - новая версия уже запущена и ждет ваших запросов!
 
 <div class="termy">

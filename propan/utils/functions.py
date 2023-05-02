@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Awaitable, Callable, TypeVar
+from typing import Awaitable, Callable, TypeVar, cast
 
 from fast_depends.injector import run_async as call_or_await
 from typing_extensions import ParamSpec
@@ -17,6 +17,7 @@ P = ParamSpec("P")
 def to_async(func: Callable[P, T]) -> Callable[P, Awaitable[T]]:
     @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        return await call_or_await(func, *args, **kwargs)
+        r = await call_or_await(func, *args, **kwargs)
+        return cast(T, r)
 
     return wrapper

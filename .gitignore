@@ -17,3 +17,4 @@ wtf
 .mypy_cache
 coverage.json
 site
+Dockerfile
