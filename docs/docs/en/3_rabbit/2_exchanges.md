@@ -30,3 +30,9 @@ The RabbitExchange constructor takes the following arguments:
 * `robust`: bool = True - recreate exchange when reconnecting to RabbitMQ
 * `timeout`: int | float - response timeout from RabbitMQ
 * `arguments`: dict[str, Any] | None = None - exchange custom arguments
+
+And arguments to bind current exchange to another one
+
+* `bind_to`: RabbitExchange | None = None - parent exchange to bind
+* `bind_arguments`: dict[str, Any] | None = None - arguments to header exchange routing
+* `routing_key`: str = "" - routing key for connecting to exchange

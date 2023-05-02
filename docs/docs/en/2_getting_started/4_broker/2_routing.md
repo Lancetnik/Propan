@@ -48,3 +48,6 @@ async def base_handler(body: str):
 !!! bug
     At the moment, attempts are taken into account only by the current consumer. If the message goes to another consumer, he will have his own counter.
     Subsequently, this logic will be reworked.
+
+!!! tip
+    At more complex error handling cases you can use [tenacity](https://tenacity.readthedocs.io/en/latest/){.external-link target="_blank"}
