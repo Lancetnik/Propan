@@ -23,14 +23,12 @@ broker = RabbitBroker()
 
 ### Параметры сообщения
 
-Подробнее обо всех флагах вы можете прочитать в [документации RabbitMQ](https://www.rabbitmq.com/consumers.html)
+Подробнее обо всех флагах вы можете прочитать в [документации RabbitMQ](https://www.rabbitmq.com/consumers.html){.external-link target="_blank"}
 
 * `headers`: dict[str, Any] | None = None - заголовки отправляемого сообщения (используются потребителями)
 * `content_type`: str | None = None - content_type отправляемого сообщения. В большинстве случаев выставляется **Propan** автоматически (используется потребителями)
 * `content_encoding`: str | None = None - кодировка отправляемого сообщения (используется потребителями)
-* `delivery_mode`: aio_pika.abc.DeliveryMode | int | None = 1
-    * `1` - NOT_PERSISTENT - не восстанавливать сообщения при перезагрузке *RabbitMQ*
-    * `2` - PERSISTENT - восстанавливать сообщения при перезагрузке *RabbitMQ*
+* `persist`: bool = False - восстанавливать ли сообщения при перезагрузке *RabbitMQ*
 * `priority`: int | None = None - приоритет отправляемого сообщения в очереди
 * `correlation_id`: str | None = None - id сообщения, который помогает сопоставить исходное сообщение с ответом на него (выставляется **Propan** автоматически)
 * `reply_to`: str | None = None - название очереди, куда должнен быть отправлен ответ на сообщение (при использовании блокирующего *RPC* выставляется автоматически)

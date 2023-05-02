@@ -5,7 +5,7 @@ The advantage of *RabbitMQ* is the ability to configure flexible and complex mes
 *RabbitMQ* covers the whole range of routing: from one queue - one consumer, to a queue retrieved from several sources, and the prioritization of messages also works.
 
 !!! note
-      For more information about *RabbitMQ* documentation, please visit the [official website](https://www.rabbitmq.com/tutorials/amqp-concepts.html)
+      For more information about *RabbitMQ* documentation, please visit the [official website](https://www.rabbitmq.com/tutorials/amqp-concepts.html){.external-link target="_blank"}
 
 At the same time, it supports the ability to successfully process messages, mark them as processed with an error, remove them from the queue (it is also impossible to receive more messages processed, unlike **Kafka**), lock it for the processing duration, and monitor its current status.
 

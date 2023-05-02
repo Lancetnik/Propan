@@ -3,7 +3,7 @@
 **Propan** is a pretty young framework. It has a lot of features, but you should know about able alternatives.
 Something of them are focused on other aspects of microservices development, so you can find other features in them, that can be helpfull in your case.
 
-## [Minos](https://github.com/minos-framework/minos-python)
+## [Minos](https://github.com/minos-framework/minos-python){.external-link target="_blank"}
 
 Minos is a framework which helps you create reactive microservices in Python. Internally, it leverages Event Sourcing, CQRS and a message driven architecture to fulfil the commitments of an asynchronous environment.
 
@@ -18,7 +18,7 @@ The `minos` framework is built strongly inspired by the following set of pattern
 * API gateway: Single entry point for all clients. The API gateway proxy/route to the appropriate service.
 * Self Registration: Each service instance register on startup and unregister on stop.
 
-## [Kombu](https://docs.celeryq.dev/projects/kombu/en/stable/)
+## [Kombu](https://docs.celeryq.dev/projects/kombu/en/stable/){.external-link target="_blank"}
 
 **Kombu** is a messaging library for Python.
 
@@ -34,7 +34,7 @@ The aim of **Kombu** is to make messaging in Python as easy as possible by provi
 * Several annoyances with amqplib has been fixed, like supporting timeouts and the ability to wait for events on more than one channel.
 * Projects already using carrot can easily be ported by using a compatibility layer.
 
-## [Nameko](https://nameko.readthedocs.io/en/stable/)
+## [Nameko](https://nameko.readthedocs.io/en/stable/){.external-link target="_blank"}
 
 **Nameko** is a framework for building microservices in Python.
 

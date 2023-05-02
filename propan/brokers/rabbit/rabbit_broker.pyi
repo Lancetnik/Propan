@@ -124,7 +124,7 @@ class RabbitBroker(BrokerUsecase):
         headers: Optional[aio_pika.abc.HeadersType] = None,
         content_type: Optional[str] = None,
         content_encoding: Optional[str] = None,
-        delivery_mode: Union[aio_pika.abc.DeliveryMode, int, None] = None,
+        persist: bool = False,
         priority: Optional[int] = None,
         correlation_id: Optional[str] = None,
         reply_to: Optional[str] = None,
@@ -169,10 +169,6 @@ class RabbitBroker(BrokerUsecase):
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
     ) -> Dict[str, Any]: ...
-    async def _init_channel(
-        self,
-        max_consumers: Optional[int] = None,
-    ) -> None: ...
     async def _init_handler(
         self,
         handler: Handler,

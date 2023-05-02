@@ -79,16 +79,6 @@ async def test_different_consume(
 
 
 @pytest.mark.asyncio
-async def test_same_consume(
-    queue: RabbitQueue,
-    broker: RabbitBroker,
-):
-    broker.handle(queue)(lambda: None)
-    with pytest.raises(ValueError):
-        broker.handle(queue)(lambda: None)
-
-
-@pytest.mark.asyncio
 @pytest.mark.rabbit
 async def test_consume_from_exchange(
     mock,
@@ -120,7 +110,6 @@ async def test_consume_with_get_old(
     mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
     await broker.connect()
-    await broker._init_channel()
     await broker._init_queue(queue)
     await broker._init_exchange(exchange)
 

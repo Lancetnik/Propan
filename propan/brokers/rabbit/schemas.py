@@ -15,6 +15,7 @@ __all__ = (
 
 
 class RabbitQueue(Queue):
+    name: str = ""
     durable: bool = False
     exclusive: bool = False
     passive: bool = False
@@ -23,7 +24,12 @@ class RabbitQueue(Queue):
     timeout: TimeoutType = None
     robust: bool = True
 
-    routing_key: str = Field(default="", exclude=True)
+    bind_arguments: Optional[Dict[str, Any]] = Field(None, exclude=True)
+    routing_key: str = Field("", exclude=True)
+
+    @property
+    def routing(self) -> Optional[str]:
+        return self.routing_key or self.name or None
 
 
 class RabbitExchange(NameRequired):

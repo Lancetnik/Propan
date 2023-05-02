@@ -31,7 +31,6 @@ async def test_broker_depends(
             and (message is k1)
             and (message is k2)
         )
-        return
 
     full_broker.handle(queue)(consumer)
     await full_broker.start()

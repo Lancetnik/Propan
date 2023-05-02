@@ -23,12 +23,11 @@ async def test_sync_depends():
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail
 async def test_sync_with_async_depends():
     with pytest.raises(AssertionError):
 
         @apply_types
-        def func(k=Depends(async_dep)):
+        def func(k=Depends(async_dep)):  # pragma: no cover
             pass
 
 

@@ -23,14 +23,12 @@ The `pubslish` method takes the following arguments:
 
 ### Message parameters
 
-You can read more about all the flags in the [RabbitMQ documentation](https://www.rabbitmq.com/consumers.html)
+You can read more about all the flags in the [RabbitMQ documentation](https://www.rabbitmq.com/consumers.html){.external-link target="_blank"}
 
 * `headers`: dict[str, Any] | None = None - message headers (used by consumers)
 * `content_type`: str | None = None - the content_type of the message being sent. **Propan** sets it automatically in most cases (used by consumers)
 * `content_encoding`: str | None = None - encoding of the message (used by consumers)
-* `delivery_mode`: aio_pika.abc.DeliveryMode | int | None = 1
-    * `1` - NOT_PERSISTENT - do not restore messages on *RabbitMQ* restart
-    * `2` - PERSISTENT - restore messages on reboot *RabbitMQ*
+* `persist`: bool = False - restore messages on reboot *RabbitMQ*
 * `priority`: int | None = None - the priority of the message
 * `correlation_id`: str | None = None - message id, which helps to match the original message with the reply to it (**Propan** sets it automatically)
 * `reply_to`: str | None = None - the name of the queue where the response to the message should be sent (when using a blocking *RPC*, it is set automatically)

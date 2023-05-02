@@ -1,9 +1,9 @@
 # Dependencies
 
-**Propan** uses the secondary library [**FastDepends**](https://lancetnik.github.io/FastDepends/) for dependency management.
+**Propan** uses the secondary library [**FastDepends**](https://lancetnik.github.io/FastDepends/){target="_blank"} for dependency management.
 This dependency system is literally borrowed from **FastAPI**, so if you know how to work with this framework, you know how to work with dependencies in Propan.
 
-You can go to the documentation [**FastDepends**](https://lancetnik.github.io/FastDepends/) if you want to get more details, however, the key points and **additions** will be covered here.
+You can go to the documentation [**FastDepends**](https://lancetnik.github.io/FastDepends/){target="_blank"} if you want to get more details, however, the key points and **additions** will be covered here.
 
 ## Type casting
 
@@ -150,5 +150,5 @@ assert method("1") == 5
 Also, the result of executing the dependency is cached. If you use this dependency in `N` functions,
 this cached result will be converted to type `N` times (at the input to the function being used).
 
-To avoid problems with this, use [mypy](https://www.mypy-lang.org ) or just be careful with the annotation
+To avoid problems with this, use [mypy](https://www.mypy-lang.org){target="_blank"} or just be careful with the annotation
 of types in your project.

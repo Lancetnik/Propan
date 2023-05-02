@@ -3,7 +3,7 @@
 **Propan** has its own built-in **CLI** tool for your maximum comfort as a developer.
 
 !!! quote ""
-    Thank you [*typer*](https://typer.tiangolo.com /) and [*watchfiles*](https://watchfiles.helpmanual.io /). Their work is the basis of this tool.
+    Thank you [*typer*](https://typer.tiangolo.com/){target="_blank"} and [*watchfiles*](https://watchfiles.helpmanual.io/){target="_blank"}. Their work is the basis of this tool.
 
 <div class="termy">
 ```console
@@ -47,7 +47,7 @@ The template includes:
 
 ## Reloading the project
 
-Thanks to [*watchfiles*](https://watchfiles.helpmanual.io /), written in *Rust*, you can
+Thanks to [*watchfiles*](https://watchfiles.helpmanual.io/){target="_blank"}, written in *Rust*, you can
 work with your project easily. Edit the code as much as you like - the new version has already been launched and is waiting for your requests!
 
 <div class="termy">

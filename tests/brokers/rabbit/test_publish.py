@@ -51,7 +51,7 @@ async def test_rpc_timeout_raises(queue: RabbitQueue, full_broker: RabbitBroker)
 
 @pytest.mark.asyncio
 @pytest.mark.rabbit
-async def test_rpc_timeout(queue: RabbitQueue, full_broker: RabbitBroker):
+async def test_rpc_timeout_none(queue: RabbitQueue, full_broker: RabbitBroker):
     @full_broker.handle(queue)
     async def m():  # pragma: no cover
         await asyncio.sleep(1)

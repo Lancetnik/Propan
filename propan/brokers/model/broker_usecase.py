@@ -31,6 +31,7 @@ from propan.utils import apply_types, context
 from propan.utils.functions import to_async
 
 T = TypeVar("T")
+Cls = TypeVar("Cls", bound="BrokerUsecase")
 
 
 class BrokerUsecase(ABC):
@@ -68,7 +69,7 @@ class BrokerUsecase(ABC):
             _args = args or self._connection_args
             _kwargs = kwargs or self._connection_kwargs
             self._connection = await self._connect(*_args, **_kwargs)
-            return self._connection
+        return self._connection
 
     @abstractmethod
     async def _connect(self, *args: Any, **kwargs: Any) -> Any:
@@ -138,7 +139,7 @@ class BrokerUsecase(ABC):
             change_logger_handlers(self.logger, self.fmt)
         await self.connect()
 
-    async def __aenter__(self) -> "BrokerUsecase":
+    async def __aenter__(self: Cls) -> Cls:
         await self.connect()
         return self
 

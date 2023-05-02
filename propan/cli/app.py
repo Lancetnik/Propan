@@ -2,16 +2,24 @@ import asyncio
 import logging
 from typing import Dict, List, Optional
 
+from typing_extensions import Protocol
 from anyio import create_memory_object_stream, create_task_group
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 
-from propan.brokers.model.broker_usecase import BrokerUsecase
 from propan.cli.supervisors.utils import set_exit
 from propan.cli.utils.parser import SettingField
 from propan.log import logger
-from propan.types import AsyncFunc, DecoratedCallableNone, NoneCallable
+from propan.types import AnyCallable, AsyncFunc, DecoratedCallableNone
 from propan.utils import apply_types, context
 from propan.utils.functions import to_async
+
+
+class Runnable(Protocol):
+    async def start(self) -> None:
+        ...
+
+    async def close(self) -> None:
+        ...
 
 
 class PropanApp:
@@ -23,7 +31,7 @@ class PropanApp:
 
     def __init__(
         self,
-        broker: Optional[BrokerUsecase] = None,
+        broker: Optional[Runnable] = None,
         logger: Optional[logging.Logger] = logger,
     ):
         self.broker = broker
@@ -37,15 +45,15 @@ class PropanApp:
         self._receive_stream = None
         self._command_line_options: Dict[str, SettingField] = {}
 
-    def set_broker(self, broker: BrokerUsecase) -> None:
+    def set_broker(self, broker: Runnable) -> None:
         self.broker = broker
 
-    def on_startup(self, func: NoneCallable) -> DecoratedCallableNone:
+    def on_startup(self, func: AnyCallable) -> DecoratedCallableNone:
         f: AsyncFunc = apply_types(to_async(func))
         self._on_startup_calling.append(f)
         return func
 
-    def on_shutdown(self, func: NoneCallable) -> DecoratedCallableNone:
+    def on_shutdown(self, func: AnyCallable) -> DecoratedCallableNone:
         f: AsyncFunc = apply_types(to_async(func))
         self._on_shutdown_calling.append(f)
         return func
