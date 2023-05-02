@@ -2,9 +2,9 @@ import asyncio
 import logging
 from typing import Dict, List, Optional
 
-from typing_extensions import Protocol
 from anyio import create_memory_object_stream, create_task_group
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
+from typing_extensions import Protocol
 
 from propan.cli.supervisors.utils import set_exit
 from propan.cli.utils.parser import SettingField

@@ -30,3 +30,9 @@ async def handler():
 * `robust`: bool = True - пересоздавать exchange при переподключении к RabbitMQ
 * `timeout`: int | float - время ожидания ответа от RabbitMQ
 * `arguments`: dict[str, Any] | None = None - кастомные аргументы для exchange
+
+А также аргументы для прикрепления создаваемого exchange к другому
+
+* `bind_to`: RabbitExchange | None = None - родительский exchange, на который нужно подписаться
+* `bind_arguments`: dict[str, Any] | None = None - аргументы подключения (используются для header exchange маршрутизации)
+* `routing_key`: str = "" - ключ маршрутизации при подписке на родительский exchange

@@ -194,7 +194,21 @@ class RabbitBroker(BrokerUsecase):
         self,
         exchange: RabbitExchange,
     ) -> aio_pika.abc.AbstractRobustExchange:
-        return await self._channel.declare_exchange(**exchange.dict())
+        original = await self._channel.declare_exchange(**exchange.dict())
+
+        current = exchange
+        current_exch = original
+        while current.bind_to is not None:
+            parent_exch = await self._channel.declare_exchange(**current.bind_to.dict())
+            await current_exch.bind(
+                exchange=parent_exch,
+                routing_key=current.routing_key,
+                arguments=current.bind_arguments,
+            )
+            current = current.bind_to
+            current_exch = parent_exch
+
+        return original
 
     def _get_log_context(
         self,
