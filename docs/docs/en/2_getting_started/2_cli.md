@@ -3,7 +3,7 @@
 **Propan** has its own built-in **CLI** tool for your maximum comfort as a developer.
 
 !!! quote ""
-    Thank you [*typer*](https://typer.tiangolo.com/){target="_blank"} and [*watchfiles*](https://watchfiles.helpmanual.io/){target="_blank"}. Their work is the basis of this tool.
+    Thanks to [*typer*](https://typer.tiangolo.com/){target="_blank"} and [*watchfiles*](https://watchfiles.helpmanual.io/){target="_blank"}. Their work is the basis of this tool.
 
 <div class="termy">
 ```console
