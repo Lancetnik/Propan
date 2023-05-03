@@ -13,7 +13,7 @@
 
     Обратите внимание, что в коде ниже используется `fastapi.Depends`, а не `propan.Depends`.
 
-```python linenums="1" hl_lines="1 7 15 19 23"
+```python linenums="1" hl_lines="1 3 7 15 19 23"
 {!> docs_src/integrations/fastapi_plugin_rabbit.py!}
 ```
 
