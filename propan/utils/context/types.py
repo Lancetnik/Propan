@@ -7,7 +7,7 @@ from propan.types import AnyDict
 from propan.utils.context import context
 
 
-class Context(CustomField):
+class Context(CustomField):  # type: ignore
     def __init__(
         self, real_name: str = "", *, cast: bool = False, default: Any = _empty
     ):

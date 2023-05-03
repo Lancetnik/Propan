@@ -101,7 +101,9 @@ class BrokerUsecase(ABC):
     ) -> Callable[[PropanMessage], T]:
         raise NotImplementedError()
 
-    def _get_log_context(self, message: PropanMessage) -> Dict[str, Any]:
+    def _get_log_context(
+        self, message: PropanMessage, **kwargs: Dict[str, str]
+    ) -> Dict[str, Any]:
         return {
             "message_id": message.message_id[:10] if message else "",
         }

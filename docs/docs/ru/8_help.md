@@ -36,6 +36,6 @@
 
 ## Участвовать в обсуждениях
 
-Вы можете участвовать в обсуждениях на <a href="https://github.com/Lancetnik/Propan/discussions" class="external-link" target="_blank">GitHub</a> или присоединиться к открытой <a href="https://t.me/propan_python" class="external-link" target="_blank">telegram</a> группе проекта.
+Вы можете участвовать в обсуждениях на <a href="https://github.com/Lancetnik/Propan/discussions" class="external-link" target="_blank">GitHub</a>.
 
 Задайте свой вопрос, расскажите об опыте использования, предложите идею или помогите другим в решении их проблем - в любом случае, спасибо за ваше участие в жизни проекта.
