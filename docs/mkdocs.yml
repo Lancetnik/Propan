@@ -103,42 +103,48 @@ extra:
 nav:
   - Welcome: index.md
   - Getting Started:
-    - Hello, Propan!: 2_getting_started/1_quick-start.md
-    - CLI Tool: 2_getting_started/2_cli.md
-    - Application: 2_getting_started/3_app.md
+    - Hello, Propan!: getting_started/1_quick-start.md
+    - CLI Tool: getting_started/2_cli.md
+    - Application: getting_started/3_app.md
     - Brokers:
-      - Basics: 2_getting_started/4_broker/1_index.md
-      - Routing and Errors: 2_getting_started/4_broker/2_routing.md
-      - Incoming Messages: 2_getting_started/4_broker/3_type-casting.md
-      - Publish Messages: 2_getting_started/4_broker/4_publishing.md
-      - RPC over MQ: 2_getting_started/4_broker/5_rpc.md
+      - Basics: getting_started/4_broker/1_index.md
+      - Routing and Errors: getting_started/4_broker/2_routing.md
+      - Incoming Messages: getting_started/4_broker/3_type-casting.md
+      - Publish Messages: getting_started/4_broker/4_publishing.md
+      - RPC over MQ: getting_started/4_broker/5_rpc.md
     - Dependency Injection:
-      - Depends: 2_getting_started/5_dependency/1_di-index.md
-      - Context: 2_getting_started/5_dependency/2_context.md
-    - Lifespan: 2_getting_started/6_lifespans.md
-    - Testing: 2_getting_started/7_testing.md
-    - Logging: 2_getting_started/8_logging.md
+      - Depends: getting_started/5_dependency/1_di-index.md
+      - Context: getting_started/5_dependency/2_context.md
+    - Lifespan: getting_started/6_lifespans.md
+    - Testing: getting_started/7_testing.md
+    - Logging: getting_started/8_logging.md
   - RabbitMQ:
-    - Routing: 3_rabbit/1_routing.md
-    - Exchanges: 3_rabbit/2_exchanges.md
-    - Queues and Bindings: 3_rabbit/3_queues.md
-    - Rabbit Pubslishing: 3_rabbit/4_publishing.md
+    - Routing: rabbit/1_routing.md
+    - Exchanges: rabbit/2_exchanges.md
+    - Queues and Bindings: rabbit/3_queues.md
+    - Rabbit Pubslishing: rabbit/4_publishing.md
     - Examples:
-      - Direct Exchange: 3_rabbit/5_examples/1_direct.md
-      - Fanout Exchange: 3_rabbit/5_examples/2_fanout.md
-      - Topic Exchange: 3_rabbit/5_examples/3_topic.md
-      - Header Exchange: 3_rabbit/5_examples/4_header.md
+      - Direct Exchange: rabbit/5_examples/1_direct.md
+      - Fanout Exchange: rabbit/5_examples/2_fanout.md
+      - Topic Exchange: rabbit/5_examples/3_topic.md
+      - Header Exchange: rabbit/5_examples/4_header.md
+  - Redis:
+    - Redis Basics: redis/1_redis-index.md
+    - Redis Pubslishing: redis/2_publishing.md
+    - Examples:
+      - Direct: redis/3_examples/1_direct.md
+      - Topic: redis/3_examples/2_topic.md
   - NATS:
-    - NATS Basics: 4_nats/1_nats-index.md
-    - Routing: 4_nats/2_routing.md
-    - Nats Pubslishing: 4_nats/3_publishing.md
-  - Integrations: 5_integrations/1_integrations-index.md
-  - FastAPI Plugin: 5_integrations/2_fastapi-plugin.md  
+    - NATS Basics: nats/1_nats-index.md
+    - Routing: nats/2_routing.md
+    - Nats Pubslishing: nats/3_publishing.md
+  - Integrations: integrations/1_integrations-index.md
+  - FastAPI Plugin: integrations/2_fastapi-plugin.md  
   - Contributing:
-    - TODOS: 6_contributing/1_todo.md
-    - Environment: 6_contributing/2_contributing-index.md
-    - Documentation: 6_contributing/3_docs.md
-    - Adapters: 6_contributing/4_adapters.md
-  - Alternatives: 7_alternatives.md
-  - Help Propan: 8_help.md
-  - Release Notes: 9_CHANGELOG.md
+    - TODOS: contributing/1_todo.md
+    - Environment: contributing/2_contributing-index.md
+    - Documentation: contributing/3_docs.md
+    - Adapters: contributing/4_adapters.md
+  - Alternatives: alternatives.md
+  - Help Propan: help.md
+  - Release Notes: CHANGELOG.md

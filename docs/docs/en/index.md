@@ -24,7 +24,6 @@
     </a>
 </p>
 
-
 # Propan
 
 **Propan** - just *<s>an another one HTTP</s>* a **declarative Python MQ framework**. It's following by [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"},
@@ -40,16 +39,18 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
-* [**Dependencies management**](2_getting_started/1_quick-start/#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
-* [**Integrations**](2_getting_started/1_quick-start/#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](5_integrations/1_integrations-index/) you want
+* [**Dependencies management**](getting_started/1_quick-start/#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
+* [**Integrations**](getting_started/1_quick-start/#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](integrations/1_integrations-index/) you want
 * **MQ independent**: Single interface to popular MQ:
-    * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py))
-    * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
-* [**RPC**](2_getting_started/4_broker/5_rpc/): The framework supports RPC requests on top of message brokers, which will allow performing long operations on remote services asynchronously.
-* [**Greate to develop**](2_getting_started/2_cli/): CLI tool provides great development experience:
+    * **Redis** (based on [redis-py]("https://github.com/redis/redis-py/"){target="_blank"})
+    * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"})
+    * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py){target="_blank"})
+* [**RPC**](getting_started/4_broker/5_rpc/): The framework supports RPC requests on top of message brokers, which will allow performing long operations on remote services asynchronously.
+* [**Greate to develop**](getting_started/2_cli/): CLI tool provides great development experience:
     * framework-independent way to rule application environment
-    * application code hot reloading
-* [**Testability**](2_getting_started/7_testing): **Propan** allows you to test your app without external dependencies: you shouldn't suit up a Message Broker, use a virtual one!
+    * application code *hot reloading*
+    * robust application templates
+* [**Testability**](getting_started/7_testing): **Propan** allows you to test your app without external dependencies: you shouldn't suit up a Message Broker, use a virtual one!
 
 ---
 
@@ -57,7 +58,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 With declarative tools you should define **what you need to get**. With traditional imperative tools you should write **what you need to do**.
 
-Take a look at classic imperative tools, such as [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"}, [pika](https://pika.readthedocs.io/en/stable/){target="_blank"}, [nats-py](https://github.com/nats-io/nats.py){target="_blank"}, etc.
+Take a look at classic imperative tools, such as [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"}, [pika](https://pika.readthedocs.io/en/stable/){target="_blank"}, [redis-py]("https://github.com/redis/redis-py/"){target="_blank"}, [nats-py](https://github.com/nats-io/nats.py){target="_blank"}, etc.
 
 This is the **Quickstart** with the *aio-pika*:
 
@@ -108,15 +109,15 @@ This is the **Propan** declarative way to write the same code. That is so much e
 ## Supported MQ brokers
 
 !!! note "Need your help"
-    The framework is now actively developing. We have a very long list of what has yet to be implemented and various brokers are only part of it. If you want to implement something from this list or help in any other way, take a look [here](6_contributing/1_todo/)
+    The framework is now actively developing. We have a very long list of what has yet to be implemented and various brokers are only part of it. If you want to implement something from this list or help in any other way, take a look [here](contributing/1_todo/)
 
 |              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Redis**    | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Nats**     | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **NatsJS**   | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
 | **MQTT**     | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Redis**    | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Pulsar**   | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **SQS**      | :mag: planning :mag:                                    | :mag: planning :mag: |

@@ -45,16 +45,17 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 * **Easy**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
 * [**Dependencies management**](#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
-* [**Integrations**](#http-frameworks-integrations): **Propan** is ready to use in pair with <a href="https://lancetnik.github.io/Propan/5_integrations/1_integrations-index/" target="_blank">any HTTP framework</a> you want
+* [**Integrations**](#http-frameworks-integrations): **Propan** is ready to use in pair with <a href="https://lancetnik.github.io/Propan/integrations/1_integrations-index/" target="_blank">any HTTP framework</a> you want
 * **MQ independent**: Single interface to popular MQ:
   * **Redis** (based on <a href="https://github.com/redis/redis-py/" target="_blank">redis-py</a>)
   * **RabbitMQ** (based on <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>)
   * **NATS** (based on <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>)
-* <a href="https://lancetnik.github.io/Propan/2_getting_started/4_broker/5_rpc/" target="_blank">**RPC**</a>: The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
+* <a href="https://lancetnik.github.io/Propan/getting_started/4_broker/5_rpc/" target="_blank">**RPC**</a>: The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
 * [**Greate to develop**](#cli-power): CLI tool provides great development experience:
   * framework-independent way to rule application environment
-  * application code hot reloading
-* <a href="https://lancetnik.github.io/Propan/2_getting_started/7_testing" target="_blank">**Testability**</a>: **Propan** allows you to test your app without external dependencies: you shouldn't suit up a Message Broker, use a virtual one!
+  * application code *hot reloading*
+  * robust application templates
+* <a href="https://lancetnik.github.io/Propan/getting_started/7_testing" target="_blank">**Testability**</a>: **Propan** allows you to test your app without external dependencies: you shouldn't suit up a Message Broker, use a virtual one!
 
 ### Supported MQ brokers
 |              | async                                                   | sync                 |
