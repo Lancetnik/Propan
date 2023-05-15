@@ -1,4 +1,3 @@
-import asyncio
 import sys
 from contextlib import asynccontextmanager
 from types import MethodType
@@ -24,12 +23,12 @@ from propan.brokers.rabbit import (
     RabbitQueue,
 )
 from propan.brokers.rabbit.rabbit_broker import (  # type: ignore
-    Handler,
     PikaSendableMessage,
     TimeoutType,
     _validate_exchange,
     _validate_queue,
 )
+from propan.test.utils import call_handler
 
 __all__ = (
     "build_message",
@@ -41,25 +40,6 @@ class PatchedMessage(IncomingMessage):
     @asynccontextmanager
     async def process(self):  # type: ignore
         yield
-
-
-async def call_handler(
-    handler: Handler,
-    message: IncomingMessage,
-    callback: bool = False,
-    callback_timeout: Optional[float] = 30.0,
-    raise_timeout: bool = False,
-) -> Any:
-    r = handler.callback(message)
-    try:
-        result = await asyncio.wait_for(r, timeout=callback_timeout)
-    except asyncio.TimeoutError as e:
-        if raise_timeout is True:  # pragma: no branch
-            raise e
-        result = None
-
-    if callback is True:  # pragma: no branch
-        return result
 
 
 def build_message(

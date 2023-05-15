@@ -5,18 +5,18 @@ from propan.brokers.rabbit import RabbitExchange, RabbitQueue, ExchangeType
 broker = RabbitBroker()
 app = PropanApp(broker)
 
-exch = RabbitExchange("exch", auto_delete=True, type=ExchangeType.HEADERS)
+exch = RabbitExchange("exchange", auto_delete=True, type=ExchangeType.HEADERS)
 
 queue_1 = RabbitQueue(
-    "test-q-1", auto_delete=True,
+    "test-queue-1", auto_delete=True,
     bind_arguments={ "key": 1 }
 )
 queue_2 = RabbitQueue(
-    "test-q-2", auto_delete=True,
+    "test-queue-2", auto_delete=True,
     bind_arguments={ "key": 2, "key2": 2, "x-match": "any" }
 )
 queue_3 = RabbitQueue(
-    "test-q-3", auto_delete=True,
+    "test-queue-3", auto_delete=True,
     bind_arguments={ "key": 2, "key2": 2, "x-match": "all" }
 )
 

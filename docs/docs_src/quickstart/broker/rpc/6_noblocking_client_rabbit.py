@@ -1,5 +1,5 @@
 import asyncio
-from propan.brokers.rabbit import RabbitBroker
+from propan import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@127.0.0.1/")
 

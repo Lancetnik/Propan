@@ -5,7 +5,7 @@ from propan.brokers.rabbit import RabbitExchange, RabbitQueue, ExchangeType
 broker = RabbitBroker()
 app = PropanApp(broker)
 
-exch = RabbitExchange("exch", auto_delete=True, type=ExchangeType.FANOUT)
+exch = RabbitExchange("exchange", auto_delete=True, type=ExchangeType.FANOUT)
 
 queue_1 = RabbitQueue("test-q-1", auto_delete=True)
 queue_2 = RabbitQueue("test-q-2", auto_delete=True)

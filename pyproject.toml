@@ -71,9 +71,14 @@ async-nats = [
     "nats-py>=2"
 ]
 
+async-redis = [
+    "redis>=4.2.0rc1"
+]
+
 test = [
     "propan[async-rabbit]",
     "propan[async-nats]",
+    "propan[async-redis]",
 
     "coverage[toml]>=7.2",
     "pytest>=7",
@@ -97,6 +102,8 @@ doc = [
 dev = [
     "propan[test]",
     "propan[doc]",
+
+    "types-redis",
 
     "mypy==1.1.1",
     "black==23.3.0",
@@ -204,6 +211,7 @@ markers = [
     "slow",
     "rabbit",
     "nats",
+    "redis",
     "all",
 ]
 

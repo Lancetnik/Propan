@@ -53,7 +53,7 @@ async def full_broker(settings):
 
 
 @pytest_asyncio.fixture
-async def test_broker(broker):
+async def test_broker():
     broker = RabbitBroker()
     yield TestRabbitBroker(broker)
     await broker.close()

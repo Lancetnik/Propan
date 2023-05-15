@@ -71,9 +71,8 @@ class NatsBroker(BrokerUsecase):
         for handler in self.handlers:
             func = handler.callback
 
-            if self.logger:
-                self._get_log_context(None, handler.subject, handler.queue)
-                self.logger.info(f"`{func.__name__}` waiting for messages")
+            c = self._get_log_context(None, handler.subject, handler.queue)
+            self._log(f"`{func.__name__}` waiting for messages", extra=c)
 
             sub = await self._connection.subscribe(handler.subject, cb=func)
             handler.subscription = sub
@@ -87,7 +86,7 @@ class NatsBroker(BrokerUsecase):
         if self._connection is None:
             raise ValueError("NatsConnection not started yet")
 
-        msg, content_type = super()._encode_message(message)
+        msg, content_type = self._encode_message(message)
 
         return await self._connection.publish(
             subject,
