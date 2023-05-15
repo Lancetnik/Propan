@@ -34,9 +34,6 @@ It's designed to create reactive microservices around [Messaging](https://micros
 
 It is a modern, high-level framework on top of popular specific Python brokers libraries, based on [*pydantic*](https://docs.pydantic.dev/){target="_blank"} and [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"}, [*pytest*](https://docs.pytest.org/en/7.3.x/){target="_blank"} concepts.
 
-!!! warning "Under development"
-    The main functional was written, as tests were. But, breaking changes are still able to be until **0.1.0** version. All of these changes will be described at [CHANGELOG](10_CHANGELOG), so watch by releases.
-
 ---
 
 ## The key features are
