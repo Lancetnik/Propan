@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2023-05-15 **0.1.0.0** STABLE
+
+Stable and fully documented **Propan** release!
+
+From the current release, no more breaking changes - use the framework safely!
+
+At the current release, all *RabbitMQ* use cases are supported, tested, and described in the documentation.
+Expect support for *Redis* (testing now), *Kafka* (in development), and full support for *Nats* (also in development) soon.
+
 ## 2023-05-01 **0.0.9.4**
 
 Great news! Now **Propan** can be used as a full part of **FastAPI**!
