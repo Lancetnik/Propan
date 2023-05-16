@@ -27,35 +27,34 @@
 
 # Propan
 
-**Propan** - just *<s>an another one HTTP</s>* a **declarative Python MQ framework**. It's following by [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"},
-simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *<s>another one HTTP</s>* a **declarative Python MQ framework**. It it inspired by [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"}, aims to simplify writing code that works with Message Brokers and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around [Messaging](https://microservices.io/patterns/communication-style/messaging.html){target="_blank"}.
 
-It is a modern, high-level framework on top of popular specific Python brokers libraries, based on [*pydantic*](https://docs.pydantic.dev/){target="_blank"} and [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"}, [*pytest*](https://docs.pytest.org/en/7.3.x/){target="_blank"} concepts.
+It is a modern, high-level framework on top of popular Python libraries for various message brokers, based on [*pydantic*](https://docs.pydantic.dev/){target="_blank"} and [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"}, [*pytest*](https://docs.pytest.org/en/7.3.x/){target="_blank"} concepts.
 
 ---
 
 ## The key features are
 
-* **Easy**: Designed to be easy to use and learn.
+* **Simple**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
-* [**Dependencies management**](2_getting_started/1_quick-start/#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
-* [**Integrations**](2_getting_started/1_quick-start/#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](5_integrations/1_integrations-index/) you want
+* [**Dependencies management**](2_getting_started/1_quick-start/#dependencies): Minimization of code duplication. Access to dependencies at any level of the call stack.
+* [**Integrations**](2_getting_started/1_quick-start/#http-frameworks-integrations): **Propan** is fully compatible with [any HTTP framework](5_integrations/1_integrations-index/) you want
 * **MQ independent**: Single interface to popular MQ:
     * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py))
     * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/)) 
 * [**RPC**](2_getting_started/4_broker/5_rpc/): The framework supports RPC requests on top of message brokers, which will allow performing long operations on remote services asynchronously.
 * [**Greate to develop**](2_getting_started/2_cli/): CLI tool provides great development experience:
-    * framework-independent way to rule application environment
-    * application code hot reloading
-* [**Testability**](2_getting_started/7_testing): **Propan** allows you to test your app without external dependencies: you shouldn't suit up a Message Broker, use a virtual one!
+    * framework-independent way to manage the project environment
+    * application code hot reload
+* [**Testability**](2_getting_started/7_testing): **Propan** allows you to test your app without external dependencies: you do not have to set up a Message Broker, you can use a virtual one!
 
 ---
 
 ## Declarative
 
-With declarative tools you should define **what you need to get**. With traditional imperative tools you should write **what you need to do**.
+With declarative tools you can define **what you need to get**. With traditional imperative tools you must write **what you need to do**.
 
 Take a look at classic imperative tools, such as [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"}, [pika](https://pika.readthedocs.io/en/stable/){target="_blank"}, [nats-py](https://github.com/nats-io/nats.py){target="_blank"}, etc.
 
@@ -85,9 +84,9 @@ async def main():
 asyncio.run(main())
 ```
 
-**aio-pika** is a really great tool with a really easy learning curve. But it's still imperative. You need to *connect*, declare *channel*, *queues*, *exchanges* by yourself. Also, you need to manage *connection*, *message*, *queue* context to avoid any troubles.
+**aio-pika** is a great tool with a really easy learning curve. But it's still imperative. You need to *connect*, declare *channel*, *queues*, *exchanges* by yourself. Also, you need to manage *connection*, *message*, *queue* context to avoid any troubles.
 
-It is not a bad way, but it can be easy.
+It is not a bad way, but it can be much easier.
 
 ```python
 from propan import PropanApp, RabbitBroker
@@ -108,7 +107,7 @@ This is the **Propan** declarative way to write the same code. That is so much e
 ## Supported MQ brokers
 
 !!! note "Need your help"
-    The framework is now actively developing. We have a very long list of what has yet to be implemented and various brokers are only part of it. If you want to implement something from this list or help in any other way, take a look [here](6_contributing/1_todo/)
+    The framework is now in active development. We have a very long list of what has yet to be implemented and various brokers are only part of it. If you want to implement something from this list or help in any other way, take a look [here](6_contributing/1_todo/)
 
 |              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|
