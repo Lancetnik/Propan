@@ -1,7 +1,7 @@
 # Alternative Frameworks
 
-**Propan** is a pretty young framework. It has a lot of features, but you should know about able alternatives.
-Something of them are focused on other aspects of microservices development, so you can find other features in them, that can be helpfull in your case.
+**Propan** is a pretty young framework. It has a lot of features, but you should know about possible alternatives.
+Some of them are focused on other aspects of microservices development, so you can find other features in them that can be helpful in your case.
 
 ## [Minos](https://github.com/minos-framework/minos-python){.external-link target="_blank"}
 

@@ -10,7 +10,7 @@ Install using `pip`:
     ```
     </div>
     !!! tip
-        To working with project start a test broker container
+        To work with the project start a contianer with the test broker
         ```bash
         docker run -d --rm -p 5672:5672 --name test-mq rabbitmq
         ```
@@ -23,7 +23,7 @@ Install using `pip`:
     ```
     </div>
     !!! tip
-        To working with project start a test broker container
+        To work with the project start a container with the test broker
         ```bash
         docker run -d --rm -p 4222:4222 --name test-mq nats
         ```
@@ -74,12 +74,11 @@ Propan uses `pydantic` to cast incoming function arguments to types according to
 
 ## Dependencies
 
-**Propan** a has dependencies management policy close to `pytest fixtures`.
-You can specify in functions arguments which dependencies
-you would to use. Framework passes them from the global Context object.
+**Propan** has a dependencies management policy close to `pytest fixtures`.
+Function arguments declare which dependencies you want are needed, and a special decorator delivers them from the global Context object.
 
-Already existed context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
-If you call not existing field, raises *pydantic.error_wrappers.ValidationError* value.
+Already declared context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
+If you call a non-existent field, raises *pydantic.error_wrappers.ValidationError* value.
 
 But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
 and [more](../5_dependency/1_di-index).
@@ -109,7 +108,7 @@ Create Propan project template at: /home/user/projectname
 </div>
 
 !!! note
-    Project template require `pydantic[dotenv]` installation to run
+    Project template requires `pydantic[dotenv]` installation to run
 
 Just run the created project:
 
@@ -157,7 +156,7 @@ Just import a **PropanRouter** you need and declare the message handler
 using the `@event` decorator. This decorator is similar to the decorator `@handle` for the corresponding brokers.
 
 !!! tip
-    When used in this way, **Propan** does not use its own dependency system, but integrates into **FastAPI**.
+    When used this way, **Propan** does not utilize its own dependency system, but integrates into **FastAPI**.
     That is, you can use `Depends`, `Background Tasks` and other tools **Facet API** as if it were a regular HTTP endpoint.
 
 ```python linenums="1" hl_lines="7 15 19"
