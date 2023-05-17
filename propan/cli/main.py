@@ -13,7 +13,7 @@ from propan.cli.utils.logs import LogLevels, get_log_level, set_log_level
 from propan.cli.utils.parser import SettingField, parse_cli_args
 from propan.log import logger
 
-cli = typer.Typer()
+cli = typer.Typer(pretty_exceptions_short=True)
 
 
 def version_callback(version: bool) -> None:
@@ -37,7 +37,7 @@ def version_callback(version: bool) -> None:
 def main(
     version: Optional[bool] = typer.Option(
         False,
-        "--version",
+        "-v", "--version",
         callback=version_callback,
         is_eager=True,
         help="Show current platform, python and propan version",
@@ -127,13 +127,10 @@ def _run(
         propan_app._command_line_options = extra_options
 
         if sys.platform not in ("win32", "cygwin", "cli"):
-            import uvloop
-
-            if sys.version_info >= (3, 11):
-                with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-                    runner.run(propan_app.run(log_level=app_level))
-                    return
-
+            try:
+                import uvloop
+            except Exception:
+                logger.warning("You have no installed `uvloop`")
             else:
                 uvloop.install()
 

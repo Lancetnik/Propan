@@ -42,22 +42,23 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 ### The key features are
 
-* **Easy**: Designed to be easy to use and learn.
+* **Simple**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
-* [**Dependencies management**](#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
-* [**Integrations**](#http-frameworks-integrations): **Propan** is ready to use in pair with <a href="https://lancetnik.github.io/Propan/integrations/1_integrations-index/" target="_blank">any HTTP framework</a> you want
+* [**Dependencies management**](#dependencies): Minimization of code duplication. Access to dependencies at any level of the call stack.
+* [**Integrations**](#http-frameworks-integrations): **Propan** is fully compatible with <a href="https://lancetnik.github.io/Propan/integrations/1_integrations-index/" target="_blank">any HTTP framework</a> you want
 * **MQ independent**: Single interface to popular MQ:
   * **Redis** (based on <a href="https://github.com/redis/redis-py/" target="_blank">redis-py</a>)
   * **RabbitMQ** (based on <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>)
   * **NATS** (based on <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>)
 * <a href="https://lancetnik.github.io/Propan/getting_started/4_broker/5_rpc/" target="_blank">**RPC**</a>: The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
 * [**Greate to develop**](#cli-power): CLI tool provides great development experience:
-  * framework-independent way to rule application environment
-  * application code *hot reloading*
+  * framework-independent way to manage the project environment
+  * application code *hot reload*
   * robust application templates
-* <a href="https://lancetnik.github.io/Propan/getting_started/7_testing" target="_blank">**Testability**</a>: **Propan** allows you to test your app without external dependencies: you shouldn't suit up a Message Broker, use a virtual one!
+* <a href="https://lancetnik.github.io/Propan/getting_started/7_testing" target="_blank">**Testability**</a>: **Propan** allows you to test your app without external dependencies: you do not have to set up a Message Broker, you can use a virtual one!
 
 ### Supported MQ brokers
+
 |              | async                                                   | sync                 |
 |--------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
@@ -79,7 +80,7 @@ If you have any questions or ideas about features to implement, welcome to [disc
 
 ## Declarative?
 
-With declarative tools you should define **what you need to get**. With traditional imperative tools you should write **what you need to do**.
+With declarative tools you can define **what you need to get**. With traditional imperative tools you must write **what you need to do**.
 
 Take a look at classic imperative tools, such as <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>, <a href="https://pika.readthedocs.io/en/stable/" target="_blank">pika</a>, <a href="https://github.com/redis/redis-py/" target="_blank">redis-py</a>, <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>, etc.
 
@@ -109,9 +110,9 @@ async def main():
 asyncio.run(main())
 ```
 
-**aio-pika** is a really great tool with a really easy learning curve. But it's still imperative. You need to *connect*, declare *channel*, *queues*, *exchanges* by yourself. Also, you need to manage *connection*, *message*, *queue* context to avoid any troubles.
+**aio-pika** is a great tool with a really easy learning curve. But it's still imperative. You need to *connect*, declare *channel*, *queues*, *exchanges* by yourself. Also, you need to manage *connection*, *message*, *queue* context to avoid any troubles.
 
-It is not a bad way, but it can be easy.
+It is not a bad way, but it can be much easier.
 
 ```python
 from propan import PropanApp, RabbitBroker

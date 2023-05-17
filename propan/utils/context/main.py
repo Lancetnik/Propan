@@ -6,7 +6,7 @@ from propan.utils.classes import Singlethon
 
 T = TypeVar("T")
 
-
+from loguru import logger
 class ContextRepo(Singlethon):
     _global_context: Dict[str, Any]
     _scope_context: Dict[str, ContextVar[Any]]
@@ -49,6 +49,7 @@ class ContextRepo(Singlethon):
     @property
     def context(self) -> Dict[str, Any]:
         return {
+            "context": self,
             **{i: j.get() for i, j in self._scope_context.items()},
             **self._global_context,
         }
