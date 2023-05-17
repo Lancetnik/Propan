@@ -81,7 +81,12 @@ class RedisBroker(BrokerUsecase):
         func: Callable[[PropanMessage], T],
         watcher: Optional[BaseWatcher],
     ) -> Callable[[PropanMessage], T]: ...
-    def handle(self, channel: str, *, pattern: bool = False, **original_kwargs: Any) -> Wrapper: ...  # type: ignore[override]
+    def handle(
+        self,
+        channel: str,
+        *,
+        pattern: bool = False,
+    ) -> Wrapper: ...  # type: ignore[override]
     def _get_log_context(  # type: ignore[override]
         self, message: PropanMessage, channel: str
     ) -> Dict[str, Any]: ...
@@ -92,8 +97,8 @@ class RedisBroker(BrokerUsecase):
     async def start(self) -> None: ...
     async def publish(  # type: ignore[override]
         self,
-        message: SendableMessage,
-        channel: str,
+        message: SendableMessage = "",
+        channel: str = "",
         *,
         reply_to: str = "",
         headers: Optional[Dict[str, Any]] = None,

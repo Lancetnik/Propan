@@ -86,7 +86,10 @@ class RedisBroker(BrokerUsecase):
         return wrapper
 
     def handle(
-        self, channel: str, *, pattern: bool = False, **original_kwargs: Any
+        self,
+        channel: str = "",
+        *,
+        pattern: bool = False,
     ) -> Wrapper:
         self.__max_channel_len = max(self.__max_channel_len, len(channel))
 
@@ -94,7 +97,6 @@ class RedisBroker(BrokerUsecase):
             func = self._wrap_handler(
                 func,
                 channel=channel,
-                **original_kwargs,
             )
             handler = Handler(callback=func, channel=channel, pattern=pattern)
             self.handlers.append(handler)
@@ -121,8 +123,8 @@ class RedisBroker(BrokerUsecase):
 
     async def publish(
         self,
-        message: SendableMessage,
-        channel: str,
+        message: SendableMessage = "",
+        channel: str = "",
         *,
         reply_to: str = "",
         headers: Optional[Dict[str, Any]] = None,
