@@ -6,7 +6,7 @@ from propan.utils.classes import Singlethon
 
 T = TypeVar("T")
 
-from loguru import logger
+
 class ContextRepo(Singlethon):
     _global_context: Dict[str, Any]
     _scope_context: Dict[str, ContextVar[Any]]

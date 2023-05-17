@@ -1,14 +1,14 @@
 from pathlib import Path
 
-from propan.cli.startproject.utils import touch_dir, write_file
+from propan.cli.startproject.async_app.core import create_app_file
 from propan.cli.startproject.core import (
-    create_project_dir,
+    create_apps_dir,
     create_config_dir,
     create_core_dir,
-    create_apps_dir,
     create_env,
+    create_project_dir,
 )
-from propan.cli.startproject.async_app.core import create_app_file
+from propan.cli.startproject.utils import touch_dir, write_file
 
 
 def create_rabbit(dir: Path) -> Path:

@@ -8,14 +8,16 @@ import typer
 
 from propan.__about__ import __version__
 from propan.cli.app import PropanApp
+from propan.cli.startproject import create_app
 from propan.cli.utils.imports import get_app_path, import_object
 from propan.cli.utils.logs import LogLevels, get_log_level, set_log_level
 from propan.cli.utils.parser import SettingField, parse_cli_args
-from propan.cli.startproject import create_app
 from propan.log import logger
 
 cli = typer.Typer(pretty_exceptions_short=True)
-cli.add_typer(create_app, name="create", help="Create a new Propan project at [APPNAME] directory")
+cli.add_typer(
+    create_app, name="create", help="Create a new Propan project at [APPNAME] directory"
+)
 
 
 def version_callback(version: bool) -> None:

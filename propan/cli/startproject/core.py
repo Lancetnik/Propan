@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from propan.cli.startproject.utils import write_file, touch_dir
 from propan.__about__ import __version__
+from propan.cli.startproject.utils import touch_dir, write_file
 
 
 def create_project_dir(dirname: Path, version: str) -> Path:

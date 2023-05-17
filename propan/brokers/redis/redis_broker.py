@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from functools import wraps
-from typing import Any, Callable, Dict, List, NoReturn, Optional, TypeVar
+from typing import Any, Callable, Coroutine, Dict, List, NoReturn, Optional, TypeVar
 from uuid import uuid4
 
 from redis.asyncio.client import PubSub, Redis
@@ -45,6 +45,16 @@ class RedisBroker(BrokerUsecase):
         **kwargs: Any,
     ) -> Redis:
         return Redis.from_url(url, **kwargs)
+
+    async def connect(
+        self,
+        url: Optional[str] = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Coroutine[Any, Any, Any]:
+        if url is not None:
+            kwargs["url"] = url
+        return await super().connect(*args, **kwargs)
 
     async def close(self) -> None:
         for h in self.handlers:
