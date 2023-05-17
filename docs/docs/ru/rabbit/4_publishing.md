@@ -4,19 +4,21 @@
 Однако, в данном случае в качестве сообщения (помимо `str`, `bytes`, `dict`, `pydatic.BaseModel`) может выступать объект класса `aio_pika.Message` (при необходимости).
 
 ```python
-from propan.brokers.rabbit import RabbitBroker, RabbitQueue
+import asyncio
+from propan import RabbitBroker
 
-broker = RabbitBroker()
+async def pub():
+    async with RabbitBroker() as broker:
+        await broker.publish("Hi!", queue="test", exhcange="test")
 
-...
-    await broker.publish("Hi!", queue="test", exhcange="test")
+asyncio.run(pub())
 ```
 
 ### Базовые аргументы
 
-Метод `pubslish` принимает следующие аргументы:
+Метод `publish` принимает следующие аргументы:
 
-* `message`: bytes | str | dict | pydatic.BaseModel | aio_pika.Message = "" - сообщение для отправки
+* `message`: bytes | str | dict | Sequence[Any] | pydatic.BaseModel | aio_pika.Message = "" - сообщение для отправки
 * `exchange`: str | RabbitExchange | None = None - exchange, куда будет отправлено сообщение. Если не указан - используется *default*
 * `queue`: str | RabbitQueue = "" - очередь, куда будет отправлено сообщение (т.к. большинство очередей используют свое название в качестве ключа маршрутизации, это человекочитаемый вариант `routing_key`)
 * `routing_key`: str = "" - тоже ключ маршрутизации сообщения, если не указан - используется аргумент `queue`
@@ -52,7 +54,7 @@ broker = RabbitBroker()
 Также `publish` поддерживает общие аргументы для создания [*RPC* запросов](../../getting_started/4_broker/5_rpc/#_3):
 
 * `callback`: bool = False - ожидать ли ответ на сообщение
-* `callbakc_timeout`: float | None = 30.0 - таймаут ожидания ответа. В случае `None` - ждет бесконечно
+* `callback_timeout`: float | None = 30.0 - таймаут ожидания ответа. В случае `None` - ждет бесконечно
 * `raise_timeout`: bool = False
     * `False` - возвращать None в случае таймаута
     * `True` - ошибка `asyncio.TimeoutError` в случае таймаута

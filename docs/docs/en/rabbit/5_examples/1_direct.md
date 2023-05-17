@@ -5,7 +5,7 @@
 !!! note
     **Default** Exchange, to which all queues in *RabbitMQ* are subscribed, has the **Direct** type by default
 
-## Message distribution
+## Scaling
 
 If several consumers are listening to the same queue, messages will go to the one of them (round-robin). This behavior is common for all types of `exchange`, because it refers to the queue itself. The type of `exchange` affects which queues the message gets into.
 
@@ -52,7 +52,7 @@ Then we signed up several consumers using the advertised queues to the `exchange
 Now the distribution of messages between these consumers will look like this:
 
 ```python
-{!> docs_src/rabbit/direct.py [ln:29]!}
+{!> docs_src/rabbit/direct.py [ln:27]!}
 ```
 
 Messages `1` will be sent to `handler1` because it listens to `exchange` using a queue with the routing key `test-q-1`
@@ -60,7 +60,7 @@ Messages `1` will be sent to `handler1` because it listens to `exchange` using a
 ---
 
 ```python
-{!> docs_src/rabbit/direct.py [ln:30]!}
+{!> docs_src/rabbit/direct.py [ln:28]!}
 ```
 
 Messages `2` will be sent to `handler2` because it listens to `exchange` using the same queue, but `handler1` is busy
@@ -68,7 +68,7 @@ Messages `2` will be sent to `handler2` because it listens to `exchange` using t
 ---
 
 ```python
-{!> docs_src/rabbit/direct.py [ln:31]!}
+{!> docs_src/rabbit/direct.py [ln:29]!}
 ```
 
 Messages `3` will be sent to `handler1` again, because it is currently free
@@ -76,7 +76,7 @@ Messages `3` will be sent to `handler1` again, because it is currently free
 ---
 
 ```python
-{!> docs_src/rabbit/direct.py [ln:32]!}
+{!> docs_src/rabbit/direct.py [ln:30]!}
 ```
 
 Messages `4` will be sent to `handler3`, because it is the only one listening to `exchange` using a queue with the routing key `test-q-2`

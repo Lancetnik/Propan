@@ -128,14 +128,14 @@ nav:
       - Fanout Exchange: rabbit/5_examples/2_fanout.md
       - Topic Exchange: rabbit/5_examples/3_topic.md
       - Header Exchange: rabbit/5_examples/4_header.md
-  - Redis:
+  - Redis Pub/Sub:
     - Redis Basics: redis/1_redis-index.md
     - Redis Pubslishing: redis/2_publishing.md
     - Examples:
       - Direct: redis/3_examples/1_direct.md
-      - Topic: redis/3_examples/2_topic.md
-  - NATS:
-    - NATS Basics: nats/1_nats-index.md
+      - Pattern: redis/3_examples/2_pattern.md
+  - Nats:
+    - Nats Basics: nats/1_nats-index.md
     - Routing: nats/2_routing.md
     - Nats Pubslishing: nats/3_publishing.md
   - Integrations: integrations/1_integrations-index.md

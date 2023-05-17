@@ -35,7 +35,7 @@ Then we signed up several consumers using the advertised queues to the `exchange
 Now the distribution of messages between these consumers will look like this:
 
 ```python
-{!> docs_src/rabbit/fanout.py [ln:29]!}
+{!> docs_src/rabbit/fanout.py [ln:27]!}
 ```
 
 Messages `1` will be sent to `handler1` and `handler3`, because they listen to `exchange` using different queues
@@ -43,7 +43,7 @@ Messages `1` will be sent to `handler1` and `handler3`, because they listen to `
 ---
 
 ```python
-{!> docs_src/rabbit/fanout.py [ln:30]!}
+{!> docs_src/rabbit/fanout.py [ln:28]!}
 ```
 
 Messages `2` will be sent to `handler2` and `handler3`, because `handler2` listens to `exchange` using the same queue as `handler1`
@@ -51,7 +51,7 @@ Messages `2` will be sent to `handler2` and `handler3`, because `handler2` liste
 ---
 
 ```python
-{!> docs_src/rabbit/fanout.py [ln:31]!}
+{!> docs_src/rabbit/fanout.py [ln:29]!}
 ```
 
 Messages `3` will be sent to `handler1` and `handler3`
@@ -59,7 +59,7 @@ Messages `3` will be sent to `handler1` and `handler3`
 ---
 
 ```python
-{!> docs_src/rabbit/fanout.py [ln:32]!}
+{!> docs_src/rabbit/fanout.py [ln:30]!}
 ```
 
 Messages `4` will be sent to `handler3` and `handler3`

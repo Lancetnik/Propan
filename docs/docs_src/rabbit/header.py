@@ -36,10 +36,8 @@ async def base_handler3(logger: Logger):
 async def base_handler4(logger: Logger):
     logger.info("base_handler4")
 
-@app.on_startup
+@app.after_startup
 async def send_messages():
-    await broker.start()
-
     await broker.publish(exchange=exch, headers={ "key": 1 })  # handlers: 1
     await broker.publish(exchange=exch, headers={ "key": 1 })  # handlers: 2
     await broker.publish(exchange=exch, headers={ "key": 1 })  # handlers: 1

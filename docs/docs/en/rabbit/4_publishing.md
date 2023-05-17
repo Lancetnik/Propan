@@ -4,19 +4,21 @@
 However, in this case, an object of the `aio_pika.Message` class (if necessary) can act as a message (in addition to `str`, `bytes`, `dict`, `pydatic.BaseModel`).
 
 ```python
-from propan.brokers.rabbit import RabbitBroker, RabbitQueue
+import asyncio
+from propan import RabbitBroker
 
-broker = RabbitBroker()
+async def pub():
+    async with RabbitBroker() as broker:
+        await broker.publish("Hi!", queue="test", exhcange="test")
 
-...
-     await broker.publish("Hi!", queue="test", exhcange="test")
+asyncio.run(pub())
 ```
 
 ### Basic arguments
 
-The `pubslish` method takes the following arguments:
+The `publish` method takes the following arguments:
 
-* `message`: bytes | str | dict | pydatic.BaseModel | aio_pika.Message = "" - message to send
+* `message`: bytes | str | dict | Sequence[Any] | pydatic.BaseModel | aio_pika.Message = "" - message to send
 * `exchange`: str | RabbitExchange | None = None - the exchange where the message will be sent to. If not specified - *default* is used
 * `queue`: str | RabbitQueue = "" - the queue where the message will be sent (since most queues use their name as the routing key, this is a human-readable version of `routing_key`)
 * `routing_key`: str = "" - also a message routing key, if not specified, the `queue` argument is used
@@ -52,7 +54,7 @@ Arguments for sending a message:
 Also `publish` supports generic arguments for making [*RPC* requests](../../getting_started/4_broker/5_rpc/#client):
 
 * `callback`: bool = False - whether to wait for a response to the message
-* `callbakc_timeout`: float | None = 30.0 - response waiting timeout. In case of `None` - waits indefinitely
+* `callback_timeout`: float | None = 30.0 - response waiting timeout. In case of `None` - waits indefinitely
 * `raise_timeout`: bool = False
     * `False` - return None on timeout
     * `True` - `asyncio.TimeoutError` error in case of timeout

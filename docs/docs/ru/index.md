@@ -41,9 +41,9 @@
 * [**Управление зависимостями**](getting_started/1_quick-start/#_4): Эффективное переиспользование за счет аннотации типов. Доступ к зависимостями во всем стеке вызова.
 * [**Интeграция**](getting_started/1_quick-start/#http): Propan полностью совместим с [любыми HTTP фреймворками](integrations/1_integrations-index/)
 * **Независимость от брокеров**: Единый интерфейс для популярных брокеров:
-    * **Redis** (основан на [redis-py]("https://github.com/redis/redis-py/"){target="_blank"})
+    * **Redis** (основан на [redis-py]("https://redis.readthedocs.io/en/stable/index.html"){target="_blank"})
     * **NATS** (основан на [nats-py](https://github.com/nats-io/nats.py){target="_blank"})
-    * **RabbitMQ** (основан на [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"}) 
+    * **RabbitMQ** (основан на [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"})
 * [**RPC**](getting_started/4_broker/5_rpc/): Фреймворк поддерживает RPC запросы поверх брокеров сообщений, что позволит выполнять длительные операции на удаленных сервисах асинхронно.
 * [**Скорость разработки**](getting_started/2_cli/): собственный *CLI* инструмент предоставляет отличный опыт разработки:
     * Полностью совместимый с любым фреймворком способ управлять окружением проекта
@@ -58,7 +58,7 @@
 Декларативные иснтрументы позволяют нам описывать **что мы хотим получить**, в то время как традиционные императивные инструменты
 заставляют нас писать **что мы хотим сделать**.
 
-К традиционным императивным библиотекам относятся [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"}, [pika](https://pika.readthedocs.io/en/stable/){target="_blank"}, [redis-py]("https://github.com/redis/redis-py/"){target="_blank"}, [nats-py](https://github.com/nats-io/nats.py){target="_blank"} и подобные.
+К традиционным императивным библиотекам относятся [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"}, [pika](https://pika.readthedocs.io/en/stable/){target="_blank"}, [redis-py]("https://redis.readthedocs.io/en/stable/index.html"){target="_blank"}, [nats-py](https://github.com/nats-io/nats.py){target="_blank"} и подобные.
 
 Например, это **Quickstart** из библиотеки *aio-pika*:
 
@@ -113,13 +113,14 @@ async def base_handler(body):
 !!! note "Нужна ваша помощь"
     Фреймоворк сейчас активно развивается. У нас очень длинный список того, что еще предстоит реализовать и различные брокеры - только его часть. Если вы хотите реализовать что-то из этого списка или помочь любым другим способом - загляните [сюда](contributing/1_todo/)
 
-|              | async                                                   | sync                 |
-|--------------|:-------------------------------------------------------:|:--------------------:|
-| **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Redis**    | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Nats**     | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **NatsJS**   | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
-| **MQTT**     | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Pulsar**   | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **SQS**      | :mag: planning :mag:                                    | :mag: planning :mag: |
+|                   | async                                                   | sync                 |
+|-------------------|:-------------------------------------------------------:|:--------------------:|
+| **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Nats**          | :warning: **beta** :warning:                            | :mag: planning :mag: |
+| **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
+| **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **Kafka**         | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **SQS**           | :mag: planning :mag:                                    | :mag: planning :mag: |

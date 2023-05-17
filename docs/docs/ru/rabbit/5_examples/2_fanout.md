@@ -35,10 +35,26 @@
 Теперь распределение сообщений между этими потребителями будет выглядеть следующим образом:
 
 ```python
+{!> docs_src/rabbit/fanout.py [ln:27]!}
+```
+
+Сообщение `1` будет отправлено в `handler1` и `handler3`, т.к. они слушает `exchange` с помощью разных очередей
+
+---
+
+```python
+{!> docs_src/rabbit/fanout.py [ln:28]!}
+```
+
+Сообщение `2` будет отправлено в `handler2` и `handler3`, т.к. `handler2` слушает `exchange` с помощью той же очереди, что и `handler1`
+
+---
+
+```python
 {!> docs_src/rabbit/fanout.py [ln:29]!}
 ```
 
-Сообщений `1` будет отправлено в `handler1` и `handler3`, т.к. они слушает `exchange` с помощью разных очередей
+Сообщение `3` будет отправлено в `handler1` и `handler3`
 
 ---
 
@@ -46,23 +62,7 @@
 {!> docs_src/rabbit/fanout.py [ln:30]!}
 ```
 
-Сообщений `2` будет отправлено в `handler2` и `handler3`, т.к. `handler2` слушает `exchange` с помощью той же очереди, что и `handler1`
-
----
-
-```python
-{!> docs_src/rabbit/fanout.py [ln:31]!}
-```
-
-Сообщений `3` будет отправлено в `handler1` и `handler3`
-
----
-
-```python
-{!> docs_src/rabbit/fanout.py [ln:32]!}
-```
-
-Сообщений `4` будет отправлено в `handler3` и `handler3`
+Сообщение `4` будет отправлено в `handler3` и `handler3`
 
 ---
 

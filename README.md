@@ -47,7 +47,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 * [**Dependencies management**](#dependencies): Minimization of code duplication. Access to dependencies at any level of the call stack.
 * [**Integrations**](#http-frameworks-integrations): **Propan** is fully compatible with <a href="https://lancetnik.github.io/Propan/integrations/1_integrations-index/" target="_blank">any HTTP framework</a> you want
 * **MQ independent**: Single interface to popular MQ:
-  * **Redis** (based on <a href="https://github.com/redis/redis-py/" target="_blank">redis-py</a>)
+  * **Redis** (based on <a href="https://redis.readthedocs.io/en/stable/index.html" target="_blank">redis-py</a>)
   * **RabbitMQ** (based on <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>)
   * **NATS** (based on <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>)
 * <a href="https://lancetnik.github.io/Propan/getting_started/4_broker/5_rpc/" target="_blank">**RPC**</a>: The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
@@ -59,16 +59,17 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 ### Supported MQ brokers
 
-|              | async                                                   | sync                 |
-|--------------|:-------------------------------------------------------:|:--------------------:|
-| **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Redis**    | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Nats**     | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **NatsJS**   | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
-| **MQTT**     | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Pulsar**   | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **SQS**      | :mag: planning :mag:                                    | :mag: planning :mag: |
+|                   | async                                                   | sync                 |
+|-------------------|:-------------------------------------------------------:|:--------------------:|
+| **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Nats**          | :warning: **beta** :warning:                            | :mag: planning :mag: |
+| **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
+| **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **Kafka**         | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **SQS**           | :mag: planning :mag:                                    | :mag: planning :mag: |
 
 ### Community
 
@@ -82,7 +83,7 @@ If you have any questions or ideas about features to implement, welcome to [disc
 
 With declarative tools you can define **what you need to get**. With traditional imperative tools you must write **what you need to do**.
 
-Take a look at classic imperative tools, such as <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>, <a href="https://pika.readthedocs.io/en/stable/" target="_blank">pika</a>, <a href="https://github.com/redis/redis-py/" target="_blank">redis-py</a>, <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>, etc.
+Take a look at classic imperative tools, such as <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>, <a href="https://pika.readthedocs.io/en/stable/" target="_blank">pika</a>, <a href="https://redis.readthedocs.io/en/stable/index.html" target="_blank">redis-py</a>, <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>, etc.
 
 This is the **Quickstart** with the *aio-pika*:
 

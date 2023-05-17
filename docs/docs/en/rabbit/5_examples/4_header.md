@@ -37,7 +37,7 @@ Then we signed up several consumers using the advertised queues to the `exchange
 Now the distribution of messages between these consumers will look like this:
 
 ```python
-{!> docs_src/rabbit/header.py [ln:43]!}
+{!> docs_src/rabbit/header.py [ln:41]!}
 ```
 
 Messages `1` will be sent to `handler1`, because it listens to a queue whose `key` header matches the `key` header of the message
@@ -45,7 +45,7 @@ Messages `1` will be sent to `handler1`, because it listens to a queue whose `ke
 ---
 
 ```python
-{!> docs_src/rabbit/header.py [ln:44]!}
+{!> docs_src/rabbit/header.py [ln:42]!}
 ```
 
 Messages `2` will be sent to `handler2` because it listens to `exchange` using the same queue, but `handler1` is busy
@@ -53,7 +53,7 @@ Messages `2` will be sent to `handler2` because it listens to `exchange` using t
 ---
 
 ```python
-{!> docs_src/rabbit/header.py [ln:45]!}
+{!> docs_src/rabbit/header.py [ln:43]!}
 ```
 
 Messages `3` will be sent to `handler1` again, because it is currently free
@@ -61,7 +61,7 @@ Messages `3` will be sent to `handler1` again, because it is currently free
 ---
 
 ```python
-{!> docs_src/rabbit/header.py [ln:46]!}
+{!> docs_src/rabbit/header.py [ln:44]!}
 ```
 
 Messages `4` will be sent to `handler3`, because it listens to a queue whose `key` header coincided with the `key` header of the message
@@ -69,7 +69,7 @@ Messages `4` will be sent to `handler3`, because it listens to a queue whose `ke
 ---
 
 ```python
-{!> docs_src/rabbit/header.py [ln:47]!}
+{!> docs_src/rabbit/header.py [ln:45]!}
 ```
 
 Messages `5` will be sent to `handler3`, because it listens to a queue whose header `key2` coincided with the header `key2` of the message
@@ -77,7 +77,7 @@ Messages `5` will be sent to `handler3`, because it listens to a queue whose hea
 ---
 
 ```python
-{!> docs_src/rabbit/header.py [ln:48-49]!}
+{!> docs_src/rabbit/header.py [ln:46-47]!}
 ```
 
 Messages `6` will be sent to `handler3` and `handler4`, because the message headers completely match the queue keys
