@@ -132,7 +132,7 @@ Propan имеет систему управления зависимостями
 
 <div class="termy">
 ```console
-$ propan create [projectname]
+$ propan create async rabbit [projectname]
 Create Propan project template at: /home/user/projectname
 ```
 </div>

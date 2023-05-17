@@ -33,7 +33,7 @@ Commands:
 
 <div class="termy">
 ```console
-$ propan create app
+$ propan create async rabbit app
 
 Create Propan project template at: ./app
 ```

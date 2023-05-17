@@ -130,7 +130,7 @@ Also, **Propan CLI** is able to generate a production-ready application template
 
 <div class="termy">
 ```console
-$ propan create [projectname]
+$ propan create async rabbit [projectname]
 Create Propan project template at: /home/user/projectname
 ```
 </div>

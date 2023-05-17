@@ -11,9 +11,11 @@ from propan.cli.app import PropanApp
 from propan.cli.utils.imports import get_app_path, import_object
 from propan.cli.utils.logs import LogLevels, get_log_level, set_log_level
 from propan.cli.utils.parser import SettingField, parse_cli_args
+from propan.cli.startproject import create_app
 from propan.log import logger
 
 cli = typer.Typer(pretty_exceptions_short=True)
+cli.add_typer(create_app, name="create", help="Create a new Propan project at [APPNAME] directory")
 
 
 def version_callback(version: bool) -> None:
@@ -37,7 +39,8 @@ def version_callback(version: bool) -> None:
 def main(
     version: Optional[bool] = typer.Option(
         False,
-        "-v", "--version",
+        "-v",
+        "--version",
         callback=version_callback,
         is_eager=True,
         help="Show current platform, python and propan version",
@@ -46,15 +49,6 @@ def main(
     """
     Generate, run and manage Propan apps to greater development experience
     """
-
-
-@cli.command()
-def create(appname: str) -> None:
-    """Create a new Propan project at [APPNAME] directory"""
-    from propan.cli.startproject import create
-
-    project = create(Path.cwd() / appname, __version__)
-    typer.echo(f"Create Propan project template at: {project}")
 
 
 @cli.command(

@@ -265,7 +265,7 @@ async def setup(env: str, context: ContextRepo):
 Also, **Propan CLI** is able to generate a production-ready application template:
 
 ```bash
-propan create [projectname]
+propan create async rabbit [projectname]
 ```
 
 *Notice: project template require* `pydantic[dotenv]` *installation.*
