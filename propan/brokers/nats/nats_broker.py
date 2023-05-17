@@ -29,7 +29,14 @@ class NatsBroker(BrokerUsecase):
         self.__max_queue_len = 0
         self.__max_subject_len = 4
 
-    async def _connect(self, *args: Any, **kwargs: Any) -> Client:
+    async def _connect(
+        self,
+        *args: Any,
+        url: Optional[str] = None,
+        **kwargs: Any,
+    ) -> Client:
+        if url is not None:
+            kwargs["servers"] = kwargs.pop("servers", []) + [url]
         return await nats.connect(*args, **kwargs)
 
     def handle(

@@ -2,6 +2,7 @@ from pathlib import Path
 
 import typer
 
+from propan.cli.startproject.async_app.nats import create_nats
 from propan.cli.startproject.async_app.rabbit import create_rabbit
 from propan.cli.startproject.async_app.redis import create_redis
 
@@ -20,3 +21,10 @@ def redis(appname: str) -> None:
     """Create an asyncronous Redis Propan project at [APPNAME] directory"""
     project = create_redis(Path.cwd() / appname)
     typer.echo(f"Create an asyncronous Redis Propan project at: {project}")
+
+
+@async_app.command()
+def nats(appname: str) -> None:
+    """Create an asyncronous Nats Propan project at [APPNAME] directory"""
+    project = create_nats(Path.cwd() / appname)
+    typer.echo(f"Create an asyncronous Nats Propan project at: {project}")
