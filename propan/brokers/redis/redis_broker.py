@@ -35,7 +35,7 @@ class RedisBroker(BrokerUsecase):
         log_fmt: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
-        super().__init__(url, log_fmt=log_fmt, **kwargs)
+        super().__init__(url=url, log_fmt=log_fmt, **kwargs)
         self.__max_channel_len = 0
         self._polling_interval = polling_interval
 

@@ -4,11 +4,11 @@ from propan.cli.startproject.utils import write_file, touch_dir
 from propan.__about__ import __version__
 
 
-def create_project_dir(dirname: Path) -> Path:
+def create_project_dir(dirname: Path, version: str) -> Path:
     project_dir = touch_dir(dirname)
     create_readme(project_dir)
     create_dockerfile(project_dir)
-    create_requirements(project_dir)
+    create_requirements(project_dir, version)
     create_gitignore(project_dir)
     return project_dir
 
@@ -23,8 +23,8 @@ def create_dockerfile(project_dir: Path) -> None:
         "FROM python:3.11.3-slim",
         "",
         "ENV PYTHONUNBUFFERED=1 \\",
-        "PYTHONDONTWRITEBYTECODE=1 \\",
-        "PIP_DISABLE_PIP_VERSION_CHECK=on",
+        "    PYTHONDONTWRITEBYTECODE=1 \\",
+        "    PIP_DISABLE_PIP_VERSION_CHECK=on",
         "",
         "RUN useradd -ms /bin/bash user",
         "",
@@ -33,7 +33,7 @@ def create_dockerfile(project_dir: Path) -> None:
         "",
         "COPY requirements.txt requirements.txt",
         "",
-        "RUN pip install -r requirements.txt",
+        "RUN pip install --no-warn-script-location --no-cahche-dir -r requirements.txt",
         "",
         "COPY ./app ./app",
         "",
@@ -51,10 +51,10 @@ def create_gitignore(project_dir: Path) -> None:
     )
 
 
-def create_requirements(project_dir: Path) -> None:
+def create_requirements(project_dir: Path, version: str) -> None:
     write_file(
         project_dir / "requirements.txt",
-        f"propan[async_rabbit]=={__version__}",
+        f"{version}=={__version__}",
         "python-dotenv",
     )
 
@@ -114,12 +114,19 @@ def create_config_dir(config: Path) -> Path:
     return config_dir
 
 
-def create_core_dir(core: Path) -> Path:
+def create_core_dir(core: Path, broker_class: str) -> Path:
     core_dir = touch_dir(core)
 
     write_file(
         core_dir / "__init__.py",
         "from .dependencies import broker",
+    )
+
+    write_file(
+        core_dir / "dependencies.py",
+        f"from propan import {broker_class}",
+        "",
+        f"broker = {broker_class}()",
     )
 
     return core_dir

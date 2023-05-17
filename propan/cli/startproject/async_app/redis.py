@@ -11,7 +11,7 @@ from propan.cli.startproject.core import (
 from propan.cli.startproject.async_app.core import create_app_file
 
 
-def create_rabbit(dir: Path) -> Path:
+def create_redis(dir: Path) -> Path:
     project_dir = _create_project_dir(dir)
     app_dir = _create_app_dir(project_dir / "app")
     _create_config_dir(app_dir / "config")
@@ -21,34 +21,31 @@ def create_rabbit(dir: Path) -> Path:
 
 
 def _create_project_dir(dirname: Path) -> Path:
-    project_dir = create_project_dir(dirname, "propan[async-rabbit]")
+    project_dir = create_project_dir(dirname, "propan[async-redis]")
 
     write_file(
         project_dir / "docker-compose.yaml",
         'version: "3"',
         "",
         "services:",
-        "  rabbit:",
-        "    image: rabbitmq",
-        "    environment:",
-        "      RABBITMQ_DEFAULT_USER: guest",
-        "      RABBITMQ_DEFAULT_PASS: guest",
+        "  redis:",
+        "    image: redis",
         "    healthcheck:",
-        "      test: rabbitmq-diagnostics -q ping",
+        "      test: ['CMD', 'redis-cli', 'ping']",
         "      interval: 3s",
         "      timeout: 30s",
         "      retries: 3",
         "    ports:",
-        "      - 5672:5672",
+        "      - 6379:6379",
         "",
         "  app:",
         "    build: .",
         "    environment:",
-        "      APP_BROKER__URL: amqp://guest:guest@rabbit:5672/",
+        "      APP_BROKER__URL: redis://redis:6379/",
         "    volumes:",
         "      - ./app:/home/user/app:ro",
         "    depends_on:",
-        "      rabbit:",
+        "      redis:",
         "        condition: service_healthy",
     )
 
@@ -57,18 +54,18 @@ def _create_project_dir(dirname: Path) -> Path:
 
 def _create_app_dir(app: Path) -> Path:
     app_dir = touch_dir(app)
-    create_app_file(app_dir, "RabbitBroker")
+    create_app_file(app_dir, "RedisBroker")
     return app_dir
 
 
 def _create_config_dir(config: Path) -> Path:
     config_dir = create_config_dir(config)
-    create_env(config_dir, "amqp://guest:guest@localhost:5672/")
+    create_env(config_dir, "redis://localhost:6379/")
     return config_dir
 
 
 def _create_core_dir(core: Path) -> Path:
-    core_dir = create_core_dir(core, "RabbitBroker")
+    core_dir = create_core_dir(core, "RedisBroker")
     return core_dir
 
 
@@ -81,11 +78,8 @@ def _create_apps_dir(apps: Path) -> Path:
         "",
         "from core import broker",
         "",
-        "from propan.brokers.rabbit import RabbitQueue, RabbitExchange",
         "",
-        "",
-        '@broker.handle(queue=RabbitQueue("test"),',
-        '               exchange=RabbitExchange("test"))',
+        "@broker.handle('test')",
         "async def base_handler(body: dict, logger: Logger):",
         "    logger.info(body)",
     )
