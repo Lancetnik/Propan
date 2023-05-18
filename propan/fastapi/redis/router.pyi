@@ -73,7 +73,6 @@ class RedisRouter(PropanRouter):
         endpoint: AnyCallable,
         name: Optional[str] = None,
         pattern: bool = False,
-        retry: Union[bool, int] = False,
     ) -> None:
         pass
     def event(  # type: ignore[override]
@@ -81,7 +80,6 @@ class RedisRouter(PropanRouter):
         channel: str,
         *,
         pattern: bool = False,
-        retry: Union[bool, int] = False,
         name: Optional[str] = None,
     ) -> None:
         pass
