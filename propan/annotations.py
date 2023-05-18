@@ -31,14 +31,23 @@ try:
 except Exception:
     NatsBroker = NatsMessage = None  # type: ignore
 
+try:
+    from propan.brokers.redis import RedisBroker as RedB
+
+    RedisBroker = Annotated[RedB, ContextField("broker")]
+except Exception:
+    RedisBroker = None  # type: ignore
+
 assert any(
     (
         all((RabbitBroker, RabbitMessage)),
         all((NatsBroker, NatsMessage)),
+        RedisBroker,
     )
 ), (
     "You should specify using broker!\n"
     "Install it using one of the following commands:\n"
     'pip install "propan[async-rabbit]"\n'
     'pip install "propan[async-nats]"\n'
+    'pip install "propan[async-redis]"\n'
 )

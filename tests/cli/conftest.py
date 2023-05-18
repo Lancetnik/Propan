@@ -5,7 +5,7 @@ from typer.testing import CliRunner
 
 from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
-from propan.cli.startproject import create
+from propan.cli.startproject.async_app.rabbit import create_rabbit
 
 
 @pytest.fixture
@@ -34,6 +34,6 @@ def runner():
 
 
 @pytest.fixture(scope="module")
-def project_dir(version):
+def rabbit_async_project():
     with TemporaryDirectory() as dir:
-        yield create(dir, version)
+        yield create_rabbit(dir)

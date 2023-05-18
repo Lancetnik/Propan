@@ -8,6 +8,6 @@ router = RabbitRouter("amqp://guest:guest@localhost:5672")
 @router.get("/")
 async def hello_http():
     await router.broker.publish("Hello, Rabbit!", routing_key="test")
-    return "Hello, http!"
+    return "Hello, HTTP!"
 
 app.include_router(router)

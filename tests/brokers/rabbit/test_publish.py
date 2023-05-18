@@ -15,6 +15,7 @@ from propan.brokers.rabbit import RabbitBroker, RabbitQueue
         "hello",
         {"message": "hello!"},
         create_model("Message", r=str)(r="hello!"),
+        [1, 2, 3],
     ),
 )
 async def test_rpc(message, queue: RabbitQueue, broker: RabbitBroker):

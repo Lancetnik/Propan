@@ -1,3 +1,11 @@
-from propan.fastapi.rabbit import RabbitRouter
+try:
+    from propan.fastapi.rabbit import RabbitRouter
+except Exception:
+    RabbitRouter = None  # type: ignore
 
-__all__ = ("RabbitRouter",)
+try:
+    from propan.fastapi.redis import RedisRouter
+except Exception:
+    RedisRouter = None  # type: ignore
+
+__all__ = ("RabbitRouter", "RedisRouter")

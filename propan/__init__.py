@@ -13,11 +13,18 @@ try:
 except Exception:
     NatsBroker = None  # type: ignore
 
-assert any((RabbitBroker, NatsBroker)), (
+try:
+    from propan.brokers.redis import RedisBroker
+except Exception as e:
+    print(e)
+    RedisBroker = None  # type: ignore
+
+assert any((RabbitBroker, NatsBroker, RedisBroker)), (
     "You should specify using broker!\n"
     "Install it using one of the following commands:\n"
     'pip install "propan[async-rabbit]"\n'
     'pip install "propan[async-nats]"\n'
+    'pip install "propan[async-redis]"\n'
 )
 
 
@@ -38,4 +45,5 @@ __all__ = (  # noqa: F405
     # brokers
     "NatsBroker",
     "RabbitBroker",
+    "RedisBroker",
 )
