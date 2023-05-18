@@ -14,7 +14,7 @@ async def pub():
 asyncio.run(pub())
 ```
 
-### Basic arguments
+## Basic arguments
 
 The `publish` method takes the following arguments:
 
@@ -23,7 +23,7 @@ The `publish` method takes the following arguments:
 * `queue`: str | RabbitQueue = "" - the queue where the message will be sent (since most queues use their name as the routing key, this is a human-readable version of `routing_key`)
 * `routing_key`: str = "" - also a message routing key, if not specified, the `queue` argument is used
 
-### Message parameters
+## Message parameters
 
 You can read more about all the flags in the [RabbitMQ documentation](https://www.rabbitmq.com/consumers.html){.external-link target="_blank"}
 
@@ -41,7 +41,7 @@ You can read more about all the flags in the [RabbitMQ documentation](https://ww
 * `user_id`: str | None - ID of the *RabbitMQ* user who sent the message
 * `app_id`: str | None - ID of the application that sent the message (used by consumers)
 
-### Send flags
+## Send flags
 
 Arguments for sending a message:
 
@@ -49,9 +49,9 @@ Arguments for sending a message:
 * `immediate`: bool = False - the client expects that there is a consumer ready to take the message to work "right now" (if there is no consumer, return it to the sender)
 * `timeout`: int | float | None = None - send confirmation time from *RabbitMQ*
 
-### RPC arguments
+## RPC arguments
 
-Also `publish` supports generic arguments for making [*RPC* requests](../../getting_started/4_broker/5_rpc/#client):
+Also `publish` supports common arguments for making [*RPC* requests](../../getting_started/4_broker/5_rpc/#client):
 
 * `callback`: bool = False - whether to wait for a response to the message
 * `callback_timeout`: float | None = 30.0 - response waiting timeout. In case of `None` - waits indefinitely

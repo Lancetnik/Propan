@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 2023-05-18 **0.1.1.0** REDIS
+
+**Propan** added support for *Redis Pub/Sub* as a message broker. This functionality is fully tested and described in the documentation.
+
+*RedisBroker* supports:
+
+* message delivery by key or pattern
+* test client, without the need to run *Redis*
+* **RPC** requests over *Redis Pub/Sub*
+* *FastAPI* Plugin
+
+Also, **Propan CLI** is able to generate templates to any supported broker
+
+```bash
+propan create async [broker] [APPNAME]
+```
+
 ## 2023-05-15 **0.1.0.0** STABLE
 
 Stable and fully documented **Propan** release!
