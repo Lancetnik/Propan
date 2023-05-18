@@ -15,7 +15,7 @@ class Handler(BaseHandler):
     channel: str
     pattern: bool = False
 
-    task: Optional[asyncio.Task[Any]] = None
+    task: Optional["asyncio.Task[Any]"] = None
     subscription: Optional[PubSub] = None
 
 
