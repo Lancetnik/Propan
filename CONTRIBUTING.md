@@ -44,13 +44,15 @@ And if you update that local Propan source code, as it is installed with `-e`, w
 That way, you don't have to "install" your local version to be able to test every change.
 
 To use your local Propan cli type:
+
 ```bash
-$ python -m propan ...
+python -m propan ...
 ```
 
 ### Tests
 
-#### Pytests
+#### Pytest
+
 To run tests with your current Propan application and Python environment use:
 
 ```bash
@@ -62,6 +64,7 @@ $ bash ./scripts/test-cov.sh
 ```
 
 There are some *pytest marks* at project:
+
 * **slow**
 * **rabbit**
 * **nats**
@@ -72,13 +75,13 @@ Default *pytest* calling runs "not slow" tests.
 To run all tests use:
 
 ```bash
-$ pytest -m 'all'
+pytest -m 'all'
 ```
 
 Also if you didn't up local rabbit or nats intance, run tests without that dependencies
 
 ```bash
-$ pytest -m 'not rabbit and not nats'
+pytest -m 'not rabbit and not nats'
 ```
 
 To run all tests based on RabbitMQ, NATS or another dependencies you should run first following *docker-compose.yml*
@@ -91,15 +94,21 @@ services:
     image: rabbitmq
     ports:
       - 5672:5672
-  
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+
   nats:
     image: nats
     ports:
       - 4222:4222
+      - 8222:8222  # management
 ```
 
 ```bash
-$ docker compose up -d
+docker compose up -d
 ```
 
 #### Hatch

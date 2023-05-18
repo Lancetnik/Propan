@@ -44,13 +44,15 @@ And if you update that local Propan source code, as it is installed with `-e`, w
 That way, you don't have to "install" your local version to be able to test every change.
 
 To use your local **Propan CLI** type:
+
 ```bash
 python -m propan ...
 ```
 
 ### Tests
 
-#### Pytests
+#### Pytest
+
 To run tests with your current Propan application and Python environment use:
 
 ```bash
@@ -62,6 +64,7 @@ bash ./scripts/test-cov.sh
 ```
 
 There are some *pytest marks* at project:
+
 * **slow**
 * **rabbit**
 * **nats**
@@ -91,11 +94,17 @@ services:
     image: rabbitmq
     ports:
       - 5672:5672
-  
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+
   nats:
     image: nats
     ports:
       - 4222:4222
+      - 8222:8222  # management
 ```
 
 ```bash

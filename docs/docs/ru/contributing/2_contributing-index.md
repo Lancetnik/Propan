@@ -51,7 +51,7 @@ python -m propan ...
 
 ### Тестирование
 
-#### Pytests
+#### Pytest
 
 Для запуска тестов с вашим текущим Python и окружением используйте стандартный pytest или один из заготовленных скриптов
 
@@ -103,11 +103,17 @@ services:
     image: rabbitmq
     ports:
       - 5672:5672
-  
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+
   nats:
     image: nats
     ports:
       - 4222:4222
+      - 8222:8222  # management
 ```
 
 #### Hatch
