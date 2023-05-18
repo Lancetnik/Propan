@@ -9,7 +9,7 @@ from typing_extensions import Protocol
 from propan.cli.supervisors.utils import set_exit
 from propan.cli.utils.parser import SettingField
 from propan.log import logger
-from propan.types import AnyCallable, AsyncFunc, DecoratedCallableNone
+from propan.types import AnyCallable, AsyncFunc
 from propan.utils import apply_types, context
 from propan.utils.functions import to_async
 
@@ -24,7 +24,9 @@ class Runnable(Protocol):
 
 class PropanApp:
     _on_startup_calling: List[AsyncFunc]
+    _after_startup_calling: List[AsyncFunc]
     _on_shutdown_calling: List[AsyncFunc]
+    _after_shutdown_calling: List[AsyncFunc]
 
     _stop_stream: Optional[MemoryObjectSendStream[bool]]
     _receive_stream: Optional[MemoryObjectReceiveStream[bool]]
@@ -40,7 +42,9 @@ class PropanApp:
         context.set_global("app", self)
 
         self._on_startup_calling = []
+        self._after_startup_calling = []
         self._on_shutdown_calling = []
+        self._after_shutdown_calling = []
         self._stop_stream = None
         self._receive_stream = None
         self._command_line_options: Dict[str, SettingField] = {}
@@ -48,15 +52,17 @@ class PropanApp:
     def set_broker(self, broker: Runnable) -> None:
         self.broker = broker
 
-    def on_startup(self, func: AnyCallable) -> DecoratedCallableNone:
-        f: AsyncFunc = apply_types(to_async(func))
-        self._on_startup_calling.append(f)
-        return func
+    def on_startup(self, func: AnyCallable) -> AnyCallable:
+        return _set_async_hook(self._on_startup_calling, func)
 
-    def on_shutdown(self, func: AnyCallable) -> DecoratedCallableNone:
-        f: AsyncFunc = apply_types(to_async(func))
-        self._on_shutdown_calling.append(f)
-        return func
+    def on_shutdown(self, func: AnyCallable) -> AnyCallable:
+        return _set_async_hook(self._on_shutdown_calling, func)
+
+    def after_startup(self, func: AnyCallable) -> AnyCallable:
+        return _set_async_hook(self._after_startup_calling, func)
+
+    def after_shutdown(self, func: AnyCallable) -> AnyCallable:
+        return _set_async_hook(self._after_shutdown_calling, func)
 
     async def run(self, log_level: int = logging.INFO) -> None:
         self._init_async_cycle()
@@ -93,16 +99,28 @@ class PropanApp:
         if self.broker is not None:
             await self.broker.start()
 
+        for func in self._after_startup_calling:
+            await func()
+
     async def _shutdown(self) -> None:
+        for func in self._on_shutdown_calling:
+            await func()
+
         if (
             self.broker is not None
             and getattr(self.broker, "_connection", False) is not False
         ):
             await self.broker.close()
 
-        for func in self._on_shutdown_calling:
+        for func in self._after_shutdown_calling:
             await func()
 
     async def __exit(self, flag: bool) -> None:
         if self._stop_stream is not None:  # pragma: no branch
             await self._stop_stream.send(flag)
+
+
+def _set_async_hook(hooks: List[AsyncFunc], func: AnyCallable) -> AnyCallable:
+    f: AsyncFunc = apply_types(to_async(func))
+    hooks.append(f)
+    return func

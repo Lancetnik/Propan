@@ -6,6 +6,7 @@ from shutil import rmtree
 import subprocess
 
 from yaml import load
+
 try:
     from yaml import CLoader as Loader
 except ImportError:
@@ -21,15 +22,16 @@ IGNORE_DIRS = ("assets",)
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG = BASE_DIR / "mkdocs.yml"
 DOCS_DIR = BASE_DIR / "docs"
-LANGUAGES_DIRS = tuple(filter(
-    lambda f: f.is_dir() and f.name not in IGNORE_DIRS, DOCS_DIR.iterdir()
-))
+LANGUAGES_DIRS = tuple(
+    filter(lambda f: f.is_dir() and f.name not in IGNORE_DIRS, DOCS_DIR.iterdir())
+)
 BUILD_DIR = BASE_DIR / "site"
 
 with CONFIG.open("r") as f:
     config = load(f, Loader)
 
 DEV_SERVER = config.get("dev_addr", "0.0.0.0:8000")
+
 
 def get_missing_translation(lng: str) -> str:
     return str(Path(DOCS_DIR.name) / lng / "helpful" / "missing-translation.md")
@@ -43,7 +45,7 @@ app = typer.Typer()
 
 
 def get_default_title(file: Path) -> str:
-    title = file.stem.upper().replace('-', ' ')
+    title = file.stem.upper().replace("-", " ")
     if title == "INDEX":
         title = get_default_title(file.parent)
     return title
@@ -92,7 +94,7 @@ def build():
 
 
 @app.command()
-def add(path = typer.Argument(...)):
+def add(path=typer.Argument(...)):
     title = ""
 
     exists = []
@@ -156,10 +158,9 @@ def mv(path: str = typer.Argument(...), new_path: str = typer.Argument(...)):
             typer.echo(f"{i / new_path} moved")
 
 
-
-
 def _build():
     subprocess.run(["mkdocs", "build", "--site-dir", BUILD_DIR], check=True)
+
 
 if __name__ == "__main__":
     app()

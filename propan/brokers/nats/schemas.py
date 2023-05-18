@@ -5,12 +5,11 @@ from nats.aio.subscription import Subscription
 from nats.js.api import DEFAULT_PREFIX
 from pydantic import BaseModel
 
-from propan.types import DecoratedCallable
+from propan.brokers.model.schemas import BaseHandler
 
 
 @dataclass
-class Handler:
-    callback: DecoratedCallable
+class Handler(BaseHandler):
     subject: str
     queue: str = ""
 

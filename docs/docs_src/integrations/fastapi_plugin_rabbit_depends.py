@@ -13,6 +13,6 @@ def broker():
 @router.get("/")
 async def hello_http(broker: Annotated[RabbitBroker, Depends(broker)]):
     await broker.publish("Hello, Rabbit!", routing_key="test")
-    return "Hello, http!"
+    return "Hello, HTTP!"
 
 app.include_router(router)

@@ -49,6 +49,7 @@ class ContextRepo(Singlethon):
     @property
     def context(self) -> Dict[str, Any]:
         return {
+            "context": self,
             **{i: j.get() for i, j in self._scope_context.items()},
             **self._global_context,
         }

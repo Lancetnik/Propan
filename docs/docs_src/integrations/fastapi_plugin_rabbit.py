@@ -14,10 +14,10 @@ def call():
 
 @router.event("test")
 async def hello(m: Incoming, d = Depends(call)) -> dict:
-    return { "response": "Hello, world!" }
+    return { "response": "Hello, Rabbit!" }
 
 @router.get("/")
 async def hello_http():
-    return "Hello, http!"
+    return "Hello, HTTP!"
 
 app.include_router(router)

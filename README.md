@@ -28,12 +28,11 @@
 
 # Propan
 
-**Propan** - just *~~an another one HTTP~~* a **declarative Python MQ framework**. It's following by [*fastapi*](https://fastapi.tiangolo.com/ru/),
-simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *~~an another one HTTP~~* a **declarative Python MQ framework**. It's following by <a href="https://fastapi.tiangolo.com/ru/" target="_blank">*fastapi*</a>, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-It is a modern, high-level framework on top of popular specific Python brokers libraries, based on [*pydantic*](https://docs.pydantic.dev/) and [*fastapi*](https://fastapi.tiangolo.com/ru/), [*pytest*](https://docs.pytest.org/en/7.3.x/) concepts.
+It is a modern, high-level framework on top of popular specific Python brokers libraries, based on <a href="https://docs.pydantic.dev/" target="_blank">*pydantic*</a> and <a href="https://fastapi.tiangolo.com/ru/" target="_blank">*fastapi*</a>, <a href="https://docs.pytest.org/en/7.3.x/" target="_blank">*pytest*</a> concepts.
 
 ---
 
@@ -43,30 +42,34 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 ### The key features are
 
-* **Easy**: Designed to be easy to use and learn.
+* **Simple**: Designed to be easy to use and learn.
 * **Intuitive**: Great editor support. Autocompletion everywhere.
-* [**Dependencies management**](#dependencies): Minimize code duplication. Multiple features from each argument and parameter declaration.
-* [**Integrations**](#http-frameworks-integrations): **Propan** is ready to use in pair with [any HTTP framework](https://lancetnik.github.io/Propan/5_integrations/1_integrations-index/) you want
+* [**Dependencies management**](#dependencies): Minimization of code duplication. Access to dependencies at any level of the call stack.
+* [**Integrations**](#http-frameworks-integrations): **Propan** is fully compatible with <a href="https://lancetnik.github.io/Propan/integrations/1_integrations-index/" target="_blank">any HTTP framework</a> you want
 * **MQ independent**: Single interface to popular MQ:
-  * **NATS** (based on [nats-py](https://github.com/nats-io/nats.py)) 
-  * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/))
-* [**RPC**](https://lancetnik.github.io/Propan/2_getting_started/4_broker/5_rpc/): The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
+  * **Redis** (based on <a href="https://redis.readthedocs.io/en/stable/index.html" target="_blank">redis-py</a>)
+  * **RabbitMQ** (based on <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>)
+  * **NATS** (based on <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>)
+* <a href="https://lancetnik.github.io/Propan/getting_started/4_broker/5_rpc/" target="_blank">**RPC**</a>: The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
 * [**Greate to develop**](#cli-power): CLI tool provides great development experience:
-  * framework-independent way to rule application environment
-  * application code hot reloading
-* [**Testability**](https://lancetnik.github.io/Propan/2_getting_started/7_testing): **Propan** allows you to test your app without external dependencies: you shouldn't suit up a Message Broker, use a virtual one!
+  * framework-independent way to manage the project environment
+  * application code *hot reload*
+  * robust application templates
+* <a href="https://lancetnik.github.io/Propan/getting_started/7_testing" target="_blank">**Testability**</a>: **Propan** allows you to test your app without external dependencies: you do not have to set up a Message Broker, you can use a virtual one!
 
 ### Supported MQ brokers
-|              | async                                                   | sync                 |
-|--------------|:-------------------------------------------------------:|:--------------------:|
-| **RabbitMQ** | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Nats**     | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **NatsJS**   | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
-| **MQTT**     | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **REDIS**    | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Kafka**    | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **SQS**      | :mag: planning :mag:                                    | :mag: planning :mag: |
 
+|                   | async                                                   | sync                 |
+|-------------------|:-------------------------------------------------------:|:--------------------:|
+| **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Nats**          | :warning: **beta** :warning:                            | :mag: planning :mag: |
+| **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
+| **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **Kafka**         | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
+| **SQS**           | :mag: planning :mag:                                    | :mag: planning :mag: |
 
 ### Community
 
@@ -78,9 +81,9 @@ If you have any questions or ideas about features to implement, welcome to [disc
 
 ## Declarative?
 
-With declarative tools you should define **what you need to get**. With traditional imperative tools you should write **what you need to do**.
+With declarative tools you can define **what you need to get**. With traditional imperative tools you must write **what you need to do**.
 
-Take a look at classic imperative tools, such as [aio-pika](https://aio-pika.readthedocs.io/en/latest/), [pika](https://pika.readthedocs.io/en/stable/), [nats-py](https://github.com/nats-io/nats.py), etc.
+Take a look at classic imperative tools, such as <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>, <a href="https://pika.readthedocs.io/en/stable/" target="_blank">pika</a>, <a href="https://redis.readthedocs.io/en/stable/index.html" target="_blank">redis-py</a>, <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>, etc.
 
 This is the **Quickstart** with the *aio-pika*:
 
@@ -108,9 +111,9 @@ async def main():
 asyncio.run(main())
 ```
 
-**aio-pika** is a really great tool with a really easy learning curve. But it's still imperative. You need to *connect*, declare *channel*, *queues*, *exchanges* by yourself. Also, you need to manage *connection*, *message*, *queue* context to avoid any troubles.
+**aio-pika** is a great tool with a really easy learning curve. But it's still imperative. You need to *connect*, declare *channel*, *queues*, *exchanges* by yourself. Also, you need to manage *connection*, *message*, *queue* context to avoid any troubles.
 
-It is not a bad way, but it can be easy.
+It is not a bad way, but it can be much easier.
 
 ```python
 from propan import PropanApp, RabbitBroker
@@ -145,10 +148,12 @@ Create an application with the following code at `serve.py`:
 ```python
 from propan import PropanApp
 from propan import RabbitBroker
+# from propan import RedisBroker
 # from propan import NatsBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 # broker = NatsBroker("nats://localhost:4222")
+# broker = RedisBroker("redis://localhost:6379")
 
 app = PropanApp(broker)
 
@@ -261,7 +266,7 @@ async def setup(env: str, context: ContextRepo):
 Also, **Propan CLI** is able to generate a production-ready application template:
 
 ```bash
-propan create [projectname]
+propan create async rabbit [projectname]
 ```
 
 *Notice: project template require* `pydantic[dotenv]` *installation.*

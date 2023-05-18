@@ -100,7 +100,7 @@ def get_app(
 
         values, errors, _, _2, _3 = solved_result
         if errors:
-            raise ValidationError(errors, create_model("MQRoute"))
+            raise ValidationError(errors, create_model("PropanRoute"))
 
         return await run_endpoint_function(
             dependant=dependant,

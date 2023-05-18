@@ -20,7 +20,7 @@ async def shutdown_model(model: dict = Context()):
     # Clean up the ML models and release the resources
     model.clear()
 
-@app.get("/test")
+@broker.handle("test")
 async def predict(x: float, model = Context()):
     result = model["answer_to_everything"](x)
     return {"result": result}

@@ -1,10 +1,10 @@
+from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from aio_pika.abc import ExchangeType, TimeoutType
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from propan.brokers.model.schemas import NameRequired, Queue
-from propan.types import DecoratedCallable
+from propan.brokers.model.schemas import BaseHandler, NameRequired, Queue
 
 __all__ = (
     "RabbitQueue",
@@ -47,7 +47,7 @@ class RabbitExchange(NameRequired):
     routing_key: str = Field("", exclude=True)
 
 
-class Handler(BaseModel):
-    callback: DecoratedCallable
+@dataclass
+class Handler(BaseHandler):
     queue: RabbitQueue
     exchange: Optional[RabbitExchange] = None

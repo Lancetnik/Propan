@@ -78,11 +78,10 @@ async def test_shutdown_calls_lifespans(mock: Mock, app_without_broker: PropanAp
 @pytest.mark.asyncio
 @needs_py38
 async def test_startup_lifespan_before_broker_started(async_mock, app: PropanApp):
+    @app.on_startup
     async def call():
         await async_mock()
         assert not async_mock.broker_start.called
-
-    app.on_startup(call)
 
     with patch.object(app.broker, "start", async_mock.broker_start):
         await app._startup()
@@ -94,11 +93,10 @@ async def test_startup_lifespan_before_broker_started(async_mock, app: PropanApp
 @pytest.mark.asyncio
 @needs_py38
 async def test_shutdown_lifespan_after_broker_stopped(mock, async_mock, app: PropanApp):
+    @app.after_shutdown
     async def call():
         await async_mock()
         assert async_mock.broker_stop.called
-
-    app.on_shutdown(call)
 
     with patch.object(app.broker, "close", async_mock.broker_stop):
         await app._shutdown()

@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union
 from uuid import uuid4
@@ -13,7 +12,6 @@ from propan.brokers.model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.types import AnyDict, DecoratedCallable, SendableMessage, Wrapper
-from propan.utils.context import context as global_context
 
 TimeoutType = Optional[Union[int, float]]
 PikaSendableMessage = Union[aio_pika.message.Message, SendableMessage]
@@ -67,7 +65,7 @@ class RabbitBroker(BrokerUsecase):
             self._channel = await connection.channel()
 
             if max_consumers:
-                self._log(f"Set max consumers to {max_consumers}", logging.INFO)
+                self._log(f"Set max consumers to {max_consumers}")
                 await self._channel.set_qos(prefetch_count=int(self._max_consumers))
 
         return connection
@@ -104,10 +102,8 @@ class RabbitBroker(BrokerUsecase):
 
             func = handler.callback
 
-            if self.logger is not None:
-                context = self._get_log_context(None, handler.queue, handler.exchange)
-                global_context.set_local("log_context", context)
-                self.logger.info(f"`{func.__name__}` waiting for messages")
+            c = self._get_log_context(None, handler.queue, handler.exchange)
+            self._log(f"`{func.__name__}` waiting for messages", extra=c)
 
             await queue.consume(func)
 

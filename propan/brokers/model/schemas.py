@@ -1,15 +1,21 @@
 import json
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple, Union
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
-from pydantic.dataclasses import dataclass
-from typing_extensions import TypeAlias
+from pydantic import BaseModel, Field, Json
+from pydantic.dataclasses import dataclass as pydantic_dataclass
+from typing_extensions import TypeAlias, assert_never
 
-from propan.types import AnyDict, DecodedMessage, SendableMessage
+from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMessage
 
 ContentType: TypeAlias = str
+
+
+@dataclass
+class BaseHandler:
+    callback: DecoratedCallable
 
 
 class ContentTypes(str, Enum):
@@ -22,9 +28,6 @@ class NameRequired(BaseModel):
 
     def __init__(self, name: str, **kwargs: Any):
         super().__init__(name=name, **kwargs)
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, NameRequired) and self.name == other.name
 
 
 class Queue(NameRequired):
@@ -47,19 +50,23 @@ class SendableModel(BaseModel):
 
         m = cls(message=msg).message  # type: ignore
 
-        if isinstance(m, dict):
-            return json.dumps(m).encode(), ContentTypes.json.value
-
         if isinstance(m, str):
             return m.encode(), ContentTypes.text.value
 
-        return m, None
+        if isinstance(m, (Dict, Sequence)):
+            return json.dumps(m).encode(), ContentTypes.json.value
+
+        assert_never()  # pragma: no cover
 
 
-@dataclass
+class RawDecoced(BaseModel):
+    message: Union[Json[Any], str]
+
+
+@pydantic_dataclass
 class PropanMessage:
     body: bytes
     raw_message: Any
-    content_type: str
+    content_type: Optional[str] = None
     headers: AnyDict = Field(default_factory=dict)
     message_id: str = Field(default_factory=lambda: str(uuid4()))

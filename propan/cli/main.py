@@ -8,12 +8,16 @@ import typer
 
 from propan.__about__ import __version__
 from propan.cli.app import PropanApp
+from propan.cli.startproject import create_app
 from propan.cli.utils.imports import get_app_path, import_object
 from propan.cli.utils.logs import LogLevels, get_log_level, set_log_level
 from propan.cli.utils.parser import SettingField, parse_cli_args
 from propan.log import logger
 
-cli = typer.Typer()
+cli = typer.Typer(pretty_exceptions_short=True)
+cli.add_typer(
+    create_app, name="create", help="Create a new Propan project at [APPNAME] directory"
+)
 
 
 def version_callback(version: bool) -> None:
@@ -37,6 +41,7 @@ def version_callback(version: bool) -> None:
 def main(
     version: Optional[bool] = typer.Option(
         False,
+        "-v",
         "--version",
         callback=version_callback,
         is_eager=True,
@@ -46,15 +51,6 @@ def main(
     """
     Generate, run and manage Propan apps to greater development experience
     """
-
-
-@cli.command()
-def create(appname: str) -> None:
-    """Create a new Propan project at [APPNAME] directory"""
-    from propan.cli.startproject import create
-
-    project = create(Path.cwd() / appname, __version__)
-    typer.echo(f"Create Propan project template at: {project}")
 
 
 @cli.command(
@@ -127,13 +123,10 @@ def _run(
         propan_app._command_line_options = extra_options
 
         if sys.platform not in ("win32", "cygwin", "cli"):
-            import uvloop
-
-            if sys.version_info >= (3, 11):
-                with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-                    runner.run(propan_app.run(log_level=app_level))
-                    return
-
+            try:
+                import uvloop
+            except Exception:
+                logger.warning("You have no installed `uvloop`")
             else:
                 uvloop.install()
 

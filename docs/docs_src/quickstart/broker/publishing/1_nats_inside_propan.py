@@ -5,4 +5,4 @@ app = PropanApp(broker)
 
 @broker.handle("test")
 async def handle(m: str):
-    await broker.publish(m, "another-queue")
+    await broker.publish(m, "another-subject")
