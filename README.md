@@ -136,9 +136,11 @@ This is the **Propan** declarative way to write the same code. That is so much e
 Install using `pip`:
 
 ```shell
-$ pip install "propan[async-rabbit]"
+pip install "propan[async-rabbit]"
 # or
-$ pip install "propan[async-nats]"
+pip install "propan[async-nats]"
+# or
+pip install "propan[async-redis]"
 ```
 
 ### Basic usage
@@ -166,7 +168,7 @@ async def base_handler(body):
 And just run it:
 
 ```shell
-$ propan run serve:app
+propan run serve:app
 ```
 
 ---
