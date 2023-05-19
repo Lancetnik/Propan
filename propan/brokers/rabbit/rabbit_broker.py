@@ -37,7 +37,6 @@ class RabbitBroker(BrokerUsecase):
         self._max_consumers = consumers
 
         self._channel = None
-        self.handlers = []
 
         self.__max_queue_len = 4
         self.__max_exchange_len = 4
@@ -236,6 +235,7 @@ class RabbitBroker(BrokerUsecase):
         return PropanMessage(
             body=message.body,
             headers=message.headers,
+            reply_to=message.reply_to or "",
             message_id=message.message_id,
             content_type=message.content_type or "",
             raw_message=message,
@@ -260,10 +260,10 @@ class RabbitBroker(BrokerUsecase):
 
             async with context:
                 r = await func(message)
-                if message.raw_message.reply_to:
+                if message.reply_to:
                     await self.publish(
                         message=r,
-                        routing_key=pika_message.reply_to,
+                        routing_key=message.reply_to,
                         correlation_id=pika_message.correlation_id,
                     )
 

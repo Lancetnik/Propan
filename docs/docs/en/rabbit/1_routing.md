@@ -23,7 +23,7 @@ If you want to totally understand how *RabbitMQ* works, you should visit their o
 
 *RabbitMQ* works with three main entities:
 
-* `Exchange' - the point of receiving messages from *publisher*
+* `Exchange` - the point of receiving messages from *publisher*
 * `Queue` - the point of pushing messages to *consumer*
 * `Binding` - the relationship between *queue-exchange* or *exchange-exchange*
 
