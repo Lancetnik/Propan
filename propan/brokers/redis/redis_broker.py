@@ -78,8 +78,8 @@ class RedisBroker(BrokerUsecase):
             r = await func(message)
 
             msg = message.raw_message
-            if isinstance(msg, RedisMessage) and msg.reply_to:
-                await self.publish(r or "", msg.reply_to)
+            if isinstance(msg, RedisMessage) and message.reply_to:
+                await self.publish(r or "", message.reply_to)
 
             return r
 
@@ -192,6 +192,7 @@ class RedisBroker(BrokerUsecase):
             msg = PropanMessage(
                 body=obj.data,
                 content_type=obj.headers.get("content-type", ""),
+                reply_to=obj.reply_to,
                 headers=obj.headers,
                 raw_message=obj,
             )
