@@ -33,7 +33,7 @@ def create_dockerfile(project_dir: Path) -> None:
         "",
         "COPY requirements.txt requirements.txt",
         "",
-        "RUN pip install --no-warn-script-location --no-cahche-dir -r requirements.txt",
+        "RUN pip install --no-warn-script-location --no-cache-dir -r requirements.txt",
         "",
         "COPY ./app ./app",
         "",
