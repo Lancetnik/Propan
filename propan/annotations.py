@@ -2,6 +2,7 @@ import logging
 
 from typing_extensions import Annotated
 
+from propan.__about__ import INSTALL_MESSAGE
 from propan.cli.app import PropanApp
 from propan.utils.context import Context as ContextField
 from propan.utils.context import ContextRepo as CR
@@ -38,16 +39,19 @@ try:
 except Exception:
     RedisBroker = None  # type: ignore
 
+
+try:
+    from propan.brokers.kafka import KafkaBroker as KB
+
+    KafkaBroker = Annotated[KB, ContextField("broker")]
+except Exception:
+    KafkaBroker = None  # type: ignore
+
 assert any(
     (
         all((RabbitBroker, RabbitMessage)),
         all((NatsBroker, NatsMessage)),
         RedisBroker,
+        KafkaBroker,
     )
-), (
-    "You should specify using broker!\n"
-    "Install it using one of the following commands:\n"
-    'pip install "propan[async-rabbit]"\n'
-    'pip install "propan[async-nats]"\n'
-    'pip install "propan[async-redis]"\n'
-)
+), INSTALL_MESSAGE
