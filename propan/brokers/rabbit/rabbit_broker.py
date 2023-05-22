@@ -64,7 +64,8 @@ class RabbitBroker(BrokerUsecase):
             self._channel = await connection.channel()
 
             if max_consumers:
-                self._log(f"Set max consumers to {max_consumers}")
+                c = self._get_log_context(None, RabbitQueue(""), RabbitExchange(""))
+                self._log(f"Set max consumers to {max_consumers}", extra=c)
                 await self._channel.set_qos(prefetch_count=int(self._max_consumers))
 
         return connection
