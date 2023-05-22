@@ -111,6 +111,7 @@ class NatsBroker(BrokerUsecase):
 
         if self._connection:
             await self._connection.drain()
+            self._connection = None
 
     def _get_log_context(
         self,

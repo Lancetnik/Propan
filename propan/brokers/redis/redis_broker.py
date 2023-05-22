@@ -14,8 +14,8 @@ from propan.types import (
     AnyCallable,
     DecodedMessage,
     DecoratedCallable,
+    HandlerWrapper,
     SendableMessage,
-    Wrapper,
 )
 
 T = TypeVar("T")
@@ -60,13 +60,16 @@ class RedisBroker(BrokerUsecase):
         for h in self.handlers:
             if h.task is not None:  # pragma: no branch
                 h.task.cancel()
+                h.task = None
 
             if h.subscription is not None:  # pragma: no branch
                 await h.subscription.unsubscribe()
                 await h.subscription.reset()
+                h.subscription = None
 
         if self._connection is not None:  # pragma: no branch
             await self._connection.close()
+            self._connection = None
 
     def _process_message(
         self,
@@ -90,7 +93,7 @@ class RedisBroker(BrokerUsecase):
         channel: str = "",
         *,
         pattern: bool = False,
-    ) -> Wrapper:
+    ) -> HandlerWrapper:
         self.__max_channel_len = max(self.__max_channel_len, len(channel))
 
         def wrapper(func: AnyCallable) -> DecoratedCallable:
