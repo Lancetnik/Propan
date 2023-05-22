@@ -1,4 +1,4 @@
-from typing import Any, Awaitable, Callable, Coroutine, Dict, Sequence, Union
+from typing import Any, Awaitable, Callable, Dict, Sequence, Union
 
 from pydantic import BaseModel
 from typing_extensions import TypeAlias
@@ -18,7 +18,11 @@ AsyncWrapper: TypeAlias = Callable[[AnyCallable], DecoratedAsync]
 DecodedMessage: TypeAlias = Union[AnyDict, Sequence[Any], str, bytes]
 SendableMessage: TypeAlias = Union[DecodedMessage, BaseModel, None]
 
+HandlerCallable: TypeAlias = Callable[
+    ...,
+    Union[Awaitable[SendableMessage], SendableMessage],
+]
 HandlerWrapper: TypeAlias = Callable[
-    [Callable[..., Coroutine[Any, Any, SendableMessage]]],
-    Callable[..., SendableMessage],
+    [HandlerCallable],
+    HandlerCallable,
 ]

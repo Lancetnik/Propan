@@ -9,7 +9,7 @@ from propan.brokers.model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.redis.schemas import Handler
 from propan.log import access_logger
-from propan.types import DecodedMessage, SendableMessage, Wrapper
+from propan.types import DecodedMessage, HandlerWrapper, SendableMessage
 
 T = TypeVar("T")
 
@@ -86,7 +86,7 @@ class RedisBroker(BrokerUsecase):
         channel: str,
         *,
         pattern: bool = False,
-    ) -> Wrapper: ...
+    ) -> HandlerWrapper: ...
     def _get_log_context(  # type: ignore[override]
         self, message: PropanMessage, channel: str
     ) -> Dict[str, Any]: ...
