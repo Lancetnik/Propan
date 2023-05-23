@@ -2,6 +2,7 @@ from pathlib import Path
 
 import typer
 
+from propan.cli.startproject.async_app.kafka import create_kafka
 from propan.cli.startproject.async_app.nats import create_nats
 from propan.cli.startproject.async_app.rabbit import create_rabbit
 from propan.cli.startproject.async_app.redis import create_redis
@@ -28,3 +29,10 @@ def nats(appname: str) -> None:
     """Create an asyncronous Nats Propan project at [APPNAME] directory"""
     project = create_nats(Path.cwd() / appname)
     typer.echo(f"Create an asyncronous Nats Propan project at: {project}")
+
+
+@async_app.command()
+def kafka(appname: str) -> None:
+    """Create an asyncronous Kafka Propan project at [APPNAME] directory"""
+    project = create_kafka(Path.cwd() / appname)
+    typer.echo(f"Create an asyncronous Kafka Propan project at: {project}")

@@ -1,4 +1,5 @@
 # Imports to use at __all__
+from propan.__about__ import INSTALL_MESSAGE
 from propan.cli.app import *  # noqa: F403
 from propan.log import *  # noqa: F403
 from propan.utils import *  # noqa: F403
@@ -15,18 +16,15 @@ except Exception:
 
 try:
     from propan.brokers.redis import RedisBroker
-except Exception as e:
-    print(e)
+except Exception:
     RedisBroker = None  # type: ignore
 
-assert any((RabbitBroker, NatsBroker, RedisBroker)), (
-    "You should specify using broker!\n"
-    "Install it using one of the following commands:\n"
-    'pip install "propan[async-rabbit]"\n'
-    'pip install "propan[async-nats]"\n'
-    'pip install "propan[async-redis]"\n'
-)
+try:
+    from propan.brokers.kafka import KafkaBroker
+except Exception:
+    KafkaBroker = None  # type: ignore
 
+assert any((RabbitBroker, NatsBroker, RedisBroker)), INSTALL_MESSAGE
 
 __all__ = (  # noqa: F405
     # app
@@ -46,4 +44,5 @@ __all__ = (  # noqa: F405
     "NatsBroker",
     "RabbitBroker",
     "RedisBroker",
+    "KafkaBroker",
 )

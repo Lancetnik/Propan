@@ -1,3 +1,5 @@
+from propan.__about__ import INSTALL_MESSAGE
+
 try:
     from propan.fastapi.rabbit import RabbitRouter
 except Exception:
@@ -8,4 +10,11 @@ try:
 except Exception:
     RedisRouter = None  # type: ignore
 
-__all__ = ("RabbitRouter", "RedisRouter")
+try:
+    from propan.fastapi.kafka import KafkaRouter
+except Exception:
+    KafkaRouter = None  # type: ignore
+
+assert any((RabbitRouter, RedisRouter, KafkaRouter)), INSTALL_MESSAGE
+
+__all__ = ("RabbitRouter", "RedisRouter", "KafkaRouter")

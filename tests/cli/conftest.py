@@ -5,6 +5,7 @@ from typer.testing import CliRunner
 
 from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
+from propan.cli.startproject.async_app.kafka import create_kafka
 from propan.cli.startproject.async_app.nats import create_nats
 from propan.cli.startproject.async_app.rabbit import create_rabbit
 from propan.cli.startproject.async_app.redis import create_redis
@@ -51,3 +52,9 @@ def redis_async_project():
 def nats_async_project():
     with TemporaryDirectory() as dir:
         yield create_nats(dir)
+
+
+@pytest.fixture(scope="module")
+def kafka_async_project():
+    with TemporaryDirectory() as dir:
+        yield create_kafka(dir)
