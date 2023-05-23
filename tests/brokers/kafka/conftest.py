@@ -5,6 +5,7 @@ import pytest_asyncio
 from pydantic import BaseSettings
 
 from propan import KafkaBroker
+from propan.test.kafka import TestKafkaBroker
 
 
 class Settings(BaseSettings):
@@ -41,3 +42,9 @@ async def full_broker(settings):
     broker = KafkaBroker(settings.url)
     yield broker
     await broker.close()
+
+
+@pytest_asyncio.fixture
+async def test_broker():
+    broker = KafkaBroker()
+    yield TestKafkaBroker(broker)

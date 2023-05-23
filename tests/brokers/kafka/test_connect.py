@@ -11,7 +11,6 @@ async def test_init_connect_by_url(settings):
     await broker.close()
 
 
-
 @pytest.mark.asyncio
 @pytest.mark.kafka
 async def test_connection_by_url(settings):
