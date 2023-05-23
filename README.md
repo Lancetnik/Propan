@@ -142,6 +142,8 @@ pip install "propan[async-rabbit]"
 pip install "propan[async-nats]"
 # or
 pip install "propan[async-redis]"
+# or
+pip install "propan[async-kafka]"
 ```
 
 ### Basic usage
