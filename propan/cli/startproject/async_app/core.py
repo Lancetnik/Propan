@@ -29,7 +29,7 @@ def create_app_file(app_dir: Path, broker_annotation: str) -> None:
         "    app.logger.setLevel(logger_level)",
         "    broker.logger.setLevel(logger_level)",
         "",
-        "    await broker.connect(url=settings.broker.url)",
+        "    await broker.connect(settings.broker.url)",
         "",
         "",
         'if __name__ == "__main__":',

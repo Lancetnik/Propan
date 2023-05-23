@@ -2,6 +2,7 @@ import logging
 
 from typing_extensions import Annotated
 
+from propan.__about__ import INSTALL_MESSAGE
 from propan.cli.app import PropanApp
 from propan.utils.context import Context as ContextField
 from propan.utils.context import ContextRepo as CR
@@ -21,6 +22,7 @@ try:
 except Exception:
     RabbitBroker = RabbitMessage = None  # type: ignore
 
+
 try:
     from nats.aio.msg import Msg
 
@@ -31,6 +33,7 @@ try:
 except Exception:
     NatsBroker = NatsMessage = None  # type: ignore
 
+
 try:
     from propan.brokers.redis import RedisBroker as RedB
 
@@ -38,16 +41,23 @@ try:
 except Exception:
     RedisBroker = None  # type: ignore
 
+
+try:
+    from aiokafka.structs import ConsumerRecord
+
+    from propan.brokers.kafka import KafkaBroker as KB
+
+    KafkaBroker = Annotated[KB, ContextField("broker")]
+    KafkaMessage = Annotated[ConsumerRecord, ContextField("message")]
+except Exception:
+    KafkaBroker = KafkaMessage = None  # type: ignore
+
+
 assert any(
     (
         all((RabbitBroker, RabbitMessage)),
         all((NatsBroker, NatsMessage)),
         RedisBroker,
+        all((KafkaBroker, KafkaMessage)),
     )
-), (
-    "You should specify using broker!\n"
-    "Install it using one of the following commands:\n"
-    'pip install "propan[async-rabbit]"\n'
-    'pip install "propan[async-nats]"\n'
-    'pip install "propan[async-redis]"\n'
-)
+), INSTALL_MESSAGE

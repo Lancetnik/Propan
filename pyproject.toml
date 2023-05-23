@@ -75,10 +75,15 @@ async-redis = [
     "redis>=4.2.0rc1"
 ]
 
+async-kafka = [
+    "aiokafka>=0.8"
+]
+
 test = [
     "propan[async-rabbit]",
     "propan[async-nats]",
     "propan[async-redis]",
+    "propan[async-kafka]",
 
     "coverage[toml]>=7.2",
     "pytest>=7",
@@ -199,6 +204,7 @@ extend-immutable-calls = [
     "propan.utils.context.Depends", "propan.utils.context.Context",
     "typer.Argument", "typer.Option",
     "fastapi.Depends", "fastapi.datastructures.Default",
+    "kafka.partitioner.default.DefaultPartitioner",
 ]
 
 [tool.pytest.ini_options]
@@ -212,6 +218,7 @@ markers = [
     "rabbit",
     "nats",
     "redis",
+    "kafka",
     "all",
 ]
 

@@ -49,7 +49,8 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 * **MQ independent**: Single interface to popular MQ:
   * **Redis** (based on <a href="https://redis.readthedocs.io/en/stable/index.html" target="_blank">redis-py</a>)
   * **RabbitMQ** (based on <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>)
-  * **NATS** (based on <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>)
+  * **Kafka** (based on <a href="https://aiokafka.readthedocs.io/en/stable/" target="_blank">aiokafka</a>)
+  * **Nats** (based on <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>)
 * <a href="https://lancetnik.github.io/Propan/getting_started/4_broker/5_rpc/" target="_blank">**RPC**</a>: The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
 * [**Great to develop**](#cli-power): CLI tool provides great development experience:
   * framework-independent way to manage the project environment
@@ -63,10 +64,10 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 |-------------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **Nats**          | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
 | **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Kafka**         | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **SQS**           | :mag: planning :mag:                                    | :mag: planning :mag: |
@@ -141,6 +142,8 @@ pip install "propan[async-rabbit]"
 pip install "propan[async-nats]"
 # or
 pip install "propan[async-redis]"
+# or
+pip install "propan[async-kafka]"
 ```
 
 ### Basic usage

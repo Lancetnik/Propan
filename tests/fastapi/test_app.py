@@ -1,69 +1,59 @@
+from typing import Callable, Type, TypeVar
 from uuid import uuid4
 
 import pytest
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 
-from propan.fastapi import RabbitRouter, RedisRouter
-from propan.test import TestRabbitBroker, TestRedisBroker
+from propan.fastapi import KafkaRouter, RabbitRouter, RedisRouter
+from propan.test import TestKafkaBroker, TestRabbitBroker, TestRedisBroker
 
-
-@pytest.mark.asyncio
-async def test_rabbit():
-    name = str(uuid4())
-    name2 = name + "1"
-
-    router = RabbitRouter("amqp://guest:guest@localhost:5672")
-    router.broker = TestRabbitBroker(router.broker)
-
-    app = FastAPI()
-    app.include_router(router)
-
-    @router.event(name)
-    async def hello():
-        return "1"
-
-    @router.event(name2)
-    async def hello2(b: int):
-        return "2"
-
-    await router.startup()
-
-    r = await router.broker.publish("", queue=name, callback=True, callback_timeout=0.5)
-    assert r == "1"
-
-    r = await router.broker.publish(
-        "2", queue=name2, callback=True, callback_timeout=0.5
-    )
-    assert r == "2"
-
-    await router.shutdown()
+Broker = TypeVar("Broker")
 
 
-@pytest.mark.asyncio
-async def test_redis():
-    name = str(uuid4())
-    name2 = name + "1"
+class FastAPITestcase:
+    router_class: Type[APIRouter]
+    broker_test: Callable[[Broker], Broker]
 
-    router = RedisRouter()
-    router.broker = TestRedisBroker(router.broker)
+    @pytest.mark.asyncio
+    async def test(self):
+        name = str(uuid4())
+        name2 = name + "1"
 
-    app = FastAPI()
-    app.include_router(router)
+        router = self.router_class()
+        router.broker = self.broker_test(router.broker)
 
-    @router.event(name)
-    async def hello():
-        return "1"
+        app = FastAPI()
+        app.include_router(router)
 
-    @router.event(name2)
-    async def hello2(b: int):
-        return "2"
+        @router.event(name)
+        async def hello():
+            return "1"
 
-    await router.startup()
+        @router.event(name2)
+        async def hello2(b: int):
+            return "2"
 
-    r = await router.broker.publish("", name, callback=True, callback_timeout=0.5)
-    assert r == "1"
+        await router.startup()
 
-    r = await router.broker.publish("2", name2, callback=True, callback_timeout=0.5)
-    assert r == "2"
+        r = await router.broker.publish("", name, callback=True, callback_timeout=0.5)
+        assert r == "1"
 
-    await router.shutdown()
+        r = await router.broker.publish("2", name2, callback=True, callback_timeout=0.5)
+        assert r == "2"
+
+        await router.shutdown()
+
+
+class TestRabbitRouter(FastAPITestcase):
+    router_class = RabbitRouter
+    broker_test = staticmethod(TestRabbitBroker)
+
+
+class TestRedisRouter(FastAPITestcase):
+    router_class = RedisRouter
+    broker_test = staticmethod(TestRedisBroker)
+
+
+class TestKafkaRouter(FastAPITestcase):
+    router_class = KafkaRouter
+    broker_test = staticmethod(TestKafkaBroker)
