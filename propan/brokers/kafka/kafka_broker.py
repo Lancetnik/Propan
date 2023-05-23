@@ -1,6 +1,6 @@
 import asyncio
 from functools import partial, wraps
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, NoReturn, Optional, Sequence, Tuple, Union
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.structs import ConsumerRecord
@@ -31,21 +31,24 @@ class KafkaBroker(BrokerUsecase):
 
     def __init__(
         self,
-        *args: Tuple[Any, ...],
+        bootstrap_servers: Union[str, List[str]] = "localhost",
+        *,
         log_fmt: Optional[str] = None,
         **kwargs: AnyDict,
     ) -> None:
-        super().__init__(*args, log_fmt=log_fmt, **kwargs)
+        super().__init__(bootstrap_servers, log_fmt=log_fmt, **kwargs)
         self.__max_topic_len = 4
         self._publisher = None
 
     async def _connect(
         self,
-        *args: Any,
+        bootstrap_servers: Union[str, List[str]] = "localhost",
         **kwargs: Any,
     ) -> AIOKafkaConsumer:
         kwargs["client_id"] = kwargs.get("client_id", "propan-" + __version__)
-        producer = AIOKafkaProducer(*args, **kwargs)
+        kwargs["bootstrap_servers"] = bootstrap_servers
+
+        producer = AIOKafkaProducer(**kwargs)
         context.set_global("producer", producer)
         await producer.start()
         self._publisher = producer
@@ -72,7 +75,7 @@ class KafkaBroker(BrokerUsecase):
             }
             and v
         }
-        return partial(AIOKafkaConsumer, *args, **consumer_kwargs)
+        return partial(AIOKafkaConsumer, **consumer_kwargs)
 
     async def close(self) -> None:
         for handler in self.handlers:
@@ -83,7 +86,7 @@ class KafkaBroker(BrokerUsecase):
                 await handler.consumer.stop()
 
         if self._publisher is not None:
-            self._publisher.stop()
+            await self._publisher.stop()
             self._publisher = None
 
     def handle(

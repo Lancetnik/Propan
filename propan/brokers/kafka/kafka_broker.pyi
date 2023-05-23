@@ -75,7 +75,7 @@ class KafkaBroker(BrokerUsecase):
         # broker
         log_fmt: Optional[str] = None,
     ) -> None: ...
-    async def _connect(
+    async def connect(
         self,
         bootstrap_servers: Union[str, List[str]] = "localhost",
         *,

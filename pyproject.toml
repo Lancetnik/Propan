@@ -218,6 +218,7 @@ markers = [
     "rabbit",
     "nats",
     "redis",
+    "kafka",
     "all",
 ]
 
