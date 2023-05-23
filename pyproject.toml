@@ -204,6 +204,7 @@ extend-immutable-calls = [
     "propan.utils.context.Depends", "propan.utils.context.Context",
     "typer.Argument", "typer.Option",
     "fastapi.Depends", "fastapi.datastructures.Default",
+    "kafka.partitioner.default.DefaultPartitioner",
 ]
 
 [tool.pytest.ini_options]

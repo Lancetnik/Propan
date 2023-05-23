@@ -43,8 +43,9 @@ except Exception:
 
 
 try:
-    from propan.brokers.kafka import KafkaBroker as KB
     from aiokafka.structs import ConsumerRecord
+
+    from propan.brokers.kafka import KafkaBroker as KB
 
     KafkaBroker = Annotated[KB, ContextField("broker")]
     KafkaMessage = Annotated[ConsumerRecord, ContextField("message")]

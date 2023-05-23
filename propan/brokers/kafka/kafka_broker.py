@@ -42,14 +42,37 @@ class KafkaBroker(BrokerUsecase):
     async def _connect(
         self,
         *args: Any,
-        client_id="propan-" + __version__,
         **kwargs: Any,
     ) -> AIOKafkaConsumer:
-        producer = AIOKafkaProducer(*args, client_id=client_id, **kwargs)
+        kwargs["client_id"] = kwargs.get("client_id", "propan-" + __version__)
+        producer = AIOKafkaProducer(*args, **kwargs)
         context.set_global("producer", producer)
         await producer.start()
         self._publisher = producer
-        return partial(AIOKafkaConsumer, *args, client_id=client_id, **kwargs)
+        consumer_kwargs = {
+            k: v
+            for k, v in kwargs.items()
+            if k
+            in {
+                "bootstrap_servers",
+                "loop",
+                "client_id",
+                "request_timeout_ms",
+                "retry_backoff_ms",
+                "metadata_max_age_ms",
+                "security_protocol",
+                "api_version",
+                "connections_max_idle_ms",
+                "sasl_mechanism",
+                "sasl_plain_password",
+                "sasl_plain_username",
+                "sasl_kerberos_service_name",
+                "sasl_kerberos_domain_name",
+                "sasl_oauth_token_provider",
+            }
+            and v
+        }
+        return partial(AIOKafkaConsumer, *args, **consumer_kwargs)
 
     async def close(self) -> None:
         for handler in self.handlers:
@@ -66,6 +89,7 @@ class KafkaBroker(BrokerUsecase):
     def handle(
         self,
         *topics: str,
+        **kwargs: AnyDict,
     ) -> Wrapper:
         def wrapper(func: AnyCallable) -> DecoratedCallable:
             for t in topics:
@@ -75,6 +99,7 @@ class KafkaBroker(BrokerUsecase):
             handler = Handler(
                 callback=func,
                 topics=topics,
+                consumer_kwargs=kwargs,
             )
             self.handlers.append(handler)
 
@@ -89,7 +114,7 @@ class KafkaBroker(BrokerUsecase):
             c = self._get_log_context(None, handler.topics)
             self._log(f"`{handler.callback.__name__}` waiting for messages", extra=c)
 
-            consumer = self._connection(*handler.topics)
+            consumer = self._connection(*handler.topics, **handler.consumer_kwargs)
             await consumer.start()
             handler.consumer = consumer
             handler.task = asyncio.create_task(_consume(handler))
