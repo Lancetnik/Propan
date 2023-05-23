@@ -22,6 +22,7 @@ try:
 except Exception:
     RabbitBroker = RabbitMessage = None  # type: ignore
 
+
 try:
     from nats.aio.msg import Msg
 
@@ -31,6 +32,7 @@ try:
     NatsMessage = Annotated[Msg, ContextField("message")]
 except Exception:
     NatsBroker = NatsMessage = None  # type: ignore
+
 
 try:
     from propan.brokers.redis import RedisBroker as RedB
@@ -42,16 +44,19 @@ except Exception:
 
 try:
     from propan.brokers.kafka import KafkaBroker as KB
+    from aiokafka.structs import ConsumerRecord
 
     KafkaBroker = Annotated[KB, ContextField("broker")]
+    KafkaMessage = Annotated[ConsumerRecord, ContextField("message")]
 except Exception:
-    KafkaBroker = None  # type: ignore
+    KafkaBroker = KafkaMessage = None  # type: ignore
+
 
 assert any(
     (
         all((RabbitBroker, RabbitMessage)),
         all((NatsBroker, NatsMessage)),
         RedisBroker,
-        KafkaBroker,
+        all((KafkaBroker, KafkaMessage)),
     )
 ), INSTALL_MESSAGE
