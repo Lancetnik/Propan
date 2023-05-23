@@ -154,7 +154,7 @@ class KafkaBroker(BrokerUsecase):
         *,
         reply_to: str = "",
         callback: bool = False,
-        callback_timeout: float | None = None,
+        callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
     ) -> Any:
         message, content_type = super()._encode_message(message)

@@ -37,7 +37,7 @@ class MyBroker(BrokerUsecase):
         message: SendableMessage,
         *args: Any,
         callback: bool = False,
-        callback_timeout: float | None = None,
+        callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
         **kwargs: Any,
     ) -> Any:
