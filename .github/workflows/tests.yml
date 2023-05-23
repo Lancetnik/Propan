@@ -20,16 +20,6 @@ jobs:
         image: rabbitmq
         ports:
           - 5672:5672
-
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-
-      nats:
-        image: nats
-        ports:
-          - 4222:4222
       
       kafka:
         image: bitnami/kafka
@@ -46,6 +36,16 @@ jobs:
           KAFKA_BROKER_ID: "1"
           KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
           ALLOW_PLAINTEXT_LISTENER: "true"
+
+      nats:
+        image: nats
+        ports:
+          - 4222:4222
+
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
 
     steps:
       - uses: actions/checkout@v3
