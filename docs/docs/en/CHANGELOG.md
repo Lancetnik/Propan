@@ -1,8 +1,22 @@
 # CHANGELOG
 
+## 2023-05-23 **0.1.2.0** Kafka
+
+**Propan** added support for *Kafka* as a message broker. This functionality is full tested.
+
+*KafkaBroker* supports:
+
+* message delivery
+* test client, without the need to run *Kafka*
+* *FastAPI* Plugin
+
+*KafkaBroker* not supports **RPC** yet.
+
+Also, **Propan CLI** is able to generate templates to any supported broker
+
 ## 2023-05-18 **0.1.1.0** REDIS
 
-**Propan** added support for *Redis Pub/Sub* as a message broker. This functionality is fully tested and described in the documentation.
+**Propan** added support for *Redis Pub/Sub* as a message broker. This functionality is full tested and described in the documentation.
 
 *RedisBroker* supports:
 
