@@ -205,7 +205,7 @@ class BrokerUsecase(ABC):
                 log_context = self._get_log_context(message=message, **broker_args)
 
                 with context.scope("log_context", log_context):
-                    self._log("Received")
+                    self._log("Received", extra=log_context)
 
                     try:
                         r = await func(message)
@@ -213,7 +213,7 @@ class BrokerUsecase(ABC):
                         self._log(repr(e), logging.ERROR)
                         raise e
                     else:
-                        self._log("Processed")
+                        self._log("Processed", extra=log_context)
                         return r
 
             return wrapper

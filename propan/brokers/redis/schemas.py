@@ -6,12 +6,10 @@ from pydantic import BaseModel, Field
 from redis.asyncio.client import PubSub
 
 from propan.brokers.model.schemas import BaseHandler
-from propan.types import AnyCallable
 
 
 @dataclass
 class Handler(BaseHandler):
-    callback: AnyCallable
     channel: str
     pattern: bool = False
 

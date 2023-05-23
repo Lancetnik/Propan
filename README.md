@@ -51,7 +51,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
   * **RabbitMQ** (based on <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>)
   * **NATS** (based on <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>)
 * <a href="https://lancetnik.github.io/Propan/getting_started/4_broker/5_rpc/" target="_blank">**RPC**</a>: The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
-* [**Greate to develop**](#cli-power): CLI tool provides great development experience:
+* [**Great to develop**](#cli-power): CLI tool provides great development experience:
   * framework-independent way to manage the project environment
   * application code *hot reload*
   * robust application templates
@@ -136,9 +136,11 @@ This is the **Propan** declarative way to write the same code. That is so much e
 Install using `pip`:
 
 ```shell
-$ pip install "propan[async-rabbit]"
+pip install "propan[async-rabbit]"
 # or
-$ pip install "propan[async-nats]"
+pip install "propan[async-nats]"
+# or
+pip install "propan[async-redis]"
 ```
 
 ### Basic usage
@@ -166,7 +168,7 @@ async def base_handler(body):
 And just run it:
 
 ```shell
-$ propan run serve:app
+propan run serve:app
 ```
 
 ---

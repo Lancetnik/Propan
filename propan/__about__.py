@@ -1,6 +1,6 @@
 """Simple and fast framework to create message brokers based microservices"""
 
-__version__ = "0.1.1.5"
+__version__ = "0.1.2.0"
 
 
 INSTALL_MESSAGE = (

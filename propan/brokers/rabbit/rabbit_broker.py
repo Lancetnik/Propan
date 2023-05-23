@@ -11,7 +11,7 @@ from propan.brokers.model import BrokerUsecase
 from propan.brokers.model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
-from propan.types import AnyDict, DecoratedCallable, SendableMessage, Wrapper
+from propan.types import AnyDict, DecoratedCallable, HandlerWrapper, SendableMessage
 
 TimeoutType = Optional[Union[int, float]]
 PikaSendableMessage = Union[aio_pika.message.Message, SendableMessage]
@@ -37,7 +37,6 @@ class RabbitBroker(BrokerUsecase):
         self._max_consumers = consumers
 
         self._channel = None
-        self.handlers = []
 
         self.__max_queue_len = 4
         self.__max_exchange_len = 4
@@ -55,7 +54,7 @@ class RabbitBroker(BrokerUsecase):
         self,
         *args: Any,
         **kwargs: Any,
-    ) -> aio_pika.Connection:
+    ) -> aio_pika.RobustConnection:
         connection = await aio_pika.connect_robust(
             *args, **kwargs, loop=asyncio.get_event_loop()
         )
@@ -65,7 +64,8 @@ class RabbitBroker(BrokerUsecase):
             self._channel = await connection.channel()
 
             if max_consumers:
-                self._log(f"Set max consumers to {max_consumers}")
+                c = self._get_log_context(None, RabbitQueue(""), RabbitExchange(""))
+                self._log(f"Set max consumers to {max_consumers}", extra=c)
                 await self._channel.set_qos(prefetch_count=int(self._max_consumers))
 
         return connection
@@ -74,8 +74,9 @@ class RabbitBroker(BrokerUsecase):
         self,
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
-        **original_kwargs,
-    ) -> Wrapper:
+        *,
+        retry: Union[bool, int] = False,
+    ) -> HandlerWrapper:
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
         self.__setup_log_context(queue, exchange)
@@ -85,7 +86,7 @@ class RabbitBroker(BrokerUsecase):
                 func,
                 queue=queue,
                 exchange=exchange,
-                **original_kwargs,
+                retry=retry,
             )
             handler = Handler(callback=func, queue=queue, exchange=exchange)
             self.handlers.append(handler)
@@ -236,6 +237,7 @@ class RabbitBroker(BrokerUsecase):
         return PropanMessage(
             body=message.body,
             headers=message.headers,
+            reply_to=message.reply_to or "",
             message_id=message.message_id,
             content_type=message.content_type or "",
             raw_message=message,
@@ -260,10 +262,10 @@ class RabbitBroker(BrokerUsecase):
 
             async with context:
                 r = await func(message)
-                if message.raw_message.reply_to:
+                if message.reply_to:
                     await self.publish(
                         message=r,
-                        routing_key=pika_message.reply_to,
+                        routing_key=message.reply_to,
                         correlation_id=pika_message.correlation_id,
                     )
 
@@ -305,14 +307,10 @@ class RabbitBroker(BrokerUsecase):
         exchange: Optional[RabbitExchange] = None,
     ) -> None:
         if exchange is not None:
-            i = len(exchange.name)
-            if i > self.__max_exchange_len:  # pragma: no branch
-                self.__max_exchange_len = i
+            self.__max_exchange_len = max(self.__max_exchange_len, len(exchange.name))
 
         if queue is not None:  # pragma: no branch
-            i = len(queue.name)
-            if i > self.__max_queue_len:  # pragma: no branch
-                self.__max_queue_len = i
+            self.__max_queue_len = max(self.__max_queue_len, len(queue.name))
 
 
 def _validate_exchange(
