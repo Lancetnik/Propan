@@ -76,7 +76,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 If you are interested in this project, please give me feedback by star or/and watch repository.
 
-If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions) or public [telegram group](https://t.me/propan_python).
+If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions).
 
 ---
 

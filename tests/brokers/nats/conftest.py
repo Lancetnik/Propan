@@ -2,12 +2,11 @@ import pytest
 import pytest_asyncio
 from pydantic import BaseSettings
 
-from propan import KafkaBroker
-from propan.test.kafka import TestKafkaBroker
+from propan import NatsBroker
 
 
 class Settings(BaseSettings):
-    url = "localhost:9092"
+    url = "nats://localhost:4222"
 
 
 @pytest.fixture(scope="session")
@@ -18,12 +17,6 @@ def settings():
 @pytest_asyncio.fixture
 @pytest.mark.kafka
 async def broker(settings):
-    broker = KafkaBroker(settings.url, apply_types=False)
+    broker = NatsBroker(settings.url, apply_types=False)
     yield broker
     await broker.close()
-
-
-@pytest_asyncio.fixture
-async def test_broker():
-    broker = KafkaBroker()
-    yield TestKafkaBroker(broker)

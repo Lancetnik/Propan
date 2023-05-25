@@ -107,9 +107,11 @@ class NatsBroker(BrokerUsecase):
 
     async def close(self) -> None:
         for h in self.handlers:
-            await h.subscription.unsubscribe()
+            if h.subscription is not None:
+                await h.subscription.unsubscribe()
+                h.subscription = None
 
-        if self._connection:
+        if self._connection is not None:
             await self._connection.drain()
             self._connection = None
 
