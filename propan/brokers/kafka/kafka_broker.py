@@ -81,9 +81,11 @@ class KafkaBroker(BrokerUsecase):
         for handler in self.handlers:
             if handler.task is not None:
                 handler.task.cancel()
+                handler.task = None
 
             if handler.consumer is not None:
                 await handler.consumer.stop()
+                handler.consumer = None
 
         if self._publisher is not None:
             await self._publisher.stop()

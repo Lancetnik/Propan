@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 from pydantic import BaseSettings
 
-from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
+from propan.brokers.rabbit import RabbitBroker, RabbitExchange
 from propan.test import TestRabbitBroker
 
 
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 @pytest.fixture
 def queue():
     name = str(uuid4())
-    return RabbitQueue(name=name)
+    return name
 
 
 @pytest.fixture

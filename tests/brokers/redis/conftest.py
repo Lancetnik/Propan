@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 import pytest
 import pytest_asyncio
 from pydantic import BaseSettings
@@ -10,11 +8,6 @@ from propan.test import TestRedisBroker
 
 class Settings(BaseSettings):
     url = "redis://localhost:6379"
-
-
-@pytest.fixture
-def channel_name():
-    return str(uuid4())
 
 
 @pytest.fixture(scope="session")

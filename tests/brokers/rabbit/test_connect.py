@@ -1,45 +1,31 @@
 import pytest
 
-from propan.brokers.rabbit import RabbitBroker
+from propan import RabbitBroker
+from tests.brokers.base.connection import BrokerConnectionTestcase
 
 
-@pytest.mark.asyncio
 @pytest.mark.rabbit
-async def test_init_connect_by_url(settings):
-    broker = RabbitBroker(url=settings.url)
-    assert await broker.connect()
-    await broker.close()
+class TestRabbitConnection(BrokerConnectionTestcase):
+    broker = RabbitBroker
 
+    @pytest.mark.asyncio
+    async def test_init_connect_by_raw_data(self, settings):
+        broker = self.broker(
+            host=settings.host,
+            login=settings.login,
+            password=settings.password,
+            port=settings.port,
+        )
+        assert await broker.connect()
+        await broker.close()
 
-@pytest.mark.asyncio
-@pytest.mark.rabbit
-async def test_init_connect_by_raw_data(settings):
-    broker = RabbitBroker(
-        host=settings.host,
-        login=settings.login,
-        password=settings.password,
-        port=settings.port,
-    )
-    assert await broker.connect()
-    await broker.close()
-
-
-@pytest.mark.asyncio
-@pytest.mark.rabbit
-async def test_connection_by_url(settings):
-    broker = RabbitBroker()
-    assert await broker.connect(
-        host=settings.host,
-        login=settings.login,
-        password=settings.password,
-        port=settings.port,
-    )
-    await broker.close()
-
-
-@pytest.mark.asyncio
-@pytest.mark.rabbit
-async def test_connection_params(settings):
-    broker = RabbitBroker()
-    assert await broker.connect(settings.url)
-    await broker.close()
+    @pytest.mark.asyncio
+    async def test_connection_by_params(self, settings):
+        broker = self.broker()
+        assert await broker.connect(
+            host=settings.host,
+            login=settings.login,
+            password=settings.password,
+            port=settings.port,
+        )
+        await broker.close()
