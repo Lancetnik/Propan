@@ -115,7 +115,7 @@ This is the **Propan** declarative way to write the same code. That is so much e
 |-------------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Nats**          | :heavy_check_mark: **beta** :heavy_check_mark:          | :mag: planning :mag: |
+| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **SQS**           | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
 | **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
