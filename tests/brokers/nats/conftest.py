@@ -3,6 +3,7 @@ import pytest_asyncio
 from pydantic import BaseSettings
 
 from propan import NatsBroker
+from propan.test import TestNatsBroker
 
 
 class Settings(BaseSettings):
@@ -15,8 +16,22 @@ def settings():
 
 
 @pytest_asyncio.fixture
-@pytest.mark.kafka
+@pytest.mark.nats
 async def broker(settings):
     broker = NatsBroker(settings.url, apply_types=False)
     yield broker
     await broker.close()
+
+
+@pytest_asyncio.fixture
+@pytest.mark.nats
+async def full_broker(settings):
+    broker = NatsBroker(settings.url)
+    yield broker
+    await broker.close()
+
+
+@pytest_asyncio.fixture
+async def test_broker():
+    broker = NatsBroker()
+    yield TestNatsBroker(broker)

@@ -63,7 +63,6 @@ class RabbitRouter(PropanRouter):
         queue: Union[str, RabbitQueue],
         *,
         endpoint: AnyCallable,
-        name: Optional[str] = None,
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
     ) -> None:
@@ -74,6 +73,5 @@ class RabbitRouter(PropanRouter):
         *,
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-        name: Optional[str] = None,
     ) -> None:
         pass

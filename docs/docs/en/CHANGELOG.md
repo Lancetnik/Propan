@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2023-05-26 **0.1.2.2** NATS Stable
+
+`NatsBroker` is full tested now.
+
+Also, to **Nats** supporting added:
+
+* `TestNatsBroker` and test messages to local testing
+* **RPC** supporting
+* `NatsRouter` for **FastAPI**
+
 ## 2023-05-23 **0.1.2.0** Kafka
 
 **Propan** added support for *Kafka* as a message broker. This functionality is full tested.

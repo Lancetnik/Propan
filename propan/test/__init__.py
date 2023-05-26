@@ -15,10 +15,18 @@ try:
 except Exception:
     TestKafkaBroker = None  # type: ignore
 
-assert any((TestRabbitBroker, TestRedisBroker, TestKafkaBroker)), INSTALL_MESSAGE
+try:
+    from propan.test.nats import TestNatsBroker
+except Exception:
+    TestNatsBroker = None  # type: ignore
+
+assert any(
+    (TestRabbitBroker, TestRedisBroker, TestKafkaBroker, TestNatsBroker)
+), INSTALL_MESSAGE
 
 __all__ = (
     "TestRabbitBroker",
     "TestRedisBroker",
     "TestKafkaBroker",
+    "TestNatsBroker",
 )

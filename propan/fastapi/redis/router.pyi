@@ -63,7 +63,6 @@ class RedisRouter(PropanRouter):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
-        consumers: Optional[int] = None,
     ) -> None:
         pass
     def add_api_mq_route(  # type: ignore[override]
@@ -71,7 +70,6 @@ class RedisRouter(PropanRouter):
         channel: str,
         *,
         endpoint: AnyCallable,
-        name: Optional[str] = None,
         pattern: bool = False,
     ) -> None:
         pass
@@ -80,6 +78,5 @@ class RedisRouter(PropanRouter):
         channel: str,
         *,
         pattern: bool = False,
-        name: Optional[str] = None,
     ) -> None:
         pass
