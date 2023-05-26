@@ -1,4 +1,6 @@
+import asyncio
 from functools import wraps
+from secrets import token_hex
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import nats
@@ -45,23 +47,10 @@ class NatsBroker(BrokerUsecase):
         queue: str = "",
         **original_kwargs,
     ) -> Callable[[DecoratedCallable], None]:
-        i = len(subject)
-        if i > self.__max_subject_len:
-            self.__max_subject_len = i
-
-        i = len(queue)
-        if i > self.__max_queue_len:
-            self.__max_queue_len = i
+        self.__max_subject_len = max((self.__max_subject_len, len(subject)))
+        self.__max_queue_len = max((self.__max_queue_len, len(queue)))
 
         def wrapper(func: DecoratedCallable) -> None:
-            for handler in self.handlers:
-                if handler.subject == subject and handler.queue == queue:
-                    raise ValueError(
-                        f"`{func.__name__}` uses already "
-                        f"using `{subject}` subject with "
-                        f"`{queue}` queue"
-                    )
-
             func = self._wrap_handler(
                 func, queue=queue, subject=subject, **original_kwargs
             )
@@ -88,22 +77,57 @@ class NatsBroker(BrokerUsecase):
         self,
         message: SendableMessage,
         subject: str,
-        **publish_args: Any,
+        *,
+        headers: Optional[Dict[str, str]] = None,
+        reply_to: str = "",
+        callback: bool = False,
+        callback_timeout: Optional[float] = 30.0,
+        raise_timeout: bool = False,
     ) -> None:
         if self._connection is None:
             raise ValueError("NatsConnection not started yet")
 
         msg, content_type = self._encode_message(message)
 
-        return await self._connection.publish(
-            subject,
-            msg,
+        client = self._connection
+
+        if callback is True and not reply_to:
+            token = client._nuid.next()
+            token.extend(token_hex(2).encode())
+            reply_to = token.decode()
+
+        if reply_to:
+            future: asyncio.Future[Msg] = asyncio.Future()
+            sub = await client.subscribe(reply_to, future=future, max_msgs=1)
+            await sub.unsubscribe(limit=1)
+
+        await self._connection.publish(
+            subject=subject,
+            payload=msg,
+            reply=reply_to,
             headers={
-                **publish_args.pop("headers", {}),
-                "content-type": content_type,
+                **(headers or {}),
+                "content-type": content_type or "",
             },
-            **publish_args,
         )
+
+        if reply_to:
+            try:
+                msg = await asyncio.wait_for(future, callback_timeout)
+                if msg.headers:  # pragma: no branch
+                    if (
+                        msg.headers.get(nats.js.api.Header.STATUS)
+                        == nats.aio.client.NO_RESPONDERS_STATUS
+                    ):
+                        raise nats.errors.NoRespondersError
+            except asyncio.TimeoutError as e:
+                await sub.unsubscribe()
+                future.cancel()
+                if raise_timeout is True:
+                    raise e
+                return None
+            else:
+                return await self._decode_message(await self._parse_message(msg))
 
     async def close(self) -> None:
         for h in self.handlers:
@@ -140,9 +164,10 @@ class NatsBroker(BrokerUsecase):
 
     async def _parse_message(self, message: Msg) -> PropanMessage:
         return PropanMessage(
-            body=message.dat,
+            body=message.data,
             content_type=message.header.get("content-type", ""),
             headers=message.header,
+            reply_to=message.reply,
             raw_message=message,
         )
 
@@ -151,6 +176,11 @@ class NatsBroker(BrokerUsecase):
     ) -> Callable[[PropanMessage], T]:
         @wraps(func)
         async def wrapper(message: PropanMessage) -> T:
-            return await func(message)
+            r = await func(message)
+
+            if message.reply_to:
+                await self.publish(r, message.reply_to)
+
+            return r
 
         return wrapper

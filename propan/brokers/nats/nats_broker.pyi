@@ -112,8 +112,12 @@ class NatsBroker(BrokerUsecase):
         self,
         message: SendableMessage,
         subject: str,
-        reply: str = "",
+        *,
         headers: Optional[Dict[str, str]] = None,
+        reply_to: str = "",
+        callback: bool = False,
+        callback_timeout: Optional[float] = 30.0,
+        raise_timeout: bool = False,
     ) -> None: ...
     def handle(  # type: ignore[override]
         self,

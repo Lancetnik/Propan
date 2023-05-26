@@ -4,8 +4,13 @@ from uuid import uuid4
 import pytest
 from fastapi import APIRouter, FastAPI
 
-from propan.fastapi import KafkaRouter, RabbitRouter, RedisRouter
-from propan.test import TestKafkaBroker, TestRabbitBroker, TestRedisBroker
+from propan.fastapi import KafkaRouter, NatsRouter, RabbitRouter, RedisRouter
+from propan.test import (
+    TestKafkaBroker,
+    TestNatsBroker,
+    TestRabbitBroker,
+    TestRedisBroker,
+)
 
 Broker = TypeVar("Broker")
 
@@ -57,3 +62,8 @@ class TestRedisRouter(FastAPITestcase):
 class TestKafkaRouter(FastAPITestcase):
     router_class = KafkaRouter
     broker_test = staticmethod(TestKafkaBroker)
+
+
+class TestNatsRouter(FastAPITestcase):
+    router_class = NatsRouter
+    broker_test = staticmethod(TestNatsBroker)

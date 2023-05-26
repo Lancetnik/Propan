@@ -15,7 +15,10 @@ class BrokerRPCTestcase:
         async with full_broker:
             await full_broker.start()
 
-            assert (await full_broker.publish("hello", queue, callback=True)) == "1"
+            r = await full_broker.publish(
+                "hello", queue, callback_timeout=3, callback=True
+            )
+            assert r == "1"
 
     @pytest.mark.asyncio
     async def test_rpc_timeout_raises(self, queue: str, full_broker: BrokerUsecase):
