@@ -5,9 +5,10 @@ from typing import Any, Callable, Coroutine, Dict, List, NoReturn, Optional, Typ
 from uuid import uuid4
 
 from redis.asyncio.client import PubSub, Redis
+from redis.asyncio.connection import ConnectionPool, parse_url
 
-from propan.brokers.model import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage, RawDecoced
+from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage, RawDecoced
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.redis.schemas import Handler, RedisMessage
 from propan.types import (
@@ -44,7 +45,10 @@ class RedisBroker(BrokerUsecase):
         url: str,
         **kwargs: Any,
     ) -> Redis:
-        return Redis.from_url(url, **kwargs)
+        url_options = parse_url(url)
+        url_options.update(kwargs)
+        pool = ConnectionPool(**url_options)
+        return Redis(connection_pool=pool)
 
     async def connect(
         self,
@@ -208,7 +212,9 @@ class RedisBroker(BrokerUsecase):
         else:
             return RawDecoced(message=message.body).message
 
-    def _get_log_context(self, message: PropanMessage, channel: str) -> Dict[str, Any]:
+    def _get_log_context(
+        self, message: Optional[PropanMessage], channel: str
+    ) -> Dict[str, Any]:
         context = {
             "channel": channel,
             **super()._get_log_context(message),

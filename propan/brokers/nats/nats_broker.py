@@ -1,14 +1,15 @@
 import asyncio
+import logging
 from functools import wraps
 from secrets import token_hex
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import nats
-from nats.aio.client import Client
+from nats.aio.client import Callback, Client, ErrorCallback
 from nats.aio.msg import Msg
 
-from propan.brokers.model import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage
+from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.types import AnyDict, DecoratedCallable, SendableMessage
@@ -22,6 +23,7 @@ class NatsBroker(BrokerUsecase):
 
     __max_queue_len: int
     __max_subject_len: int
+    __is_connected: bool
 
     def __init__(self, *args: Any, log_fmt: Optional[str] = None, **kwargs: AnyDict):
         super().__init__(*args, log_fmt=log_fmt, **kwargs)
@@ -30,16 +32,24 @@ class NatsBroker(BrokerUsecase):
 
         self.__max_queue_len = 0
         self.__max_subject_len = 4
+        self.__is_connected = True
 
     async def _connect(
         self,
         *args: Any,
         url: Optional[str] = None,
+        error_cb: Optional[ErrorCallback] = None,
+        reconnected_cb: Optional[Callback] = None,
         **kwargs: Any,
     ) -> Client:
         if url is not None:
             kwargs["servers"] = kwargs.pop("servers", []) + [url]
-        return await nats.connect(*args, **kwargs)
+        return await nats.connect(
+            *args,
+            error_cb=self.log_connection_broken(error_cb),
+            reconnected_cb=self.log_reconnected(reconnected_cb),
+            **kwargs,
+        )
 
     def handle(
         self,
@@ -182,5 +192,33 @@ class NatsBroker(BrokerUsecase):
                 await self.publish(r, message.reply_to)
 
             return r
+
+        return wrapper
+
+    def log_connection_broken(
+        self, error_cb: Optional[ErrorCallback] = None
+    ) -> ErrorCallback:
+        c = self._get_log_context(None, "")
+
+        async def wrapper(err: Exception) -> None:
+            if error_cb is not None:
+                await error_cb(err)
+
+            if self.__is_connected is True:
+                self._log(err, logging.WARNING, c)
+                self.__is_connected = False
+
+        return wrapper
+
+    def log_reconnected(self, cb: Optional[Callback] = None) -> Callback:
+        c = self._get_log_context(None, "")
+
+        async def wrapper() -> None:
+            if cb is not None:
+                await cb()
+
+            if self.__is_connected is False:
+                self._log("Connection established", logging.INFO, c)
+                self.__is_connected = True
 
         return wrapper

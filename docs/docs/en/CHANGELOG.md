@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 2023-05-28 **0.1.2.3** SQS Beta
+
+**Propan** added support for *SQS* as a message broker. This functionality is full tested.
+
+*SQSBroker* supports:
+
+* message delivery
+* test client, without the need to run *ElasticMQ* or connect to cloud *SQS*
+* *FastAPI* Plugin
+
+*SQSBroker* not supports **RPC** yet.
+
+Also, current release include the following fixes:
+
+* *Kafka* connection recovery
+* *Nats* connection recovery
+* *Redis* connection methods supports not-url parameters
+
 ## 2023-05-26 **0.1.2.2** NATS Stable
 
 `NatsBroker` is full tested now.

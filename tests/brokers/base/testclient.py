@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError, create_model
 
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 from propan.types import AnyCallable
 
 

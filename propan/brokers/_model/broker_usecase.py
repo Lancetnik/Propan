@@ -4,13 +4,13 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
-from propan.brokers.model.schemas import (
+from propan.brokers._model.schemas import (
     ContentType,
     ContentTypes,
     PropanMessage,
     SendableModel,
 )
-from propan.brokers.model.utils import (
+from propan.brokers._model.utils import (
     change_logger_handlers,
     get_watcher,
     set_message_context,
@@ -80,6 +80,7 @@ class BrokerUsecase(ABC):
         self,
         message: SendableMessage,
         *args: Any,
+        reply_to: str = "",
         callback: bool = False,
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
@@ -102,7 +103,7 @@ class BrokerUsecase(ABC):
         raise NotImplementedError()
 
     def _get_log_context(
-        self, message: PropanMessage, **kwargs: Dict[str, str]
+        self, message: Optional[PropanMessage], **kwargs: Dict[str, str]
     ) -> Dict[str, Any]:
         return {
             "message_id": message.message_id[:10] if message else "",

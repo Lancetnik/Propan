@@ -24,7 +24,14 @@ try:
 except Exception:
     KafkaBroker = None  # type: ignore
 
-assert any((RabbitBroker, NatsBroker, RedisBroker)), INSTALL_MESSAGE
+try:
+    from propan.brokers.sqs import SQSBroker
+except Exception:
+    SQSBroker = None  # type: ignore
+
+assert any(
+    (RabbitBroker, NatsBroker, RedisBroker, SQSBroker, KafkaBroker)
+), INSTALL_MESSAGE
 
 __all__ = (  # noqa: F405
     # app
@@ -45,4 +52,5 @@ __all__ = (  # noqa: F405
     "RabbitBroker",
     "RedisBroker",
     "KafkaBroker",
+    "SQSBroker",
 )

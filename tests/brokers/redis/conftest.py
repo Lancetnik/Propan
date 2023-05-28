@@ -9,6 +9,9 @@ from propan.test import TestRedisBroker
 class Settings(BaseSettings):
     url = "redis://localhost:6379"
 
+    host = "localhost"
+    port = 6379
+
 
 @pytest.fixture(scope="session")
 def settings():

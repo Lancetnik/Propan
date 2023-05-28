@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 from pydantic import create_model
 
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 
 
 class BrokerPublishTestcase:

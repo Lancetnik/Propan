@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 
 
 class BrokerRPCTestcase:

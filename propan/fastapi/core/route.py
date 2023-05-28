@@ -10,7 +10,7 @@ from pydantic import ValidationError, create_model
 from starlette.requests import Request
 from starlette.routing import BaseRoute
 
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 from propan.types import AnyDict
 
 NativeMessage = Union[str, AnyDict, bytes]
@@ -24,7 +24,7 @@ class PropanRoute(BaseRoute):
         broker: BrokerUsecase,
         *,
         dependency_overrides_provider: Optional[Any] = None,
-        **hanle_kwargs: AnyDict,
+        **handle_kwargs: AnyDict,
     ) -> None:
         self.path = path
         self.broker = broker
@@ -33,7 +33,7 @@ class PropanRoute(BaseRoute):
         handler = PropanMessage.get_session(
             self.dependant, dependency_overrides_provider
         )
-        broker.handle(path, **hanle_kwargs)(handler)  # type: ignore
+        broker.handle(path, **handle_kwargs)(handler)  # type: ignore
 
 
 class PropanMessage(Request):
