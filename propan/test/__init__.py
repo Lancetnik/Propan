@@ -20,8 +20,13 @@ try:
 except Exception:
     TestNatsBroker = None  # type: ignore
 
+try:
+    from propan.test.sqs import TestSQSBroker
+except Exception:
+    TestSQSBroker = None  # type: ignore
+
 assert any(
-    (TestRabbitBroker, TestRedisBroker, TestKafkaBroker, TestNatsBroker)
+    (TestRabbitBroker, TestRedisBroker, TestKafkaBroker, TestNatsBroker, TestSQSBroker)
 ), INSTALL_MESSAGE
 
 __all__ = (
@@ -29,4 +34,5 @@ __all__ = (
     "TestRedisBroker",
     "TestKafkaBroker",
     "TestNatsBroker",
+    "TestSQSBroker",
 )

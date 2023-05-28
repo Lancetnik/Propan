@@ -77,11 +77,16 @@ async-kafka = [
     "aiokafka>=0.8"
 ]
 
+async-sqs = [
+    "aiobotocore"
+]
+
 test = [
     "propan[async-rabbit]",
     "propan[async-nats]",
     "propan[async-redis]",
     "propan[async-kafka]",
+    "propan[async-sqs]",
 
     "coverage[toml]>=7.2",
     "pytest>=7",
@@ -216,6 +221,7 @@ markers = [
     "nats",
     "redis",
     "kafka",
+    "sqs",
     "all",
 ]
 

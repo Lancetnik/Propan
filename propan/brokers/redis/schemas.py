@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 from redis.asyncio.client import PubSub
 
-from propan.brokers.model.schemas import BaseHandler
+from propan.brokers._model.schemas import BaseHandler
 
 
 @dataclass

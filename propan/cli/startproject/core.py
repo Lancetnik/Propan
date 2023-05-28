@@ -67,7 +67,13 @@ def create_env(config_dir: Path, url: str) -> None:
     )
 
 
-def create_config_dir(config: Path) -> Path:
+def create_config_dir(config: Path, *broker_settings: str) -> Path:
+    if not broker_settings:
+        broker_settings = (
+            "class BrokerSettings(BaseModel):",
+            "    url: str = Field(...)",
+        )
+
     config_dir = touch_dir(config)
 
     write_file(
@@ -82,8 +88,7 @@ def create_config_dir(config: Path) -> Path:
         "BASE_DIR = CONFIG_DIR.parent",
         "",
         "",
-        "class BrokerSettings(BaseModel):",
-        "    url: str = Field(...)",
+        *broker_settings,
         "",
         "",
         "class Settings(BaseSettings):",

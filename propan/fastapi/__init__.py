@@ -20,6 +20,13 @@ try:
 except Exception:
     NatsRouter = None  # type: ignore
 
-assert any((RabbitRouter, RedisRouter, KafkaRouter, NatsRouter)), INSTALL_MESSAGE
+try:
+    from propan.fastapi.sqs import SQSRouter
+except Exception:
+    SQSRouter = None  # type: ignore
 
-__all__ = ("RabbitRouter", "RedisRouter", "KafkaRouter", "NatsRouter")
+assert any(
+    (RabbitRouter, RedisRouter, KafkaRouter, NatsRouter, SQSRouter)
+), INSTALL_MESSAGE
+
+__all__ = ("RabbitRouter", "RedisRouter", "KafkaRouter", "NatsRouter", "SQSRouter")

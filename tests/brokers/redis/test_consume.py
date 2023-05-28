@@ -18,9 +18,9 @@ class TestRedisConsume(BrokerConsumeTestcase):
     ):
         consume = Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+        broker.handle("*", pattern=True)(mock)
 
         async with broker:
-            broker.handle("*", pattern=True)(mock)
             await broker.start()
             await broker.publish("hello", queue)
             await wait_for(consume.wait(), 3)
@@ -36,9 +36,9 @@ class TestRedisConsume(BrokerConsumeTestcase):
     ):
         consume = Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+        broker.handle(queue)(mock)
 
         async with broker:
-            broker.handle(queue)(mock)
             await broker.start()
             await broker._connection.publish(queue, "msg")
             await wait_for(consume.wait(), 3)

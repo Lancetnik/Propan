@@ -13,9 +13,9 @@ from kafka.partitioner.default import DefaultPartitioner
 from typing_extensions import Literal, TypeVar
 
 from propan.__about__ import __version__
+from propan.brokers._model.broker_usecase import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.kafka.schemas import Handler
-from propan.brokers.model.broker_usecase import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
 from propan.types import SendableMessage, Wrapper
@@ -186,6 +186,6 @@ class KafkaBroker(BrokerUsecase):
     def fmt(self) -> str: ...
     def _get_log_context(  # type: ignore[override]
         self,
-        message: PropanMessage,
+        message: Optional[PropanMessage],
         topics: Sequence[str] = (),
     ) -> Dict[str, Any]: ...

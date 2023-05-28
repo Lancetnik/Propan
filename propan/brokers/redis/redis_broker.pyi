@@ -4,8 +4,8 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Type, TypeVar, 
 from redis.asyncio.client import Redis
 from redis.asyncio.connection import BaseParser, Connection, DefaultParser, Encoder
 
-from propan.brokers.model import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage
+from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.redis.schemas import Handler
 from propan.log import access_logger
@@ -50,7 +50,7 @@ class RedisBroker(BrokerUsecase):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
     ) -> None: ...
-    async def _connect(
+    async def connect(
         self,
         url: str = "redis://localhost:6379",
         host: str = "localhost",
@@ -73,6 +73,7 @@ class RedisBroker(BrokerUsecase):
         username: Optional[str] = None,
         encoder_class: Type[Encoder] = Encoder,
     ) -> Redis[bytes]: ...
+    async def _connect(self, *args: Any, **kwargs: Any) -> Redis[bytes]: ...
     async def close(self) -> None: ...
     @staticmethod
     async def _parse_message(message: Any) -> PropanMessage: ...
@@ -88,7 +89,7 @@ class RedisBroker(BrokerUsecase):
         pattern: bool = False,
     ) -> HandlerWrapper: ...
     def _get_log_context(  # type: ignore[override]
-        self, message: PropanMessage, channel: str
+        self, message: Optional[PropanMessage], channel: str
     ) -> Dict[str, Any]: ...
     @staticmethod
     async def _decode_message(message: PropanMessage) -> DecodedMessage: ...

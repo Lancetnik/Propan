@@ -11,7 +11,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 from typing_extensions import ClassVar
 
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 from propan.fastapi.core.route import PropanRoute
 from propan.types import AnyDict
 

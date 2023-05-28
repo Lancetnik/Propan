@@ -5,7 +5,7 @@ from nats.aio.subscription import Subscription
 from nats.js.api import DEFAULT_PREFIX
 from pydantic import BaseModel
 
-from propan.brokers.model.schemas import BaseHandler
+from propan.brokers._model.schemas import BaseHandler
 
 
 @dataclass

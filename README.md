@@ -66,7 +66,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 | **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **SQS**           | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
+| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
 | **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
@@ -144,6 +144,8 @@ pip install "propan[async-nats]"
 pip install "propan[async-redis]"
 # or
 pip install "propan[async-kafka]"
+# or
+pip install "propan[async-sqs]"
 ```
 
 ### Basic usage
@@ -155,10 +157,12 @@ from propan import PropanApp
 from propan import RabbitBroker
 # from propan import RedisBroker
 # from propan import NatsBroker
+# from propan import SQSBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 # broker = NatsBroker("nats://localhost:4222")
 # broker = RedisBroker("redis://localhost:6379")
+# broker = SQSBroker("http://localhost:9324", ...)
 
 app = PropanApp(broker)
 

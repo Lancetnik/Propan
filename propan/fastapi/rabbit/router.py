@@ -1,4 +1,4 @@
-from propan.brokers.rabbit import RabbitBroker
+from propan import RabbitBroker
 from propan.fastapi.core.router import PropanRouter
 
 

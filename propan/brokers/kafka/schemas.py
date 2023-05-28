@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 from aiokafka import AIOKafkaConsumer
 
-from propan.brokers.model.schemas import BaseHandler
+from propan.brokers._model.schemas import BaseHandler
 from propan.types import AnyDict
 
 

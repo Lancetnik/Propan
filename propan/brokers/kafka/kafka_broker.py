@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from functools import partial, wraps
 from typing import Any, Callable, Dict, List, NoReturn, Optional, Sequence, Tuple, Union
 
@@ -7,9 +8,9 @@ from aiokafka.structs import ConsumerRecord
 from typing_extensions import TypeVar
 
 from propan.__about__ import __version__
+from propan.brokers._model.broker_usecase import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.kafka.schemas import Handler
-from propan.brokers.model.broker_usecase import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.types import (
     AnyCallable,
@@ -122,7 +123,7 @@ class KafkaBroker(BrokerUsecase):
             consumer = self._connection(*handler.topics, **handler.consumer_kwargs)
             await consumer.start()
             handler.consumer = consumer
-            handler.task = asyncio.create_task(_consume(handler))
+            handler.task = asyncio.create_task(self._consume(handler))
 
     @staticmethod
     async def _parse_message(message: ConsumerRecord) -> PropanMessage:
@@ -187,7 +188,7 @@ class KafkaBroker(BrokerUsecase):
 
     def _get_log_context(
         self,
-        message: PropanMessage,
+        message: Optional[PropanMessage],
         topics: Sequence[str] = (),
     ) -> Dict[str, Any]:
         if topics:
@@ -200,7 +201,13 @@ class KafkaBroker(BrokerUsecase):
             **super()._get_log_context(message),
         }
 
+    async def _consume(self, handler: Handler) -> NoReturn:
+        c = self._get_log_context(None, handler.topics)
 
-async def _consume(handler: Handler) -> NoReturn:
-    async for msg in handler.consumer:
-        await handler.callback(msg)
+        while True:
+            try:
+                msg = await handler.consumer.getone()
+            except Exception as e:
+                self._log(e, logging.WATNING, c)
+            else:
+                await handler.callback(msg)

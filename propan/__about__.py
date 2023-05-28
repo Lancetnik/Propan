@@ -1,6 +1,6 @@
 """Simple and fast framework to create message brokers based microservices"""
 
-__version__ = "0.1.2.2"
+__version__ = "0.1.2.3"
 
 
 INSTALL_MESSAGE = (
@@ -10,4 +10,5 @@ INSTALL_MESSAGE = (
     'pip install "propan[async-nats]"\n'
     'pip install "propan[async-redis]"\n'
     'pip install "propan[async-kafka]"\n'
+    'pip install "propan[async-sqs]"\n'
 )

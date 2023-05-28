@@ -54,3 +54,15 @@ def test_run_kafka_correct(kafka_async_project):
     time.sleep(0.1)
     p.terminate()
     p.join()
+
+
+@pytest.mark.sqs
+@pytest.mark.slow
+def test_run_sqs_correct(sqs_async_project):
+    module, app = get_app_path(f'{sqs_async_project / "app" / "serve"}:app')
+    sys.path.insert(0, str(module.parent))
+    p = Process(target=_run, args=(module, app, {}))
+    p.start()
+    time.sleep(0.1)
+    p.terminate()
+    p.join()

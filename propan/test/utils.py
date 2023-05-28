@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any, Optional
 
-from propan.brokers.model.schemas import BaseHandler
+from propan.brokers._model.schemas import BaseHandler
 
 
 async def call_handler(
