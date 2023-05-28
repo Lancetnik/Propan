@@ -50,6 +50,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
   * **Redis** (based on <a href="https://redis.readthedocs.io/en/stable/index.html" target="_blank">redis-py</a>)
   * **RabbitMQ** (based on <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>)
   * **Kafka** (based on <a href="https://aiokafka.readthedocs.io/en/stable/" target="_blank">aiokafka</a>)
+  * **SQS** (based on <a href="https://aiobotocore.readthedocs.io/en/latest/" target="_blank">aiobotocore</a>)
   * **Nats** (based on <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>)
 * <a href="https://lancetnik.github.io/Propan/getting_started/4_broker/5_rpc/" target="_blank">**RPC**</a>: The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
 * [**Great to develop**](#cli-power): CLI tool provides great development experience:
