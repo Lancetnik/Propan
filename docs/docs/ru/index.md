@@ -44,6 +44,7 @@
     * **Redis** (основан на [redis-py]("https://redis.readthedocs.io/en/stable/index.html"){target="_blank"})
     * **RabbitMQ** (основан на [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"})
     * **Kafka** (основан на [aiokafka](https://aiokafka.readthedocs.io/en/stable/){target="_blank"})
+    * **SQS** (основан на [aiobotocore](https://aiobotocore.readthedocs.io/en/latest/){target="_blank"})
     * **Nats** (основан на [nats-py](https://github.com/nats-io/nats.py){target="_blank"})
 * [**RPC**](getting_started/4_broker/5_rpc/): Фреймворк поддерживает RPC запросы поверх брокеров сообщений, что позволит выполнять длительные операции на удаленных сервисах асинхронно.
 * [**Скорость разработки**](getting_started/2_cli/): собственный *CLI* инструмент предоставляет отличный опыт разработки:
