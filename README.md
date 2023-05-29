@@ -159,11 +159,13 @@ from propan import RabbitBroker
 # from propan import RedisBroker
 # from propan import NatsBroker
 # from propan import SQSBroker
+# from propan import KafkaBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 # broker = NatsBroker("nats://localhost:4222")
 # broker = RedisBroker("redis://localhost:6379")
 # broker = SQSBroker("http://localhost:9324", ...)
+# broker = KafkaBroker("localhost:9092")
 
 app = PropanApp(broker)
 

@@ -31,7 +31,6 @@ class KafkaRouter(PropanRouter):
         bootstrap_servers: Union[str, List[str]] = "localhost",
         *,
         # both
-        loop: Optional[AbstractEventLoop] = None,
         client_id: str = "propan-" + __version__,
         request_timeout_ms: int = 40 * 1000,
         retry_backoff_ms: int = 100,
@@ -90,6 +89,7 @@ class KafkaRouter(PropanRouter):
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
         ),
+        loop: Optional[AbstractEventLoop] = None,
         # Broker kwargs
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,

@@ -28,6 +28,43 @@ Install using `pip`:
         docker run -d --rm -p 5672:5672 --name test-mq rabbitmq
         ```
 
+=== "Kafka"
+    <div class="termy">
+    ```console
+    $ pip install "propan[async-kafka]"
+    ---> 100%
+    ```
+    </div>
+    !!! tip
+        To work with the project start a container with the test broker
+        ```bash
+        docker run -d --rm -p 9092:9092 --name test-mq \
+        -e KAFKA_ENABLE_KRAFT=yes \
+        -e KAFKA_CFG_NODE_ID=1 \
+        -e KAFKA_CFG_PROCESS_ROLES=broker,controller \
+        -e KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER \
+        -e KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093 \
+        -e KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT \
+        -e KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092 \
+        -e KAFKA_BROKER_ID=1 \
+        -e KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093 \
+        -e ALLOW_PLAINTEXT_LISTENER=yes \
+        bitnami/kafka
+        ```
+
+=== "SQS"
+    <div class="termy">
+    ```console
+    $ pip install "propan[async-sqs]"
+    ---> 100%
+    ```
+    </div>
+    !!! tip
+        To work with the project start a container with the test broker
+        ```bash
+        docker run -d --rm -p 9324:9324 --name test-mq softwaremill/elasticmq-native
+        ```
+
 === "NATS"
     <div class="termy">
     ```console
@@ -46,17 +83,27 @@ Install using `pip`:
 Create an application with the following code at `serve.py`:
 
 === "Redis"
-    ```python linenums="1"
+    ```python linenums="1" title="serve.py"
     {!> docs_src/index/01_redis_base.py!}
     ```
 
 === "RabbitMQ"
-    ```python linenums="1"
+    ```python linenums="1" title="serve.py"
     {!> docs_src/index/01_rabbit_base.py!}
     ```
 
+=== "Kafka"
+    ```python linenums="1" title="serve.py"
+    {!> docs_src/index/01_kafka_base.py!}
+    ```
+
+=== "SQS"
+    ```python linenums="1" title="serve.py"
+    {!> docs_src/index/01_sqs_base.py!}
+    ```
+
 === "NATS"
-    ```python linenums="1"
+    ```python linenums="1" title="serve.py"
     {!> docs_src/index/01_nats_base.py!}
     ```
 
@@ -78,20 +125,9 @@ $ propan run serve:app
 
 Propan uses `pydantic` to cast incoming function arguments to types according to their annotation.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="12"
-    {!> docs_src/index/02_redis_type_casting.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="12"
-    {!> docs_src/index/02_rabbit_type_casting.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="12"
-    {!> docs_src/index/02_nats_type_casting.py!}
-    ```
+```python linenums="1" hl_lines="5 9"
+{!> docs_src/index/02_type_casting.py!}
+```
 
 ---
 
@@ -106,20 +142,9 @@ If you call a non-existent field, raises *pydantic.error_wrappers.ValidationErro
 But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
 and [more](../5_dependency/1_di-index).
 
-=== "Redis"
-    ```python linenums="1" hl_lines="11-12"
-    {!> docs_src/index/03_redis_dependencies.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="11-12"
-    {!> docs_src/index/03_rabbit_dependencies.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="11-12"
-    {!> docs_src/index/03_nats_dependencies.py!}
-    ```
+```python linenums="1" hl_lines="11-12"
+{!> docs_src/index/03_dependencies.py!}
+```
 
 ---
 
@@ -129,7 +154,7 @@ Also, **Propan CLI** is able to generate a production-ready application template
 
 <div class="termy">
 ```console
-$ propan create async rabbit [projectname]
+$ propan create async [broker] [projectname]
 Create Propan project template at: /home/user/projectname
 ```
 </div>
@@ -141,8 +166,8 @@ Just run the created project:
 
 <div class="termy">
 ```console
-### Run rabbimq first
-$ docker compose --file [projectname]/docker-compose.yaml up -d
+### Run broker first
+$ docker compose --file [projectname]/docker-compose.yaml up -d [broker]
 
 ### Run project
 $ propan run [projectname].app.serve:app --env=.env --reload
@@ -167,17 +192,27 @@ Just *start* and *stop* them according to your application lifespan.
 
 === "Redis"
     ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/05_redis_http_example.py!}
+    {!> docs_src/index/04_redis_http_example.py!}
     ```
 
 === "RabbitMQ"
     ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/05_rabbit_http_example.py!}
+    {!> docs_src/index/04_rabbit_http_example.py!}
+    ```
+
+=== "Kafka"
+    ```python linenums="1" hl_lines="5 11-13 16-17"
+    {!> docs_src/index/04_kafka_http_example.py!}
+    ```
+
+=== "SQS"
+    ```python linenums="1" hl_lines="5 11-13 16-17"
+    {!> docs_src/index/04_sqs_http_example.py!}
     ```
 
 === "NATS"
     ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/05_nats_http_example.py!}
+    {!> docs_src/index/04_nats_http_example.py!}
     ```
 
 ### **FastAPI** Plugin
@@ -193,12 +228,27 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
 
 === "Redis"
     ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/06_redis_native_fastapi.py!}
+    {!> docs_src/index/05_redis_native_fastapi.py!}
     ```
 
 === "RabbitMQ"
     ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/06_rabbit_native_fastapi.py!}
+    {!> docs_src/index/05_rabbit_native_fastapi.py!}
+    ```
+
+=== "Kafka"
+    ```python linenums="1" hl_lines="7 15 19"
+    {!> docs_src/index/05_kafka_native_fastapi.py!}
+    ```
+
+=== "SQS"
+    ```python linenums="1" hl_lines="7 15 19"
+    {!> docs_src/index/05_sqs_native_fastapi.py!}
+    ```
+
+=== "NATS"
+    ```python linenums="1" hl_lines="7 15 19"
+    {!> docs_src/index/05_nats_native_fastapi.py!}
     ```
 
 !!! note
@@ -206,5 +256,5 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
 
 ??? tip "Don't forget to stop test broker container"
     ```bash
-    $ docker container stop test-mq
+    docker container stop test-mq
     ```
