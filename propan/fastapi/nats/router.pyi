@@ -27,11 +27,14 @@ from starlette import routing
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
+from propan import NatsBroker
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
 
 class NatsRouter(PropanRouter):
+    broker: NatsBroker
+
     def __init__(
         self,
         servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006

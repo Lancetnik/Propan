@@ -3,7 +3,7 @@
 **Propan** uses a unified method to send messages
 
 ```python
-await broker.pubslih(message, ...)
+await broker.publish(message, ...)
 ```
 
 This method, regardless of the broker, takes `message` as the first argument. However, the rest of the arguments are
@@ -20,7 +20,7 @@ You can get acquainted with all the features specific to your broker here:
 | Type                 | Send header           | Method of casting to bytes         |
 | -------------------- | --------------------- | ---------------------------------- |
 | `dict`               | application/json      | json.dumps(message).encode()       |
-| `Sequence`           | application/json            | json.dumps(message).encode() |
+| `Sequence`           | application/json      | json.dumps(message).encode()       |
 | `pydantic.BaseModel` | application/json      | message.json().encode()            |
 | `str`                | text/plain            | message.encode()                   |
 | `bytes`              |                       | message                            |
@@ -34,38 +34,12 @@ To send a message to a queue, you must first connect to it.
 If you are inside a running **Propan** application, you don't need to do anything: the broker is already running.
 Just access it and send a message.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/publishing/1_redis_inside_propan.py !}
-    ```
-
-=== "RabbitMQ"
-     ```python linenums="1" hl_lines="8"
-     {!> docs_src/quickstart/broker/publishing/1_rabbit_inside_propan.py !}
-     ```
-
-=== "NATS"
-     ```python linenums="1" hl_lines="8"
-     {!> docs_src/quickstart/broker/publishing/1_nats_inside_propan.py !}
-     ```
+{! includes/getting_started/broker/publishing/1_inside_propan.md !}
 
 If you are only using **Propan** to send asynchronous messages within another framework, you can use
 broker as context manager to send.
 
-=== "Redis"
-    ```python
-    {!> docs_src/quickstart/broker/publishing/2_redis_context.py !}
-    ```
-
-=== "RabbitMQ"
-     ```python
-     {!> docs_src/quickstart/broker/publishing/2_rabbit_context.py !}
-     ```
-
-=== "NATS"
-     ```python
-     {!> docs_src/quickstart/broker/publishing/2_nats_context.py !}
-     ```
+{! includes/getting_started/broker/publishing/2_context.md !}
 
 !!! tips
     Within this context, you can send an unlimited number of messages, as well as synchronously wait for a response to them.

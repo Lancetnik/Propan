@@ -24,15 +24,7 @@ From the server side (the receiving side), you do not need to change the code: `
 
     Acceptable types are `str`, `dict`, `Sequence`, `pydantic.BaseModel`, `bytes` and a native message of the library used for the broker.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="7"
-    {!> docs_src/quickstart/broker/rpc/1_redis_handler.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="7"
-    {!> docs_src/quickstart/broker/rpc/1_rabbit_handler.py !}
-    ```
+{! includes/getting_started/broker/rpc/1_handler.md !}
 
 ### Client
 
@@ -40,72 +32,37 @@ From the server side (the receiving side), you do not need to change the code: `
 
 To wait for the result of executing the request "right here" (as if it were an HTTP request), you just need to specify the parameter `callback=True` when sending the message.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/rpc/2_redis_blocking_client.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/rpc/2_rabbit_blocking_client.py !}
-    ```
+{! includes/getting_started/broker/rpc/2_blocking_client.md !}
 
 To set the time that the client is ready to wait for a response from the server, use the`callback_timeout` parameter (by default - **30** seconds)
 
-=== "Redis"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/3_redis_blocking_client_timeout.py !}
-    ```
+```python linenums="1" hl_lines="4"
+{!> docs_src/quickstart/broker/rpc/3_blocking_client_timeout.py !}
+```
 
-    1. Waits for the result for 3 seconds
+1. Waits for result for 3 seconds
 
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/3_rabbit_blocking_client_timeout.py !}
-    ```
-
-    1. Waits for the result for 3 seconds
 
 If you are ready to wait for a response as long as it takes, you can set `callback_timeout=None`
 
-=== "Redis"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/4_redis_blocking_client_timeout_none.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/4_rabbit_blocking_client_timeout_none.py !}
-    ```
+```python linenums="1" hl_lines="4"
+{!> docs_src/quickstart/broker/rpc/4_blocking_client_timeout_none.py !}
+```
 
 !!! warning
     This code will wait for a response indefinitely, even if the server is unable to process the message or processing takes a long time.
 
 By default, if **Propan** did not wait for the server response, the function will return `None`. If you want to explicitly process `asyncio.TimeoutError`, use the `raise_timeout` parameter.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/5_redis_blocking_client_timeout_error.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/5_rabbit_blocking_client_timeout_error.py !}
-    ```
+```python linenums="1" hl_lines="4"
+{!> docs_src/quickstart/broker/rpc/5_blocking_client_timeout_error.py !}
+```
 
 #### Non-blocking request
 
 To process the response outside of the main execution loop, you can initialize a handler and then pass its queue as the `reply_to` argument of the request.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="6 16"
-    {!> docs_src/quickstart/broker/rpc/6_noblocking_client_redis.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="6 16"
-    {!> docs_src/quickstart/broker/rpc/6_noblocking_client_rabbit.py !}
-    ```
+{! includes/getting_started/broker/rpc/6_noblocking_client.md !}
 
 !!! note
     Note that the `broker` must be running to consume non-blocking messages. This means we cannot work with non-blocking RPC messages using `broker` as a context manager.

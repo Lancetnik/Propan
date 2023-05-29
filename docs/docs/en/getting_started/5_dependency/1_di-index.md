@@ -1,3 +1,7 @@
+---
+nested: A nested dependency is called here
+---
+
 # Dependencies
 
 **Propan** uses the secondary library [**FastDepends**](https://lancetnik.github.io/FastDepends/){target="_blank"} for dependency management.
@@ -11,23 +15,7 @@ The key function in the dependency management and type conversion system in *Pro
 
 By default, it applies to all event handlers, unless you disabled the same option at a broker creation.
 
-=== "Redis"
-    ```python
-    from propan import RedisBroker
-    broker = RedisBroker(..., apply_types=False)
-    ```
-
-=== "RabbitMQ"
-    ```python
-    from propan import RabbitBroker
-    broker = RabbitBroker(..., apply_types=False)
-    ```
-
-=== "NATS"
-    ```python
-    from propan import NatsBroker
-    broker = NatsBroker(..., apply_types=False)
-    ```
+{! includes/getting_started/dependencies/depends/1.md !}
 
 !!! warning
     By setting the `apply_types=False` flag, you disable not only type casting, but also `Depends` and `Context`.
@@ -39,20 +27,7 @@ a native dependency system.
 
 To implement dependencies in **Propan**, a special class **Depends** is used
 
-=== "Redis"
-    ```python linenums="1" hl_lines="6-7"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_redis_depends.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="6-7"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_rabbit_depends.py !}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="6-7"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_nats_depends.py !}
-    ```
+{! includes/getting_started/dependencies/depends/2.md !}
 
 **The first step**: we need to declare a dependency - it can be any `Callable` object.
 
@@ -61,37 +36,11 @@ To implement dependencies in **Propan**, a special class **Depends** is used
 
     In other words: if you can write such code `my_object()` - `my_object` will be `Callable`
 
-=== "Redis"
-    ```python hl_lines="1" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_redis_depends.py [ln:10-11]!}
-    ```
-
-=== "RabbitMQ"
-    ```python hl_lines="1" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_rabbit_depends.py [ln:10-11]!}
-    ```
-
-=== "NATS"
-    ```python hl_lines="1" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_nats_depends.py [ln:10-11]!}
-    ```
+{! includes/getting_started/dependencies/depends/3.md !}
 
 **Second step**: Declare which dependencies you need using `Depends`
 
-=== "Redis"
-    ```python hl_lines="2" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_redis_depends.py [ln:10-11]!}
-    ```
-
-=== "RabbitMQ"
-    ```python hl_lines="2" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_rabbit_depends.py [ln:10-11]!}
-    ```
-
-=== "NATS"
-    ```python hl_lines="2" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_nats_depends.py [ln:10-11]!}
-    ```
+{! includes/getting_started/dependencies/depends/4.md !}
 
 **The last step**: Just use the result of executing your dependency!
 
@@ -106,26 +55,8 @@ It's easy, isn't it?
 Dependencies can also contain other dependencies. This works in a very predictable way: just declare
 `Depends` in the dependent function.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="6-7 9-10 15-16"
-    {!> docs_src/quickstart/dependencies/basic/2_propan_redis_depends.py !}
-    ```
-
-    1. A nested dependency is called here
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="6-7 9-10 15-16"
-    {!> docs_src/quickstart/dependencies/basic/2_propan_rabbit_depends.py !}
-    ```
-
-    1. A nested dependency is called here
-
-=== "NATS"
-    ```python linenums="1" hl_lines="6-7 9-10 15-16"
-    {!> docs_src/quickstart/dependencies/basic/2_propan_nats_depends.py !}
-    ```
-
-    1. A nested dependency is called here
+{% import 'getting_started/dependencies/depends/5.md' as includes with context %}
+{{ includes }}
 
 !!! Tip "Caching"
     In the example above, the `another_dependency` function will be called at **ONCE!**.

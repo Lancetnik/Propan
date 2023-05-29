@@ -1,64 +1,19 @@
+---
+run_docker: Для работы проекта запустите тестовый контейнер с брокером
+---
+
 # Быстрый старт
 
 Для начала, установите фрейморк через `pip`:
 
-=== "Redis"
-    <div class="termy">
-    ```console
-    $ pip install "propan[async-redis]"
-    ---> 100%
-    ```
-    </div>
-    !!! tip
-        Для работы проекта запустите тестовый контейнер с брокером
-        ```bash
-        docker run -d --rm -p 6379:6379 --name test-mq redis
-        ```
-
-=== "RabbitMQ"
-    <div class="termy">
-    ```console
-    $ pip install "propan[async-rabbit]"
-    ---> 100%
-    ```
-    </div>
-    !!! tip
-        Для работы проекта запустите тестовый контейнер с брокером
-        ```bash
-        docker run -d --rm -p 5672:5672 --name test-mq rabbitmq
-        ```
-
-=== "NATS"
-    <div class="termy">
-    ```console
-    $ pip install "propan[async-nats]"
-    ---> 100%
-    ```
-    </div>
-    !!! tip
-        Для работы проекта запустите тестовый контейнер с брокером
-        ```bash
-        docker run -d --rm -p 4222:4222 --name test-mq nats
-        ```
+{% import 'getting_started/index/install.md' as includes with context %}
+{{ includes }}
 
 ### Базовое использование
 
 Создайте приложение со следующим кодом в `serve.py` файле:
 
-=== "Redis"
-    ```python linenums="1"
-    {!> docs_src/index/01_redis_base.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1"
-    {!> docs_src/index/01_rabbit_base.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1"
-    {!> docs_src/index/01_nats_base.py!}
-    ```
+{! includes/getting_started/index/01_base.md !}
 
 И просто запустите его:
 
@@ -78,20 +33,9 @@ $ propan run serve:app
 
 Propan использует `pydantic` для приведения типов входящих аргументов в соответсвии с их аннотацией.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="12"
-    {!> docs_src/index/02_redis_type_casting.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="12"
-    {!> docs_src/index/02_rabbit_type_casting.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="12"
-    {!> docs_src/index/02_nats_type_casting.py!}
-    ```
+```python linenums="1" hl_lines="5 9"
+{!> docs_src/index/02_type_casting.py!}
+```
 
 ---
 
@@ -109,20 +53,9 @@ Propan имеет систему управления зависимостями
 
 Подробнее будет [чуть дальше](../5_dependency/1_di-index).
 
-=== "Redis"
-    ```python linenums="1" hl_lines="11-12"
-    {!> docs_src/index/03_redis_dependencies.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="11-12"
-    {!> docs_src/index/03_rabbit_dependencies.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="11-12"
-    {!> docs_src/index/03_nats_dependencies.py!}
-    ```
+```python linenums="1" hl_lines="11-12"
+{!> docs_src/index/03_dependencies.py!}
+```
 
 ---
 
@@ -132,7 +65,7 @@ Propan имеет систему управления зависимостями
 
 <div class="termy">
 ```console
-$ propan create async rabbit [projectname]
+$ propan create async [broker] [projectname]
 Create Propan project template at: /home/user/projectname
 ```
 </div>
@@ -145,7 +78,7 @@ Create Propan project template at: /home/user/projectname
 <div class="termy">
 ```console
 ### Run rabbimq first
-$ docker compose --file [projectname]/docker-compose.yaml up -d
+$ docker compose --file [projectname]/docker-compose.yaml up -d [broker]
 
 ### Run project
 $ propan run [projectname].app.serve:app --env=.env --reload
@@ -168,20 +101,7 @@ $ propan run [projectname].app.serve:app --env=.env --reload
 Вы можете использовать брокеры Propan без самого Propan приложения.
 Просто *запустите* и *остановите* его вместе с вашим HTTP приложением.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/05_redis_http_example.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/05_rabbit_http_example.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/05_nats_http_example.py!}
-    ```
+{! includes/getting_started/index/04_http_example.md !}
 
 ### С **FastAPI**
 
@@ -194,20 +114,12 @@ $ propan run [projectname].app.serve:app --env=.env --reload
     При использовании таким образом **Propan** не использует собственную систему зависимостей, а интегрируется в **FastAPI**.
     Т.е. вы можете использовать `Depends`, `BackgroundTasks` и прочие инструменты **FastAPI** так, если бы это был обычный HTTP-endpoint.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/06_redis_native_fastapi.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/06_rabbit_native_fastapi.py!}
-    ```
+{! includes/getting_started/index/05_native_fastapi.md !}
 
 !!! note
     Больше примеров использования с другими фреймворками вы найдете [здесь](../../integrations/1_integrations-index/)
 
 ??? tip "Не забудьте остановить тестовый контейнер"
     ```bash
-    $ docker container stop test-mq
+    docker container stop test-mq
     ```
