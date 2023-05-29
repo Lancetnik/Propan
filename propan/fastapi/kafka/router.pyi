@@ -18,6 +18,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 from typing_extensions import Literal, TypeVar
 
+from propan import KafkaBroker
 from propan.__about__ import __version__
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
@@ -26,12 +27,13 @@ from propan.types import AnyCallable
 Partition = TypeVar("Partition")
 
 class KafkaRouter(PropanRouter):
+    broker: KafkaBroker
+
     def __init__(
         self,
         bootstrap_servers: Union[str, List[str]] = "localhost",
         *,
         # both
-        loop: Optional[AbstractEventLoop] = None,
         client_id: str = "propan-" + __version__,
         request_timeout_ms: int = 40 * 1000,
         retry_backoff_ms: int = 100,
@@ -90,6 +92,7 @@ class KafkaRouter(PropanRouter):
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
         ),
+        loop: Optional[AbstractEventLoop] = None,
         # Broker kwargs
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,

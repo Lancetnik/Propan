@@ -27,20 +27,7 @@
 
 Давайте напишем немного кода для нашего примера
 
-=== "Redis"
-    ```python linenums="1" hl_lines="12-16"
-    {!> docs_src/quickstart/lifespan/1_redis.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="12-16"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="12-16"
-    {!> docs_src/quickstart/lifespan/1_nats.py!}
-    ```
+{! includes/getting_started/lifespan/1.md !}
 
 Теперь это приложение можно запускать с помощью следующей команды для управления окружением:
 
@@ -54,39 +41,13 @@ propan run serve:app --env .env.test
 
 Для начала, мы использовали декоратор
 
-=== "Redis"
-    ```python linenums="12" hl_lines="1"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="1"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="1"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/2.md !}
 
 для объявления функции, которая должна запускаться при старте нашего приложения
 
 Следующим шагом мы объявили аргументы, которые будет получать наша функция
 
-=== "Redis"
-    ```python linenums="12" hl_lines="2"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="2"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="2"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/3.md !}
 
 При этом поле `env` будет передано в функцию `setup` из аргументов командой строки
 !!! tip
@@ -95,37 +56,11 @@ propan run serve:app --env .env.test
 
 Затем, мы инициализировали настройки нашего приложения с использованием переданного нам из командой строки файла
 
-=== "Redis"
-    ```python linenums="12" hl_lines="3"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="3"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="3"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/4.md !}
 
 И поместили эти настройки в глобальный контекст
 
-=== "Redis"
-    ```python linenums="12" hl_lines="4"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="4"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="4"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/5.md !}
 
 ??? note
     Теперь мы можем получить доступ к нашим настройкам в любом месте приложения прямо из контекста
@@ -138,20 +73,7 @@ propan run serve:app --env .env.test
 
 Последним шагом мы инициализировали нашего брокера: теперь, при старте приложения он будет готов принимать сообщения
 
-=== "Redis"
-    ```python linenums="12" hl_lines="5"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="5"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="5"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/6.md !}
 
 ## Другой пример
 
@@ -166,20 +88,7 @@ propan run serve:app --env .env.test
 
 Также, мы не хотим, чтобы модель окончила свою работу при остановке приложения некорректно. Чтобы избежать этого, нам понадобиться хук `@app.on_shutdown`
 
-=== "Redis"
-    ```python linenums="1" hl_lines="12 18"
-    {!> docs_src/quickstart/lifespan/2_ml_redis.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="12 18"
-    {!> docs_src/quickstart/lifespan/2_ml_rabbit.py !}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="12 18"
-    {!> docs_src/quickstart/lifespan/2_ml_nats.py !}
-    ```
+{! includes/getting_started/lifespan/7.md !}
 
 ## Несколько хуков
 

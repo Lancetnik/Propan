@@ -34,7 +34,6 @@ class KafkaBroker(BrokerUsecase):
         bootstrap_servers: Union[str, List[str]] = "localhost",
         *,
         # both
-        loop: Optional[AbstractEventLoop] = None,
         client_id: str = "propan-" + __version__,
         request_timeout_ms: int = 40 * 1000,
         retry_backoff_ms: int = 100,
@@ -74,6 +73,7 @@ class KafkaBroker(BrokerUsecase):
         enable_idempotence: bool = False,
         transactional_id: Optional[str] = None,
         transaction_timeout_ms: int = 60000,
+        loop: Optional[AbstractEventLoop] = None,
         # broker
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
