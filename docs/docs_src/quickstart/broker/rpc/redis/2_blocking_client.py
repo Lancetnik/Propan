@@ -3,8 +3,7 @@ from propan import RedisBroker
 async def main():
     async with RedisBroker("redis://localhost:6379") as broker:
         r = await broker.publish(
-            "hi!",
-            channel="ping",
+            "hi!", "ping",
             callback=True
         )
 

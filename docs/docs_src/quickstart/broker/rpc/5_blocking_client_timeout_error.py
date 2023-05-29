@@ -1,6 +1,5 @@
 await broker.publish(
-    "hi!",
-    queue="ping",
+    "hi!", "ping",
     callback=True,
     raise_timeout=True
 )

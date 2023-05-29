@@ -11,8 +11,7 @@ async def main():
     await broker.start()
 
     await broker.publish(
-        "hello",
-        channel="test",
+        "hello", "ping",
         reply_to="reply"
     )
 
