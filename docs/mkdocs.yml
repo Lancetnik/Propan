@@ -54,8 +54,8 @@ theme:
 
 plugins:
   - search
-  - markdownextradata:
-      data: data
+  - macros:
+      include_dir: includes
   - i18n:
       default_language: en
       docs_structure: folder
