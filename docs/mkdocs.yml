@@ -94,6 +94,16 @@ markdown_extensions:  # do not reorder
   - md_in_html
 
 extra:
+  urls:
+    fastapi: https://fastapi.tiangolo.com/ru/
+    redis: https://redis.readthedocs.io/en/stable/index.html
+    aio_pika: https://aio-pika.readthedocs.io/en/latest/
+    pika: https://pika.readthedocs.io/en/stable/
+    aiokafka: https://aiokafka.readthedocs.io/en/stable/
+    aiobotocore: https://aiobotocore.readthedocs.io/en/latest/
+    nats_py: https://github.com/nats-io/nats.py
+    pydantic: https://docs.pydantic.dev/
+    pytest: https://docs.pytest.org/en/latest/
   social:
     - icon: fontawesome/brands/github-alt
       link: https://github.com/lancetnik/propan
