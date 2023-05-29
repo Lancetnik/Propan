@@ -84,27 +84,27 @@
 
 === "Redis"
     ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_redis_base.py!}
+    {!> docs_src/quickstart/01_redis_base.py!}
     ```
 
 === "RabbitMQ"
     ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_rabbit_base.py!}
+    {!> docs_src/quickstart/01_rabbit_base.py!}
     ```
 
 === "Kafka"
     ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_kafka_base.py!}
+    {!> docs_src/quickstart/01_kafka_base.py!}
     ```
 
 === "SQS"
     ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_sqs_base.py!}
+    {!> docs_src/quickstart/01_sqs_base.py!}
     ```
 
 === "NATS"
     ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_nats_base.py!}
+    {!> docs_src/quickstart/01_nats_base.py!}
     ```
 
 И просто запустите его:

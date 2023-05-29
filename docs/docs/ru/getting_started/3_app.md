@@ -26,6 +26,16 @@ app = PropanApp()
     {!> docs_src/quickstart/app/1_broker_rabbit.py!}
     ```
 
+=== "Kafka"
+    ```python
+    {!> docs_src/quickstart/app/1_broker_kafka.py!}
+    ```
+
+=== "SQS"
+    ```python
+    {!> docs_src/quickstart/app/1_broker_sqs.py!}
+    ```
+
 === "NATS"
     ```python
     {!> docs_src/quickstart/app/1_broker_nats.py!}
@@ -41,6 +51,16 @@ app = PropanApp()
 === "RabbitMQ"
     ```python
     {!> docs_src/quickstart/app/2_set_broker_rabbit.py!}
+    ```
+
+=== "Kafka"
+    ```python
+    {!> docs_src/quickstart/app/2_set_broker_kafka.py!}
+    ```
+
+=== "SQS"
+    ```python
+    {!> docs_src/quickstart/app/2_set_broker_sqs.py!}
     ```
 
 === "NATS"
