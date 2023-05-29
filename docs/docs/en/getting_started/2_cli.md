@@ -1,4 +1,4 @@
-# CLI 
+# CLI
 
 **Propan** has its own built-in **CLI** tool for your maximum comfort as a developer.
 
@@ -79,30 +79,7 @@ $ propan run serve:app --env=.env.dev
 ```
 </div>
 
-=== "Redis"
-    ```python linenums="1" hl_lines="3 14-15"
-    {!> docs_src/quickstart/cli/01_redis_context.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="3 14-15"
-    {!> docs_src/quickstart/cli/01_rabbit_context.py!}
-    ```
-
-=== "Kafka"
-    ```python linenums="1" hl_lines="3 14-15"
-    {!> docs_src/quickstart/cli/01_kafka_context.py!}
-    ```
-
-=== "SQS"
-    ```python linenums="1" hl_lines="3 14-15"
-    {!> docs_src/quickstart/cli/01_sqs_context.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="3 14-15"
-    {!> docs_src/quickstart/cli/01_nats_context.py!}
-    ```
+{! includes/cli/01_context.md !}
 
 !!! note
     Note that the `env` parameter was passed to the `setup` function directly from the command line
