@@ -144,6 +144,10 @@ nav:
     - Examples:
       - Direct: redis/3_examples/1_direct.md
       - Pattern: redis/3_examples/2_pattern.md
+  - Kafka:
+    - Kafka Basics: kafka/1_kafka-index.md
+  - SQS:
+    - SQS Basics: sqs/1_sqs-index.md
   - Nats:
     - Nats Basics: nats/1_nats-index.md
     - Routing: nats/2_routing.md
