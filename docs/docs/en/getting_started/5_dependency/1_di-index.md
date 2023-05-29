@@ -58,7 +58,6 @@ Dependencies can also contain other dependencies. This works in a very predictab
 {% import 'getting_started/dependencies/depends/5.md' as includes with context %}
 {{ includes }}
 
-
 !!! Tip "Caching"
     In the example above, the `another_dependency` function will be called at **ONCE!**.
     `Propan` caches all dependency execution results within **ONE** `@apply_stack` call stack.
