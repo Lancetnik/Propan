@@ -79,20 +79,7 @@ $ propan run serve:app --env=.env.dev
 ```
 </div>
 
-=== "Redis"
-    ```python linenums="1" hl_lines="3 14-15"
-    {!> docs_src/index/04_redis_context.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="3 14-15"
-    {!> docs_src/index/04_rabbit_context.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="3 14-15"
-    {!> docs_src/index/04_nats_context.py!}
-    ```
+{! includes/getting_started/cli/01_context.md !}
 
 !!! note
     Обратите внимение, что параметр `env` был передан в функцию `setup` прямо из командой строки

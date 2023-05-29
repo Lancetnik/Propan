@@ -1,64 +1,19 @@
+---
+run_docker: To working with project start a test broker container
+---
+
 # QUICK START
 
 Install using `pip`:
 
-=== "Redis"
-    <div class="termy">
-    ```console
-    $ pip install "propan[async-redis]"
-    ---> 100%
-    ```
-    </div>
-    !!! tip
-        To working with project start a test broker container
-        ```bash
-        docker run -d --rm -p 6379:6379 --name test-mq redis
-        ```
-
-=== "RabbitMQ"
-    <div class="termy">
-    ```console
-    $ pip install "propan[async-rabbit]"
-    ---> 100%
-    ```
-    </div>
-    !!! tip
-        To work with the project start a contianer with the test broker
-        ```bash
-        docker run -d --rm -p 5672:5672 --name test-mq rabbitmq
-        ```
-
-=== "NATS"
-    <div class="termy">
-    ```console
-    $ pip install "propan[async-nats]"
-    ---> 100%
-    ```
-    </div>
-    !!! tip
-        To work with the project start a container with the test broker
-        ```bash
-        docker run -d --rm -p 4222:4222 --name test-mq nats
-        ```
+{% import 'getting_started/index/install.md' as includes with context %}
+{{ includes }}
 
 ## Basic usage
 
 Create an application with the following code at `serve.py`:
 
-=== "Redis"
-    ```python linenums="1"
-    {!> docs_src/index/01_redis_base.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1"
-    {!> docs_src/index/01_rabbit_base.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1"
-    {!> docs_src/index/01_nats_base.py!}
-    ```
+{! includes/getting_started/index/01_base.md !}
 
 And just run it:
 
@@ -78,20 +33,9 @@ $ propan run serve:app
 
 Propan uses `pydantic` to cast incoming function arguments to types according to their annotation.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="12"
-    {!> docs_src/index/02_redis_type_casting.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="12"
-    {!> docs_src/index/02_rabbit_type_casting.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="12"
-    {!> docs_src/index/02_nats_type_casting.py!}
-    ```
+```python linenums="1" hl_lines="5 9"
+{!> docs_src/index/02_type_casting.py!}
+```
 
 ---
 
@@ -106,20 +50,9 @@ If you call a non-existent field, raises *pydantic.error_wrappers.ValidationErro
 But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
 and [more](../5_dependency/1_di-index).
 
-=== "Redis"
-    ```python linenums="1" hl_lines="11-12"
-    {!> docs_src/index/03_redis_dependencies.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="11-12"
-    {!> docs_src/index/03_rabbit_dependencies.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="11-12"
-    {!> docs_src/index/03_nats_dependencies.py!}
-    ```
+```python linenums="1" hl_lines="11-12"
+{!> docs_src/index/03_dependencies.py!}
+```
 
 ---
 
@@ -129,7 +62,7 @@ Also, **Propan CLI** is able to generate a production-ready application template
 
 <div class="termy">
 ```console
-$ propan create async rabbit [projectname]
+$ propan create async [broker] [projectname]
 Create Propan project template at: /home/user/projectname
 ```
 </div>
@@ -141,8 +74,8 @@ Just run the created project:
 
 <div class="termy">
 ```console
-### Run rabbimq first
-$ docker compose --file [projectname]/docker-compose.yaml up -d
+### Run broker first
+$ docker compose --file [projectname]/docker-compose.yaml up -d [broker]
 
 ### Run project
 $ propan run [projectname].app.serve:app --env=.env --reload
@@ -165,20 +98,7 @@ Now you can enjoy a new development experience!
 You can use **Propan** `MQBrokers` without `PropanApp`.
 Just *start* and *stop* them according to your application lifespan.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/05_redis_http_example.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/05_rabbit_http_example.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/05_nats_http_example.py!}
-    ```
+{! includes/getting_started/index/04_http_example.md !}
 
 ### **FastAPI** Plugin
 
@@ -191,20 +111,12 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
     When used this way, **Propan** does not utilize its own dependency system, but integrates into **FastAPI**.
     That is, you can use `Depends`, `Background Tasks` and other tools **Facet API** as if it were a regular HTTP endpoint.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/06_redis_native_fastapi.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/06_rabbit_native_fastapi.py!}
-    ```
+{! includes/getting_started/index/05_native_fastapi.md !}
 
 !!! note
     More integration examples you can find [here](../../integrations/1_integrations-index/)
 
 ??? tip "Don't forget to stop test broker container"
     ```bash
-    $ docker container stop test-mq
+    docker container stop test-mq
     ```

@@ -1,3 +1,7 @@
+---
+nested: Здесь вызывается вложенная зависимость
+---
+
 # Зависимости
 
 **Propan** использует второстепенную библиотеку [**FastDepends**](https://lancetnik.github.io/FastDepends/){target="_blank"} ддя управления зависимостями.
@@ -11,23 +15,7 @@
 
 По умолчанию он применяется ко всем обработчикам событий, если только вы не отключили соответсвующую опцию при создании брокера.
 
-=== "Redis"
-    ```python
-    from propan import RedisBroker
-    broker = RedisBroker(..., apply_types=False)
-    ```
-
-=== "RabbitMQ"
-    ```python
-    from propan import RabbitBroker
-    broker = RabbitBroker(..., apply_types=False)
-    ```
-
-=== "NATS"
-    ```python
-    from propan import NatsBroker
-    broker = NatsBroker(..., apply_types=False)
-    ```
+{! includes/getting_started/dependencies/depends/1.md !}
 
 !!! warning
     Выставив флаг `apply_types=False` вы отключаете не только приведение типов, но и `Depends`, `Context`.
@@ -39,20 +27,7 @@
 
 Для внедрения зависимостей в **Propan** используется специальный класс **Depends**
 
-=== "Redis"
-    ```python linenums="1" hl_lines="6-7"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_redis_depends.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="6-7"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_rabbit_depends.py !}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="6-7"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_nats_depends.py !}
-    ```
+{! includes/getting_started/dependencies/depends/2.md !}
 
 **Первым шагом**: нам нужно объявить зависимость - это может быть любой `Callable` объект.
 
@@ -61,37 +36,11 @@
 
     Другими словами: если вы можете написать такой код `my_object()` - `my_object` будет `Callable`
 
-=== "Redis"
-    ```python hl_lines="1" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_redis_depends.py [ln:10-11]!}
-    ```
-
-=== "RabbitMQ"
-    ```python hl_lines="1" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_rabbit_depends.py [ln:10-11]!}
-    ```
-
-=== "NATS"
-    ```python hl_lines="1" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_nats_depends.py [ln:10-11]!}
-    ```
+{! includes/getting_started/dependencies/depends/3.md !}
 
 **Вторым шагом**: объявите, какие зависимости вам нужны с помощью `Depends`
 
-=== "Redis"
-    ```python hl_lines="2" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_redis_depends.py [ln:10-11]!}
-    ```
-
-=== "RabbitMQ"
-    ```python hl_lines="2" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_rabbit_depends.py [ln:10-11]!}
-    ```
-
-=== "NATS"
-    ```python hl_lines="2" linenums="10"
-    {!> docs_src/quickstart/dependencies/basic/1_propan_nats_depends.py [ln:10-11]!}
-    ```
+{! includes/getting_started/dependencies/depends/4.md !}
 
 **Последним шагом**: просто используйте результат выполнения вашей зависимости!
 
@@ -106,26 +55,8 @@
 Зависимости также могут содержать другие зависимости. Это работает очень предсказуемым образом: просто объявите
 `Depends` в зависимой функции.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="6-7 9-10 15-16"
-    {!> docs_src/quickstart/dependencies/basic/2_propan_redis_depends.py !}
-    ```
-
-    1. Здесь вызывается вложенная зависимость
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="6-7 9-10 15-16"
-    {!> docs_src/quickstart/dependencies/basic/2_propan_rabbit_depends.py !}
-    ```
-
-    1. Здесь вызывается вложенная зависимость
-
-=== "NATS"
-    ```python linenums="1" hl_lines="6-7 9-10 15-16"
-    {!> docs_src/quickstart/dependencies/basic/2_propan_nats_depends.py !}
-    ```
-
-    1. Здесь вызывается вложенная зависимость
+{% import 'getting_started/dependencies/depends/5.md' as includes with context %}
+{{ includes }}
 
 !!! Tip "Кеширование"
     В примере выше функция `another_dependency` будет вызвана **ОДИН РАЗ!**.

@@ -27,20 +27,7 @@ By [passing optional arguments with the command line](../2_cli/#environment-mana
 
 Let's write some code for our example
 
-=== "Redis"
-    ```python linenums="1" hl_lines="12-16"
-    {!> docs_src/quickstart/lifespan/1_redis.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="12-16"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="12-16"
-    {!> docs_src/quickstart/lifespan/1_nats.py!}
-    ```
+{! includes/getting_started/lifespan/1.md !}
 
 Now this application can be run using the following command to manage the environment:
 
@@ -54,39 +41,13 @@ Now let's look into a little more detail
 
 To begin with, we used a decorator
 
-=== "Redis"
-    ```python linenums="12" hl_lines="1"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="1"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="1"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/2.md !}
 
 to declare a function that should run when our application starts
 
 The next step is to declare the arguments that our function will receive
 
-=== "Redis"
-    ```python linenums="12" hl_lines="2"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="2"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="2"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/3.md !}
 
 In this case, the `env` field will be passed to the `setup` function from the arguments with the command line
 !!! tip
@@ -95,37 +56,11 @@ In this case, the `env` field will be passed to the `setup` function from the ar
 
 Then, we initialized the settings of our application using the file passed to us from the command line
 
-=== "Redis"
-    ```python linenums="12" hl_lines="3"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="3"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="3"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/4.md !}
 
 And put these settings in a global context
 
-=== "Redis"
-    ```python linenums="12" hl_lines="4"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="4"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="4"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/5.md !}
 
 ??? note
     Now we can access our settings anywhere in the application right from the context
@@ -138,20 +73,7 @@ And put these settings in a global context
 
 The last step we initialized our broker: now, when the application starts, it will be ready to receive messages
 
-=== "Redis"
-    ```python linenums="12" hl_lines="5"
-    {!> docs_src/quickstart/lifespan/1_redis.py [ln:11-15] !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="12" hl_lines="5"
-    {!> docs_src/quickstart/lifespan/1_rabbit.py [ln:11-15] !}
-    ```
-
-=== "NATS"
-    ```python linenums="12" hl_lines="5"
-    {!> docs_src/quickstart/lifespan/1_nats.py [ln:11-15] !}
-    ```
+{! includes/getting_started/lifespan/6.md !}
 
 ## Another example
 
@@ -166,20 +88,7 @@ Therefore, it is worth initializing the model in the `@app.on_startup` hook.
 
 Also, we don't want the model to finish its work incorrectly when the application is stopped. To avoid this, we need the hook `@app.on_shutdown`
 
-=== "Redis"
-    ```python linenums="1" hl_lines="12 18"
-    {!> docs_src/quickstart/lifespan/2_ml_redis.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="12 18"
-    {!> docs_src/quickstart/lifespan/2_ml_rabbit.py !}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="12 18"
-    {!> docs_src/quickstart/lifespan/2_ml_nats.py !}
-    ```
+{! includes/getting_started/lifespan/7.md !}
 
 ## Multiple hooks
 
