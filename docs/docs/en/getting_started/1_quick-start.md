@@ -6,14 +6,14 @@ run_docker: To working with project start a test broker container
 
 Install using `pip`:
 
-{% import 'index/install.md' as includes with context %}
+{% import 'getting_started/index/install.md' as includes with context %}
 {{ includes }}
 
 ## Basic usage
 
 Create an application with the following code at `serve.py`:
 
-{! includes/index/01_base.md !}
+{! includes/getting_started/index/01_base.md !}
 
 And just run it:
 
@@ -98,7 +98,7 @@ Now you can enjoy a new development experience!
 You can use **Propan** `MQBrokers` without `PropanApp`.
 Just *start* and *stop* them according to your application lifespan.
 
-{! includes/index/04_http_example.md !}
+{! includes/getting_started/index/04_http_example.md !}
 
 ### **FastAPI** Plugin
 
@@ -111,7 +111,7 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
     When used this way, **Propan** does not utilize its own dependency system, but integrates into **FastAPI**.
     That is, you can use `Depends`, `Background Tasks` and other tools **Facet API** as if it were a regular HTTP endpoint.
 
-{! includes/index/05_native_fastapi.md !}
+{! includes/getting_started/index/05_native_fastapi.md !}
 
 !!! note
     More integration examples you can find [here](../../integrations/1_integrations-index/)

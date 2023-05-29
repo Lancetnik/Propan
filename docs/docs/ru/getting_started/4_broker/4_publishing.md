@@ -3,7 +3,7 @@
 В **Propan** для отправки сообщений используется унифицированный метод
 
 ```python
-await broker.pubslih(message, ...)
+await broker.publish(message, ...)
 ```
 
 Этот метод, независимо от брокера, принимает первым аргументом `message`. Однако, остальные аргументы являются
@@ -34,38 +34,12 @@ await broker.pubslih(message, ...)
 Если вы находитесь внутри запущенного **Propan** приложения, вам не нужно ничего делать: брокер уже запущен.
 Просто получите к нему доступ и отправьте сообщение.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/publishing/1_redis_inside_propan.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/publishing/1_rabbit_inside_propan.py !}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/publishing/1_nats_inside_propan.py !}
-    ```
+{! includes/getting_started/broker/publishing/1_inside_propan.md !}
 
 Если же вы используете **Propan** только для отправки асинхронных сообщений в рамках другого фреймворка, вы можете использовать
 брокер в качестве контекстного менеджера для отправки.
 
-=== "Redis"
-    ```python
-    {!> docs_src/quickstart/broker/publishing/2_redis_context.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python
-    {!> docs_src/quickstart/broker/publishing/2_rabbit_context.py !}
-    ```
-
-=== "NATS"
-    ```python
-    {!> docs_src/quickstart/broker/publishing/2_nats_context.py !}
-    ```
+{! includes/getting_started/broker/publishing/2_context.md !}
 
 !!! tip
     В рамках этого контекста вы можете отправлять неограниченное число сообщений, а также синхронно ожидать ответ на них.

@@ -6,14 +6,14 @@ run_docker: Для работы проекта запустите тестовы
 
 Для начала, установите фрейморк через `pip`:
 
-{% import 'index/install.md' as includes with context %}
+{% import 'getting_started/index/install.md' as includes with context %}
 {{ includes }}
 
 ### Базовое использование
 
 Создайте приложение со следующим кодом в `serve.py` файле:
 
-{! includes/index/01_base.md !}
+{! includes/getting_started/index/01_base.md !}
 
 И просто запустите его:
 
@@ -101,7 +101,7 @@ $ propan run [projectname].app.serve:app --env=.env --reload
 Вы можете использовать брокеры Propan без самого Propan приложения.
 Просто *запустите* и *остановите* его вместе с вашим HTTP приложением.
 
-{! includes/index/04_http_example.md !}
+{! includes/getting_started/index/04_http_example.md !}
 
 ### С **FastAPI**
 
@@ -114,7 +114,7 @@ $ propan run [projectname].app.serve:app --env=.env --reload
     При использовании таким образом **Propan** не использует собственную систему зависимостей, а интегрируется в **FastAPI**.
     Т.е. вы можете использовать `Depends`, `BackgroundTasks` и прочие инструменты **FastAPI** так, если бы это был обычный HTTP-endpoint.
 
-{! includes/index/05_native_fastapi.md !}
+{! includes/getting_started/index/05_native_fastapi.md !}
 
 !!! note
     Больше примеров использования с другими фреймворками вы найдете [здесь](../../integrations/1_integrations-index/)

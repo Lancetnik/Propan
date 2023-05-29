@@ -16,11 +16,11 @@ app = PropanApp()
 
 Обычно это делается при объявлении самого приложения
 
-{! includes/app/1_broker.md !}
+{! includes/getting_started/app/1_broker.md !}
 
 Но, иногда вам может понадобиться инициализировать брокера в другом месте. В таком случае, вы можете использовать метод `app.set_broker`
 
-{! includes/app/2_set_broker.md !}
+{! includes/getting_started/app/2_set_broker.md !}
 
 ## Запуск других приложений
 

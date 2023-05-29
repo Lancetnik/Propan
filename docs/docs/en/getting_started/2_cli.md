@@ -79,7 +79,7 @@ $ propan run serve:app --env=.env.dev
 ```
 </div>
 
-{! includes/cli/01_context.md !}
+{! includes/getting_started/cli/01_context.md !}
 
 !!! note
     Note that the `env` parameter was passed to the `setup` function directly from the command line

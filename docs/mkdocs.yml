@@ -132,7 +132,7 @@ nav:
     - Routing: rabbit/1_routing.md
     - Exchanges: rabbit/2_exchanges.md
     - Queues and Bindings: rabbit/3_queues.md
-    - Rabbit Pubslishing: rabbit/4_publishing.md
+    - Rabbit Publishing: rabbit/4_publishing.md
     - Examples:
       - Direct Exchange: rabbit/5_examples/1_direct.md
       - Fanout Exchange: rabbit/5_examples/2_fanout.md
@@ -140,14 +140,14 @@ nav:
       - Header Exchange: rabbit/5_examples/4_header.md
   - Redis Pub/Sub:
     - Redis Basics: redis/1_redis-index.md
-    - Redis Pubslishing: redis/2_publishing.md
+    - Redis Publishing: redis/2_publishing.md
     - Examples:
       - Direct: redis/3_examples/1_direct.md
       - Pattern: redis/3_examples/2_pattern.md
   - Nats:
     - Nats Basics: nats/1_nats-index.md
     - Routing: nats/2_routing.md
-    - Nats Pubslishing: nats/3_publishing.md
+    - Nats Publishing: nats/3_publishing.md
   - Integrations: integrations/1_integrations-index.md
   - FastAPI Plugin: integrations/2_fastapi-plugin.md  
   - Contributing:

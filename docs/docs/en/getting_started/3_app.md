@@ -16,11 +16,11 @@ In order for `PropanApp` to launch your broker, you need to put it in the applic
 
 This is usually done when declaring the application itself
 
-{! includes/app/1_broker.md !}
+{! includes/getting_started/app/1_broker.md !}
 
 But, sometimes you may need to initialize the broker elsewhere. In this case, you can use the `app.set_broker` method
 
-{! includes/app/2_set_broker.md !}
+{! includes/getting_started/app/2_set_broker.md !}
 
 ## Launching other apps
 
