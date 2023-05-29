@@ -1,97 +1,28 @@
+---
+constructor: In the broker constructor
+connect: In the `connect` method
+---
+
 # Basics
 
 ## Separation of dependencies
 
 **Propan** supports various message brokers using special classes
 
-=== "Redis"
-    ```python
-    from propan import RedisBroker
-    ```
-
-=== "RabbitMQ"
-    ```python
-    from propan import RabbitBroker
-    ```
-
-=== "NATS"
-    ```python
-    from propan import NatsBroker
-    ```
+{! includes/getting_started/broker/index/imports.md !}
 
 Be careful! Different brokers require different dependencies. If you have not install these dependencies, the imported broker will have the `None` value.
 
 To install **Propan** with the necessary dependencies for your broker, select one of the installation options
 
-=== "Redis"
-    ```bash
-    pip install "propan[async-redis]"
-    ```
-
-=== "RabbitMQ"
-    ```bash
-    pip install "propan[async-rabbit]"
-    ```
-
-=== "NATS"
-    ```bash
-    pip install "propan[async-nats]"
-    ```
+{! includes/getting_started/broker/index/install.md !}
 
 ## Broker Initialization
 
 Data for connecting **Propan Broker** to your message broker can be transmitted in 2 ways:
 
-=== "Redis"
-    1. In the broker constructor
-
-        ```python
-        from propan import RedisBroker
-        broker = RedisBroker("redis://localhost:6379/")
-        ```
-
-    2. In the `connect` method
-        ```python
-
-        from propan import RedisBroker
-        broker = RedisBroker()
-        ...
-        await broker.connect("redis://localhost:6379/")
-        ```
-
-=== "RabbitMQ"
-    1. In the broker constructor
-
-        ```python
-        from propan import RabbitBroker
-        broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-        ```
-
-    2. In the `connect` method
-
-        ```python
-        from propan import RabbitBroker
-        broker = RabbitBroker()
-        ...
-        await broker.connect("amqp://guest:guest@localhost:5672/")
-        ```
-
-=== "NATS"
-    1. In the broker constructor
-
-        ```python
-        from propan import NatsBroker
-        broker = NatsBroker("nats://localhost:4222")
-        ```
-
-    2. In the `connect` method
-
-        ```python
-        from propan import NatsBroker
-        broker = NatsBroker()
-        ...
-        await broker.connect("nats://localhost:4222")
-        ```
+{% import 'getting_started/broker/index/initialization.md' as includes with context %}
+{{ includes }}
 
 In the simplest cases, the first method of data transmission for connection is enough for you - through the constructor.
 

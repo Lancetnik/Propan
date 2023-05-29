@@ -32,7 +32,7 @@
 
 It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-It is a modern, high-level framework on top of popular specific Python brokers libraries, based on <a href="https://docs.pydantic.dev/" target="_blank">*pydantic*</a> and <a href="https://fastapi.tiangolo.com/ru/" target="_blank">*fastapi*</a>, <a href="https://docs.pytest.org/en/7.3.x/" target="_blank">*pytest*</a> concepts.
+It is a modern, high-level framework on top of popular specific Python brokers libraries, based on <a href="https://docs.pydantic.dev/" target="_blank">*pydantic*</a> and <a href="https://fastapi.tiangolo.com/ru/" target="_blank">*fastapi*</a>, <a href="https://docs.pytest.org/en/latest/" target="_blank">*pytest*</a> concepts.
 
 ---
 
@@ -159,11 +159,13 @@ from propan import RabbitBroker
 # from propan import RedisBroker
 # from propan import NatsBroker
 # from propan import SQSBroker
+# from propan import KafkaBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 # broker = NatsBroker("nats://localhost:4222")
 # broker = RedisBroker("redis://localhost:6379")
 # broker = SQSBroker("http://localhost:9324", ...)
+# broker = KafkaBroker("localhost:9092")
 
 app = PropanApp(broker)
 
