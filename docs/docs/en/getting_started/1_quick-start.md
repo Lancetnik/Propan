@@ -82,30 +82,7 @@ Install using `pip`:
 
 Create an application with the following code at `serve.py`:
 
-=== "Redis"
-    ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_redis_base.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_rabbit_base.py!}
-    ```
-
-=== "Kafka"
-    ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_kafka_base.py!}
-    ```
-
-=== "SQS"
-    ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_sqs_base.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" title="serve.py"
-    {!> docs_src/index/01_nats_base.py!}
-    ```
+{! includes/index/01_base.md !}
 
 And just run it:
 
@@ -190,30 +167,7 @@ Now you can enjoy a new development experience!
 You can use **Propan** `MQBrokers` without `PropanApp`.
 Just *start* and *stop* them according to your application lifespan.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/04_redis_http_example.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/04_rabbit_http_example.py!}
-    ```
-
-=== "Kafka"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/04_kafka_http_example.py!}
-    ```
-
-=== "SQS"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/04_sqs_http_example.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="5 11-13 16-17"
-    {!> docs_src/index/04_nats_http_example.py!}
-    ```
+{! includes/index/04_http_example.md !}
 
 ### **FastAPI** Plugin
 
@@ -226,30 +180,7 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
     When used this way, **Propan** does not utilize its own dependency system, but integrates into **FastAPI**.
     That is, you can use `Depends`, `Background Tasks` and other tools **Facet API** as if it were a regular HTTP endpoint.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/05_redis_native_fastapi.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/05_rabbit_native_fastapi.py!}
-    ```
-
-=== "Kafka"
-    ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/05_kafka_native_fastapi.py!}
-    ```
-
-=== "SQS"
-    ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/05_sqs_native_fastapi.py!}
-    ```
-
-=== "NATS"
-    ```python linenums="1" hl_lines="7 15 19"
-    {!> docs_src/index/05_nats_native_fastapi.py!}
-    ```
+{! includes/index/05_native_fastapi.md !}
 
 !!! note
     More integration examples you can find [here](../../integrations/1_integrations-index/)
