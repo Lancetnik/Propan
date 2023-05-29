@@ -11,12 +11,15 @@ from starlette import routing
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
+from propan import SQSBroker
 from propan.brokers.sqs.schema import SQSQueue
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
 
 class SQSRouter(PropanRouter):
+    broker: SQSBroker
+
     def __init__(
         self,
         url: str = "http://localhost:9324/",

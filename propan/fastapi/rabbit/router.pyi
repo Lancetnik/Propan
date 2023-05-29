@@ -13,12 +13,15 @@ from starlette import routing
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
+from propan import RabbitBroker
 from propan.brokers.rabbit import RabbitExchange, RabbitQueue
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
 
 class RabbitRouter(PropanRouter):
+    broker: RabbitBroker
+
     def __init__(
         self,
         host: str = "localhost",

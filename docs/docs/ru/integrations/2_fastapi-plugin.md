@@ -13,15 +13,7 @@
 
     Обратите внимание, что в коде ниже используется `fastapi.Depends`, а не `propan.Depends`.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="1 3 7 15 19 23"
-    {!> docs_src/integrations/fastapi_plugin_redis.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="1 3 7 15 19 23"
-    {!> docs_src/integrations/fastapi_plugin_rabbit.py!}
-    ```
+{! includes/integrations/fastapi/fastapi_plugin.md !}
 
 При обработке сообщения из брокера все тело сообщения помещается одновременно и в `body`, и в `path` параметры запроса: вы можете достать получить к ним доступ любым удобным для вас способом. Заголовок сообщения помещается в `headers`.
 
@@ -32,24 +24,8 @@
 
 Внутри каждого роутера есть соответсвующий брокер. Вы можете легко получить к нему доступ, если вам необходимо отправить сообщение в MQ.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="6 10"
-    {!> docs_src/integrations/fastapi_plugin_redis_send.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="6 10"
-    {!> docs_src/integrations/fastapi_plugin_rabbit_send.py!}
-    ```
+{! includes/integrations/fastapi/fastapi_plugin_send.md !}
 
 Вы можете оформить доступ к брокеру в виде `Depends`, если хотите использовать его в разных частях вашей программы.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="8 14-15"
-    {!> docs_src/integrations/fastapi_plugin_redis_depends.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="8 14-15"
-    {!> docs_src/integrations/fastapi_plugin_rabbit_depends.py!}
-    ```
+{! includes/integrations/fastapi/fastapi_plugin_depends.md !}

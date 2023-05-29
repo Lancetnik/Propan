@@ -18,6 +18,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 from typing_extensions import Literal, TypeVar
 
+from propan import KafkaBroker
 from propan.__about__ import __version__
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
@@ -26,6 +27,8 @@ from propan.types import AnyCallable
 Partition = TypeVar("Partition")
 
 class KafkaRouter(PropanRouter):
+    broker: KafkaBroker
+
     def __init__(
         self,
         bootstrap_servers: Union[str, List[str]] = "localhost",

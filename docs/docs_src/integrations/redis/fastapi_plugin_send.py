@@ -7,7 +7,7 @@ router = RedisRouter("redis://localhost:6379")
 
 @router.get("/")
 async def hello_http():
-    await router.broker.publish("Hello, Redis!", routing_key="test")
+    await router.broker.publish("Hello, Redis!", "test")
     return "Hello, HTTP!"
 
 app.include_router(router)
