@@ -114,6 +114,11 @@ class KafkaBroker(BrokerUsecase):
         return wrapper
 
     async def start(self) -> None:
+        context.set_local(
+            "log_context",
+            self._get_log_context(None, ""),
+        )
+
         await super().start()
 
         for handler in self.handlers:  # pragma: no branch
@@ -193,8 +198,10 @@ class KafkaBroker(BrokerUsecase):
     ) -> Dict[str, Any]:
         if topics:
             topic = ", ".join(topics)
-        else:
+        elif message is not None:
             topic = message.raw_message.topic
+        else:
+            topic = ""
 
         return {
             "topic": topic,
