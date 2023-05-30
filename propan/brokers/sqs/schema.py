@@ -22,10 +22,56 @@ class SQSQueue(Queue):
     )  # 0...20
     visibility_timeout_sec: int = Field(30, alias="VisibilityTimeout")  # 0...43_200
 
+    def __init__(
+        self,
+        name: str,
+        fifo: bool = False,
+        delay_seconds: int = 0,
+        max_message_size: int = 262_144,
+        retention_period_sec: int = 345_600,
+        receive_wait_time_sec: int = 0,
+        visibility_timeout_sec: int = 30,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            name=name,
+            fifo=fifo,
+            visibility_timeout_sec=visibility_timeout_sec,
+            receive_wait_time_sec=receive_wait_time_sec,
+            retention_period_sec=retention_period_sec,
+            max_message_size=max_message_size,
+            delay_seconds=delay_seconds,
+            **kwargs,
+        )
+
 
 class FifoQueue(SQSQueue):
-    fifo: bool = Field(True, alias="FifoQueue")
-    content_based_deduplication: bool = Field(True, alias="ContentBasedDeduplication")
+    fifo: bool = Field(default=True, alias="FifoQueue")
+    content_based_deduplication: bool = Field(
+        default=True, alias="ContentBasedDeduplication"
+    )
+
+    def __init__(
+        self,
+        name: str,
+        fifo: bool = True,
+        delay_seconds: int = 0,
+        max_message_size: int = 262_144,
+        retention_period_sec: int = 345_600,
+        receive_wait_time_sec: int = 0,
+        visibility_timeout_sec: int = 30,
+        content_based_deduplication: bool = True,
+    ):
+        super().__init__(
+            name=name,
+            fifo=fifo,
+            visibility_timeout_sec=visibility_timeout_sec,
+            receive_wait_time_sec=receive_wait_time_sec,
+            retention_period_sec=retention_period_sec,
+            max_message_size=max_message_size,
+            delay_seconds=delay_seconds,
+            content_based_deduplication=content_based_deduplication,
+        )
 
 
 @dataclass
