@@ -42,9 +42,9 @@ class RabbitExchange(NameRequired):
     timeout: TimeoutType = None
     robust: bool = True
 
-    bind_to: Optional["RabbitExchange"] = Field(None, exclude=True)
-    bind_arguments: Optional[Dict[str, Any]] = Field(None, exclude=True)
-    routing_key: str = Field("", exclude=True)
+    bind_to: Optional["RabbitExchange"] = Field(default=None, exclude=True)
+    bind_arguments: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
+    routing_key: str = Field(default="", exclude=True)
 
 
 @dataclass

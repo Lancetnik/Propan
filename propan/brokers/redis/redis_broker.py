@@ -18,6 +18,7 @@ from propan.types import (
     HandlerWrapper,
     SendableMessage,
 )
+from propan.utils import context
 
 T = TypeVar("T")
 
@@ -113,6 +114,11 @@ class RedisBroker(BrokerUsecase):
         return wrapper
 
     async def start(self) -> None:
+        context.set_local(
+            "log_context",
+            self._get_log_context(None, ""),
+        )
+
         await super().start()
 
         for handler in self.handlers:  # pragma: no branch

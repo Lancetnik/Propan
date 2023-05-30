@@ -3,7 +3,7 @@ import logging.config
 from functools import partial
 from typing import Any, Dict, Type
 
-from propan.log.formatter import AccessFormatter, DefaultFormatter
+from propan.log.formatter import ColourizedFormatter
 
 
 def configure_formatter(
@@ -17,12 +17,12 @@ LOGGING_CONFIG: Dict[str, Any] = {
     "disable_existing_loggers": False,
     "formatters": {
         "default": {
-            "()": partial(configure_formatter, DefaultFormatter),
+            "()": partial(configure_formatter, ColourizedFormatter),
             "fmt": "%(asctime)s %(levelname)s - %(message)s",
             "use_colors": True,
         },
         "access": {
-            "()": partial(configure_formatter, AccessFormatter),
+            "()": partial(configure_formatter, ColourizedFormatter),
             "fmt": "%(asctime)s %(levelname)s - %(message)s",
             "use_colors": True,
         },
