@@ -30,12 +30,13 @@ class FastAPITestcase:
         async def hello2(b: int):
             return "2"
 
-        await router.startup()
+        async with router.lifespan_context(None):
+            r = await router.broker.publish(
+                "", name, callback=True, callback_timeout=0.5
+            )
+            assert r == "1"
 
-        r = await router.broker.publish("", name, callback=True, callback_timeout=0.5)
-        assert r == "1"
-
-        r = await router.broker.publish("2", name2, callback=True, callback_timeout=0.5)
-        assert r == "2"
-
-        await router.shutdown()
+            r = await router.broker.publish(
+                "2", name2, callback=True, callback_timeout=0.5
+            )
+            assert r == "2"

@@ -2,7 +2,7 @@ import asyncio
 import logging
 from functools import wraps
 from secrets import token_hex
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 
 import nats
 from nats.aio.client import Callback, Client, ErrorCallback
@@ -12,7 +12,7 @@ from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
-from propan.types import AnyDict, DecoratedCallable, SendableMessage
+from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMessage
 from propan.utils import context
 
 T = TypeVar("T")
@@ -56,14 +56,20 @@ class NatsBroker(BrokerUsecase):
         self,
         subject: str,
         queue: str = "",
-        **original_kwargs,
+        *,
+        retry: Union[bool, int] = False,
+        _raw: bool = False,
     ) -> Callable[[DecoratedCallable], None]:
         self.__max_subject_len = max((self.__max_subject_len, len(subject)))
         self.__max_queue_len = max((self.__max_queue_len, len(queue)))
 
         def wrapper(func: DecoratedCallable) -> None:
             func = self._wrap_handler(
-                func, queue=queue, subject=subject, **original_kwargs
+                func,
+                queue=queue,
+                subject=subject,
+                retry=retry,
+                _raw=_raw,
             )
             handler = Handler(callback=func, subject=subject, queue=queue)
             self.handlers.append(handler)
@@ -99,7 +105,7 @@ class NatsBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
-    ) -> None:
+    ) -> Optional[DecodedMessage]:
         if self._connection is None:
             raise ValueError("NatsConnection not started yet")
 

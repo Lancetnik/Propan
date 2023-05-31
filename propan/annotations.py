@@ -2,7 +2,7 @@ import logging
 
 from typing_extensions import Annotated
 
-from propan.__about__ import INSTALL_MESSAGE
+from propan import __about__ as about
 from propan.cli.app import PropanApp
 from propan.utils.context import Context as ContextField
 from propan.utils.context import ContextRepo as CR
@@ -23,7 +23,7 @@ try:
         aio_pika.robust_channel.RobustChannel, ContextField("broker._channel")
     ]
 except Exception:
-    RabbitBroker = RabbitMessage = Channel = None  # type: ignore
+    RabbitBroker = RabbitMessage = Channel = about.INSTALL_RABBIT
 
 
 try:
@@ -34,7 +34,7 @@ try:
     NatsBroker = Annotated[NB, ContextField("broker")]
     NatsMessage = Annotated[Msg, ContextField("message")]
 except Exception:
-    NatsBroker = NatsMessage = None  # type: ignore
+    NatsBroker = NatsMessage = about.INSTALL_NATS
 
 
 try:
@@ -45,7 +45,7 @@ try:
     RedisBroker = Annotated[RedB, ContextField("broker")]
     Redis = Annotated[R, ContextField("broker._connection")]
 except Exception:
-    RedisBroker = Redis = None  # type: ignore
+    RedisBroker = Redis = about.INSTALL_REDIS
 
 
 try:
@@ -58,7 +58,7 @@ try:
     KafkaMessage = Annotated[ConsumerRecord, ContextField("message")]
     Producer = Annotated[AIOKafkaProducer, ContextField("producer")]
 except Exception:
-    KafkaBroker = KafkaMessage = None  # type: ignore
+    KafkaBroker = KafkaMessage = about.INSTALL_KAFKA
 
 
 try:
@@ -70,7 +70,7 @@ try:
     client = Annotated[AioBaseClient, ContextField("client")]
     queue_url = Annotated[str, ContextField("queue_url")]
 except Exception:
-    SQSBroker = client = queue_url = None  # type: ignore
+    SQSBroker = client = queue_url = about.INSTALL_SQS
 
 
 assert any(
@@ -81,4 +81,4 @@ assert any(
         all((KafkaBroker, KafkaMessage, Producer)),
         all((SQSBroker, client, queue_url)),
     )
-), INSTALL_MESSAGE
+), about.INSTALL_MESSAGE

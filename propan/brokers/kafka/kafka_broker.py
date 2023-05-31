@@ -95,13 +95,14 @@ class KafkaBroker(BrokerUsecase):
     def handle(
         self,
         *topics: str,
+        _raw: bool = False,
         **kwargs: AnyDict,
     ) -> Wrapper:
         def wrapper(func: AnyCallable) -> DecoratedCallable:
             for t in topics:
                 self.__max_topic_len = max((self.__max_topic_len, len(t)))
 
-            func = self._wrap_handler(func)
+            func = self._wrap_handler(func, _raw=_raw)
             handler = Handler(
                 callback=func,
                 topics=topics,

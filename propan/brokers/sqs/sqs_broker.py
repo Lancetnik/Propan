@@ -126,6 +126,7 @@ class SQSBroker(BrokerUsecase):
         request_attempt_id: Optional[str] = None,
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
+        _raw: bool = False,
     ) -> HandlerWrapper:
         if isinstance(queue, str):
             queue = SQSQueue(queue)
@@ -147,7 +148,12 @@ class SQSBroker(BrokerUsecase):
             params["ReceiveRequestAttemptId"] = request_attempt_id
 
         def wrapper(func: AnyCallable) -> DecoratedCallable:
-            func = self._wrap_handler(func, queue=queue.name, retry=retry)
+            func = self._wrap_handler(
+                func,
+                queue=queue.name,
+                retry=retry,
+                _raw=_raw,
+            )
             handler = Handler(callback=func, queue=queue, consumer_params=params)
             self.handlers.append(handler)
             return func
@@ -186,7 +192,7 @@ class SQSBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
-    ) -> Any:
+    ) -> None:
         queue_url = await self.get_queue(queue)
 
         params = self._build_message(
@@ -259,9 +265,13 @@ class SQSBroker(BrokerUsecase):
                     Attributes={
                         i: str(j)
                         for i, j in queue.dict(
-                            exclude={"name"}, by_alias=True, exclude_defaults=True
+                            exclude={"name"},
+                            by_alias=True,
+                            exclude_defaults=True,
+                            exclude_unset=True,
                         ).items()
                     },
+                    tags=queue.tags,
                 )
             ).get("QueueUrl", "")
             self._queues[queue.name] = url
