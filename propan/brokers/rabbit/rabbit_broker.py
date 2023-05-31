@@ -77,6 +77,7 @@ class RabbitBroker(BrokerUsecase):
         exchange: Union[str, RabbitExchange, None] = None,
         *,
         retry: Union[bool, int] = False,
+        _raw: bool = False,
     ) -> HandlerWrapper:
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
@@ -88,6 +89,7 @@ class RabbitBroker(BrokerUsecase):
                 queue=queue,
                 exchange=exchange,
                 retry=retry,
+                _raw=_raw,
             )
             handler = Handler(callback=func, queue=queue, exchange=exchange)
             self.handlers.append(handler)

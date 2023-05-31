@@ -1,36 +1,39 @@
+from contextlib import asynccontextmanager
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 
-from fastapi import APIRouter, params
+from fastapi import APIRouter, FastAPI, params
 from fastapi.datastructures import Default
 from fastapi.routing import APIRoute
 from fastapi.types import DecoratedCallable
 from fastapi.utils import generate_unique_id
 from starlette import routing
 from starlette.responses import JSONResponse, Response
-from starlette.types import ASGIApp
-from typing_extensions import ClassVar
+from starlette.routing import _DefaultLifespan
+from starlette.types import ASGIApp, Lifespan
+from typing_extensions import AsyncIterator, TypeVar
 
 from propan.brokers._model import BrokerUsecase
 from propan.fastapi.core.route import PropanRoute
 from propan.types import AnyDict
 
+Broker = TypeVar("Broker", bound=BrokerUsecase)
 
-class PropanRouter(APIRouter):
-    broker_class: ClassVar[Type[BrokerUsecase]]
-    broker: BrokerUsecase
 
-    @property
-    def mq_routes(self) -> Tuple[PropanRoute, ...]:
-        return tuple(
-            filter(lambda x: isinstance(x, PropanRoute), self.routes)  # type: ignore
-        )
-
-    async def _connect(self) -> None:
-        await self.broker.start()
-
-    async def _close(self) -> None:
-        await self.broker.close()
+class PropanRouter(APIRouter, Generic[Broker]):
+    broker_class: Type[Broker]
+    broker: Broker
 
     def __init__(
         self,
@@ -50,6 +53,7 @@ class PropanRouter(APIRouter):
         on_shutdown: Optional[Sequence[Callable[[], Any]]] = None,
         deprecated: Optional[bool] = None,
         include_in_schema: bool = True,
+        lifespan: Optional[Lifespan[Any]] = None,
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
         ),
@@ -61,11 +65,10 @@ class PropanRouter(APIRouter):
 
         self.broker = self.broker_class(
             *connection_args,
-            **{**connection_kwars, "apply_types": False},  # type: ignore
+            apply_types=False,
+            **connection_kwars,  # type: ignore
         )
 
-        on_startup = [] if on_startup is None else list(on_startup)
-        on_shutdown = [] if on_shutdown is None else list(on_shutdown)
         super().__init__(
             prefix=prefix,
             tags=tags,
@@ -81,8 +84,9 @@ class PropanRouter(APIRouter):
             deprecated=deprecated,
             include_in_schema=include_in_schema,
             generate_unique_id_function=generate_unique_id_function,
-            on_startup=[self._connect] + on_startup,
-            on_shutdown=on_shutdown + [self._close],
+            lifespan=self._wrap_lifespan(lifespan),
+            on_startup=on_startup,
+            on_shutdown=on_shutdown,
         )
 
     def add_api_mq_route(
@@ -115,3 +119,23 @@ class PropanRouter(APIRouter):
             return func
 
         return decorator
+
+    def _wrap_lifespan(self, lifespan: Optional[Lifespan[Any]] = None) -> Lifespan[Any]:
+        if lifespan is not None:
+            lifespan_context = lifespan
+        else:
+            lifespan_context = _DefaultLifespan(self)
+
+        @asynccontextmanager
+        async def start_broker_lifespan(
+            app: FastAPI,
+        ) -> AsyncIterator[Dict[str, Broker]]:
+            async with lifespan_context(app) as maybe_context:
+                await self.broker.start()
+                context = {"broker": self.broker}
+                if maybe_context:
+                    context.update(maybe_context)
+                yield context
+                await self.broker.close()
+
+        return start_broker_lifespan

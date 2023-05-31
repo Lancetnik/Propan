@@ -32,9 +32,7 @@ from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
 
-class NatsRouter(PropanRouter):
-    broker: NatsBroker
-
+class NatsRouter(PropanRouter[NatsBroker]):
     def __init__(
         self,
         servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006

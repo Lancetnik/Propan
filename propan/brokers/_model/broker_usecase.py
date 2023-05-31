@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
+from typing_extensions import Self
+
 from propan.brokers._model.schemas import (
     ContentType,
     ContentTypes,
@@ -31,7 +33,6 @@ from propan.utils import apply_types, context
 from propan.utils.functions import to_async
 
 T = TypeVar("T")
-Cls = TypeVar("Cls", bound="BrokerUsecase")
 
 
 class BrokerUsecase(ABC):
@@ -85,7 +86,7 @@ class BrokerUsecase(ABC):
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
         **kwargs: Any,
-    ) -> Any:
+    ) -> Optional[DecodedMessage]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -98,12 +99,16 @@ class BrokerUsecase(ABC):
 
     @abstractmethod
     def _process_message(
-        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
+        self,
+        func: Callable[[PropanMessage], T],
+        watcher: Optional[BaseWatcher],
     ) -> Callable[[PropanMessage], T]:
         raise NotImplementedError()
 
     def _get_log_context(
-        self, message: Optional[PropanMessage], **kwargs: Dict[str, str]
+        self,
+        message: Optional[PropanMessage],
+        **kwargs: Dict[str, str],
     ) -> Dict[str, Any]:
         return {
             "message_id": message.message_id[:10] if message else "",
@@ -114,6 +119,7 @@ class BrokerUsecase(ABC):
         self,
         *broker_args: Any,
         retry: Union[bool, int] = False,
+        _raw: bool = False,
         **broker_kwargs: Any,
     ) -> HandlerWrapper:
         raise NotImplementedError()
@@ -143,7 +149,7 @@ class BrokerUsecase(ABC):
 
         await self.connect()
 
-    async def __aenter__(self: Cls) -> Cls:
+    async def __aenter__(self) -> Self:
         await self.connect()
         return self
 
@@ -154,6 +160,7 @@ class BrokerUsecase(ABC):
         self,
         func: AnyCallable,
         retry: Union[bool, int] = False,
+        _raw: bool = False,
         **broker_args: Any,
     ) -> DecoratedAsync:
         f = to_async(func)
@@ -161,7 +168,7 @@ class BrokerUsecase(ABC):
         if self._is_apply_types is True:
             f = apply_types(f)
 
-        f = self._wrap_decode_message(f)
+        f = self._wrap_decode_message(f, _raw=_raw)
 
         if self.logger is not None:
             f = self._log_execution(**broker_args)(f)
@@ -177,11 +184,21 @@ class BrokerUsecase(ABC):
         return f
 
     def _wrap_decode_message(
-        self, func: Callable[..., Awaitable[T]]
+        self,
+        func: Callable[..., Awaitable[T]],
+        _raw: bool = False,
     ) -> Callable[[PropanMessage], Awaitable[T]]:
+        decode: Callable[
+            [PropanMessage], Awaitable[Union[PropanMessage, DecodedMessage]]
+        ]
+        if _raw is True:
+            decode = _fake_decode
+        else:
+            decode = self._decode_message
+
         @wraps(func)
         async def wrapper(message: PropanMessage) -> T:
-            return await func(await self._decode_message(message))
+            return await func(await decode(message))
 
         return wrapper
 
@@ -231,3 +248,7 @@ class BrokerUsecase(ABC):
             self.logger.log(
                 level=(log_level or self.log_level), msg=message, extra=extra
             )
+
+
+async def _fake_decode(message: PropanMessage) -> PropanMessage:
+    return message

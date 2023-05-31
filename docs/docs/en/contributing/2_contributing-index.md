@@ -30,7 +30,7 @@ python -m pip install --upgrade pip
 After activating the environment as described above:
 
 ```bash
-pip install -e ."[dev]"
+pip install -e ".[dev]"
 ```
 
 It will install all the dependencies and your local Propan in your local environment.

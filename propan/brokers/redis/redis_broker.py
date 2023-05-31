@@ -98,6 +98,7 @@ class RedisBroker(BrokerUsecase):
         channel: str = "",
         *,
         pattern: bool = False,
+        _raw: bool = False,
     ) -> HandlerWrapper:
         self.__max_channel_len = max(self.__max_channel_len, len(channel))
 
@@ -105,6 +106,7 @@ class RedisBroker(BrokerUsecase):
             func = self._wrap_handler(
                 func,
                 channel=channel,
+                _raw=_raw,
             )
             handler = Handler(callback=func, channel=channel, pattern=pattern)
             self.handlers.append(handler)
@@ -144,7 +146,7 @@ class RedisBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
-    ) -> None:
+    ) -> Optional[DecodedMessage]:
         if self._connection is None:
             raise ValueError("Redis connection not established yet")
 

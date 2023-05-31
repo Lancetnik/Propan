@@ -13,10 +13,25 @@ DecoratedCallable: TypeAlias = AnyCallable
 DecoratedCallableNone: TypeAlias = NoneCallable
 DecoratedAsync: TypeAlias = AsyncFunc
 
-Wrapper: TypeAlias = Callable[[AnyCallable], DecoratedCallable]
-AsyncWrapper: TypeAlias = Callable[[AnyCallable], DecoratedAsync]
-DecodedMessage: TypeAlias = Union[AnyDict, Sequence[Any], str, bytes]
-SendableMessage: TypeAlias = Union[DecodedMessage, BaseModel, None]
+Wrapper: TypeAlias = Callable[
+    [AnyCallable],
+    DecoratedCallable,
+]
+AsyncWrapper: TypeAlias = Callable[
+    [AnyCallable],
+    DecoratedAsync,
+]
+DecodedMessage: TypeAlias = Union[
+    AnyDict,
+    Sequence[Any],
+    str,
+    bytes,
+]
+SendableMessage: TypeAlias = Union[
+    DecodedMessage,
+    BaseModel,
+    None,
+]
 
 HandlerCallable: TypeAlias = Callable[
     ...,

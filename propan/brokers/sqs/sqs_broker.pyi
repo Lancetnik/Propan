@@ -47,7 +47,8 @@ class SQSBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
-    ) -> None: ...
+    ) -> None:
+        """"""
     async def connect(
         self,
         url: str = "http://localhost:9324/",
@@ -60,7 +61,8 @@ class SQSBroker(BrokerUsecase):
         aws_secret_access_key: Optional[str] = None,
         aws_session_token: Optional[str] = None,
         config: Optional[AioConfig] = None,
-    ) -> AioBaseClient: ...
+    ) -> AioBaseClient:
+        """"""
     async def _connect(self, *args: Any, **kwargs: Any) -> AioBaseClient: ...
     async def close(self) -> None: ...
     async def _parse_message(self, message: Dict[str, Any]) -> PropanMessage: ...
@@ -84,7 +86,7 @@ class SQSBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
-    ) -> Any: ...
+    ) -> None: ...
     @classmethod
     def _build_message(
         cls,

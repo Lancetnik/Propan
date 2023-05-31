@@ -32,7 +32,7 @@ python -m pip install --upgrade pip
 После активации окружения установите все зависимости проекта, необходимые для разработки
 
 ```bash
-pip install -e ."[dev]"
+pip install -e ".[dev]"
 ```
 
 #### Используйте ваш локальный Propan
