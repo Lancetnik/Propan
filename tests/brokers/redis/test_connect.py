@@ -23,7 +23,7 @@ class TestRedisConnection(BrokerConnectionTestcase):
 
     @pytest.mark.asyncio
     async def test_connect_merge_kwargs_with_priority(self, settings):
-        broker = RedisBroker(host="fake-host", port=6377)  # kwargs will be ignored
+        broker = self.broker(host="fake-host", port=6377)  # kwargs will be ignored
         assert await broker.connect(
             host=settings.host,
             port=settings.port,
