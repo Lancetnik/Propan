@@ -68,7 +68,7 @@ class BrokerUsecase(ABC):
     async def connect(self, *args: Any, **kwargs: Any) -> Any:
         if self._connection is None:
             _args = args or self._connection_args
-            _kwargs = kwargs or self._connection_kwargs
+            _kwargs = {**self._connection_kwargs, **kwargs}
             self._connection = await self._connect(*_args, **_kwargs)
         return self._connection
 
