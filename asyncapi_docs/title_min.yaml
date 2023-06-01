@@ -1,0 +1,24 @@
+asyncapi: '2.6.0'
+
+info:
+  title: Streetlights Kafka API
+  version: '1.0.0'
+  description: |
+    The Smartylighting Streetlights API allows you to remotely manage the city lights.
+    ### Check out its awesome features:
+    * Turn a specific streetlight on/off 🌃
+    * Dim a specific streetlight 😎
+    * Receive real-time information about environmental lighting conditions 📈
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  test:
+    url: test.mykafkacluster.org:8092
+    protocol: kafka-secure
+    description: Test broker
+    security:
+      - saslScram: []
+
+defaultContentType: application/json

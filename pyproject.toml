@@ -79,11 +79,16 @@ async-kafka = [
     "aiokafka>=0.8"
 ]
 
+doc = [
+    "PyYAML",
+]
+
 test = [
     "propan[async-rabbit]",
     "propan[async-nats]",
     "propan[async-redis]",
     "propan[async-kafka]",
+    "propan[doc]",
 
     "coverage[toml]>=7.2",
     "pytest>=7",
@@ -95,7 +100,7 @@ test = [
     "asyncmock; python_version < '3.8'",
 ]
 
-doc = [
+dev-doc = [
     "mkdocs-material >=8.1.4,<9.0.0",
     "mkdocs-static-i18n",
     "mdx-include >=1.4.1,<2.0.0",
@@ -106,7 +111,7 @@ doc = [
 
 dev = [
     "propan[test]",
-    "propan[doc]",
+    "propan[dev-doc]",
 
     "types-redis",
 

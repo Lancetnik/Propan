@@ -7,9 +7,9 @@ from typing import Dict, Optional
 import typer
 
 from propan.__about__ import __version__
-from propan.cli.app import PropanApp
+from propan.cli.docs import docs_app
 from propan.cli.startproject import create_app
-from propan.cli.utils.imports import get_app_path, import_object
+from propan.cli.utils.imports import get_app_path, try_import_propan
 from propan.cli.utils.logs import LogLevels, get_log_level, set_log_level
 from propan.cli.utils.parser import SettingField, parse_cli_args
 from propan.log import logger
@@ -18,6 +18,7 @@ cli = typer.Typer(pretty_exceptions_short=True)
 cli.add_typer(
     create_app, name="create", help="Create a new Propan project at [APPNAME] directory"
 )
+cli.add_typer(docs_app, name="docs", help="AsyncAPI schema commands")
 
 
 def version_callback(version: bool) -> None:
@@ -106,28 +107,17 @@ def _run(
     log_level: int = logging.INFO,
     app_level: int = logging.INFO,
 ) -> None:
-    try:
-        propan_app = import_object(module, app)
+    propan_app = try_import_propan(module, app)
+    set_log_level(log_level, propan_app)
 
-        if not isinstance(propan_app, PropanApp):
-            raise ValueError(f"{propan_app} is not a PropanApp")
+    propan_app._command_line_options = extra_options
 
-    except (ValueError, FileNotFoundError, AttributeError) as e:
-        logger.error(e)
-        logger.error("Please, input module like [python_file:propan_app_name]")
-        exit()
+    if sys.platform not in ("win32", "cygwin", "cli"):
+        try:
+            import uvloop
+        except Exception:
+            logger.warning("You have no installed `uvloop`")
+        else:
+            uvloop.install()
 
-    else:
-        set_log_level(log_level, propan_app)
-
-        propan_app._command_line_options = extra_options
-
-        if sys.platform not in ("win32", "cygwin", "cli"):
-            try:
-                import uvloop
-            except Exception:
-                logger.warning("You have no installed `uvloop`")
-            else:
-                uvloop.install()
-
-        asyncio.run(propan_app.run(log_level=app_level))
+    asyncio.run(propan_app.run(log_level=app_level))
