@@ -46,6 +46,8 @@ class RabbitBroker(BrokerUsecase):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         consumers: Optional[int] = None,
+        # AsyncAPI
+        protocol: str = "amqp",
     ) -> None:
         """
         URL string might be contain ssl parameters e.g.

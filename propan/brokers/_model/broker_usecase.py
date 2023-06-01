@@ -48,6 +48,9 @@ class BrokerUsecase(ABC):
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
+        # AsyncAPI
+        protocol: str = "",
+        url: str = "",
         **kwargs: Any,
     ) -> None:
         self.logger = logger
@@ -63,6 +66,9 @@ class BrokerUsecase(ABC):
 
         context.set_global("logger", logger)
         context.set_global("broker", self)
+
+        self.protocol = protocol
+        self.url = url
 
     async def connect(self, *args: Any, **kwargs: Any) -> Any:
         if self._connection is None:

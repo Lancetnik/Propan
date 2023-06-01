@@ -28,12 +28,21 @@ class RabbitBroker(BrokerUsecase):
 
     def __init__(
         self,
+        url: Optional[str] = None,
         *args: Tuple[Any, ...],
+        protocol: str = "amqp",
         consumers: Optional[int] = None,
         log_fmt: Optional[str] = None,
         **kwargs: AnyDict,
     ) -> None:
-        super().__init__(*args, log_fmt=log_fmt, **kwargs)
+        super().__init__(
+            url,
+            *args,
+            log_fmt=log_fmt,
+            protocol=protocol,
+            url=url,
+            **kwargs,
+        )
         self._max_consumers = consumers
 
         self._channel = None

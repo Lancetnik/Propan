@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class AsyncAPIInfo(BaseModel):
     title: str
-    version: str = Field(default="1.0.0")
+    version: str = "1.0.0"
     description: str = ""

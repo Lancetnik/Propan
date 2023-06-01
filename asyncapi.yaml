@@ -4,3 +4,7 @@ info:
   title: PropanApp
   version: 1.0.0
   description: ''
+servers:
+  production:
+    url: amqp://localhost:6379
+    protocol: amqp
