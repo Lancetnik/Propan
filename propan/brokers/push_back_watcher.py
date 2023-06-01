@@ -6,6 +6,7 @@ from typing import Callable, Optional, Type
 
 from typing_extensions import Counter as CounterType
 
+from propan.brokers.exceptions import SkipMessage
 from propan.utils.functions import call_or_await
 
 
@@ -39,6 +40,17 @@ class FakePushBackWatcher(BaseWatcher):
 
     def is_max(self, message_id: str) -> bool:
         return False
+
+    def remove(self, message_id: str) -> None:
+        pass
+
+
+class NotPushBackWatcher(BaseWatcher):
+    def add(self, message_id: str) -> None:
+        pass
+
+    def is_max(self, message_id: str) -> bool:
+        return True
 
     def remove(self, message_id: str) -> None:
         pass
@@ -98,6 +110,9 @@ class WatcherContext:
     ) -> None:
         if not exc_type:
             await call_or_await(self.on_success)
+            self.watcher.remove(self._message_id)
+
+        elif isinstance(exc_val, SkipMessage) is True:
             self.watcher.remove(self._message_id)
 
         elif self.watcher.is_max(self._message_id):

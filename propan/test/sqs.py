@@ -11,6 +11,7 @@ else:
     from unittest.mock import AsyncMock
 
 from propan import SQSBroker
+from propan.brokers.sqs import SQSMessage
 from propan.test.utils import call_handler
 from propan.types import SendableMessage
 
@@ -22,7 +23,7 @@ __all__ = (
 
 def build_message(
     message: SendableMessage,
-    queue: str,
+    queue: str = "",
     headers: Optional[Dict[str, str]] = None,
     delay_seconds: int = 0,  # 0...900
     message_attributes: Optional[Dict[str, Any]] = None,
@@ -30,20 +31,17 @@ def build_message(
     # FIFO only
     deduplication_id: Optional[str] = None,
     group_id: Optional[str] = None,
-    *,
     reply_to: str = "",
 ) -> Dict[str, Any]:
-    params = SQSBroker._build_message(
+    params = SQSMessage(
         message=message,
-        queue_url=queue,
-        headers=headers,
         delay_seconds=delay_seconds,
-        message_attributes=message_attributes,
-        message_system_attributes=message_system_attributes,
+        headers=headers or {},
+        message_attributes=message_attributes or {},
+        message_system_attributes=message_system_attributes or {},
         deduplication_id=deduplication_id,
         group_id=group_id,
-        reply_to=reply_to,
-    )
+    ).to_params(reply_to=reply_to)
 
     body = params.get("MessageBody", "0")
     attributes = params.get("MessageAttributes", {})
@@ -78,7 +76,6 @@ async def publish(
 ) -> Any:
     incoming = build_message(
         message=message,
-        queue=queue,
         headers=headers,
         delay_seconds=delay_seconds,
         message_attributes=message_attributes,

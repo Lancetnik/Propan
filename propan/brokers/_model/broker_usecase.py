@@ -18,6 +18,7 @@ from propan.brokers._model.utils import (
     set_message_context,
     suppress_decor,
 )
+from propan.brokers.exceptions import SkipMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
 from propan.types import (
@@ -206,10 +207,10 @@ class BrokerUsecase(ABC):
         self, func: Callable[[PropanMessage], Awaitable[T]]
     ) -> Callable[[Any], Awaitable[T]]:
         @wraps(func)
-        async def wrapper(message: Any) -> T:
+        async def parse_wrapper(message: Any) -> T:
             return await func(await self._parse_message(message))
 
-        return wrapper
+        return parse_wrapper
 
     def _log_execution(
         self,
@@ -219,7 +220,7 @@ class BrokerUsecase(ABC):
             func: Callable[[PropanMessage], Awaitable[T]]
         ) -> Callable[[PropanMessage], Awaitable[T]]:
             @wraps(func)
-            async def wrapper(message: PropanMessage) -> T:
+            async def log_wrapper(message: PropanMessage) -> T:
                 log_context = self._get_log_context(message=message, **broker_args)
 
                 with context.scope("log_context", log_context):
@@ -227,6 +228,9 @@ class BrokerUsecase(ABC):
 
                     try:
                         r = await func(message)
+                    except SkipMessage as e:
+                        self._log("Skipped", extra=log_context)
+                        raise e
                     except Exception as e:
                         self._log(repr(e), logging.ERROR)
                         raise e
@@ -234,7 +238,7 @@ class BrokerUsecase(ABC):
                         self._log("Processed", extra=log_context)
                         return r
 
-            return wrapper
+            return log_wrapper
 
         return decor
 

@@ -33,9 +33,9 @@ SendableMessage: TypeAlias = Union[
     None,
 ]
 
-HandlerCallable: TypeAlias = Callable[
-    ...,
-    Union[Awaitable[SendableMessage], SendableMessage],
+HandlerCallable: TypeAlias = Union[
+    Callable[..., Awaitable[SendableMessage]],
+    Callable[..., SendableMessage],
 ]
 HandlerWrapper: TypeAlias = Callable[
     [HandlerCallable],
