@@ -10,7 +10,7 @@ from pydantic import ValidationError, create_model
 from starlette.requests import Request
 from starlette.routing import BaseRoute
 
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 from propan.types import AnyDict
 
 NativeMessage = Union[str, AnyDict, bytes]

@@ -4,13 +4,13 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
-from propan.brokers.model.schemas import (
+from propan.brokers._model.schemas import (
     ContentType,
     ContentTypes,
     PropanMessage,
     SendableModel,
 )
-from propan.brokers.model.utils import (
+from propan.brokers._model.utils import (
     change_logger_handlers,
     get_watcher,
     set_message_context,

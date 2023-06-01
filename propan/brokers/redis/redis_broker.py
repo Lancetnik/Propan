@@ -6,8 +6,8 @@ from uuid import uuid4
 
 from redis.asyncio.client import PubSub, Redis
 
-from propan.brokers.model import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage, RawDecoced
+from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage, RawDecoced
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.redis.schemas import Handler, RedisMessage
 from propan.types import (

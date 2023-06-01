@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 from aio_pika.abc import ExchangeType, TimeoutType
 from pydantic import Field
 
-from propan.brokers.model.schemas import BaseHandler, NameRequired, Queue
+from propan.brokers._model.schemas import BaseHandler, NameRequired, Queue
 
 __all__ = (
     "RabbitQueue",

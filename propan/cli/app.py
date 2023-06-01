@@ -35,6 +35,10 @@ class PropanApp:
         self,
         broker: Optional[Runnable] = None,
         logger: Optional[logging.Logger] = logger,
+        # AsyncAPI args,
+        title: str = "PropanApp",
+        version: str = "1.0.0",
+        description: str = "",
     ):
         self.broker = broker
         self.logger = logger
@@ -48,6 +52,10 @@ class PropanApp:
         self._stop_stream = None
         self._receive_stream = None
         self._command_line_options: Dict[str, SettingField] = {}
+
+        self.title = title
+        self.version = version
+        self.description = description
 
     def set_broker(self, broker: Runnable) -> None:
         self.broker = broker

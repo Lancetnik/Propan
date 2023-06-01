@@ -5,8 +5,8 @@ import nats
 from nats.aio.client import Client
 from nats.aio.msg import Msg
 
-from propan.brokers.model import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage
+from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.types import AnyDict, DecoratedCallable, SendableMessage

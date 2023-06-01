@@ -8,8 +8,8 @@ from typing_extensions import TypeVar
 
 from propan.__about__ import __version__
 from propan.brokers.kafka.schemas import Handler
-from propan.brokers.model.broker_usecase import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage
+from propan.brokers._model.broker_usecase import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.types import (
     AnyCallable,
