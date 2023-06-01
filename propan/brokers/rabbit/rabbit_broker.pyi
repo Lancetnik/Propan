@@ -143,6 +143,8 @@ class RabbitBroker(BrokerUsecase):
         exchange: Union[str, RabbitExchange, None] = None,
         *,
         retry: Union[bool, int] = False,
+        # AsyncAPI
+        description: str = "",
     ) -> Callable[
         [
             Callable[

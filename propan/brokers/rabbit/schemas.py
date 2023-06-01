@@ -1,10 +1,11 @@
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional, Tuple
 
 from aio_pika.abc import ExchangeType, TimeoutType
 from pydantic import Field
 
 from propan.brokers._model.schemas import BaseHandler, NameRequired, Queue
+from propan.types import AnyDict
 
 __all__ = (
     "RabbitQueue",
@@ -50,4 +51,24 @@ class RabbitExchange(NameRequired):
 @dataclass
 class Handler(BaseHandler):
     queue: RabbitQueue
-    exchange: Optional[RabbitExchange] = None
+    exchange: Optional[RabbitExchange] = field(default=None, kw_only=True)
+
+    def get_schema(self) -> Tuple[str, AnyDict]:
+        dependant = self.get_dependant()
+
+        payload_type: str
+        if not dependant.params:
+            payload_type = "null"
+        else:
+            payload_type = "string"
+
+        return self.callback.__name__, {
+            "subscribe": {
+                "description": self.description or self.callback.__doc__ or "",
+                "message": {
+                    "payload": {
+                        "type": payload_type
+                    }
+                }
+            }
+        }

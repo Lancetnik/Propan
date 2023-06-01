@@ -27,6 +27,7 @@ def get_app_schema(app: PropanApp) -> AnyDict:
         "defaultContentType": ContentTypes.json.value,
         "info": _get_app_info(app),
         "servers": _get_broker_servers(app.broker),
+        "channels": _get_broker_channels(app.broker),
     }
 
     return schema
@@ -48,3 +49,10 @@ def _get_broker_servers(broker: BrokerUsecase) -> AnyDict:
         ).dict()
     }
 
+
+def _get_broker_channels(broker: BrokerUsecase) -> AnyDict:
+    channels = {}
+    for handler in broker.handlers:
+        name, data = handler.get_schema()
+        channels[name] = data
+    return channels

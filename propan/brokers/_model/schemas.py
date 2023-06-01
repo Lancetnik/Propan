@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Optional, Sequence, Tuple, Union
 from uuid import uuid4
@@ -7,6 +7,8 @@ from uuid import uuid4
 from pydantic import BaseModel, Field, Json
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 from typing_extensions import TypeAlias, assert_never
+from fast_depends.construct import get_dependant
+from fast_depends.model import Dependant
 
 from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMessage
 
@@ -16,6 +18,13 @@ ContentType: TypeAlias = str
 @dataclass
 class BaseHandler:
     callback: DecoratedCallable
+    description: str = field(default="", kw_only=True)
+
+    def get_schema(self) -> Tuple[str, AnyDict]:
+        return self.callback.__name__, {}
+
+    def get_dependant(self) -> Dependant:
+        return get_dependant(path="", call=self.callback)
 
 
 class ContentTypes(str, Enum):

@@ -9,6 +9,7 @@ from propan.brokers._model.schemas import (
     ContentTypes,
     PropanMessage,
     SendableModel,
+    BaseHandler,
 )
 from propan.brokers._model.utils import (
     change_logger_handlers,
@@ -37,7 +38,7 @@ Cls = TypeVar("Cls", bound="BrokerUsecase")
 class BrokerUsecase(ABC):
     logger: Optional[logging.Logger]
     log_level: int
-    handlers: List[Any]
+    handlers: List[BaseHandler]
     _connection: Any
     _fmt: Optional[str]
 
