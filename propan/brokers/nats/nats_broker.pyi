@@ -26,7 +26,7 @@ from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import HandlerWrapper, SendableMessage
+from propan.types import DecodedMessage, HandlerWrapper, SendableMessage
 
 T = TypeVar("T")
 
@@ -112,9 +112,13 @@ class NatsBroker(BrokerUsecase):
         self,
         message: SendableMessage,
         subject: str,
-        reply: str = "",
+        *,
         headers: Optional[Dict[str, str]] = None,
-    ) -> None: ...
+        reply_to: str = "",
+        callback: bool = False,
+        callback_timeout: Optional[float] = 30.0,
+        raise_timeout: bool = False,
+    ) -> Optional[DecodedMessage]: ...
     def handle(  # type: ignore[override]
         self,
         subject: str,
@@ -122,7 +126,6 @@ class NatsBroker(BrokerUsecase):
         *,
         retry: Union[bool, int] = False,
     ) -> HandlerWrapper: ...
-    async def __aenter__(self) -> "NatsBroker": ...
     async def _connect(self, *args: Any, **kwargs: Any) -> Client: ...
     async def close(self) -> None: ...
     def _get_log_context(  # type: ignore[override]

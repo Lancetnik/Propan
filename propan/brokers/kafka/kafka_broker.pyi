@@ -1,5 +1,5 @@
 import logging
-from asyncio import AbstractEventLoop
+from asyncio import AbstractEventLoop, Future
 from ssl import SSLContext
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
@@ -10,31 +10,34 @@ from aiokafka.structs import ConsumerRecord
 from kafka.coordinator.assignors.abstract import AbstractPartitionAssignor
 from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from kafka.partitioner.default import DefaultPartitioner
-from typing_extensions import Literal, TypeVar
+from typing_extensions import Literal, TypeAlias, TypeVar
 
 from propan.__about__ import __version__
-from propan.brokers.kafka.schemas import Handler
 from propan.brokers._model.broker_usecase import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage
+from propan.brokers.kafka.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import SendableMessage, Wrapper
+from propan.types import DecodedMessage, SendableMessage, Wrapper
 
 T = TypeVar("T")
 Partition = TypeVar("Partition")
+CorrelationId: TypeAlias = str
 
 class KafkaBroker(BrokerUsecase):
     _publisher: Optional[AIOKafkaProducer]
     _connection: Callable[[Tuple[str, ...]], AIOKafkaConsumer]
     __max_topic_len: int
+    response_topic: str
+    response_callbacks: Dict[CorrelationId, "Future[DecodedMessage]"]
     handlers: List[Handler]
 
     def __init__(
         self,
         bootstrap_servers: Union[str, List[str]] = "localhost",
         *,
+        response_topic: str = "",
         # both
-        loop: Optional[AbstractEventLoop] = None,
         client_id: str = "propan-" + __version__,
         request_timeout_ms: int = 40 * 1000,
         retry_backoff_ms: int = 100,
@@ -74,6 +77,7 @@ class KafkaBroker(BrokerUsecase):
         enable_idempotence: bool = False,
         transactional_id: Optional[str] = None,
         transaction_timeout_ms: int = 60000,
+        loop: Optional[AbstractEventLoop] = None,
         # broker
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
@@ -181,11 +185,11 @@ class KafkaBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
-    ) -> Any: ...
+    ) -> Optional[DecodedMessage]: ...
     @property
     def fmt(self) -> str: ...
     def _get_log_context(  # type: ignore[override]
         self,
-        message: PropanMessage,
+        message: Optional[PropanMessage],
         topics: Sequence[str] = (),
     ) -> Dict[str, Any]: ...

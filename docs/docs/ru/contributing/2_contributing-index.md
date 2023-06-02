@@ -32,7 +32,7 @@ python -m pip install --upgrade pip
 После активации окружения установите все зависимости проекта, необходимые для разработки
 
 ```bash
-pip install -e ."[dev]"
+pip install -e ".[dev]"
 ```
 
 #### Используйте ваш локальный Propan
@@ -130,6 +130,11 @@ services:
       - KAFKA_BROKER_ID=1
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
+  
+  sqs:
+    image: softwaremill/elasticmq-native
+    ports:
+      - 9324:9324
 ```
 
 #### Hatch

@@ -1,12 +1,15 @@
 import logging
 import sys
 from collections import defaultdict
-from typing import Callable, DefaultDict, Optional
+from types import TracebackType
+from typing import Callable, DefaultDict, Mapping, Optional, Tuple, Type, Union
 
 import click
 from typing_extensions import Literal
 
 from propan.utils.context.main import context
+
+original_makeRecord = logging.Logger.makeRecord
 
 
 class ColourizedFormatter(logging.Formatter):
@@ -67,17 +70,36 @@ class ColourizedFormatter(logging.Formatter):
         return super().formatMessage(record)
 
 
-class DefaultFormatter(ColourizedFormatter):
-    pass
+def make_record_with_extra(
+    self: logging.Logger,
+    name: str,
+    level: int,
+    fn: str,
+    lno: int,
+    msg: str,
+    args: Tuple[str],
+    exc_info: Optional[
+        Union[
+            Tuple[Type[BaseException], BaseException, Optional[TracebackType]],
+            Tuple[None, None, None],
+        ]
+    ],
+    func: Optional[str] = None,
+    extra: Optional[Mapping[str, object]] = None,
+    sinfo: Optional[str] = None,
+) -> logging.LogRecord:
+    if extra is None:
+        extra = context.get_local("log_context")
 
+    record = original_makeRecord(
+        self, name, level, fn, lno, msg, args, exc_info, func, extra, sinfo
+    )
 
-class AccessFormatter(ColourizedFormatter):
-    def formatMessage(self, record: logging.LogRecord) -> str:
-        c = context.get_local("log_context")
-        if c:  # pragma: no cover
-            record.__dict__.update(c)
-        return super().formatMessage(record)
+    return record
 
 
 def expand_log_field(field: str, symbols: int) -> str:
     return field + (" " * (symbols - len(field)))
+
+
+logging.Logger.makeRecord = make_record_with_extra  # type: ignore

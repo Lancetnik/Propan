@@ -16,37 +16,11 @@ app = PropanApp()
 
 Обычно это делается при объявлении самого приложения
 
-=== "Redis"
-    ```python
-    {!> docs_src/quickstart/app/1_broker_redis.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python
-    {!> docs_src/quickstart/app/1_broker_rabbit.py!}
-    ```
-
-=== "NATS"
-    ```python
-    {!> docs_src/quickstart/app/1_broker_nats.py!}
-    ```
+{! includes/getting_started/app/1_broker.md !}
 
 Но, иногда вам может понадобиться инициализировать брокера в другом месте. В таком случае, вы можете использовать метод `app.set_broker`
 
-=== "Redis"
-    ```python
-    {!> docs_src/quickstart/app/2_set_broker_redis.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python
-    {!> docs_src/quickstart/app/2_set_broker_rabbit.py!}
-    ```
-
-=== "NATS"
-    ```python
-    {!> docs_src/quickstart/app/2_set_broker_nats.py!}
-    ```
+{! includes/getting_started/app/2_set_broker.md !}
 
 ## Запуск других приложений
 

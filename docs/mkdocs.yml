@@ -54,8 +54,8 @@ theme:
 
 plugins:
   - search
-  - markdownextradata:
-      data: data
+  - macros:
+      include_dir: includes
   - i18n:
       default_language: en
       docs_structure: folder
@@ -94,6 +94,16 @@ markdown_extensions:  # do not reorder
   - md_in_html
 
 extra:
+  urls:
+    fastapi: https://fastapi.tiangolo.com/ru/
+    redis: https://redis.readthedocs.io/en/stable/index.html
+    aio_pika: https://aio-pika.readthedocs.io/en/latest/
+    pika: https://pika.readthedocs.io/en/stable/
+    aiokafka: https://aiokafka.readthedocs.io/en/stable/
+    aiobotocore: https://aiobotocore.readthedocs.io/en/latest/
+    nats_py: https://github.com/nats-io/nats.py
+    pydantic: https://docs.pydantic.dev/
+    pytest: https://docs.pytest.org/en/latest/
   social:
     - icon: fontawesome/brands/github-alt
       link: https://github.com/lancetnik/propan
@@ -122,7 +132,7 @@ nav:
     - Routing: rabbit/1_routing.md
     - Exchanges: rabbit/2_exchanges.md
     - Queues and Bindings: rabbit/3_queues.md
-    - Rabbit Pubslishing: rabbit/4_publishing.md
+    - Rabbit Publishing: rabbit/4_publishing.md
     - Examples:
       - Direct Exchange: rabbit/5_examples/1_direct.md
       - Fanout Exchange: rabbit/5_examples/2_fanout.md
@@ -130,14 +140,18 @@ nav:
       - Header Exchange: rabbit/5_examples/4_header.md
   - Redis Pub/Sub:
     - Redis Basics: redis/1_redis-index.md
-    - Redis Pubslishing: redis/2_publishing.md
+    - Redis Publishing: redis/2_publishing.md
     - Examples:
       - Direct: redis/3_examples/1_direct.md
       - Pattern: redis/3_examples/2_pattern.md
+  - Kafka:
+    - Kafka Basics: kafka/1_kafka-index.md
+  - SQS:
+    - SQS Basics: sqs/1_sqs-index.md
   - Nats:
     - Nats Basics: nats/1_nats-index.md
     - Routing: nats/2_routing.md
-    - Nats Pubslishing: nats/3_publishing.md
+    - Nats Publishing: nats/3_publishing.md
   - Integrations: integrations/1_integrations-index.md
   - FastAPI Plugin: integrations/2_fastapi-plugin.md  
   - Contributing:

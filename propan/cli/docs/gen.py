@@ -1,58 +1,87 @@
 from pathlib import Path
+from typing import Dict
 
 import typer
-import yaml
 
+from propan.asyncapi import (
+    AsyncAPIChannel,
+    AsyncAPIInfo,
+    AsyncAPISchema,
+    AsyncAPIServer,
+)
 from propan.brokers._model import BrokerUsecase
-from propan.brokers._model.schemas import ContentTypes
-from propan.asyncapi import (ASYNC_API_VERSION, AsyncAPIInfo, AsyncAPIServer,)
 from propan.cli.app import PropanApp
-from propan.types import AnyDict
 
 
 def generate_doc_file(app: PropanApp, filename: Path) -> None:
+    try:
+        import yaml
+    except ImportError as e:
+        typer.echo(
+            "To generate documentation, please install the dependencies\n"
+            'pip install "propan[doc]"'
+        )
+        raise typer.Exit() from e
+
     if app.broker is None:
         typer.echo("Your PropanApp has no broker")
         raise typer.Exit()
 
-    schema = get_app_schema(app)
+    schema = get_app_schema(app).dict(
+        by_alias=True,
+        exclude_none=True,
+    )
+
     with filename.open("w") as f:
         yaml.dump(schema, f, sort_keys=False)
+
     typer.echo(f"Your project AsyncAPI schema was placed to `{filename}`")
 
 
-def get_app_schema(app: PropanApp) -> AnyDict:
-    schema = {
-        "asyncapi": ASYNC_API_VERSION,
-        "defaultContentType": ContentTypes.json.value,
-        "info": _get_app_info(app),
-        "servers": _get_broker_servers(app.broker),
-        "channels": _get_broker_channels(app.broker),
-    }
+def get_app_schema(app: PropanApp) -> AsyncAPISchema:
+    if not isinstance(app.broker, BrokerUsecase):
+        typer.echo("Your PropanApp broker is invalid")
+        raise typer.Exit()
 
+    servers = _get_broker_servers(app.broker)
+
+    channels = _get_broker_channels(app.broker)
+    for ch in channels.values():
+        ch.servers = list(servers.keys())
+
+    schema = AsyncAPISchema(
+        info=_get_app_info(app),
+        servers=servers,
+        channels=channels,
+    )
     return schema
 
 
-def _get_app_info(app: PropanApp) -> AnyDict:
+def _get_app_info(app: PropanApp) -> AsyncAPIInfo:
     return AsyncAPIInfo(
         title=app.title,
         version=app.version,
         description=app.description,
-    ).dict()
+    )
 
 
-def _get_broker_servers(broker: BrokerUsecase) -> AnyDict:
+def _get_broker_servers(broker: BrokerUsecase) -> Dict[str, AsyncAPIServer]:
+    if isinstance(broker.url, str):
+        url = broker.url
+    else:
+        url = broker.url[0]
+
     return {
-        "production": AsyncAPIServer(
-            url=broker.url,
+        "dev": AsyncAPIServer(
+            url=url,
             protocol=broker.protocol,
-        ).dict()
+        )
     }
 
 
-def _get_broker_channels(broker: BrokerUsecase) -> AnyDict:
+def _get_broker_channels(broker: BrokerUsecase) -> Dict[str, AsyncAPIChannel]:
     channels = {}
     for handler in broker.handlers:
-        name, data = handler.get_schema()
-        channels[name] = data
+        channels.update(handler.get_schema())
+
     return channels

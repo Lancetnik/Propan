@@ -1,5 +1,5 @@
 # Imports to use at __all__
-from propan.__about__ import INSTALL_MESSAGE
+from propan import __about__ as about
 from propan.cli.app import *  # noqa: F403
 from propan.log import *  # noqa: F403
 from propan.utils import *  # noqa: F403
@@ -7,24 +7,31 @@ from propan.utils import *  # noqa: F403
 try:
     from propan.brokers.rabbit import RabbitBroker
 except Exception:
-    RabbitBroker = None  # type: ignore
+    RabbitBroker = about.INSTALL_RABBIT  # type: ignore
 
 try:
     from propan.brokers.nats import NatsBroker
 except Exception:
-    NatsBroker = None  # type: ignore
+    NatsBroker = about.INSTALL_NATS  # type: ignore
 
 try:
     from propan.brokers.redis import RedisBroker
 except Exception:
-    RedisBroker = None  # type: ignore
+    RedisBroker = about.INSTALL_REDIS  # type: ignore
 
 try:
     from propan.brokers.kafka import KafkaBroker
 except Exception:
-    KafkaBroker = None  # type: ignore
+    KafkaBroker = about.INSTALL_KAFKA  # type: ignore
 
-assert any((RabbitBroker, NatsBroker, RedisBroker)), INSTALL_MESSAGE
+try:
+    from propan.brokers.sqs import SQSBroker
+except Exception:
+    SQSBroker = about.INSTALL_SQS  # type: ignore
+
+assert any(
+    (RabbitBroker, NatsBroker, RedisBroker, SQSBroker, KafkaBroker)
+), about.INSTALL_MESSAGE
 
 __all__ = (  # noqa: F405
     # app
@@ -45,4 +52,5 @@ __all__ = (  # noqa: F405
     "RabbitBroker",
     "RedisBroker",
     "KafkaBroker",
+    "SQSBroker",
 )

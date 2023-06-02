@@ -1,16 +1,24 @@
 from pathlib import Path
+from typing import Sequence
 
 from propan.cli.startproject.utils import write_file
 
 
-def create_app_file(app_dir: Path, broker_annotation: str) -> None:
+def create_app_file(
+    app_dir: Path,
+    broker_annotation: str,
+    imports: Sequence[str] = (),
+    broker_init: Sequence[str] = ("    await broker.connect(settings.broker.url)",),
+) -> None:
     write_file(
         app_dir / "serve.py",
         "import logging",
         "from typing import Optional",
         "",
+        *imports,
         "from propan import PropanApp",
         f"from propan.annotations import {broker_annotation}, ContextRepo",
+        "",
         "from core import broker",
         "from config import init_settings",
         "",
@@ -29,7 +37,7 @@ def create_app_file(app_dir: Path, broker_annotation: str) -> None:
         "    app.logger.setLevel(logger_level)",
         "    broker.logger.setLevel(logger_level)",
         "",
-        "    await broker.connect(settings.broker.url)",
+        *broker_init,
         "",
         "",
         'if __name__ == "__main__":',

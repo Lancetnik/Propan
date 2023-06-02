@@ -1,24 +1,38 @@
-from propan.__about__ import INSTALL_MESSAGE
+from propan import __about__ as about
 
 try:
     from propan.test.rabbit import TestRabbitBroker
 except Exception:
-    TestRabbitBroker = None  # type: ignore
+    TestRabbitBroker = about.INSTALL_RABBIT
 
 try:
     from propan.test.redis import TestRedisBroker
 except Exception:
-    TestRedisBroker = None  # type: ignore
+    TestRedisBroker = about.INSTALL_REDIS
 
 try:
     from propan.test.kafka import TestKafkaBroker
 except Exception:
-    TestKafkaBroker = None  # type: ignore
+    TestKafkaBroker = about.INSTALL_KAFKA
 
-assert any((TestRabbitBroker, TestRedisBroker, TestKafkaBroker)), INSTALL_MESSAGE
+try:
+    from propan.test.nats import TestNatsBroker
+except Exception:
+    TestNatsBroker = about.INSTALL_NATS
+
+try:
+    from propan.test.sqs import TestSQSBroker
+except Exception:
+    TestSQSBroker = about.INSTALL_SQS
+
+assert any(
+    (TestRabbitBroker, TestRedisBroker, TestKafkaBroker, TestNatsBroker, TestSQSBroker)
+), about.INSTALL_MESSAGE
 
 __all__ = (
     "TestRabbitBroker",
     "TestRedisBroker",
     "TestKafkaBroker",
+    "TestNatsBroker",
+    "TestSQSBroker",
 )

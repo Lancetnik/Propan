@@ -11,15 +11,7 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
 
     Note that the code below uses `fastapi.Depends`, not `propan.Depends`.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="1 3 7 15 19 23"
-    {!> docs_src/integrations/fastapi_plugin_redis.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="1 3 7 15 19 23"
-    {!> docs_src/integrations/fastapi_plugin_rabbit.py!}
-    ```
+{! includes/integrations/fastapi/fastapi_plugin.md !}
 
 When processing a message from a broker, the entire message body is placed simultaneously in both the `body` and `path` request parameters: you can get access to them
 in any way convenient for you. The message header is placed in `headers`.
@@ -31,24 +23,8 @@ use it to declare any `get`, `post`, `put` and other HTTP methods. For example, 
 
 Inside each router there is a broker. You can easily access it if you need to send a message to MQ.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="6 10"
-    {!> docs_src/integrations/fastapi_plugin_redis_send.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="6 10"
-    {!> docs_src/integrations/fastapi_plugin_rabbit_send.py!}
-    ```
+{! includes/integrations/fastapi/fastapi_plugin_send.md !}
 
 You can use the following `Depends` to access the broker if you want to use it at different parts of your program.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="8 14-15"
-    {!> docs_src/integrations/fastapi_plugin_redis_depends.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="8 14-15"
-    {!> docs_src/integrations/fastapi_plugin_rabbit_depends.py!}
-    ```
+{! includes/integrations/fastapi/fastapi_plugin_depends.md !}

@@ -11,9 +11,8 @@ from starlette.requests import Request
 from starlette.routing import BaseRoute
 
 from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage as NativeMessage
 from propan.types import AnyDict
-
-NativeMessage = Union[str, AnyDict, bytes]
 
 
 class PropanRoute(BaseRoute):
@@ -24,7 +23,7 @@ class PropanRoute(BaseRoute):
         broker: BrokerUsecase,
         *,
         dependency_overrides_provider: Optional[Any] = None,
-        **hanle_kwargs: AnyDict,
+        **handle_kwargs: AnyDict,
     ) -> None:
         self.path = path
         self.broker = broker
@@ -33,7 +32,7 @@ class PropanRoute(BaseRoute):
         handler = PropanMessage.get_session(
             self.dependant, dependency_overrides_provider
         )
-        broker.handle(path, **hanle_kwargs)(handler)  # type: ignore
+        broker.handle(path, _raw=True, **handle_kwargs)(handler)  # type: ignore
 
 
 class PropanMessage(Request):
@@ -74,11 +73,12 @@ class PropanMessage(Request):
         )
 
         async def app(message: NativeMessage) -> Any:
+            body: Union[AnyDict, bytes] = message.body
             if first_arg is not None:
-                if not isinstance(message, dict):  # pragma: no branch
-                    message = {first_arg: message}
+                if not isinstance(body, dict):  # pragma: no branch
+                    body = {first_arg: body}
 
-                session = cls(message)
+                session = cls(body, message.headers)
             else:
                 session = cls()
             return await func(session)

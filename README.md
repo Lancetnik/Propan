@@ -32,7 +32,7 @@
 
 It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-It is a modern, high-level framework on top of popular specific Python brokers libraries, based on <a href="https://docs.pydantic.dev/" target="_blank">*pydantic*</a> and <a href="https://fastapi.tiangolo.com/ru/" target="_blank">*fastapi*</a>, <a href="https://docs.pytest.org/en/7.3.x/" target="_blank">*pytest*</a> concepts.
+It is a modern, high-level framework on top of popular specific Python brokers libraries, based on <a href="https://docs.pydantic.dev/" target="_blank">*pydantic*</a> and <a href="https://fastapi.tiangolo.com/ru/" target="_blank">*fastapi*</a>, <a href="https://docs.pytest.org/en/latest/" target="_blank">*pytest*</a> concepts.
 
 ---
 
@@ -50,6 +50,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
   * **Redis** (based on <a href="https://redis.readthedocs.io/en/stable/index.html" target="_blank">redis-py</a>)
   * **RabbitMQ** (based on <a href="https://aio-pika.readthedocs.io/en/latest/" target="_blank">aio-pika</a>)
   * **Kafka** (based on <a href="https://aiokafka.readthedocs.io/en/stable/" target="_blank">aiokafka</a>)
+  * **SQS** (based on <a href="https://aiobotocore.readthedocs.io/en/latest/" target="_blank">aiobotocore</a>)
   * **Nats** (based on <a href="https://github.com/nats-io/nats.py" target="_blank">nats-py</a>)
 * <a href="https://lancetnik.github.io/Propan/getting_started/4_broker/5_rpc/" target="_blank">**RPC**</a>: The framework supports RPC requests over MQ, which will allow performing long operations on remote services asynchronously.
 * [**Great to develop**](#cli-power): CLI tool provides great development experience:
@@ -64,19 +65,19 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 |-------------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **Nats**          | :warning: **beta** :warning:                            | :mag: planning :mag: |
+| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
 | **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **SQS**           | :mag: planning :mag:                                    | :mag: planning :mag: |
 
 ### Community
 
 If you are interested in this project, please give me feedback by star or/and watch repository.
 
-If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions) or public [telegram group](https://t.me/propan_python).
+If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions).
 
 ---
 
@@ -144,6 +145,8 @@ pip install "propan[async-nats]"
 pip install "propan[async-redis]"
 # or
 pip install "propan[async-kafka]"
+# or
+pip install "propan[async-sqs]"
 ```
 
 ### Basic usage
@@ -155,10 +158,14 @@ from propan import PropanApp
 from propan import RabbitBroker
 # from propan import RedisBroker
 # from propan import NatsBroker
+# from propan import SQSBroker
+# from propan import KafkaBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 # broker = NatsBroker("nats://localhost:4222")
 # broker = RedisBroker("redis://localhost:6379")
+# broker = SQSBroker("http://localhost:9324", ...)
+# broker = KafkaBroker("localhost:9092")
 
 app = PropanApp(broker)
 

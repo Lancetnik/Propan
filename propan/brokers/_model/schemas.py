@@ -1,15 +1,16 @@
 import json
+from abc import abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Optional, Sequence, Tuple, Union
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, Json
+from fast_depends.construct import get_dependant
+from pydantic import BaseModel, Field, Json, create_model
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 from typing_extensions import TypeAlias, assert_never
-from fast_depends.construct import get_dependant
-from fast_depends.model import Dependant
 
+from propan.asyncapi.channels import AsyncAPIChannel
 from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMessage
 
 ContentType: TypeAlias = str
@@ -18,13 +19,55 @@ ContentType: TypeAlias = str
 @dataclass
 class BaseHandler:
     callback: DecoratedCallable
-    description: str = field(default="", kw_only=True)
+    description: str = field(default="", kw_only=True)  # type: ignore
 
-    def get_schema(self) -> Tuple[str, AnyDict]:
-        return self.callback.__name__, {}
+    @abstractmethod
+    def get_schema(self) -> Dict[str, AsyncAPIChannel]:
+        raise NotImplementedError()
 
-    def get_dependant(self) -> Dependant:
-        return get_dependant(path="", call=self.callback)
+    @property
+    def title(self) -> str:
+        return self.callback.__name__.replace("_", " ").title().replace(" ", "")
+
+    def get_message_object(self) -> AnyDict:
+        dependant = get_dependant(path="", call=self.callback)
+        custom = tuple(c.param_name for c in dependant.custom)
+        dependant.params = tuple(
+            filter(lambda x: x.name not in custom, dependant.params)
+        )
+        schema_title = f"{self.title}Message"
+
+        # TODO: recursive schema generation
+        # TODO: return RPC response class too
+        params_number = len(dependant.params)
+
+        if params_number == 0:
+            body = {"title": schema_title, "type": "null"}
+
+        else:
+            schema = create_model(  # type: ignore
+                schema_title,
+                **{
+                    p.name: (p.annotation, ... if p.required else p.default)
+                    for p in dependant.params
+                },
+            ).schema()
+
+            if params_number == 1:
+                body = tuple(schema.get("properties", {}).values())[0]
+
+                ref = body.get("$ref")
+                if ref is not None:
+                    key = ref.split("/")[-1]
+                    body = schema.get("definitions", {}).get(key, {})
+
+                else:
+                    body["title"] = schema_title
+
+            else:
+                body = schema
+
+        return body
 
 
 class ContentTypes(str, Enum):

@@ -9,6 +9,7 @@ from propan.cli.startproject.async_app.kafka import create_kafka
 from propan.cli.startproject.async_app.nats import create_nats
 from propan.cli.startproject.async_app.rabbit import create_rabbit
 from propan.cli.startproject.async_app.redis import create_redis
+from propan.cli.startproject.async_app.sqs import create_sqs
 
 
 @pytest.fixture
@@ -58,3 +59,9 @@ def nats_async_project():
 def kafka_async_project():
     with TemporaryDirectory() as dir:
         yield create_kafka(dir)
+
+
+@pytest.fixture(scope="module")
+def sqs_async_project():
+    with TemporaryDirectory() as dir:
+        yield create_sqs(dir)

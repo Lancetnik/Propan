@@ -26,11 +26,11 @@
 
 # Propan
 
-**Propan** - just *<s>another one HTTP</s>* a **declarative Python MQ framework**. It it inspired by [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"}, aims to simplify writing code that works with Message Brokers and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *<s>another one HTTP</s>* a **declarative Python MQ framework**. It it inspired by [*fastapi*]({{ urls.fastapi }}){target="_blank"}, aims to simplify writing code that works with Message Brokers and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around [Messaging](https://microservices.io/patterns/communication-style/messaging.html){target="_blank"}.
 
-It is a modern, high-level framework on top of popular Python libraries for various message brokers, based on [*pydantic*](https://docs.pydantic.dev/){target="_blank"} and [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"}, [*pytest*](https://docs.pytest.org/en/7.3.x/){target="_blank"} concepts.
+It is a modern, high-level framework on top of popular Python libraries for various message brokers, based on [*pydantic*]({{ urls.pydantic }}){target="_blank"} and [*fastapi*]({{ urls.fastapi }}){target="_blank"}, [*pytest*]({{ urls.pytest }}){target="_blank"} concepts.
 
 ---
 
@@ -41,10 +41,11 @@ It is a modern, high-level framework on top of popular Python libraries for vari
 * [**Dependencies management**](getting_started/1_quick-start/#dependencies): Minimization of code duplication. Access to dependencies at any level of the call stack.
 * [**Integrations**](getting_started/1_quick-start/#http-frameworks-integrations): **Propan** is fully compatible with [any HTTP framework](integrations/1_integrations-index/) you want
 * **MQ independent**: Single interface to popular MQ:
-    * **Redis** (based on [redis-py]("https://redis.readthedocs.io/en/stable/index.html"){target="_blank"})
-    * **RabbitMQ** (based on [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"})
-    * **Kafka** (based on [aiokafka](https://aiokafka.readthedocs.io/en/stable/){target="_blank"})
-    * **Nats** (based on [nats-py](https://github.com/nats-io/nats.py){target="_blank"})
+    * **Redis** (based on [redis-py]({{ urls.redis }}){target="_blank"})
+    * **RabbitMQ** (based on [aio-pika]({{ urls.aio_pika }}){target="_blank"})
+    * **Kafka** (based on [aiokafka]({{ urls.aiokafka }}){target="_blank"})
+    * **SQS** (based on [aiobotocore]({{ urls.aiobotocore }}){target="_blank"})
+    * **Nats** (based on [nats-py]({{ urls.nats_py }}){target="_blank"})
 * [**RPC**](getting_started/4_broker/5_rpc/): The framework supports RPC requests on top of message brokers, which will allow performing long operations on remote services asynchronously.
 * [**Great to develop**](getting_started/2_cli/): CLI tool provides great development experience:
     * framework-independent way to manage the project environment
@@ -58,7 +59,7 @@ It is a modern, high-level framework on top of popular Python libraries for vari
 
 With declarative tools you can define **what you need to get**. With traditional imperative tools you must write **what you need to do**.
 
-Take a look at classic imperative tools, such as [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"}, [pika](https://pika.readthedocs.io/en/stable/){target="_blank"}, [redis-py]("https://redis.readthedocs.io/en/stable/index.html"){target="_blank"}, [nats-py](https://github.com/nats-io/nats.py){target="_blank"}, [aiokafka](https://aiokafka.readthedocs.io/en/stable/){target="_blank"}, etc.
+Take a look at classic imperative tools, such as [aio-pika]({{ urls.aio_pika }}){target="_blank"}, [pika]({{ urls.pika }}){target="_blank"}, [redis-py]({{ urls.redis }}){target="_blank"}, [nats-py]({{ urls.nats_py }}){target="_blank"}, [aiokafka]({{ urls.aiokafka }}){target="_blank"}, etc.
 
 This is the **Quickstart** with the *aio-pika*:
 
@@ -115,10 +116,10 @@ This is the **Propan** declarative way to write the same code. That is so much e
 |-------------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **Nats**          | :warning: **beta** :warning:                            | :mag: planning :mag: |
+| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
 | **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **SQS**           | :mag: planning :mag:                                    | :mag: planning :mag: |

@@ -26,11 +26,11 @@
 
 # Propan
 
-**Propan** - это *<s>еще один HTTP</s>* **декларативный Python MQ фреймворк**. Он идет по стопам [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"}, максимально упрощая написание кода и предоставляя все удобства инструментов, которые до этого существовали только в мире HTTP фремворков, однако, создан для работы с различными брокерами сообщений на основе AMQP, MQTT и др. протоколов.
+**Propan** - это *<s>еще один HTTP</s>* **декларативный Python MQ фреймворк**. Он идет по стопам [*fastapi*]({{ urls.fastapi }}){target="_blank"}, максимально упрощая написание кода и предоставляя все удобства инструментов, которые до этого существовали только в мире HTTP фремворков, однако, создан для работы с различными брокерами сообщений на основе AMQP, MQTT и др. протоколов.
 
 Он идеально подходит для создания реактивных микросервисов на основе архитектуры [Messaging](https://microservices.io/patterns/communication-style/messaging.html){target="_blank"}.
 
-Это современный, высокоуровневый фреймворк, разработанный на основе популярных *python* библиотек для работы со специфичными брокерами, а в его основе лежит [*pydantic*](https://docs.pydantic.dev/){target="_blank"}, идеи [*fastapi*](https://fastapi.tiangolo.com/ru/){target="_blank"} and [*pytest*](https://docs.pytest.org/en/7.3.x/){target="_blank"}.
+Это современный, высокоуровневый фреймворк, разработанный на основе популярных *python* библиотек для работы со специфичными брокерами, а в его основе лежит [*pydantic*]({{ urls.pydantic }}){target="_blank"}, идеи [*fastapi*]({{ urls.fastapi }}){target="_blank"} and [*pytest*]({{ urls.pytest }}){target="_blank"}.
 
 ---
 
@@ -41,10 +41,11 @@
 * [**Управление зависимостями**](getting_started/1_quick-start/#_4): Эффективное переиспользование за счет аннотации типов. Доступ к зависимостями во всем стеке вызова.
 * [**Интeграция**](getting_started/1_quick-start/#http): Propan полностью совместим с [любыми HTTP фреймворками](integrations/1_integrations-index/)
 * **Независимость от брокеров**: Единый интерфейс для популярных брокеров:
-    * **Redis** (основан на [redis-py]("https://redis.readthedocs.io/en/stable/index.html"){target="_blank"})
-    * **RabbitMQ** (основан на [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"})
-    * **Kafka** (основан на [aiokafka](https://aiokafka.readthedocs.io/en/stable/){target="_blank"})
-    * **Nats** (основан на [nats-py](https://github.com/nats-io/nats.py){target="_blank"})
+    * **Redis** (основан на [redis-py]("{{ urls.redis }}"){target="_blank"})
+    * **RabbitMQ** (основан на [aio-pika]({{ urls.aio_pika }}){target="_blank"})
+    * **Kafka** (основан на [aiokafka]({{ urls.aiokafka }}){target="_blank"})
+    * **SQS** (основан на [aiobotocore]({{ urls.aiobotocore }}){target="_blank"})
+    * **Nats** (основан на [nats-py]({{ urls.nats_py }}){target="_blank"})
 * [**RPC**](getting_started/4_broker/5_rpc/): Фреймворк поддерживает RPC запросы поверх брокеров сообщений, что позволит выполнять длительные операции на удаленных сервисах асинхронно.
 * [**Скорость разработки**](getting_started/2_cli/): собственный *CLI* инструмент предоставляет отличный опыт разработки:
     * Полностью совместимый с любым фреймворком способ управлять окружением проекта
@@ -59,7 +60,7 @@
 Декларативные иснтрументы позволяют нам описывать **что мы хотим получить**, в то время как традиционные императивные инструменты
 заставляют нас писать **что мы хотим сделать**.
 
-К традиционным императивным библиотекам относятся [aio-pika](https://aio-pika.readthedocs.io/en/latest/){target="_blank"}, [pika](https://pika.readthedocs.io/en/stable/){target="_blank"}, [redis-py]("https://redis.readthedocs.io/en/stable/index.html"){target="_blank"}, [nats-py](https://github.com/nats-io/nats.py){target="_blank"}, [aiokafka](https://aiokafka.readthedocs.io/en/stable/){target="_blank"} и подобные.
+К традиционным императивным библиотекам относятся [aio-pika]({{ urls.aiopika }}){target="_blank"}, [pika]({{ urls.pika }}){target="_blank"}, [redis-py]({{ urls.redis }}){target="_blank"}, [nats-py]({{ urls.nats_py }}){target="_blank"}, [aiokafka]({{ urls.aiokafka }}){target="_blank"} и подобные.
 
 Например, это **Quickstart** из библиотеки *aio-pika*:
 
@@ -118,10 +119,10 @@ async def base_handler(body):
 |-------------------|:-------------------------------------------------------:|:--------------------:|
 | **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
+| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
 | **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **Nats**          | :warning: **beta** :warning:                            | :mag: planning :mag: |
+| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag: |
 | **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
 | **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **SQS**           | :mag: planning :mag:                                    | :mag: planning :mag: |

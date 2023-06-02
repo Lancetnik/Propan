@@ -16,7 +16,8 @@ def gen(
     ),
     filename: str = typer.Option(
         "asyncapi.yaml",
-        "-f", "--f",
+        "-f",
+        "--f",
         case_sensitive=False,
         show_default=True,
         help="generated document filename",

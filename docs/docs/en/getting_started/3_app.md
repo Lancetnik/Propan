@@ -16,37 +16,11 @@ In order for `PropanApp` to launch your broker, you need to put it in the applic
 
 This is usually done when declaring the application itself
 
-=== "Redis"
-    ```python
-    {!> docs_src/quickstart/app/1_broker_redis.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python
-    {!> docs_src/quickstart/app/1_broker_rabbit.py!}
-    ```
-
-=== "NATS"
-    ```python
-    {!> docs_src/quickstart/app/1_broker_nats.py!}
-    ```
+{! includes/getting_started/app/1_broker.md !}
 
 But, sometimes you may need to initialize the broker elsewhere. In this case, you can use the `app.set_broker` method
 
-=== "Redis"
-    ```python
-    {!> docs_src/quickstart/app/2_set_broker_redis.py!}
-    ```
-
-=== "RabbitMQ"
-    ```python
-    {!> docs_src/quickstart/app/2_set_broker_rabbit.py!}
-    ```
-
-=== "NATS"
-    ```python
-    {!> docs_src/quickstart/app/2_set_broker_nats.py!}
-    ```
+{! includes/getting_started/app/2_set_broker.md !}
 
 ## Launching other apps
 

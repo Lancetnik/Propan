@@ -13,7 +13,7 @@ from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.log import access_logger
-from propan.types import SendableMessage
+from propan.types import DecodedMessage, SendableMessage
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -49,28 +49,33 @@ class RabbitBroker(BrokerUsecase):
         # AsyncAPI
         protocol: str = "amqp",
     ) -> None:
-        """
-        URL string might be contain ssl parameters e.g.
-        `amqps://user:pass@host//?ca_certs=ca.pem&certfile=crt.pem&keyfile=key.pem`
+        """RabbitMQ Propan broker
 
-        :param client_properties: add custom client capability.
-        :param url:
-            RFC3986_ formatted broker address. When :class:`None`
-            will be used keyword arguments.
-        :param host: hostname of the broker
-        :param port: broker port 5672 by default
-        :param login: username string. `'guest'` by default.
-        :param password: password string. `'guest'` by default.
-        :param virtualhost: virtualhost parameter. `'/'` by default
-        :param ssl: use SSL for connection. Should be used with addition kwargs.
-        :param ssl_options: A dict of values for the SSL connection.
-        :param timeout: connection timeout in seconds
-        :param ssl_context: ssl.SSLContext instance
+        URL string might be contain ssl parameters e.g.
+        `amqps://user:pass@host:port/vhost?ca_certs=ca.pem&certfile=crt.pem&keyfile=key.pem`
+
+        Args:
+            url: RFC3986_ formatted broker address. If `None`
+                 will be used keyword arguments.
+            host: broker hostname or ip address
+            port: broker port
+            login: username string.
+            password: password string.
+            virtualhost: virtualhost parameter.
+            client_properties: custom client capability.
+            ssl: use SSL for connection. Should be used with addition kwargs.
+            ssl_options: A dict of values for the SSL connection.
+            timeout: connection timeout in seconds
+            ssl_context: ssl.SSLContext instance
+            logger: logger to use inside broker
+            log_level: broker inner messages log level
+            log_fmt: custom log formatting string
+            apply_types: wrap brokers handlers to FastDepends decorator
+            consumers: max messages to proccess at the same time
 
         .. _RFC3986: https://goo.gl/MzgYAs
         .. _official Python documentation: https://goo.gl/pty9xA
         """
-        ...
     async def connect(
         self,
         url: Union[str, URL, None] = None,
@@ -85,28 +90,31 @@ class RabbitBroker(BrokerUsecase):
         timeout: aio_pika.abc.TimeoutType = None,
         client_properties: Optional[FieldTable] = None,
     ) -> aio_pika.Connection:
-        """
+        """Connect to RabbitMQ
+
         URL string might be contain ssl parameters e.g.
-        `amqps://user:pass@host//?ca_certs=ca.pem&certfile=crt.pem&keyfile=key.pem`
+        `amqps://user:pass@host:port/vhost?ca_certs=ca.pem&certfile=crt.pem&keyfile=key.pem`
 
-        :param client_properties: add custom client capability.
-        :param url:
-            RFC3986_ formatted broker address. When :class:`None`
-            will be used keyword arguments.
-        :param host: hostname of the broker
-        :param port: broker port 5672 by default
-        :param login: username string. `'guest'` by default.
-        :param password: password string. `'guest'` by default.
-        :param virtualhost: virtualhost parameter. `'/'` by default
-        :param ssl: use SSL for connection. Should be used with addition kwargs.
-        :param ssl_options: A dict of values for the SSL connection.
-        :param timeout: connection timeout in seconds
-        :param ssl_context: ssl.SSLContext instance
+        Args:
+            url: RFC3986_ formatted broker address. If `None`
+                 will be used keyword arguments.
+            host: broker hostname or ip address
+            port: broker port
+            login: username string.
+            password: password string.
+            virtualhost: virtualhost parameter.
+            client_properties: custom client capability.
+            ssl: use SSL for connection. Should be used with addition kwargs.
+            ssl_options: A dict of values for the SSL connection.
+            timeout: connection timeout in seconds
+            ssl_context: ssl.SSLContext instance
 
-        .. _RFC3986: https://goo.gl/MzgYAs
-        .. _official Python documentation: https://goo.gl/pty9xA
+        Returns:
+            aio_pika.Connection object
+
+        _RFC3986: https://goo.gl/MzgYAs
+        _official Python documentation: https://goo.gl/pty9xA
         """
-        ...
     async def publish(  # type: ignore[override]
         self,
         message: PikaSendableMessage = "",
@@ -136,7 +144,42 @@ class RabbitBroker(BrokerUsecase):
         type: Optional[str] = None,
         user_id: Optional[str] = None,
         app_id: Optional[str] = None,
-    ) -> Optional[aiormq.abc.ConfirmationFrameType]: ...
+    ) -> Optional[Union[aiormq.abc.ConfirmationFrameType, DecodedMessage]]:
+        """Publish the message to the exchange with the routing key.
+
+        Args:
+            message: encodable message to send
+            queue: if routing key is not set, use queue instead
+            exchange: exchange to publish message. Use `default` if not specified
+            routing_key: message routing key
+            mandatory: wait for message will be placed in any queue
+            immediate: expects available consumer
+            timeout: request to RabbitMQ timeout
+            headers: message headers (for consumers)
+            content_type: message content-type to decode
+            content_encoding: message encoding
+            persist: restore message on RabbitMQ reboot
+            priority: message priority
+            correlation_id: correlation id to match message with response
+            reply_to: queue to send response
+            message_id: message identifier
+            timestamp: message sending time
+            expiration: message lifetime (in seconds)
+            type: message type (for consumers)
+            user_id: RabbitMQ user who sent the message
+            app_id: application identifier (for consumers)
+            callback: wait for response
+            callback_timeout: response waiting time
+            raise_timeout: if False timeout returns None instead asyncio.TimeoutError
+
+        Returns:
+            `aiormq.abc.ConfirmationFrameType` if you are not waiting for response
+            (reply_to and callback are not specified)
+
+            `DecodedMessage` | `None` if response is expected
+
+        _publisher confirms: https://www.rabbitmq.com/confirms.html
+        """
     def handle(  # type: ignore[override]
         self,
         queue: Union[str, RabbitQueue],
@@ -153,17 +196,20 @@ class RabbitBroker(BrokerUsecase):
         ],
         Callable[P, PikaSendableMessage],
     ]:
+        """Register queue consumer method
+
+        Args:
+            queue: queue to consume messages
+            exchange: exchange to bind queue
+            retry: at message exception will returns to queue `int` times or endless if `True`
+
+        Returns:
+            Async or sync function decorator
         """
-        retry: Union[bool, int] - at exeption message will returns to queue `int` times or endless if `True`
-        """
-        ...
-    async def __aenter__(self) -> "RabbitBroker": ...
-    async def _connect(
-        self,
-        *args: Any,
-        **kwargs: Any,
-    ) -> aio_pika.RobustConnection: ...
-    async def close(self) -> None: ...
+    async def start(self) -> None:
+        """Initialize RabbitMQ connection and startup all consumers"""
+    async def close(self) -> None:
+        """Close RabbitMQ connection"""
     def _process_message(
         self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
     ) -> Callable[[PropanMessage], T]: ...
@@ -185,7 +231,6 @@ class RabbitBroker(BrokerUsecase):
         self,
         exchange: RabbitExchange,
     ) -> aio_pika.abc.AbstractRobustExchange: ...
-    async def start(self) -> None: ...
     @classmethod
     def _validate_message(
         cls: Type["RabbitBroker"],
@@ -197,3 +242,8 @@ class RabbitBroker(BrokerUsecase):
     async def _parse_message(
         message: aio_pika.message.IncomingMessage,
     ) -> PropanMessage: ...
+    async def _connect(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> aio_pika.RobustConnection: ...

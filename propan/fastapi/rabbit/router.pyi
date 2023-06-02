@@ -13,12 +13,13 @@ from starlette import routing
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
+from propan import RabbitBroker
 from propan.brokers.rabbit import RabbitExchange, RabbitQueue
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
 
-class RabbitRouter(PropanRouter):
+class RabbitRouter(PropanRouter[RabbitBroker]):
     def __init__(
         self,
         host: str = "localhost",
@@ -63,7 +64,6 @@ class RabbitRouter(PropanRouter):
         queue: Union[str, RabbitQueue],
         *,
         endpoint: AnyCallable,
-        name: Optional[str] = None,
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
     ) -> None:
@@ -74,6 +74,5 @@ class RabbitRouter(PropanRouter):
         *,
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-        name: Optional[str] = None,
     ) -> None:
         pass

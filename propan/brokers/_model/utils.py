@@ -10,6 +10,7 @@ from propan.brokers.push_back_watcher import (
 from propan.utils import context
 
 T = TypeVar("T")
+P = TypeVar("P")
 
 
 def change_logger_handlers(logger: logging.Logger, fmt: str) -> None:
@@ -40,7 +41,7 @@ def get_watcher(
 
 def suppress_decor(
     func: Callable[[Any], Awaitable[T]]
-) -> Callable[[Any], Awaitable[Optional[T]]]:
+) -> Callable[[Any, bool], Awaitable[Optional[T]]]:
     @wraps(func)
     async def wrapper(message: Any, reraise_exc: bool = False) -> Optional[T]:
         try:

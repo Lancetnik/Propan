@@ -24,15 +24,7 @@
 
     Допустимые типы: `str`, `dict`, `Sequence`, `pydantic.BaseModel`, `bytes`, а также нативные сообщения используемой для брокера библиотеки.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="7"
-    {!> docs_src/quickstart/broker/rpc/1_redis_handler.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="7"
-    {!> docs_src/quickstart/broker/rpc/1_rabbit_handler.py !}
-    ```
+{! includes/getting_started/broker/rpc/1_handler.md !}
 
 ### Клиент
 
@@ -41,43 +33,21 @@
 Для того, чтобы дождаться результата выполнения запроса "прямо здесь" (как если бы это был HTTP запрос) необходимо просто указать
 параметер `callback=True` при отправке сообщения.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/rpc/2_redis_blocking_client.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="8"
-    {!> docs_src/quickstart/broker/rpc/2_rabbit_blocking_client.py !}
-    ```
+{! includes/getting_started/broker/rpc/2_blocking_client.md !}
 
 Для установки времени, которое клиент готов ожидать ответ от сервера, используйте параметр `callback_timeout` (по умолчанию - **30** секунд)
 
-=== "Redis"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/3_redis_blocking_client_timeout.py !}
-    ```
+```python linenums="1" hl_lines="4"
+{!> docs_src/quickstart/broker/rpc/3_blocking_client_timeout.py !}
+```
 
-    1. Ожидает результат выполнения 3 секунды
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/3_rabbit_blocking_client_timeout.py !}
-    ```
-
-    1. Ожидает результат выполнения 3 секунды
+1. Ожидает результат выполнения 3 секунды
 
 Если вы готовы ждать ответ столько, сколько это понадобится вы можете выставить `callback_timeout=None`
 
-=== "Redis"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/4_redis_blocking_client_timeout_none.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/4_rabbit_blocking_client_timeout_none.py !}
-    ```
+```python linenums="1" hl_lines="4"
+{!> docs_src/quickstart/broker/rpc/4_blocking_client_timeout_none.py !}
+```
 
 !!! warning
     Этот код будет ожидать ответ бесконечно, даже если сервер не сможет обработать сообщение или обработка занимает длительное время
@@ -85,29 +55,15 @@
 По умолчанию, если **Propan** не дождался ответа сервера, функция вернет `None`. Если же вы хотите явным образом обработать `asyncio.TimeoutError`,
 используйте параметр `raise_timeout`.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/5_redis_blocking_client_timeout_error.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="5"
-    {!> docs_src/quickstart/broker/rpc/5_rabbit_blocking_client_timeout_error.py !}
-    ```
+```python linenums="1" hl_lines="4"
+{!> docs_src/quickstart/broker/rpc/5_blocking_client_timeout_error.py !}
+```
 
 #### Неблокирующий запрос
 
 Для того, чтобы обработать ответ вне основного потока выполнения, вы можете просто инициализировать обработчик, а затем передать его адрес в качестве `reply_to` аргумента запроса.
 
-=== "Redis"
-    ```python linenums="1" hl_lines="6 16"
-    {!> docs_src/quickstart/broker/rpc/6_noblocking_client_redis.py !}
-    ```
-
-=== "RabbitMQ"
-    ```python linenums="1" hl_lines="6 16"
-    {!> docs_src/quickstart/broker/rpc/6_noblocking_client_rabbit.py !}
-    ```
+{! includes/getting_started/broker/rpc/6_noblocking_client.md !}
 
 !!! note
     Обратите внимание, что для работы неблокирующих сообщений, `broker` должен быть запущен. Это значит, что мы не можем

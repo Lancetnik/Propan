@@ -5,6 +5,7 @@ from typing import Any, Callable, Coroutine, Dict, List, NoReturn, Optional, Typ
 from uuid import uuid4
 
 from redis.asyncio.client import PubSub, Redis
+from redis.asyncio.connection import ConnectionPool, parse_url
 
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage, RawDecoced
@@ -17,6 +18,7 @@ from propan.types import (
     HandlerWrapper,
     SendableMessage,
 )
+from propan.utils import context
 
 T = TypeVar("T")
 
@@ -44,7 +46,10 @@ class RedisBroker(BrokerUsecase):
         url: str,
         **kwargs: Any,
     ) -> Redis:
-        return Redis.from_url(url, **kwargs)
+        url_options = parse_url(url)
+        url_options.update(kwargs)
+        pool = ConnectionPool(**url_options)
+        return Redis(connection_pool=pool)
 
     async def connect(
         self,
@@ -93,6 +98,7 @@ class RedisBroker(BrokerUsecase):
         channel: str = "",
         *,
         pattern: bool = False,
+        _raw: bool = False,
     ) -> HandlerWrapper:
         self.__max_channel_len = max(self.__max_channel_len, len(channel))
 
@@ -100,6 +106,7 @@ class RedisBroker(BrokerUsecase):
             func = self._wrap_handler(
                 func,
                 channel=channel,
+                _raw=_raw,
             )
             handler = Handler(callback=func, channel=channel, pattern=pattern)
             self.handlers.append(handler)
@@ -109,6 +116,11 @@ class RedisBroker(BrokerUsecase):
         return wrapper
 
     async def start(self) -> None:
+        context.set_local(
+            "log_context",
+            self._get_log_context(None, ""),
+        )
+
         await super().start()
 
         for handler in self.handlers:  # pragma: no branch
@@ -134,7 +146,7 @@ class RedisBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
-    ) -> None:
+    ) -> Optional[DecodedMessage]:
         if self._connection is None:
             raise ValueError("Redis connection not established yet")
 
@@ -208,7 +220,9 @@ class RedisBroker(BrokerUsecase):
         else:
             return RawDecoced(message=message.body).message
 
-    def _get_log_context(self, message: PropanMessage, channel: str) -> Dict[str, Any]:
+    def _get_log_context(
+        self, message: Optional[PropanMessage], channel: str
+    ) -> Dict[str, Any]:
         context = {
             "channel": channel,
             **super()._get_log_context(message),
