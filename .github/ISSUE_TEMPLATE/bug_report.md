@@ -11,7 +11,7 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **To Reproduce**
-Add source code 
+Add source code
 
 ```python
 from propan import PropanApp
@@ -19,6 +19,7 @@ from propan import PropanApp
 ```
 
 And steps to reproduce the behavior:
+
 1. ...
 
 **Expected behavior**
