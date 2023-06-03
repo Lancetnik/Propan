@@ -80,6 +80,7 @@ async-kafka = [
 doc = [
     "PyYAML",
     "pytest[email]",
+    "polyfactory",
 ]
 
 async-sqs = [

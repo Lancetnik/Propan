@@ -11,6 +11,7 @@ from pydantic.dataclasses import dataclass as pydantic_dataclass
 from typing_extensions import TypeAlias, assert_never
 
 from propan.asyncapi.channels import AsyncAPIChannel
+from propan.asyncapi.utils import add_example_to_model
 from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMessage
 
 ContentType: TypeAlias = str
@@ -29,7 +30,7 @@ class BaseHandler:
     def title(self) -> str:
         return self.callback.__name__.replace("_", " ").title().replace(" ", "")
 
-    def get_message_object(self) -> AnyDict:
+    def get_message_object(self) -> Tuple[str, AnyDict]:
         dependant = get_dependant(path="", call=self.callback)
         custom = tuple(c.param_name for c in dependant.custom)
         dependant.params = tuple(
@@ -41,33 +42,44 @@ class BaseHandler:
         # TODO: return RPC response class too
         params_number = len(dependant.params)
 
+        gen_examples: bool
         if params_number == 0:
-            body = {"title": schema_title, "type": "null"}
+            model = None
+
+        elif params_number == 1:
+            param = dependant.params[0]
+
+            if issubclass(param.annotation, BaseModel):
+                model = param.annotation
+                gen_examples = model.Config.schema_extra.get("example") is None
+
+            else:
+                model = create_model(
+                    schema_title,
+                    **{
+                        param.name: (param.annotation, ... if param.required else param.default)
+                    },
+                )
+                gen_examples = True
 
         else:
-            schema = create_model(  # type: ignore
+            model = create_model(  # type: ignore
                 schema_title,
                 **{
                     p.name: (p.annotation, ... if p.required else p.default)
                     for p in dependant.params
                 },
-            ).schema()
+            )
+            gen_examples = True
 
-            if params_number == 1:
-                body = tuple(schema.get("properties", {}).values())[0]
+        if model is None:
+            body = {"title": schema_title, "type": "null"}
+        else:
+            if gen_examples is True:
+                model = add_example_to_model(model)
+            body = model.schema()
 
-                ref = body.get("$ref")
-                if ref is not None:
-                    key = ref.split("/")[-1]
-                    body = schema.get("definitions", {}).get(key, {})
-
-                else:
-                    body["title"] = schema_title
-
-            else:
-                body = schema
-
-        return body
+        return body.get("title", schema_title), body
 
 
 class ContentTypes(str, Enum):

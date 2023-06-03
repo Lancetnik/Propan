@@ -117,7 +117,7 @@ class Handler(BaseHandler):
     exchange: Optional[RabbitExchange] = field(default=None, kw_only=True)  # type: ignore
 
     def get_schema(self) -> Dict[str, AsyncAPIChannel]:
-        body = self.get_message_object()
+        message_title, body = self.get_message_object()
 
         return {
             self.title: AsyncAPIChannel(
@@ -135,6 +135,7 @@ class Handler(BaseHandler):
                         )
                     ),
                     message=AsyncAPIMessage(
+                        name=message_title,
                         payload=body,
                         correlation_id=AsyncAPICorrelationId(
                             location="$message.header#/correlation_id"
