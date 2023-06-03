@@ -12,6 +12,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from uuid import uuid4
 
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
@@ -19,35 +20,48 @@ from typing_extensions import TypeAlias
 
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage
+from propan.brokers.exceptions import SkipMessage
 from propan.brokers.push_back_watcher import (
     BaseWatcher,
-    FakePushBackWatcher,
+    NotPushBackWatcher,
     WatcherContext,
 )
-from propan.brokers.sqs.schema import Handler, SQSQueue
-from propan.types import AnyCallable, DecoratedCallable, HandlerWrapper, SendableMessage
+from propan.brokers.sqs.schema import Handler, SQSMessage, SQSQueue
+from propan.types import (
+    AnyCallable,
+    DecodedMessage,
+    DecoratedCallable,
+    HandlerWrapper,
+    SendableMessage,
+)
 from propan.utils import context
 
 T = TypeVar("T")
 QueueUrl: TypeAlias = str
+CorrelationId: TypeAlias = str
 
 
 class SQSBroker(BrokerUsecase):
     _connection: AioBaseClient
     _queues: Dict[str, QueueUrl]
-    handlers: List[Handler]
     __max_queue_len: int
+    response_queue: str
+    response_callbacks: Dict[CorrelationId, "asyncio.Future[DecodedMessage]"]
+    handlers: List[Handler]
 
     def __init__(
         self,
         url: str = "http://localhost:9324/",
         *,
         log_fmt: Optional[str] = None,
+        response_queue: str = "",
         **kwargs: Any,
     ) -> None:
         super().__init__(url, log_fmt=log_fmt, **kwargs)
         self._queues = {}
         self.__max_queue_len = 4
+        self.response_queue = response_queue
+        self.response_callbacks = {}
 
     async def _connect(self, url: Optional[str] = None, **kwargs: Any) -> AioBaseClient:
         session = get_session()
@@ -59,6 +73,10 @@ class SQSBroker(BrokerUsecase):
         return client
 
     async def close(self) -> None:
+        for f in self.response_callbacks.values():
+            f.cancel()
+        self.response_callbacks = {}
+
         for h in self.handlers:
             if h.task is not None:
                 h.task.cancel()
@@ -71,19 +89,13 @@ class SQSBroker(BrokerUsecase):
     async def _parse_message(self, message: Dict[str, Any]) -> PropanMessage:
         attributes = message.get("MessageAttributes", {})
 
-        headers = {}
-        for i, j in attributes.items():
-            v = j.get("StringValue", "0")
-            if v != "0":
-                headers[i] = v
-            else:
-                headers[i] = None
+        headers = {i: j.get("StringValue") for i, j in attributes.items()}
 
         return PropanMessage(
             body=message.get("Body", "").encode(),
             message_id=message.get("MessageId"),
             content_type=headers.pop("content-type", None),
-            reply_to=headers.pop("reply", None) or "",
+            reply_to=headers.pop("reply_to", None) or "",
             headers=headers,
             raw_message=message,
         )
@@ -94,10 +106,10 @@ class SQSBroker(BrokerUsecase):
         watcher: Optional[BaseWatcher],
     ) -> Callable[[PropanMessage], T]:
         if watcher is None:
-            watcher = FakePushBackWatcher()
+            watcher = NotPushBackWatcher()
 
         @wraps(func)
-        async def wrapper(message: PropanMessage) -> T:
+        async def process_wrapper(message: PropanMessage) -> T:
             context = WatcherContext(
                 watcher,
                 message.message_id,
@@ -109,11 +121,17 @@ class SQSBroker(BrokerUsecase):
                 r = await func(message)
 
                 if message.reply_to:
-                    await self.publish(r or "", message.reply_to)
+                    await self.publish(
+                        message=r or "",
+                        queue=message.reply_to,
+                        headers={
+                            "correlation_id": message.headers.get("correlation_id")
+                        },
+                    )
 
                 return r
 
-        return wrapper
+        return process_wrapper
 
     def handle(
         self,
@@ -126,6 +144,7 @@ class SQSBroker(BrokerUsecase):
         request_attempt_id: Optional[str] = None,
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
+        _raw: bool = False,
     ) -> HandlerWrapper:
         if isinstance(queue, str):
             queue = SQSQueue(queue)
@@ -139,7 +158,8 @@ class SQSBroker(BrokerUsecase):
             "VisibilityTimeout": visibility_timeout,
             "MessageAttributeNames": (
                 "content-type",
-                "reply",
+                "reply_to",
+                "correlation_id",
                 *message_attributes,
             ),
         }
@@ -147,7 +167,12 @@ class SQSBroker(BrokerUsecase):
             params["ReceiveRequestAttemptId"] = request_attempt_id
 
         def wrapper(func: AnyCallable) -> DecoratedCallable:
-            func = self._wrap_handler(func, queue=queue.name, retry=retry)
+            func = self._wrap_handler(
+                func,
+                queue=queue.name,
+                retry=retry,
+                _raw=_raw,
+            )
             handler = Handler(callback=func, queue=queue, consumer_params=params)
             self.handlers.append(handler)
             return func
@@ -155,6 +180,17 @@ class SQSBroker(BrokerUsecase):
         return wrapper
 
     async def start(self) -> None:
+        if self.response_queue:
+            self.handle(
+                self.response_queue,
+                _raw=True,
+            )(self._consume_response)
+
+        context.set_local(
+            "log_context",
+            self._get_log_context(None, ""),
+        )
+
         await super().start()
 
         for handler in self.handlers:  # pragma: no branch
@@ -181,69 +217,52 @@ class SQSBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
-    ) -> Any:
+    ) -> None:
         queue_url = await self.get_queue(queue)
 
-        params = self._build_message(
+        if callback is True:
+            reply_to = reply_to or self.response_queue
+            if not reply_to:
+                raise ValueError(
+                    "You should specify `response_queue` at init or use `reply_to` argument"
+                )
+
+        if reply_to:
+            correlation_id = str(uuid4())
+        else:
+            correlation_id = ""
+
+        response_future: Optional["asyncio.Future[DecodedMessage]"]
+        if callback is True:
+            response_future = asyncio.Future()
+            self.response_callbacks[correlation_id] = response_future
+        else:
+            response_future = None
+
+        params = SQSMessage(
             message=message,
-            queue_url=queue_url,
-            headers=headers,
+            headers=headers or {},
             delay_seconds=delay_seconds,
-            message_attributes=message_attributes,
-            message_system_attributes=message_system_attributes,
+            message_attributes=message_attributes or {},
+            message_system_attributes=message_system_attributes or {},
             deduplication_id=deduplication_id,
             group_id=group_id,
+        ).to_params(
             reply_to=reply_to,
+            correlation_id=correlation_id,
         )
 
-        await self._connection.send_message(**params)
+        await self._connection.send_message(QueueUrl=queue_url, **params)
 
-    @classmethod
-    def _build_message(
-        cls,
-        message: SendableMessage,
-        queue_url: str,
-        *,
-        headers: Optional[Dict[str, str]] = None,
-        delay_seconds: int = 0,  # 0...900
-        message_attributes: Optional[Dict[str, Any]] = None,
-        message_system_attributes: Optional[Dict[str, Any]] = None,
-        # FIFO only
-        deduplication_id: Optional[str] = None,
-        group_id: Optional[str] = None,
-        # broker
-        reply_to: str = "",
-    ) -> Dict[str, Any]:
-        msg, content_type = cls._encode_message(message)
-
-        headers = headers or {}
-        headers["content-type"] = headers.get("content-type", content_type)
-        headers["reply"] = reply_to
-
-        params = {
-            "QueueUrl": queue_url,
-            "MessageBody": msg.decode(),
-            "DelaySeconds": delay_seconds,
-            "MessageSystemAttributes": message_system_attributes or {},
-            "MessageAttributes": {
-                **(message_attributes or {}),
-                **{
-                    i: {
-                        "StringValue": j or "0",
-                        "DataType": "String",
-                    }
-                    for i, j in headers.items()
-                },
-            },
-        }
-
-        if deduplication_id is not None:
-            params["MessageDeduplicationId"] = deduplication_id
-
-        if group_id is not None:
-            params["MessageGroupId"] = group_id
-
-        return params
+        if response_future is not None:
+            try:
+                response = await asyncio.wait_for(response_future, callback_timeout)
+            except asyncio.TimeoutError as e:
+                if raise_timeout is True:
+                    raise e
+                return None
+            else:
+                return response
 
     async def create_queue(self, queue: SQSQueue) -> QueueUrl:
         url = self._queues.get(queue.name)
@@ -254,9 +273,13 @@ class SQSBroker(BrokerUsecase):
                     Attributes={
                         i: str(j)
                         for i, j in queue.dict(
-                            exclude={"name"}, by_alias=True, exclude_defaults=True
+                            exclude={"name"},
+                            by_alias=True,
+                            exclude_defaults=True,
+                            exclude_unset=True,
                         ).items()
                     },
+                    tags=queue.tags,
                 )
             ).get("QueueUrl", "")
             self._queues[queue.name] = url
@@ -310,8 +333,29 @@ class SQSBroker(BrokerUsecase):
                         self._log("Connection established", logging.INFO, c)
                         connected = True
 
-                    for msg in r.get("Messages", []):
-                        await handler.callback(msg)
+                    messages = r.get("Messages", [])
+                    for msg in messages:
+                        try:
+                            await handler.callback(msg, True)
+                        except Exception:
+                            has_trash_messages = True
+                        else:
+                            has_trash_messages = False
+
+                    if has_trash_messages is True:
+                        await asyncio.sleep(
+                            handler.consumer_params.get("WaitTimeSeconds", 1.0)
+                        )
+
+    async def _consume_response(self, message: PropanMessage):
+        correlation_id = message.headers.get("correlation_id")
+        if correlation_id is not None:
+            callback = self.response_callbacks.pop(correlation_id, None)
+            if callback is not None:
+                callback.set_result(await self._decode_message(message))
+                return
+
+        raise SkipMessage()
 
     @property
     def fmt(self) -> str:

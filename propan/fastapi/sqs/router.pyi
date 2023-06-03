@@ -17,9 +17,13 @@ from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
 
+<<<<<<< HEAD
 class SQSRouter(PropanRouter):
     broker: SQSBroker
 
+=======
+class SQSRouter(PropanRouter[SQSBroker]):
+>>>>>>> 1acd1a468477ed27a085d3d1c6f38d967e64f1f9
     def __init__(
         self,
         url: str = "http://localhost:9324/",

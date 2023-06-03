@@ -12,6 +12,7 @@ from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.types import AnyDict, DecoratedCallable, HandlerWrapper, SendableMessage
+from propan.utils import context
 
 TimeoutType = Optional[Union[int, float]]
 PikaSendableMessage = Union[aio_pika.message.Message, SendableMessage]
@@ -76,6 +77,7 @@ class RabbitBroker(BrokerUsecase):
         exchange: Union[str, RabbitExchange, None] = None,
         *,
         retry: Union[bool, int] = False,
+        _raw: bool = False,
     ) -> HandlerWrapper:
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
@@ -87,6 +89,7 @@ class RabbitBroker(BrokerUsecase):
                 queue=queue,
                 exchange=exchange,
                 retry=retry,
+                _raw=_raw,
             )
             handler = Handler(callback=func, queue=queue, exchange=exchange)
             self.handlers.append(handler)
@@ -96,6 +99,11 @@ class RabbitBroker(BrokerUsecase):
         return wrapper
 
     async def start(self) -> None:
+        context.set_local(
+            "log_context",
+            self._get_log_context(None, RabbitQueue(""), RabbitExchange("")),
+        )
+
         await super().start()
 
         for handler in self.handlers:

@@ -18,3 +18,5 @@ wtf
 coverage.json
 site
 Dockerfile
+t
+asyncapi.yaml

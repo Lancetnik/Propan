@@ -20,7 +20,8 @@ Activate the new environment with:
 source ./venv/bin/activate
 ```
 
-Make sure you have the latest pip version on your virtual environment to 
+Make sure you have the latest pip version on your virtual environment to
+
 ```bash
 python -m pip install --upgrade pip
 ```
@@ -30,7 +31,7 @@ python -m pip install --upgrade pip
 After activating the environment as described above:
 
 ```bash
-pip install -e ."[dev]"
+pip install -e ".[dev]"
 ```
 
 It will install all the dependencies and your local Propan in your local environment.
