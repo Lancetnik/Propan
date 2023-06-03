@@ -110,9 +110,9 @@ def _run(
         propan_app = import_object(module, app)
 
         if not isinstance(propan_app, PropanApp):
-            raise ValueError(f"{propan_app} is not a PropanApp")
+            raise FileNotFoundError(f"{propan_app} is not a PropanApp")
 
-    except (ValueError, FileNotFoundError, AttributeError) as e:
+    except (FileNotFoundError, AttributeError) as e:
         logger.error(e)
         logger.error("Please, input module like [python_file:propan_app_name]")
         exit()
