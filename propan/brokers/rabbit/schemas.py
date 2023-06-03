@@ -117,7 +117,7 @@ class Handler(BaseHandler):
     exchange: Optional[RabbitExchange] = field(default=None, kw_only=True)  # type: ignore
 
     def get_schema(self) -> Dict[str, AsyncAPIChannel]:
-        message_title, body = self.get_message_object()
+        message_title, body, reply_to = self.get_message_object()
 
         return {
             self.title: AsyncAPIChannel(
@@ -131,8 +131,9 @@ class Handler(BaseHandler):
                                 and self.exchange.type
                                 in (ExchangeType.FANOUT, ExchangeType.HEADERS)
                             )
-                            else self.queue.name
-                        )
+                            else self.queue.name,
+                            reply_to=reply_to,
+                        ),
                     ),
                     message=AsyncAPIMessage(
                         name=message_title,

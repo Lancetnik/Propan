@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from fast_depends.construct import get_dependant
 from pydantic import BaseModel, Field, Json, create_model
+from pydantic.schema import field_schema
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 from typing_extensions import TypeAlias, assert_never
 
@@ -30,16 +31,44 @@ class BaseHandler:
     def title(self) -> str:
         return self.callback.__name__.replace("_", " ").title().replace(" ", "")
 
-    def get_message_object(self) -> Tuple[str, AnyDict]:
+    def get_message_object(self) -> Tuple[str, AnyDict, Optional[AnyDict]]:
         dependant = get_dependant(path="", call=self.callback)
+
+        if dependant.return_field:
+            return_field = dependant.return_field
+
+            if issubclass(return_field.type_, BaseModel):
+                return_model = return_field.type_
+                if return_model.Config.schema_extra.get("example") is None:
+                    return_model = add_example_to_model(return_model)
+                return_info = return_model.schema()
+                return_info["examples"] = [return_info.pop("example")]
+
+            else:
+                return_model = create_model(
+                    f"{self.title}Reply",
+                    **{
+                        return_field.name: (return_field.annotation, ...)
+                    },
+                )
+                return_model = add_example_to_model(return_model)
+                return_info = return_model.schema()
+                return_info.pop("required")
+                return_info.update({
+                    "type": return_info.pop("properties", {}).get(return_field.name, {}).get("type"),
+                    "examples": [return_info.pop("example", {}).get(return_field.name)]
+                })
+
+        else:
+            return_info = None
+
+        # TODO: recursive schema generation
         custom = tuple(c.param_name for c in dependant.custom)
         dependant.params = tuple(
             filter(lambda x: x.name not in custom, dependant.params)
         )
         schema_title = f"{self.title}Message"
 
-        # TODO: recursive schema generation
-        # TODO: return RPC response class too
         params_number = len(dependant.params)
 
         gen_examples: bool
@@ -79,7 +108,7 @@ class BaseHandler:
                 model = add_example_to_model(model)
             body = model.schema()
 
-        return body.get("title", schema_title), body
+        return body.get("title", schema_title), body, return_info
 
 
 class ContentTypes(str, Enum):

@@ -3,6 +3,8 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from typing_extensions import Literal
 
+from propan.types import AnyDict
+
 
 class AsyncAPIAmqpQueue(BaseModel):
     name: str
@@ -45,3 +47,7 @@ class AsyncAPIAmqpChannelBinding(BaseModel):
 class AsyncAPIAmqpOperationBinding(BaseModel):
     cc: Optional[str] = None
     ack: bool = True
+    reply_to: Optional[AnyDict] = Field(default=None, alias="replyTo")
+
+    class Config:
+        allow_population_by_field_name = True
