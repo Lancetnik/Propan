@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security Contact
+    about: Please report security vulnerabilities to diementros@yandex.ru
+  - name: Question or Problem
+    about: Ask a question or ask about a problem in GitHub Discussions.
+    url: https://github.com/Lancetnik/Propan/discussions/categories/questions
+  - name: Feature Request
+    about: To suggest an idea or ask about a feature, a new Message Broker supporting or something else,
+            please create a discussion - the more people support your idea, the sooner we will start implementing it.
+    url: https://github.com/Lancetnik/Propan/discussions/categories/ideas
