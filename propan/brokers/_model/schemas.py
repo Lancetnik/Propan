@@ -5,9 +5,9 @@ from enum import Enum
 from typing import Any, Dict, Optional, Sequence, Tuple, Union
 from uuid import uuid4
 
+import jsonref
 from fast_depends.construct import get_dependant
 from pydantic import BaseModel, Field, Json, create_model
-from pydantic.schema import field_schema
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 from typing_extensions import TypeAlias, assert_never
 
@@ -41,42 +41,46 @@ class BaseHandler:
                 return_model = return_field.type_
                 if return_model.Config.schema_extra.get("example") is None:
                     return_model = add_example_to_model(return_model)
-                return_info = return_model.schema()
+                return_info = jsonref.replace_refs(
+                    return_model.schema(), jsonschema=True, proxies=False
+                )
                 return_info["examples"] = [return_info.pop("example")]
 
             else:
                 return_model = create_model(
                     f"{self.title}Reply",
-                    **{
-                        return_field.name: (return_field.annotation, ...)
-                    },
+                    **{return_field.name: (return_field.annotation, ...)},
                 )
                 return_model = add_example_to_model(return_model)
-                return_info = return_model.schema()
+                return_info = jsonref.replace_refs(
+                    return_model.schema(), jsonschema=True, proxies=False
+                )
                 return_info.pop("required")
-                return_info.update({
-                    "type": return_info.pop("properties", {}).get(return_field.name, {}).get("type"),
-                    "examples": [return_info.pop("example", {}).get(return_field.name)]
-                })
+                return_info.update(
+                    {
+                        "type": return_info.pop("properties", {})
+                        .get(return_field.name, {})
+                        .get("type"),
+                        "examples": [
+                            return_info.pop("example", {}).get(return_field.name)
+                        ],
+                    }
+                )
 
         else:
             return_info = None
 
         # TODO: recursive schema generation
-        custom = tuple(c.param_name for c in dependant.custom)
-        dependant.params = tuple(
-            filter(lambda x: x.name not in custom, dependant.params)
-        )
         schema_title = f"{self.title}Message"
-
-        params_number = len(dependant.params)
+        params = dependant.flat_params
+        params_number = len(params)
 
         gen_examples: bool
         if params_number == 0:
             model = None
 
         elif params_number == 1:
-            param = dependant.params[0]
+            param = params[0]
 
             if issubclass(param.annotation, BaseModel):
                 model = param.annotation
@@ -86,7 +90,10 @@ class BaseHandler:
                 model = create_model(
                     schema_title,
                     **{
-                        param.name: (param.annotation, ... if param.required else param.default)
+                        param.name: (
+                            param.annotation,
+                            ... if param.required else param.default,
+                        )
                     },
                 )
                 gen_examples = True
@@ -96,7 +103,7 @@ class BaseHandler:
                 schema_title,
                 **{
                     p.name: (p.annotation, ... if p.required else p.default)
-                    for p in dependant.params
+                    for p in params
                 },
             )
             gen_examples = True
@@ -106,8 +113,10 @@ class BaseHandler:
         else:
             if gen_examples is True:
                 model = add_example_to_model(model)
-            body = model.schema()
+            body = jsonref.replace_refs(model.schema(), jsonschema=True, proxies=False)
 
+        body.pop("definitions", None)
+        return_info.pop("definitions", None)
         return body.get("title", schema_title), body, return_info
 
 

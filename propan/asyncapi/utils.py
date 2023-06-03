@@ -1,8 +1,8 @@
 import json
 from typing import Optional, Type
 
-from pydantic import BaseModel, Field
 from polyfactory.factories.pydantic_factory import ModelFactory
+from pydantic import BaseModel, Field
 
 
 class AsyncAPIExternalDocs(BaseModel):
