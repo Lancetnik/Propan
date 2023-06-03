@@ -22,7 +22,7 @@ class TestSQSConsume(BrokerConsumeTestcase):
         async with broker:
             broker.handle(SQSQueue(queue), retry=1)(mock)
             await broker.start()
-            await broker.publish({"msg": "hello"}, queue)
+            await broker.publish("hello", queue)
             await wait_for(consume.wait(), 3)
 
         mock.assert_called_once()

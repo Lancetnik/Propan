@@ -24,7 +24,7 @@ class TestRabbitConsume(BrokerConsumeTestcase):
         async with broker:
             broker.handle(queue=queue, exchange=exchange, retry=1)(mock)
             await broker.start()
-            await broker.publish({"msg": "hello"}, queue=queue, exchange=exchange)
+            await broker.publish("hello", queue=queue, exchange=exchange)
             await wait_for(consume.wait(), 3)
 
         mock.assert_called_once()
