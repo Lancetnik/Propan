@@ -5,7 +5,6 @@ from enum import Enum
 from typing import Any, Dict, Optional, Sequence, Tuple, Union
 from uuid import uuid4
 
-import jsonref
 from fast_depends.construct import get_dependant
 from pydantic import BaseModel, Field, Json, create_model
 from pydantic.dataclasses import dataclass as pydantic_dataclass
@@ -32,6 +31,7 @@ class BaseHandler:
         return self.callback.__name__.replace("_", " ").title().replace(" ", "")
 
     def get_message_object(self) -> Tuple[str, AnyDict, Optional[AnyDict]]:
+        import jsonref  # hide it there to remove docs dependencies from main package
         dependant = get_dependant(path="", call=self.callback)
 
         if dependant.return_field:
@@ -70,7 +70,7 @@ class BaseHandler:
         else:
             return_info = None
 
-        # TODO: recursive schema generation
+        # TODO: test recursive schema generation
         schema_title = f"{self.title}Message"
         params = dependant.flat_params
         params_number = len(params)
