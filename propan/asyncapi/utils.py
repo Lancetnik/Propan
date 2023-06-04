@@ -1,7 +1,6 @@
 import json
 from typing import Optional, Type
 
-from polyfactory.factories.pydantic_factory import ModelFactory
 from pydantic import BaseModel, Field
 
 
@@ -23,6 +22,10 @@ class AsyncAPITag(BaseModel):
 
 
 def add_example_to_model(model: Type[BaseModel]) -> Type[BaseModel]:
+    from polyfactory.factories.pydantic_factory import (
+        ModelFactory,
+    )  # mv it to hide from main dependencies
+
     factory = type(f"{model.__name__}_factory", (ModelFactory,), {"__model__": model})
 
     return type(
