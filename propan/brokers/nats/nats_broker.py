@@ -97,7 +97,11 @@ class NatsBroker(BrokerUsecase):
             c = self._get_log_context(None, handler.subject, handler.queue)
             self._log(f"`{func.__name__}` waiting for messages", extra=c)
 
-            sub = await self._connection.subscribe(handler.subject, cb=func)
+            sub = await self._connection.subscribe(
+                subject=handler.subject,
+                queue=handler.queue,
+                cb=func,
+            )
             handler.subscription = sub
 
     async def publish(
