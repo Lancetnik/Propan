@@ -63,7 +63,7 @@ class SQSBroker(BrokerUsecase):
         self.response_queue = response_queue
         self.response_callbacks = {}
 
-    async def _connect(self, url: Optional[str] = None, **kwargs: Any) -> AioBaseClient:
+    async def _connect(self, *, url: str, **kwargs: Any) -> AioBaseClient:
         session = get_session()
         client: AioBaseClient = await session._create_client(
             service_name="sqs", endpoint_url=url, **kwargs

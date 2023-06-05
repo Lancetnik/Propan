@@ -2,8 +2,24 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, TypeVar, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
+from fast_depends.construct import get_dependant
+from fast_depends.model import Dependant
+from fast_depends.utils import args_to_kwargs
+from pydantic.fields import ModelField
 from typing_extensions import Self
 
 from propan.brokers._model.schemas import (
@@ -31,7 +47,7 @@ from propan.types import (
     Wrapper,
 )
 from propan.utils import apply_types, context
-from propan.utils.functions import to_async
+from propan.utils.functions import get_function_arguments, to_async
 
 T = TypeVar("T")
 
@@ -68,13 +84,19 @@ class BrokerUsecase(ABC):
 
     async def connect(self, *args: Any, **kwargs: Any) -> Any:
         if self._connection is None:
-            _args = args or self._connection_args
-            _kwargs = kwargs or self._connection_kwargs
-            self._connection = await self._connect(*_args, **_kwargs)
+            arguments = get_function_arguments(self.__init__)  # type: ignore
+            init_kwargs = args_to_kwargs(
+                arguments,
+                *self._connection_args,
+                **self._connection_kwargs,
+            )
+            connect_kwargs = args_to_kwargs(arguments, *args, **kwargs)
+            _kwargs = {**init_kwargs, **connect_kwargs}
+            self._connection = await self._connect(**_kwargs)
         return self._connection
 
     @abstractmethod
-    async def _connect(self, *args: Any, **kwargs: Any) -> Any:
+    async def _connect(self, **kwargs: Any) -> Any:
         raise NotImplementedError()
 
     @abstractmethod
@@ -164,12 +186,18 @@ class BrokerUsecase(ABC):
         _raw: bool = False,
         **broker_args: Any,
     ) -> DecoratedAsync:
+        dependant: Dependant = get_dependant(path="", call=func)
+
         f = to_async(func)
 
         if self._is_apply_types is True:
             f = apply_types(f)
 
-        f = self._wrap_decode_message(f, _raw=_raw)
+        f = self._wrap_decode_message(
+            f,
+            _raw=_raw,
+            params=dependant.real_params,
+        )
 
         if self.logger is not None:
             f = self._log_execution(**broker_args)(f)
@@ -187,6 +215,7 @@ class BrokerUsecase(ABC):
     def _wrap_decode_message(
         self,
         func: Callable[..., Awaitable[T]],
+        params: Sequence[ModelField] = (),
         _raw: bool = False,
     ) -> Callable[[PropanMessage], Awaitable[T]]:
         decode: Callable[
@@ -197,9 +226,15 @@ class BrokerUsecase(ABC):
         else:
             decode = self._decode_message
 
+        is_unwrap = len(params) > 1
+
         @wraps(func)
         async def wrapper(message: PropanMessage) -> T:
-            return await func(await decode(message))
+            msg = await decode(message)
+            if is_unwrap is True and isinstance(msg, Mapping):
+                return await func(**msg)
+            else:
+                return await func(msg)
 
         return wrapper
 
