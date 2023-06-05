@@ -15,3 +15,10 @@ class TestSQSConnection(BrokerConnectionTestcase):
             "region_name": settings.region_name,
             "config": AioConfig(signature_version=UNSIGNED),
         }
+
+    @pytest.mark.asyncio
+    async def test_connect_merge_args_and_kwargs(self, settings):
+        args, kwargs = self.get_broker_args(settings)
+        broker = self.broker("fake-url")  # will be ignored
+        assert await broker.connect(url=settings.url, **kwargs)
+        await broker.close()

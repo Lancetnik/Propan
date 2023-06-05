@@ -1,14 +1,14 @@
 from typing import Any
 
 
-class Singlethon:
-    _instanse = None
+class Singleton:
+    _instance = None
 
-    def __new__(cls, *args: Any, **kwargs: Any) -> "Singlethon":
-        if cls._instanse is None:
-            cls._instanse = super().__new__(cls)
-        return cls._instanse
+    def __new__(cls, *args: Any, **kwargs: Any) -> "Singleton":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     @classmethod
     def _drop(cls) -> None:
-        cls._instanse = None
+        cls._instance = None

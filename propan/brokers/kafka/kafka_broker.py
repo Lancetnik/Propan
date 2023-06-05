@@ -52,11 +52,9 @@ class KafkaBroker(BrokerUsecase):
 
     async def _connect(
         self,
-        bootstrap_servers: Union[str, List[str]] = "localhost",
         **kwargs: Any,
     ) -> AIOKafkaConsumer:
         kwargs["client_id"] = kwargs.get("client_id", "propan-" + __version__)
-        kwargs["bootstrap_servers"] = bootstrap_servers
 
         producer = AIOKafkaProducer(**kwargs)
         context.set_global("producer", producer)

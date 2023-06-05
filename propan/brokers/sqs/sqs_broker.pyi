@@ -55,8 +55,8 @@ class SQSBroker(BrokerUsecase):
         """"""
     async def connect(
         self,
-        url: str = "http://localhost:9324/",
         *,
+        url: str = "http://localhost:9324/",
         region_name: Optional[str] = None,
         api_version: Optional[str] = None,
         use_ssl: bool = True,
