@@ -23,6 +23,7 @@ class RabbitBroker(BrokerUsecase):
     handlers: List[Handler]
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
+    _queues: List[aio_pika.RobustQueue]  # save queues to shield aio-pika WeakRef from GC
 
     __max_queue_len: int
     __max_exchange_len: int
@@ -41,6 +42,7 @@ class RabbitBroker(BrokerUsecase):
 
         self.__max_queue_len = 4
         self.__max_exchange_len = 4
+        self._queues = []
 
     async def close(self) -> None:
         if self._channel is not None:
@@ -115,6 +117,7 @@ class RabbitBroker(BrokerUsecase):
             self._log(f"`{func.__name__}` waiting for messages", extra=c)
 
             await queue.consume(func)
+            self._queues.append(queue)
 
     async def publish(
         self,
