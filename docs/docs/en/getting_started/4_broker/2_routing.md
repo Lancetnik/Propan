@@ -15,7 +15,7 @@ This behavior is similar for all brokers, however, the parameters passed to `@br
 To learn more about the behavior of specialized brokers, go to the following sections:
 
 * [RabbitBroker](../../../rabbit/1_routing)
-* [NatsBroker](../../../nats/2_routing)
+* [NatsBroker](../../../nats/1_nats-index)
 
 ## Error handling
 

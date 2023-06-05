@@ -8,7 +8,7 @@ to include a new heavy dependency (*Kafka*, *RabbitMQ*, *Nats*, etc.) to your in
 *Redis* works fast, does not degrade with a large number of messages, and most importantly - you already have it!
 
 !!! note
-More information about the documentation of *Redis Pub/Sub* can be found at [official site](https://redis.io/docs/manual/pubsub/#messages-matching-both-a-pattern-and-a-channel-subscription){.external- link target="_blank"}
+    More information about *Redis Pub/Sub* can be found at [official website](https://redis.io/docs/manual/pubsub/#messages-matching-both-a-pattern-and-a-channel-subscription){.external- link target="_blank"}
 
 However, *Redis* as a message broker has some important disadvantages:
 
