@@ -38,6 +38,7 @@ class NatsBroker(BrokerUsecase):
     def __init__(
         self,
         servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006
+        *,
         error_cb: Optional[ErrorCallback] = None,
         disconnected_cb: Optional[Callback] = None,
         closed_cb: Optional[Callback] = None,
@@ -68,7 +69,6 @@ class NatsBroker(BrokerUsecase):
         inbox_prefix: Union[str, bytes] = DEFAULT_INBOX_PREFIX,
         pending_size: int = DEFAULT_PENDING_SIZE,
         flush_timeout: Optional[float] = None,
-        *,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
@@ -77,6 +77,7 @@ class NatsBroker(BrokerUsecase):
     async def connect(
         self,
         servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006
+        *,
         error_cb: Optional[ErrorCallback] = None,
         disconnected_cb: Optional[Callback] = None,
         closed_cb: Optional[Callback] = None,

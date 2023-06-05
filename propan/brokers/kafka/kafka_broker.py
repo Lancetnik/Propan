@@ -43,6 +43,7 @@ class KafkaBroker(BrokerUsecase):
 
     async def _connect(
         self,
+        *,
         bootstrap_servers: Union[str, List[str]] = "localhost",
         **kwargs: Any,
     ) -> AIOKafkaConsumer:

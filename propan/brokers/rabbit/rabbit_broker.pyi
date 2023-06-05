@@ -77,6 +77,7 @@ class RabbitBroker(BrokerUsecase):
     async def connect(
         self,
         url: Union[str, URL, None] = None,
+        *,
         host: str = "localhost",
         port: int = 5672,
         login: str = "guest",

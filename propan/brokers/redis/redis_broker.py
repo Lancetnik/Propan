@@ -32,8 +32,8 @@ class RedisBroker(BrokerUsecase):
     def __init__(
         self,
         url: str = "redis://localhost:6379",
-        polling_interval: float = 1.0,
         *,
+        polling_interval: float = 1.0,
         log_fmt: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
