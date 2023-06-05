@@ -2,12 +2,12 @@ from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from typing import Any, Dict, Iterator, TypeVar
 
-from propan.utils.classes import Singlethon
+from propan.utils.classes import Singleton
 
 T = TypeVar("T")
 
 
-class ContextRepo(Singlethon):
+class ContextRepo(Singleton):
     _global_context: Dict[str, Any]
     _scope_context: Dict[str, ContextVar[Any]]
 
