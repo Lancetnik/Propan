@@ -4,7 +4,7 @@
 
 ## Scaling
 
-If one channel is listened by several consumers, the message will be received by **all** consumers of this channel.
+If one channel is listening by several consumers, the message will be received by **all** consumers of this channel.
 Thus, horizontal scaling by increasing the number of consumer services is not possible only using *Redis Pub/Sub*.
 
 If you need similar functionality, look for *Redis Streams* or other brokers (for example, *Nats* or *RabbitMQ*).
