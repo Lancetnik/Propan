@@ -18,6 +18,7 @@ from typing import (
 
 from fast_depends.construct import get_dependant
 from fast_depends.model import Dependant
+from fast_depends.utils import args_to_kwargs
 from pydantic.fields import ModelField
 from typing_extensions import Self
 
@@ -46,7 +47,7 @@ from propan.types import (
     Wrapper,
 )
 from propan.utils import apply_types, context
-from propan.utils.functions import to_async
+from propan.utils.functions import get_function_arguments, to_async
 
 T = TypeVar("T")
 
@@ -83,13 +84,19 @@ class BrokerUsecase(ABC):
 
     async def connect(self, *args: Any, **kwargs: Any) -> Any:
         if self._connection is None:
-            _args = args or self._connection_args
-            _kwargs = kwargs or self._connection_kwargs
-            self._connection = await self._connect(*_args, **_kwargs)
+            arguments = get_function_arguments(self.__init__)  # type: ignore
+            init_kwargs = args_to_kwargs(
+                arguments,
+                *self._connection_args,
+                **self._connection_kwargs,
+            )
+            connect_kwargs = args_to_kwargs(arguments, *args, **kwargs)
+            _kwargs = {**init_kwargs, **connect_kwargs}
+            self._connection = await self._connect(**_kwargs)
         return self._connection
 
     @abstractmethod
-    async def _connect(self, *args: Any, **kwargs: Any) -> Any:
+    async def _connect(self, **kwargs: Any) -> Any:
         raise NotImplementedError()
 
     @abstractmethod

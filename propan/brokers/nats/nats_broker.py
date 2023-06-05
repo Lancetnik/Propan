@@ -28,11 +28,12 @@ class NatsBroker(BrokerUsecase):
 
     def __init__(
         self,
-        *args: Any,
+        servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006
+        *,
         log_fmt: Optional[str] = None,
         **kwargs: AnyDict,
-    ):
-        super().__init__(*args, log_fmt=log_fmt, **kwargs)
+    ) -> None:
+        super().__init__(servers, log_fmt=log_fmt, **kwargs)
 
         self._connection = None
 
@@ -42,7 +43,7 @@ class NatsBroker(BrokerUsecase):
 
     async def _connect(
         self,
-        *args: Any,
+        *,
         url: Optional[str] = None,
         error_cb: Optional[ErrorCallback] = None,
         reconnected_cb: Optional[Callback] = None,
@@ -51,7 +52,6 @@ class NatsBroker(BrokerUsecase):
         if url is not None:
             kwargs["servers"] = kwargs.pop("servers", []) + [url]
         return await nats.connect(
-            *args,
             error_cb=self.log_connection_broken(error_cb),
             reconnected_cb=self.log_reconnected(reconnected_cb),
             **kwargs,

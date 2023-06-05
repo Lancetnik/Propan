@@ -21,8 +21,8 @@ class RedisBroker(BrokerUsecase):
     def __init__(
         self,
         url: str = "redis://localhost:6379",
-        polling_interval: float = 1.0,
         *,
+        polling_interval: float = 1.0,
         host: str = "localhost",
         port: Union[str, int] = 6379,
         username: Optional[str] = None,
@@ -70,6 +70,7 @@ class RedisBroker(BrokerUsecase):
         """
     async def connect(
         self,
+        *,
         url: str = "redis://localhost:6379",
         host: str = "localhost",
         port: Union[str, int] = 6379,
