@@ -43,7 +43,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fast-depends>=1.1.4",
+    "fast-depends>=1.1.5",
     "watchfiles",
     "typer",
     "uvloop>=0.14.0,!=0.15.0,!=0.15.1; sys_platform != 'win32' and (sys_platform != 'cygwin' and platform_python_implementation != 'PyPy')",
@@ -66,7 +66,7 @@ async-rabbit = [
 ]
 
 async-nats = [
-    "nats-py>=2"
+    "nats-py>=2,!=2.3.0",
 ]
 
 async-redis = [
@@ -143,6 +143,11 @@ features = [
 [tool.hatch.envs.test]
 features = [
   "test",
+  "async-sqs",
+  "async-kafka",
+  "async-nats",
+  "async-rabbit",
+  "async-redis",
 ]
 
 [[tool.hatch.envs.test.matrix]]
@@ -156,6 +161,11 @@ run-all = "pytest -m 'all'"
 python = "3.11"
 features = [
   "test",
+  "async-sqs",
+  "async-kafka",
+  "async-nats",
+  "async-rabbit",
+  "async-redis",
 ]
 
 [tool.hatch.envs.test-last.scripts]

@@ -2,19 +2,22 @@ import asyncio
 import logging
 from functools import partial, wraps
 from typing import Any, Callable, Dict, List, NoReturn, Optional, Sequence, Tuple, Union
+from uuid import uuid4
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.structs import ConsumerRecord
-from typing_extensions import TypeVar
+from typing_extensions import TypeAlias, TypeVar
 
 from propan.__about__ import __version__
 from propan.brokers._model.broker_usecase import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage
+from propan.brokers.exceptions import SkipMessage
 from propan.brokers.kafka.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.types import (
     AnyCallable,
     AnyDict,
+    DecodedMessage,
     DecoratedCallable,
     SendableMessage,
     Wrapper,
@@ -22,24 +25,30 @@ from propan.types import (
 from propan.utils.context import context
 
 T = TypeVar("T")
+CorrelationId: TypeAlias = str
 
 
 class KafkaBroker(BrokerUsecase):
     _publisher: Optional[AIOKafkaProducer]
     _connection: Callable[[Tuple[str, ...]], AIOKafkaConsumer]
     __max_topic_len: int
+    response_topic: str
+    response_callbacks: Dict[CorrelationId, "asyncio.Future[DecodedMessage]"]
     handlers: List[Handler]
 
     def __init__(
         self,
         bootstrap_servers: Union[str, List[str]] = "localhost",
         *,
+        response_topic: str = "",
         log_fmt: Optional[str] = None,
         **kwargs: AnyDict,
     ) -> None:
         super().__init__(bootstrap_servers, log_fmt=log_fmt, **kwargs)
         self.__max_topic_len = 4
         self._publisher = None
+        self.response_topic = response_topic
+        self.response_callbacks = {}
 
     async def _connect(
         self,
@@ -79,6 +88,10 @@ class KafkaBroker(BrokerUsecase):
         return partial(AIOKafkaConsumer, **consumer_kwargs)
 
     async def close(self) -> None:
+        for f in self.response_callbacks.values():
+            f.cancel()
+        self.response_callbacks = {}
+
         for handler in self.handlers:
             if handler.task is not None:
                 handler.task.cancel()
@@ -115,6 +128,13 @@ class KafkaBroker(BrokerUsecase):
         return wrapper
 
     async def start(self) -> None:
+        if self.response_topic:
+            self.handle(
+                self.response_topic,
+                _raw=True,
+                enable_auto_commit=False,
+            )(self._consume_response)
+
         context.set_local(
             "log_context",
             self._get_log_context(None, ""),
@@ -148,7 +168,16 @@ class KafkaBroker(BrokerUsecase):
     ) -> Callable[[PropanMessage], T]:
         @wraps(func)
         async def wrapper(message: PropanMessage) -> T:
-            return await func(message)
+            r = await func(message)
+
+            if message.reply_to:
+                await self.publish(
+                    message=r or "",
+                    headers={"correlation_id": message.headers.get("correlation_id")},
+                    topic=message.reply_to,
+                )
+
+            return r
 
         return wrapper
 
@@ -165,23 +194,57 @@ class KafkaBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
-    ) -> Any:
+    ) -> Optional[DecodedMessage]:
         message, content_type = super()._encode_message(message)
 
-        headers = {
+        headers_to_send = {
             "content-type": content_type or "",
-            "reply_to": reply_to,
             **(headers or {}),
         }
 
-        return await self._publisher.send(
+        if callback is True:
+            reply_to = reply_to or self.response_topic
+            if not reply_to:
+                raise ValueError(
+                    "You should specify `response_topic` at init or use `reply_to` argument"
+                )
+
+        if reply_to:
+            correlation_id = str(uuid4())
+            headers_to_send.update(
+                {
+                    "reply_to": reply_to,
+                    "correlation_id": correlation_id,
+                }
+            )
+        else:
+            correlation_id = ""
+
+        response_future: Optional["asyncio.Future[DecodedMessage]"]
+        if callback is True:
+            response_future = asyncio.Future()
+            self.response_callbacks[correlation_id] = response_future
+        else:
+            response_future = None
+
+        await self._publisher.send(
             topic=topic,
             value=message,
             key=key,
             partition=partition,
             timestamp_ms=timestamp_ms,
-            headers=[(i, j.encode()) for i, j in headers.items()],
+            headers=[(i, j.encode()) for i, j in headers_to_send.items()],
         )
+
+        if response_future is not None:
+            try:
+                response = await asyncio.wait_for(response_future, callback_timeout)
+            except asyncio.TimeoutError as e:
+                if raise_timeout is True:
+                    raise e
+                return None
+            else:
+                return response
 
     @property
     def fmt(self) -> str:
@@ -219,3 +282,12 @@ class KafkaBroker(BrokerUsecase):
                 self._log(e, logging.WATNING, c)
             else:
                 await handler.callback(msg)
+
+    async def _consume_response(self, message: PropanMessage):
+        correlation_id = message.headers.get("correlation_id")
+        if correlation_id is not None:
+            callback = self.response_callbacks.pop(correlation_id, None)
+            if callback is not None:
+                callback.set_result(await self._decode_message(message))
+
+        raise SkipMessage()

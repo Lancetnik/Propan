@@ -26,7 +26,12 @@ class NatsBroker(BrokerUsecase):
     __max_subject_len: int
     __is_connected: bool
 
-    def __init__(self, *args: Any, log_fmt: Optional[str] = None, **kwargs: AnyDict):
+    def __init__(
+        self,
+        *args: Any,
+        log_fmt: Optional[str] = None,
+        **kwargs: AnyDict,
+    ):
         super().__init__(*args, log_fmt=log_fmt, **kwargs)
 
         self._connection = None
