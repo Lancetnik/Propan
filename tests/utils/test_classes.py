@@ -1,11 +1,11 @@
-from propan.utils.classes import Singlethon
+from propan.utils.classes import Singleton
 
 
-def test_singlethon():
-    assert Singlethon() is Singlethon()
+def test_singleton():
+    assert Singleton() is Singleton()
 
 
 def test_drop():
-    s1 = Singlethon()
+    s1 = Singleton()
     s1._drop()
-    assert Singlethon() is not s1
+    assert Singleton() is not s1

@@ -86,8 +86,8 @@ class KafkaBroker(BrokerUsecase):
     ) -> None: ...
     async def connect(
         self,
-        bootstrap_servers: Union[str, List[str]] = "localhost",
         *,
+        bootstrap_servers: Union[str, List[str]] = "localhost",
         # both
         loop: Optional[AbstractEventLoop] = None,
         client_id: str = "propan-" + __version__,

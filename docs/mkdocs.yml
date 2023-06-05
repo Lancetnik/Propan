@@ -150,8 +150,10 @@ nav:
     - SQS Basics: sqs/1_sqs-index.md
   - Nats:
     - Nats Basics: nats/1_nats-index.md
-    - Routing: nats/2_routing.md
-    - Nats Publishing: nats/3_publishing.md
+    - Nats Publishing: nats/2_publishing.md
+    - Examples:
+      - Direct: nats/3_examples/1_direct.md
+      - Pattern: nats/3_examples/2_pattern.md
   - Integrations: integrations/1_integrations-index.md
   - FastAPI Plugin: integrations/2_fastapi-plugin.md  
   - Contributing:

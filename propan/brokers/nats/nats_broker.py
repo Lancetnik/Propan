@@ -28,6 +28,7 @@ class NatsBroker(BrokerUsecase):
 
     def __init__(
         self,
+<<<<<<< HEAD
         servers: Union[str, Sequence[str]] = ("nats://localhost:4222",),
         *args: Any,
         log_fmt: Optional[str] = None,
@@ -40,6 +41,14 @@ class NatsBroker(BrokerUsecase):
             url_=servers,
             **kwargs,
         )
+=======
+        servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006
+        *,
+        log_fmt: Optional[str] = None,
+        **kwargs: AnyDict,
+    ) -> None:
+        super().__init__(servers, log_fmt=log_fmt, **kwargs)
+>>>>>>> ffe6421e3859303b0ecb0c74654b5b53e06e576b
 
         self._connection = None
 
@@ -49,7 +58,7 @@ class NatsBroker(BrokerUsecase):
 
     async def _connect(
         self,
-        *args: Any,
+        *,
         url: Optional[str] = None,
         error_cb: Optional[ErrorCallback] = None,
         reconnected_cb: Optional[Callback] = None,
@@ -58,7 +67,6 @@ class NatsBroker(BrokerUsecase):
         if url is not None:
             kwargs["servers"] = kwargs.pop("servers", []) + [url]
         return await nats.connect(
-            *args,
             error_cb=self.log_connection_broken(error_cb),
             reconnected_cb=self.log_reconnected(reconnected_cb),
             **kwargs,
@@ -104,7 +112,11 @@ class NatsBroker(BrokerUsecase):
             c = self._get_log_context(None, handler.subject, handler.queue)
             self._log(f"`{func.__name__}` waiting for messages", extra=c)
 
-            sub = await self._connection.subscribe(handler.subject, cb=func)
+            sub = await self._connection.subscribe(
+                subject=handler.subject,
+                queue=handler.queue,
+                cb=func,
+            )
             handler.subscription = sub
 
     async def publish(

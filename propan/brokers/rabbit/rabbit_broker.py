@@ -1,11 +1,12 @@
 import asyncio
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 from uuid import uuid4
 
 import aio_pika
 import aiormq
 from aio_pika.abc import DeliveryMode
+from yarl import URL
 
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage
@@ -23,19 +24,29 @@ class RabbitBroker(BrokerUsecase):
     handlers: List[Handler]
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
+    _queues: List[
+        aio_pika.RobustQueue
+    ]  # save queues to shield aio-pika WeakRef from GC
 
     __max_queue_len: int
     __max_exchange_len: int
 
     def __init__(
         self,
+<<<<<<< HEAD
         url: Optional[str] = None,
         *args: Tuple[Any, ...],
         protocol: str = "amqp",
         consumers: Optional[int] = None,
+=======
+        url: Union[str, URL, None] = None,
+        *,
+>>>>>>> ffe6421e3859303b0ecb0c74654b5b53e06e576b
         log_fmt: Optional[str] = None,
+        consumers: Optional[int] = None,
         **kwargs: AnyDict,
     ) -> None:
+<<<<<<< HEAD
         super().__init__(
             url,
             *args,
@@ -44,12 +55,16 @@ class RabbitBroker(BrokerUsecase):
             url_=url,
             **kwargs,
         )
+=======
+        super().__init__(url, log_fmt=log_fmt, **kwargs)
+>>>>>>> ffe6421e3859303b0ecb0c74654b5b53e06e576b
         self._max_consumers = consumers
 
         self._channel = None
 
         self.__max_queue_len = 4
         self.__max_exchange_len = 4
+        self._queues = []
 
     async def close(self) -> None:
         if self._channel is not None:
@@ -62,11 +77,10 @@ class RabbitBroker(BrokerUsecase):
 
     async def _connect(
         self,
-        *args: Any,
         **kwargs: Any,
     ) -> aio_pika.RobustConnection:
         connection = await aio_pika.connect_robust(
-            *args, **kwargs, loop=asyncio.get_event_loop()
+            **kwargs, loop=asyncio.get_event_loop()
         )
 
         if self._channel is None:  # pragma: no branch
@@ -130,6 +144,7 @@ class RabbitBroker(BrokerUsecase):
             self._log(f"`{func.__name__}` waiting for messages", extra=c)
 
             await queue.consume(func)
+            self._queues.append(queue)
 
     async def publish(
         self,

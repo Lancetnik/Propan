@@ -30,6 +30,7 @@ class RabbitBroker(BrokerUsecase):
     def __init__(
         self,
         url: Union[str, URL, None] = None,
+        *,
         host: str = "localhost",
         port: int = 5672,
         login: str = "guest",
@@ -40,7 +41,6 @@ class RabbitBroker(BrokerUsecase):
         ssl_context: Optional[SSLContext] = None,
         timeout: aio_pika.abc.TimeoutType = None,
         client_properties: Optional[FieldTable] = None,
-        *,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
@@ -78,6 +78,7 @@ class RabbitBroker(BrokerUsecase):
         """
     async def connect(
         self,
+        *,
         url: Union[str, URL, None] = None,
         host: str = "localhost",
         port: int = 5672,

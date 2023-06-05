@@ -1,7 +1,7 @@
 # Pattern
 
 **Pattern** Channel is a powerful *Redis* routing engine. This type of `channel` sends messages to consumers by the *pattern*
-specified when they connect to the `channel` and the message key.
+specified when they connect to the `channel` and a message key.
 
 ## Scaling
 
