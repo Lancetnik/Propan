@@ -14,8 +14,9 @@ async def base_handler(body: str):
 
 Чтобы узнать подробнее о поведении специализированных брокеров перейдите в следующие разделы:
 
-* [RabbitBroker](../../../rabbit/1_routing)
-* [NatsBroker](../../../nats/1_nats-index)
+* [RabbitBroker](../../../rabbit/1_routing/#routing-rules)
+* [NatsBroker](../../../nats/1_nats-index/#routing-rules)
+* [RedisBroker](../../../redis/1_redis-index/#routing-rules)
 
 ## Обработка ошибок
 
