@@ -1,11 +1,14 @@
 import asyncio
 from dataclasses import dataclass
+from dataclasses import field as DField
 from typing import Any, Dict, Optional, Sequence
 
 from pydantic import BaseModel, Field, PositiveInt
 from typing_extensions import Literal
 
+from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import BaseHandler, Queue
+from propan.types import SendableMessage
 
 
 class RedrivePolicy(BaseModel):
@@ -201,3 +204,44 @@ class Handler(BaseHandler):
     consumer_params: Dict[str, Any]
 
     task: Optional["asyncio.Task[Any]"] = None
+
+
+@dataclass
+class SQSMessage:
+    message: SendableMessage
+    delay_seconds: int = 0
+    deduplication_id: Optional[str] = None
+    group_id: Optional[str] = None
+    headers: Dict[str, str] = DField(default_factory=dict)
+    message_attributes: Dict[str, Any] = DField(default_factory=dict)
+    message_system_attributes: Dict[str, Any] = DField(default_factory=dict)
+
+    def to_params(self, **extra_headers: Any) -> Dict[str, Any]:
+        msg, content_type = BrokerUsecase._encode_message(self.message)
+
+        headers = {**extra_headers, "content-type": content_type, **self.headers}
+
+        params = {
+            "MessageBody": msg.decode(),
+            "DelaySeconds": self.delay_seconds,
+            "MessageSystemAttributes": self.message_system_attributes,
+            "MessageAttributes": {
+                **self.message_attributes,
+                **{
+                    i: {
+                        "StringValue": j,
+                        "DataType": "String",
+                    }
+                    for i, j in headers.items()
+                    if j
+                },
+            },
+        }
+
+        if self.deduplication_id is not None:
+            params["MessageDeduplicationId"] = self.deduplication_id
+
+        if self.group_id is not None:
+            params["MessageGroupId"] = self.group_id
+
+        return params

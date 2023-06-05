@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import (
     Any,
@@ -20,7 +21,7 @@ from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.sqs.schema import Handler, SQSQueue
 from propan.log import access_logger
-from propan.types import HandlerWrapper, SendableMessage
+from propan.types import DecodedMessage, HandlerWrapper, SendableMessage
 
 T = TypeVar("T")
 QueueUrl: TypeAlias = str
@@ -28,12 +29,15 @@ QueueUrl: TypeAlias = str
 class SQSBroker(BrokerUsecase):
     _connection: AioBaseClient
     _queues: Dict[str, QueueUrl]
+    response_queue: str
+    response_callbacks: Dict[str, "asyncio.Future[DecodedMessage]"]
     handlers: List[Handler]
 
     def __init__(
         self,
         url: str = "http://localhost:9324/",
         *,
+        response_queue: str = "",
         region_name: Optional[str] = None,
         api_version: Optional[str] = None,
         use_ssl: bool = True,
@@ -63,8 +67,9 @@ class SQSBroker(BrokerUsecase):
         config: Optional[AioConfig] = None,
     ) -> AioBaseClient:
         """"""
+    async def close(self) -> None:
+        """"""
     async def _connect(self, **kwargs: Any) -> AioBaseClient: ...
-    async def close(self) -> None: ...
     async def _parse_message(self, message: Dict[str, Any]) -> PropanMessage: ...
     def _process_message(
         self,
@@ -86,7 +91,37 @@ class SQSBroker(BrokerUsecase):
         callback: bool = False,
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
-    ) -> None: ...
+    ) -> None:
+        """"""
+    def handle(  # type: ignore[override]
+        self,
+        queue: Union[str, SQSQueue],
+        *,
+        wait_interval: int = 1,
+        max_messages_number: int = 10,  # 1...10
+        attributes: Sequence[str] = (),
+        message_attributes: Sequence[str] = (),
+        request_attempt_id: Optional[str] = None,
+        visibility_timeout: int = 0,
+        retry: Union[bool, int] = False,
+    ) -> HandlerWrapper:
+        """"""
+    async def start(self) -> None:
+        """"""
+    async def create_queue(self, queue: str) -> QueueUrl:
+        """"""
+    async def delete_queue(self, queue: str) -> None:
+        """"""
+    async def get_queue(self, queue: str) -> QueueUrl:
+        """"""
+    async def delete_message(self) -> None:
+        """"""
+    async def _consume(self, queue_url: str, handler: Handler) -> NoReturn: ...
+    @property
+    def fmt(self) -> str: ...
+    def _get_log_context(  # type: ignore[override]
+        self, message: Optional[PropanMessage], queue: str
+    ) -> Dict[str, Any]: ...
     @classmethod
     def _build_message(
         cls,
@@ -103,26 +138,10 @@ class SQSBroker(BrokerUsecase):
         # broker
         reply_to: str = "",
     ) -> Dict[str, Any]: ...
-    def handle(  # type: ignore[override]
+    async def _parse_message(self, message: Dict[str, Any]) -> PropanMessage: ...
+    def _process_message(
         self,
-        queue: Union[str, SQSQueue],
-        *,
-        wait_interval: int = 1,
-        max_messages_number: int = 10,  # 1...10
-        attributes: Sequence[str] = (),
-        message_attributes: Sequence[str] = (),
-        request_attempt_id: Optional[str] = None,
-        visibility_timeout: int = 0,
-        retry: Union[bool, int] = False,
-    ) -> HandlerWrapper: ...
-    async def start(self) -> None: ...
-    async def create_queue(self, queue: str) -> QueueUrl: ...
-    async def delete_queue(self, queue: str) -> None: ...
-    async def get_queue(self, queue: str) -> QueueUrl: ...
-    async def delete_message(self) -> None: ...
-    async def _consume(self, queue_url: str, handler: Handler) -> NoReturn: ...
-    @property
-    def fmt(self) -> str: ...
-    def _get_log_context(  # type: ignore[override]
-        self, message: Optional[PropanMessage], queue: str
-    ) -> Dict[str, Any]: ...
+        func: Callable[[PropanMessage], T],
+        watcher: Optional[BaseWatcher],
+    ) -> Callable[[PropanMessage], T]: ...
+    async def _connect(self, *args: Any, **kwargs: Any) -> AioBaseClient: ...

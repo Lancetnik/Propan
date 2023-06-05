@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 import pytest_asyncio
 from aiobotocore.config import AioConfig
@@ -19,13 +21,26 @@ def settings():
 
 
 @pytest_asyncio.fixture
-@pytest.mark.redis
+@pytest.mark.sqs
 async def broker(settings: Settings):
     broker = SQSBroker(
         settings.url,
         region_name=settings.region_name,
         config=AioConfig(signature_version=UNSIGNED),
         apply_types=False,
+    )
+    yield broker
+    await broker.close()
+
+
+@pytest_asyncio.fixture
+@pytest.mark.sqs
+async def full_broker(settings):
+    broker = SQSBroker(
+        settings.url,
+        region_name=settings.region_name,
+        config=AioConfig(signature_version=UNSIGNED),
+        response_queue=str(uuid4()),
     )
     yield broker
     await broker.close()

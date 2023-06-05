@@ -2,8 +2,23 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, TypeVar, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
+from fast_depends.construct import get_dependant
+from fast_depends.model import Dependant
+from pydantic.fields import ModelField
 from fast_depends.utils import args_to_kwargs
 from typing_extensions import Self
 
@@ -19,6 +34,7 @@ from propan.brokers._model.utils import (
     set_message_context,
     suppress_decor,
 )
+from propan.brokers.exceptions import SkipMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
 from propan.types import (
@@ -168,12 +184,18 @@ class BrokerUsecase(ABC):
         _raw: bool = False,
         **broker_args: Any,
     ) -> DecoratedAsync:
+        dependant: Dependant = get_dependant(path="", call=func)
+
         f = to_async(func)
 
         if self._is_apply_types is True:
             f = apply_types(f)
 
-        f = self._wrap_decode_message(f, _raw=_raw)
+        f = self._wrap_decode_message(
+            f,
+            _raw=_raw,
+            params=dependant.real_params,
+        )
 
         if self.logger is not None:
             f = self._log_execution(**broker_args)(f)
@@ -191,6 +213,7 @@ class BrokerUsecase(ABC):
     def _wrap_decode_message(
         self,
         func: Callable[..., Awaitable[T]],
+        params: Sequence[ModelField] = (),
         _raw: bool = False,
     ) -> Callable[[PropanMessage], Awaitable[T]]:
         decode: Callable[
@@ -201,9 +224,15 @@ class BrokerUsecase(ABC):
         else:
             decode = self._decode_message
 
+        is_unwrap = len(params) > 1
+
         @wraps(func)
         async def wrapper(message: PropanMessage) -> T:
-            return await func(await decode(message))
+            msg = await decode(message)
+            if is_unwrap is True and isinstance(msg, Mapping):
+                return await func(**msg)
+            else:
+                return await func(msg)
 
         return wrapper
 
@@ -211,10 +240,10 @@ class BrokerUsecase(ABC):
         self, func: Callable[[PropanMessage], Awaitable[T]]
     ) -> Callable[[Any], Awaitable[T]]:
         @wraps(func)
-        async def wrapper(message: Any) -> T:
+        async def parse_wrapper(message: Any) -> T:
             return await func(await self._parse_message(message))
 
-        return wrapper
+        return parse_wrapper
 
     def _log_execution(
         self,
@@ -224,7 +253,7 @@ class BrokerUsecase(ABC):
             func: Callable[[PropanMessage], Awaitable[T]]
         ) -> Callable[[PropanMessage], Awaitable[T]]:
             @wraps(func)
-            async def wrapper(message: PropanMessage) -> T:
+            async def log_wrapper(message: PropanMessage) -> T:
                 log_context = self._get_log_context(message=message, **broker_args)
 
                 with context.scope("log_context", log_context):
@@ -232,6 +261,9 @@ class BrokerUsecase(ABC):
 
                     try:
                         r = await func(message)
+                    except SkipMessage as e:
+                        self._log("Skipped", extra=log_context)
+                        raise e
                     except Exception as e:
                         self._log(repr(e), logging.ERROR)
                         raise e
@@ -239,7 +271,7 @@ class BrokerUsecase(ABC):
                         self._log("Processed", extra=log_context)
                         return r
 
-            return wrapper
+            return log_wrapper
 
         return decor
 
