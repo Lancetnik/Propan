@@ -55,8 +55,8 @@ class SQSBroker(BrokerUsecase):
         """"""
     async def connect(
         self,
-        url: str = "http://localhost:9324/",
         *,
+        url: str = "http://localhost:9324/",
         region_name: Optional[str] = None,
         api_version: Optional[str] = None,
         use_ssl: bool = True,
@@ -69,13 +69,6 @@ class SQSBroker(BrokerUsecase):
         """"""
     async def close(self) -> None:
         """"""
-    async def _connect(self, **kwargs: Any) -> AioBaseClient: ...
-    async def _parse_message(self, message: Dict[str, Any]) -> PropanMessage: ...
-    def _process_message(
-        self,
-        func: Callable[[PropanMessage], T],
-        watcher: Optional[BaseWatcher],
-    ) -> Callable[[PropanMessage], T]: ...
     async def publish(  # type: ignore[override]
         self,
         message: SendableMessage,

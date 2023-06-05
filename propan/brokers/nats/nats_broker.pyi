@@ -76,8 +76,8 @@ class NatsBroker(BrokerUsecase):
     ) -> None: ...
     async def connect(
         self,
-        servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006
         *,
+        servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006
         error_cb: Optional[ErrorCallback] = None,
         disconnected_cb: Optional[Callback] = None,
         closed_cb: Optional[Callback] = None,

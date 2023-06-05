@@ -70,6 +70,7 @@ class RedisBroker(BrokerUsecase):
         """
     async def connect(
         self,
+        *,
         url: str = "redis://localhost:6379",
         host: str = "localhost",
         port: Union[str, int] = 6379,

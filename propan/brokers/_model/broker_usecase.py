@@ -18,8 +18,8 @@ from typing import (
 
 from fast_depends.construct import get_dependant
 from fast_depends.model import Dependant
-from pydantic.fields import ModelField
 from fast_depends.utils import args_to_kwargs
+from pydantic.fields import ModelField
 from typing_extensions import Self
 
 from propan.brokers._model.schemas import (
@@ -86,7 +86,9 @@ class BrokerUsecase(ABC):
         if self._connection is None:
             arguments = get_function_arguments(self.__init__)  # type: ignore
             init_kwargs = args_to_kwargs(
-                arguments, *self._connection_args, **self._connection_kwargs
+                arguments,
+                *self._connection_args,
+                **self._connection_kwargs,
             )
             connect_kwargs = args_to_kwargs(arguments, *args, **kwargs)
             _kwargs = {**init_kwargs, **connect_kwargs}
