@@ -36,8 +36,8 @@ class PropanApp:
         broker: Optional[Runnable] = None,
         logger: Optional[logging.Logger] = logger,
         # AsyncAPI args,
-        title: str = "PropanApp",
-        version: str = "1.0.0",
+        title: str = "Propan",
+        version: str = "0.1.0",
         description: str = "",
     ):
         self.broker = broker

@@ -3,8 +3,10 @@ from pathlib import Path
 
 import typer
 
-from propan.cli.docs.gen import generate_doc_file
+from propan.cli.docs.gen import generate_doc_file, get_schema_yaml
+from propan.cli.docs.serve import serve_docs
 from propan.cli.utils.imports import get_app_path, try_import_propan
+
 
 docs_app = typer.Typer(pretty_exceptions_short=True)
 
@@ -33,3 +35,25 @@ def gen(
     propan_app = try_import_propan(module, app)
 
     generate_doc_file(propan_app, generated_filepath)
+
+
+@docs_app.command(name="serve")
+def serve(
+    app: str = typer.Argument(
+        ..., help="[python_module:PropanApp] - path to your application"
+    ),
+    host: str = typer.Option(
+        "localhost", help="documentation hosting address"
+    ),
+    port: int = typer.Option(
+        8000, help="documentation hosting port"
+    )
+) -> None:
+    """Serve project AsyncAPI scheme"""
+    module, app = get_app_path(app)
+    app_dir = module.parent
+    sys.path.insert(0, str(app_dir))
+    propan_app = try_import_propan(module, app)
+
+    schema = get_schema_yaml(propan_app)
+    serve_docs(schema, host, port)

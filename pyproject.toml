@@ -82,6 +82,8 @@ doc = [
     "pytest[email]",
     "polyfactory",
     "jsonref",
+    "fastapi",
+    "uvicorn",
 ]
 
 async-sqs = [
