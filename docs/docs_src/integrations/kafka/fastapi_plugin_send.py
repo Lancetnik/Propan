@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from propan.fastapi import KafkaRouter
 
-app = FastAPI()
-
 router = KafkaRouter("localhost:9092")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 @router.get("/")
 async def hello_http():

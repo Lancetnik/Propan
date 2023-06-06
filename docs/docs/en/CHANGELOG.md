@@ -74,9 +74,9 @@ Great news! Now **Propan** can be used as a full part of **FastAPI**!
 from fastapi import FastAPI
 from propan.fastapi import RabbitRouter
 
-app = FastAPI()
-
 router = RabbitRouter("amqp://guest:guest@localhost:5672")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 @router.event("test")
 async def hello(m: dict) -> dict:

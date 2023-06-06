@@ -2,9 +2,9 @@ from fastapi import Depends, FastAPI
 from pydantic import BaseModel
 from propan.fastapi import NatsRouter
 
-app = FastAPI()
-
 router = NatsRouter("nats://localhost:4222")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 class Incoming(BaseModel):
     m: dict

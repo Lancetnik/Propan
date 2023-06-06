@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from propan.fastapi import NatsRouter
 
-app = FastAPI()
-
 router = NatsRouter("nats://localhost:4222")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 @router.get("/")
 async def hello_http():

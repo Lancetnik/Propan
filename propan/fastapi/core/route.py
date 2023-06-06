@@ -1,7 +1,7 @@
 import asyncio
 import inspect
 from itertools import dropwhile
-from typing import Any, Callable, Coroutine, Optional, Union
+from typing import Any, Callable, Coroutine, Optional
 
 from fastapi.dependencies.models import Dependant
 from fastapi.dependencies.utils import get_dependant, solve_dependencies
@@ -73,7 +73,7 @@ class PropanMessage(Request):
         )
 
         async def app(message: NativeMessage) -> Any:
-            body: Union[AnyDict, bytes] = message.body
+            body = message.decoded_body
             if first_arg is not None:
                 if not isinstance(body, dict):  # pragma: no branch
                     body = {first_arg: body}
