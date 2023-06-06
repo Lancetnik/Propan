@@ -26,13 +26,7 @@ from propan.types import AnyCallable
 
 Partition = TypeVar("Partition")
 
-<<<<<<< HEAD
-class KafkaRouter(PropanRouter):
-    broker: KafkaBroker
-
-=======
 class KafkaRouter(PropanRouter[KafkaBroker]):
->>>>>>> 1acd1a468477ed27a085d3d1c6f38d967e64f1f9
     def __init__(
         self,
         bootstrap_servers: Union[str, List[str]] = "localhost",
