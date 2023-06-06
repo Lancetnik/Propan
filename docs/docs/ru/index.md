@@ -41,7 +41,7 @@
 * [**Управление зависимостями**](getting_started/1_quick-start/#_4): Эффективное переиспользование за счет аннотации типов. Доступ к зависимостями во всем стеке вызова.
 * [**Интeграция**](getting_started/1_quick-start/#http): Propan полностью совместим с [любыми HTTP фреймворками](integrations/1_integrations-index/)
 * **Независимость от брокеров**: Единый интерфейс для популярных брокеров:
-    * **Redis** (основан на [redis-py]("{{ urls.redis }}"){target="_blank"})
+    * **Redis** (основан на [redis-py]({{ urls.redis }}){target="_blank"})
     * **RabbitMQ** (основан на [aio-pika]({{ urls.aio_pika }}){target="_blank"})
     * **Kafka** (основан на [aiokafka]({{ urls.aiokafka }}){target="_blank"})
     * **SQS** (основан на [aiobotocore]({{ urls.aiobotocore }}){target="_blank"})
