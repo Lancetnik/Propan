@@ -3,9 +3,9 @@ from propan import NatsBroker
 from propan.fastapi import NatsRouter
 from typing_extensions import Annotated
 
-app = FastAPI()
-
 router = NatsRouter("nats://localhost:4222")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 def broker():
     return router.broker

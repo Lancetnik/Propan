@@ -3,9 +3,9 @@ from propan import KafkaBroker
 from propan.fastapi import KafkaRouter
 from typing_extensions import Annotated
 
-app = FastAPI()
-
 router = KafkaRouter("localhost:9092")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 def broker():
     return router.broker

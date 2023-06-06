@@ -2,9 +2,9 @@ from fastapi import Depends, FastAPI
 from pydantic import BaseModel
 from propan.fastapi import RedisRouter
 
-app = FastAPI()
-
 router = RedisRouter("redis://localhost:6379")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 class Incoming(BaseModel):
     m: dict

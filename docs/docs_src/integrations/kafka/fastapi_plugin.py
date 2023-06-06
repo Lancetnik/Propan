@@ -2,9 +2,9 @@ from fastapi import Depends, FastAPI
 from pydantic import BaseModel
 from propan.fastapi import KafkaRouter
 
-app = FastAPI()
-
 router = KafkaRouter("localhost:9092")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 class Incoming(BaseModel):
     m: dict
