@@ -240,21 +240,19 @@ class BrokerUsecase(ABC):
         params: Sequence[Any] = (),
         _raw: bool = False,
     ) -> Callable[[PropanMessage], Awaitable[T]]:
-        decode: Callable[
-            [PropanMessage], Awaitable[Union[PropanMessage, DecodedMessage]]
-        ]
-        if _raw is True:
-            decode = _fake_decode
-        else:
-            decode = self._decode_message
-
         is_unwrap = len(params) > 1
 
         @wraps(func)
         async def wrapper(message: PropanMessage) -> T:
-            msg = await decode(message)
-            if is_unwrap is True and isinstance(msg, Mapping):
+            msg = await self._decode_message(message)
+            message.decoded_body = msg
+
+            if _raw is True:
+                return await func(message)
+
+            elif is_unwrap is True and isinstance(msg, Mapping):
                 return await func(**msg)
+
             else:
                 return await func(msg)
 
@@ -309,10 +307,6 @@ class BrokerUsecase(ABC):
             self.logger.log(
                 level=(log_level or self.log_level), msg=message, extra=extra
             )
-
-
-async def _fake_decode(message: PropanMessage) -> PropanMessage:
-    return message
 
 
 def extend_dependencies(extra: Sequence[Dependant]) -> Callable[[Dependant], Dependant]:

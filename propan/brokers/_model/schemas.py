@@ -196,3 +196,4 @@ class PropanMessage:
     reply_to: str = ""
     headers: AnyDict = Field(default_factory=dict)
     message_id: str = Field(default_factory=lambda: str(uuid4()))
+    decoded_body: Optional[DecodedMessage] = None
