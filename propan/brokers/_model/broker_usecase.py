@@ -2,6 +2,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
+from itertools import chain
 from typing import (
     Any,
     Awaitable,
@@ -17,9 +18,8 @@ from typing import (
 )
 
 from fast_depends.construct import get_dependant
-from fast_depends.model import Dependant
+from fast_depends.model import Dependant, Depends
 from fast_depends.utils import args_to_kwargs
-from pydantic.fields import ModelField
 from typing_extensions import Self
 
 from propan.brokers._model.schemas import (
@@ -48,7 +48,7 @@ from propan.types import (
     Wrapper,
 )
 from propan.utils import apply_types, context
-from propan.utils.functions import get_function_arguments, to_async
+from propan.utils.functions import get_function_positional_arguments, to_async
 
 T = TypeVar("T")
 
@@ -57,6 +57,7 @@ class BrokerUsecase(ABC):
     logger: Optional[logging.Logger]
     log_level: int
     handlers: Sequence[BaseHandler]
+    dependencies: Sequence[Depends]
     _connection: Any
     _fmt: Optional[str]
 
@@ -67,8 +68,10 @@ class BrokerUsecase(ABC):
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
+        dependencies: Sequence[Depends] = (),
         # AsyncAPI
         protocol: str = "",
+        protocol_version: Optional[str] = None,
         url_: Union[str, List[str]] = "",
         **kwargs: Any,
     ) -> None:
@@ -79,6 +82,7 @@ class BrokerUsecase(ABC):
         self._connection = None
         self._is_apply_types = apply_types
         self.handlers = []
+        self.dependencies = dependencies
 
         self._connection_args = args
         self._connection_kwargs = kwargs
@@ -87,11 +91,12 @@ class BrokerUsecase(ABC):
         context.set_global("broker", self)
 
         self.protocol = protocol
+        self.protocol_version = protocol_version
         self.url = url_
 
     async def connect(self, *args: Any, **kwargs: Any) -> Any:
         if self._connection is None:
-            arguments = get_function_arguments(self.__init__)  # type: ignore
+            arguments = get_function_positional_arguments(self.__init__)  # type: ignore
             init_kwargs = args_to_kwargs(
                 arguments,
                 *self._connection_args,
@@ -148,6 +153,7 @@ class BrokerUsecase(ABC):
     def handle(
         self,
         *broker_args: Any,
+        dependencies: Sequence[Depends] = (),
         retry: Union[bool, int] = False,
         _raw: bool = False,
         **broker_kwargs: Any,
@@ -191,19 +197,28 @@ class BrokerUsecase(ABC):
         func: AnyCallable,
         retry: Union[bool, int] = False,
         _raw: bool = False,
+        extra_dependencies: Sequence[Depends] = (),
         **broker_args: Any,
-    ) -> DecoratedAsync:
+    ) -> Tuple[DecoratedAsync, Dependant]:
         dependant: Dependant = get_dependant(path="", call=func)
+        extra: List[Dependant] = [
+            get_dependant(path="", call=d.dependency)
+            for d in chain(extra_dependencies, self.dependencies)
+        ]
+        dependant.dependencies.extend(extra)
 
         f = to_async(func)
 
         if self._is_apply_types is True:
-            f = apply_types(f)
+            f = apply_types(
+                func=f,
+                wrap_dependant=extend_dependencies(extra),
+            )
 
         f = self._wrap_decode_message(
             f,
             _raw=_raw,
-            params=dependant.real_params,
+            params=tuple(chain(dependant.flat_params, extra)),
         )
 
         if self.logger is not None:
@@ -217,12 +232,12 @@ class BrokerUsecase(ABC):
 
         f = suppress_decor(f)
 
-        return f
+        return f, dependant
 
     def _wrap_decode_message(
         self,
         func: Callable[..., Awaitable[T]],
-        params: Sequence[ModelField] = (),
+        params: Sequence[Any] = (),
         _raw: bool = False,
     ) -> Callable[[PropanMessage], Awaitable[T]]:
         decode: Callable[
@@ -298,3 +313,11 @@ class BrokerUsecase(ABC):
 
 async def _fake_decode(message: PropanMessage) -> PropanMessage:
     return message
+
+
+def extend_dependencies(extra: Sequence[Dependant]) -> Callable[[Dependant], Dependant]:
+    def dependant_wrapper(dependant: Dependant) -> Dependant:
+        dependant.dependencies.extend(extra)
+        return dependant
+
+    return dependant_wrapper

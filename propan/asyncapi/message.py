@@ -29,6 +29,7 @@ class AsyncAPIMessage(BaseModel):
     )
 
     payload: Dict[str, Any]
+    # TODO:
     # headers
     # schemaFormat
     # bindings

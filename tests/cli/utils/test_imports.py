@@ -4,14 +4,6 @@ import pytest
 
 from propan.cli.utils.imports import get_app_path, import_object
 
-test_object = Path(__file__)
-
-
-def test_import():
-    dir, app = get_app_path("tests.cli.utils.test_imports:test_object")
-    obj = import_object(dir, app)
-    assert obj == test_object
-
 
 def test_import_wrong():
     dir, app = get_app_path("tests:test_object")

@@ -16,6 +16,7 @@ from uuid import uuid4
 
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
+from fast_depends.model import Depends
 from typing_extensions import TypeAlias
 
 from propan.brokers._model import BrokerUsecase
@@ -55,9 +56,16 @@ class SQSBroker(BrokerUsecase):
         *,
         log_fmt: Optional[str] = None,
         response_queue: str = "",
+        protocol: str = "sqs",
         **kwargs: Any,
     ) -> None:
-        super().__init__(url, log_fmt=log_fmt, **kwargs)
+        super().__init__(
+            url,
+            log_fmt=log_fmt,
+            url_=url,
+            protocol=protocol,
+            **kwargs,
+        )
         self._queues = {}
         self.__max_queue_len = 4
         self.response_queue = response_queue
@@ -144,6 +152,8 @@ class SQSBroker(BrokerUsecase):
         request_attempt_id: Optional[str] = None,
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
+        dependencies: Sequence[Depends] = (),
+        description: str = "",
         _raw: bool = False,
     ) -> HandlerWrapper:
         if isinstance(queue, str):
@@ -167,13 +177,20 @@ class SQSBroker(BrokerUsecase):
             params["ReceiveRequestAttemptId"] = request_attempt_id
 
         def wrapper(func: AnyCallable) -> DecoratedCallable:
-            func = self._wrap_handler(
+            func, dependant = self._wrap_handler(
                 func,
                 queue=queue.name,
                 retry=retry,
+                extra_dependencies=dependencies,
                 _raw=_raw,
             )
-            handler = Handler(callback=func, queue=queue, consumer_params=params)
+            handler = Handler(
+                callback=func,
+                queue=queue,
+                consumer_params=params,
+                _description=description,
+                dependant=dependant,
+            )
             self.handlers.append(handler)
             return func
 

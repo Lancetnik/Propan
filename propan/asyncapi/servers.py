@@ -8,7 +8,7 @@ from propan.asyncapi.utils import AsyncAPITag
 class AsyncAPIServer(BaseModel):
     url: str
     protocol: str
-    description: str = ""
+    description: Optional[str] = None
     protocol_version: Optional[str] = Field(
         default=None,
         alias="protocolVersion",

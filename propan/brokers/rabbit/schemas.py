@@ -122,7 +122,7 @@ class Handler(BaseHandler):
         return {
             self.title: AsyncAPIChannel(
                 subscribe=AsyncAPISubscription(
-                    description=self.description or self.callback.__doc__,
+                    description=self.description,
                     bindings=AsyncAPIOperationBinding(
                         amqp=amqp.AsyncAPIAmqpOperationBinding(
                             cc=None
@@ -132,34 +132,40 @@ class Handler(BaseHandler):
                                 in (ExchangeType.FANOUT, ExchangeType.HEADERS)
                             )
                             else self.queue.name,
-                            reply_to=reply_to,
+                            replyTo=reply_to,
                         ),
                     ),
                     message=AsyncAPIMessage(
-                        name=message_title,
+                        title=message_title,
                         payload=body,
-                        correlation_id=AsyncAPICorrelationId(
+                        correlationId=AsyncAPICorrelationId(
                             location="$message.header#/correlation_id"
                         ),
                     ),
                 ),
                 bindings=AsyncAPIChannelBinding(
                     amqp=amqp.AsyncAPIAmqpChannelBinding(
-                        is_="routingKey",
-                        queue=amqp.AsyncAPIAmqpQueue(
+                        is_="routingKey",  # type: ignore
+                        queue=None
+                        if (
+                            self.exchange
+                            and self.exchange.type
+                            in (ExchangeType.FANOUT, ExchangeType.HEADERS)
+                        )
+                        else amqp.AsyncAPIAmqpQueue(
                             name=self.queue.name,
                             durable=self.queue.durable,
                             exclusive=self.queue.exclusive,
-                            auto_delete=self.queue.auto_delete,
+                            autoDelete=self.queue.auto_delete,
                         ),
                         exchange=(
                             amqp.AsyncAPIAmqpExchange(type="default")
                             if self.exchange is None
                             else amqp.AsyncAPIAmqpExchange(
-                                type=self.exchange.type.value,
+                                type=self.exchange.type.value,  # type: ignore
                                 name=self.exchange.name,
                                 durable=self.exchange.durable,
-                                auto_delete=self.exchange.auto_delete,
+                                autoDelete=self.exchange.auto_delete,
                             )
                         ),
                     )

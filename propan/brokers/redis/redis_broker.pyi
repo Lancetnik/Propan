@@ -1,6 +1,18 @@
 import logging
-from typing import Any, Callable, Dict, List, Mapping, Optional, Type, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+)
 
+from fast_depends.model import Depends
 from redis.asyncio.client import Redis
 from redis.asyncio.connection import BaseParser, Connection, DefaultParser, Encoder
 
@@ -49,6 +61,8 @@ class RedisBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        dependencies: Sequence[Depends] = (),
+        protocol: str = "redis",
     ) -> None:
         """Redis Pub/sub Propan broker
 
@@ -122,6 +136,8 @@ class RedisBroker(BrokerUsecase):
         channel: str,
         *,
         pattern: bool = False,
+        dependencies: Sequence[Depends] = (),
+        description: str = "",
     ) -> HandlerWrapper:
         """Register channel consumer method
 

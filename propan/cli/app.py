@@ -6,6 +6,7 @@ from anyio import create_memory_object_stream, create_task_group
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 from typing_extensions import Protocol
 
+from propan.asyncapi.info import AsyncAPIContact, AsyncAPILicense
 from propan.cli.supervisors.utils import set_exit
 from propan.cli.utils.parser import SettingField
 from propan.log import logger
@@ -30,6 +31,8 @@ class PropanApp:
 
     _stop_stream: Optional[MemoryObjectSendStream[bool]]
     _receive_stream: Optional[MemoryObjectReceiveStream[bool]]
+    license: Optional[AsyncAPILicense]
+    contact: Optional[AsyncAPIContact]
 
     def __init__(
         self,
@@ -39,6 +42,8 @@ class PropanApp:
         title: str = "Propan",
         version: str = "0.1.0",
         description: str = "",
+        license: Optional[AsyncAPILicense] = None,
+        contact: Optional[AsyncAPIContact] = None,
     ):
         self.broker = broker
         self.logger = logger
@@ -56,6 +61,8 @@ class PropanApp:
         self.title = title
         self.version = version
         self.description = description
+        self.license = license
+        self.contact = contact
 
     def set_broker(self, broker: Runnable) -> None:
         self.broker = broker

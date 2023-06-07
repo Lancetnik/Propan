@@ -33,8 +33,8 @@ class AsyncAPIAmqpExchange(BaseModel):
 
 class AsyncAPIAmqpChannelBinding(BaseModel):
     is_: Literal["queue", "routingKey"] = Field(..., alias="is")
-    version: Optional[str] = Field(
-        default=None,
+    version: str = Field(
+        default="0.2.0",
         alias="bindingVersion",
     )
     queue: Optional[AsyncAPIAmqpQueue] = None
@@ -48,6 +48,10 @@ class AsyncAPIAmqpOperationBinding(BaseModel):
     cc: Optional[str] = None
     ack: bool = True
     reply_to: Optional[AnyDict] = Field(default=None, alias="replyTo")
+    version: str = Field(
+        default="0.2.0",
+        alias="bindingVersion",
+    )
 
     class Config:
         allow_population_by_field_name = True

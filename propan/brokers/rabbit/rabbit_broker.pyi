@@ -1,9 +1,21 @@
 import logging
 from ssl import SSLContext
-from typing import Any, Callable, Coroutine, Dict, List, Optional, Type, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Coroutine,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import aio_pika
 import aiormq
+from fast_depends.model import Depends
 from pamqp.common import FieldTable
 from typing_extensions import ParamSpec
 from yarl import URL
@@ -41,13 +53,16 @@ class RabbitBroker(BrokerUsecase):
         ssl_context: Optional[SSLContext] = None,
         timeout: aio_pika.abc.TimeoutType = None,
         client_properties: Optional[FieldTable] = None,
+        # broker
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         consumers: Optional[int] = None,
+        dependencies: Sequence[Depends] = (),
         # AsyncAPI
         protocol: str = "amqp",
+        protocol_version: str = "0.9.1",
     ) -> None:
         """RabbitMQ Propan broker
 
@@ -72,6 +87,7 @@ class RabbitBroker(BrokerUsecase):
             log_fmt: custom log formatting string
             apply_types: wrap brokers handlers to FastDepends decorator
             consumers: max messages to proccess at the same time
+            dependencies: dependencies applied to all broker hadlers
 
         .. _RFC3986: https://goo.gl/MzgYAs
         .. _official Python documentation: https://goo.gl/pty9xA
@@ -187,6 +203,7 @@ class RabbitBroker(BrokerUsecase):
         exchange: Union[str, RabbitExchange, None] = None,
         *,
         retry: Union[bool, int] = False,
+        dependencies: Sequence[Depends] = (),
         # AsyncAPI
         description: str = "",
     ) -> Callable[
@@ -203,6 +220,7 @@ class RabbitBroker(BrokerUsecase):
             queue: queue to consume messages
             exchange: exchange to bind queue
             retry: at message exception will returns to queue `int` times or endless if `True`
+            description: AsyncAPI channel object description
 
         Returns:
             Async or sync function decorator

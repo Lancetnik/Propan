@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.structs import ConsumerRecord
+from fast_depends.model import Depends
 from typing_extensions import TypeAlias, TypeVar
 
 from propan.__about__ import __version__
@@ -42,12 +43,16 @@ class KafkaBroker(BrokerUsecase):
         *,
         response_topic: str = "",
         log_fmt: Optional[str] = None,
+        protocol: str = "kafka",
+        api_version: str = "auto",
         **kwargs: AnyDict,
     ) -> None:
         super().__init__(
             bootstrap_servers,
             log_fmt=log_fmt,
             url_=bootstrap_servers,
+            protocol=protocol,
+            protocol_version=api_version,
             **kwargs,
         )
         self.__max_topic_len = 4
@@ -112,17 +117,27 @@ class KafkaBroker(BrokerUsecase):
         self,
         *topics: str,
         _raw: bool = False,
+        dependencies: Sequence[Depends] = (),
+        description: str = "",
+        group_id: Optional[str] = None,
         **kwargs: AnyDict,
     ) -> Wrapper:
         def wrapper(func: AnyCallable) -> DecoratedCallable:
             for t in topics:
                 self.__max_topic_len = max((self.__max_topic_len, len(t)))
 
-            func = self._wrap_handler(func, _raw=_raw)
+            func, dependant = self._wrap_handler(
+                func,
+                _raw=_raw,
+                extra_dependencies=dependencies,
+            )
             handler = Handler(
                 callback=func,
                 topics=topics,
+                _description=description,
+                group_id=group_id,
                 consumer_kwargs=kwargs,
+                dependant=dependant,
             )
             self.handlers.append(handler)
 
@@ -149,7 +164,11 @@ class KafkaBroker(BrokerUsecase):
             c = self._get_log_context(None, handler.topics)
             self._log(f"`{handler.callback.__name__}` waiting for messages", extra=c)
 
-            consumer = self._connection(*handler.topics, **handler.consumer_kwargs)
+            consumer = self._connection(
+                *handler.topics,
+                group_id=handler.group_id,
+                **handler.consumer_kwargs,
+            )
             await consumer.start()
             handler.consumer = consumer
             handler.task = asyncio.create_task(self._consume(handler))
@@ -278,12 +297,22 @@ class KafkaBroker(BrokerUsecase):
     async def _consume(self, handler: Handler) -> NoReturn:
         c = self._get_log_context(None, handler.topics)
 
+        connected = True
         while True:
             try:
                 msg = await handler.consumer.getone()
+
             except Exception as e:
-                self._log(e, logging.WATNING, c)
+                if connected is True:
+                    self._log(e, logging.WATNING, c)
+                    connected = False
+                await asyncio.sleep(5)
+
             else:
+                if connected is False:
+                    self._log("Connection established", logging.INFO, c)
+                    connected = True
+
                 await handler.callback(msg)
 
     async def _consume_response(self, message: PropanMessage):

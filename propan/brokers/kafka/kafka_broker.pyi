@@ -7,6 +7,7 @@ from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.abc import AbstractTokenProvider
 from aiokafka.producer.producer import _missing
 from aiokafka.structs import ConsumerRecord
+from fast_depends.model import Depends
 from kafka.coordinator.assignors.abstract import AbstractPartitionAssignor
 from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from kafka.partitioner.default import DefaultPartitioner
@@ -83,6 +84,8 @@ class KafkaBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        dependencies: Sequence[Depends] = (),
+        protocol: str = "kafka",
     ) -> None: ...
     async def connect(
         self,
@@ -165,6 +168,8 @@ class KafkaBroker(BrokerUsecase):
             "read_committed",
         ] = "read_uncommitted",
         retry: Union[bool, int] = False,
+        dependencies: Sequence[Depends] = (),
+        description: str = "",
     ) -> Wrapper: ...
     async def start(self) -> None: ...
     @staticmethod

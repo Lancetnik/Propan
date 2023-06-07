@@ -1,7 +1,8 @@
 import logging
 import ssl
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, Union
 
+from fast_depends.model import Depends
 from nats.aio.client import (
     DEFAULT_CONNECT_TIMEOUT,
     DEFAULT_DRAIN_TIMEOUT,
@@ -73,6 +74,8 @@ class NatsBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        dependencies: Sequence[Depends] = (),
+        protocol: str = "nats",
     ) -> None: ...
     async def connect(
         self,
@@ -126,6 +129,8 @@ class NatsBroker(BrokerUsecase):
         queue: str = "",
         *,
         retry: Union[bool, int] = False,
+        dependencies: Sequence[Depends] = (),
+        description: str = "",
     ) -> HandlerWrapper: ...
     async def _connect(self, *args: Any, **kwargs: Any) -> Client: ...
     async def close(self) -> None: ...

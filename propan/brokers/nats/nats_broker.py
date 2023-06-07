@@ -5,6 +5,7 @@ from secrets import token_hex
 from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, Union
 
 import nats
+from fast_depends.model import Depends
 from nats.aio.client import Callback, Client, ErrorCallback
 from nats.aio.msg import Msg
 
@@ -28,27 +29,15 @@ class NatsBroker(BrokerUsecase):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        servers: Union[str, Sequence[str]] = ("nats://localhost:4222",),
-        *args: Any,
-        log_fmt: Optional[str] = None,
-        **kwargs: AnyDict,
-    ):
-        super().__init__(
-            servers,
-            *args,
-            log_fmt=log_fmt,
-            url_=servers,
-            **kwargs,
-        )
-=======
         servers: Union[str, List[str]] = ["nats://localhost:4222"],  # noqa: B006
         *,
         log_fmt: Optional[str] = None,
+        protocol: str = "nats",
         **kwargs: AnyDict,
     ) -> None:
-        super().__init__(servers, log_fmt=log_fmt, **kwargs)
->>>>>>> ffe6421e3859303b0ecb0c74654b5b53e06e576b
+        super().__init__(
+            servers, log_fmt=log_fmt, url_=servers, protocol=protocol, **kwargs
+        )
 
         self._connection = None
 
@@ -78,20 +67,29 @@ class NatsBroker(BrokerUsecase):
         queue: str = "",
         *,
         retry: Union[bool, int] = False,
+        dependencies: Sequence[Depends] = (),
         _raw: bool = False,
+        description: str = "",
     ) -> Callable[[DecoratedCallable], None]:
         self.__max_subject_len = max((self.__max_subject_len, len(subject)))
         self.__max_queue_len = max((self.__max_queue_len, len(queue)))
 
         def wrapper(func: DecoratedCallable) -> None:
-            func = self._wrap_handler(
+            func, dependant = self._wrap_handler(
                 func,
                 queue=queue,
                 subject=subject,
+                extra_dependencies=dependencies,
                 retry=retry,
                 _raw=_raw,
             )
-            handler = Handler(callback=func, subject=subject, queue=queue)
+            handler = Handler(
+                callback=func,
+                subject=subject,
+                queue=queue,
+                _description=description,
+                dependant=dependant,
+            )
             self.handlers.append(handler)
 
             return func

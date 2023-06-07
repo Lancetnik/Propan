@@ -1,11 +1,12 @@
 import asyncio
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Type, TypeVar, Union
 from uuid import uuid4
 
 import aio_pika
 import aiormq
 from aio_pika.abc import DeliveryMode
+from fast_depends.model import Depends
 from yarl import URL
 
 from propan.brokers._model import BrokerUsecase
@@ -33,31 +34,22 @@ class RabbitBroker(BrokerUsecase):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        url: Optional[str] = None,
-        *args: Tuple[Any, ...],
-        protocol: str = "amqp",
-        consumers: Optional[int] = None,
-=======
         url: Union[str, URL, None] = None,
         *,
->>>>>>> ffe6421e3859303b0ecb0c74654b5b53e06e576b
         log_fmt: Optional[str] = None,
         consumers: Optional[int] = None,
+        protocol: str = "amqp",
+        protocol_version: str = "0.9.1",
         **kwargs: AnyDict,
     ) -> None:
-<<<<<<< HEAD
         super().__init__(
             url,
-            *args,
             log_fmt=log_fmt,
+            url_=url or "amqp://guest:guest@localhost:5672/",
             protocol=protocol,
-            url_=url,
+            protocol_version=protocol_version,
             **kwargs,
         )
-=======
-        super().__init__(url, log_fmt=log_fmt, **kwargs)
->>>>>>> ffe6421e3859303b0ecb0c74654b5b53e06e576b
         self._max_consumers = consumers
 
         self._channel = None
@@ -100,18 +92,20 @@ class RabbitBroker(BrokerUsecase):
         exchange: Union[str, RabbitExchange, None] = None,
         *,
         retry: Union[bool, int] = False,
-        _raw: bool = False,
+        dependencies: Sequence[Depends] = (),
         description: str = "",
+        _raw: bool = False,
     ) -> HandlerWrapper:
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
         self.__setup_log_context(queue, exchange)
 
         def wrapper(func: DecoratedCallable) -> Any:
-            func = self._wrap_handler(
+            func, dependant = self._wrap_handler(
                 func,
                 queue=queue,
                 exchange=exchange,
+                extra_dependencies=dependencies,
                 retry=retry,
                 _raw=_raw,
             )
@@ -119,7 +113,8 @@ class RabbitBroker(BrokerUsecase):
                 callback=func,
                 queue=queue,
                 exchange=exchange,
-                description=description,
+                _description=description,
+                dependant=dependant,
             )
             self.handlers.append(handler)
 

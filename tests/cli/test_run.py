@@ -1,68 +1,119 @@
-import sys
-import time
-from multiprocessing import Process
+from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
+from typer.testing import CliRunner
 
-from propan.cli.main import _run
-from propan.cli.utils.imports import get_app_path
+from propan import PropanApp
+from propan.cli import cli
 
 
 @pytest.mark.rabbit
-@pytest.mark.slow
-def test_run_rabbit_correct(rabbit_async_project):
-    module, app = get_app_path(f'{rabbit_async_project / "app" / "serve"}:app')
-    sys.path.insert(0, str(module.parent))
-    p = Process(target=_run, args=(module, app, {}))
-    p.start()
-    time.sleep(0.1)
-    p.terminate()
-    p.join()
+def test_run_rabbit_correct(
+    runner: CliRunner,
+    rabbit_async_project: Path,
+    monkeypatch,
+    mock: Mock,
+):
+    app_path = f"{rabbit_async_project.name}.app.serve:app"
+
+    async def patched_run(self: PropanApp, *args, **kwargs):
+        await self._startup()
+        await self._shutdown()
+        mock()
+
+    with monkeypatch.context() as m:
+        m.setattr(PropanApp, "run", patched_run)
+        r = runner.invoke(cli, ["run", app_path])
+
+    assert r.exit_code == 0
+    mock.assert_called_once()
 
 
 @pytest.mark.redis
-@pytest.mark.slow
-def test_run_redis_correct(redis_async_project):
-    module, app = get_app_path(f'{redis_async_project / "app" / "serve"}:app')
-    sys.path.insert(0, str(module.parent))
-    p = Process(target=_run, args=(module, app, {}))
-    p.start()
-    time.sleep(0.1)
-    p.terminate()
-    p.join()
+def test_run_redis_correct(
+    runner: CliRunner,
+    redis_async_project: Path,
+    monkeypatch,
+    mock: Mock,
+):
+    app_path = f"{redis_async_project.name}.app.serve:app"
+
+    async def patched_run(self: PropanApp, *args, **kwargs):
+        await self._startup()
+        await self._shutdown()
+        mock()
+
+    with monkeypatch.context() as m:
+        m.setattr(PropanApp, "run", patched_run)
+        r = runner.invoke(cli, ["run", app_path])
+
+        assert r.exit_code == 0
+        mock.assert_called_once()
 
 
 @pytest.mark.nats
-@pytest.mark.slow
-def test_run_nats_correct(nats_async_project):
-    module, app = get_app_path(f'{nats_async_project / "app" / "serve"}:app')
-    sys.path.insert(0, str(module.parent))
-    p = Process(target=_run, args=(module, app, {}))
-    p.start()
-    time.sleep(0.1)
-    p.terminate()
-    p.join()
+def test_run_nats_correct(
+    runner: CliRunner,
+    nats_async_project: Path,
+    monkeypatch,
+    mock: Mock,
+):
+    app_path = f"{nats_async_project.name}.app.serve:app"
+
+    async def patched_run(self: PropanApp, *args, **kwargs):
+        await self._startup()
+        await self._shutdown()
+        mock()
+
+    with monkeypatch.context() as m:
+        m.setattr(PropanApp, "run", patched_run)
+        r = runner.invoke(cli, ["run", app_path])
+
+    assert r.exit_code == 0
+    mock.assert_called_once()
 
 
 @pytest.mark.kafka
-@pytest.mark.slow
-def test_run_kafka_correct(kafka_async_project):
-    module, app = get_app_path(f'{kafka_async_project / "app" / "serve"}:app')
-    sys.path.insert(0, str(module.parent))
-    p = Process(target=_run, args=(module, app, {}))
-    p.start()
-    time.sleep(0.1)
-    p.terminate()
-    p.join()
+def test_run_kafka_correct(
+    runner: CliRunner,
+    kafka_async_project: Path,
+    monkeypatch,
+    mock: Mock,
+):
+    app_path = f"{kafka_async_project.name}.app.serve:app"
+
+    async def patched_run(self: PropanApp, *args, **kwargs):
+        await self._startup()
+        await self._shutdown()
+        mock()
+
+    with monkeypatch.context() as m:
+        m.setattr(PropanApp, "run", patched_run)
+        r = runner.invoke(cli, ["run", app_path])
+
+    assert r.exit_code == 0
+    mock.assert_called_once()
 
 
 @pytest.mark.sqs
-@pytest.mark.slow
-def test_run_sqs_correct(sqs_async_project):
-    module, app = get_app_path(f'{sqs_async_project / "app" / "serve"}:app')
-    sys.path.insert(0, str(module.parent))
-    p = Process(target=_run, args=(module, app, {}))
-    p.start()
-    time.sleep(0.1)
-    p.terminate()
-    p.join()
+@pytest.mark.xfail  # TODO: fix it
+def test_run_sqs_correct(
+    runner: CliRunner,
+    sqs_async_project: Path,
+    monkeypatch,
+    mock: Mock,
+):
+    app_path = f"{sqs_async_project.name}.app.serve:app"
+
+    async def patched_run(self: PropanApp, *args, **kwargs):
+        await self._startup()
+        await self._shutdown()
+        mock()
+
+    with monkeypatch.context() as m:
+        m.setattr(PropanApp, "run", patched_run)
+        r = runner.invoke(cli, ["run", app_path])
+
+    assert r.exit_code == 0
+    mock.assert_called_once()

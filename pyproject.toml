@@ -103,6 +103,7 @@ test = [
     "pytest-asyncio>=0.21",
 
     "fastapi",
+    "python-dotenv",
 
     "asyncmock; python_version < '3.8'",
 ]

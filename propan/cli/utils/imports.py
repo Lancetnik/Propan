@@ -16,8 +16,9 @@ def try_import_propan(module: Path, app: str) -> PropanApp:
 
     except (ValueError, FileNotFoundError, AttributeError) as e:
         typer.echo(e, err=True)
-        typer.echo("Please, input module like [python_file:propan_app_name]", err=True)
-        raise typer.Exit() from e
+        raise typer.BadParameter(
+            "Please, input module like [python_file:propan_app_name]"
+        ) from e
 
     else:
         return propan_app

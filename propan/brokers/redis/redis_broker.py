@@ -1,9 +1,10 @@
 import asyncio
 import logging
 from functools import wraps
-from typing import Any, Callable, Dict, List, NoReturn, Optional, TypeVar
+from typing import Any, Callable, Dict, List, NoReturn, Optional, Sequence, TypeVar
 from uuid import uuid4
 
+from fast_depends.model import Depends
 from redis.asyncio.client import PubSub, Redis
 from redis.asyncio.connection import ConnectionPool, parse_url
 
@@ -35,9 +36,16 @@ class RedisBroker(BrokerUsecase):
         *,
         polling_interval: float = 1.0,
         log_fmt: Optional[str] = None,
+        protocol: str = "redis",
         **kwargs: Any,
     ) -> None:
-        super().__init__(url=url, log_fmt=log_fmt, **kwargs)
+        super().__init__(
+            url,
+            log_fmt=log_fmt,
+            url_=url,
+            protocol=protocol,
+            **kwargs,
+        )
         self.__max_channel_len = 0
         self._polling_interval = polling_interval
 
@@ -88,17 +96,26 @@ class RedisBroker(BrokerUsecase):
         channel: str = "",
         *,
         pattern: bool = False,
+        dependencies: Sequence[Depends] = (),
+        description: str = "",
         _raw: bool = False,
     ) -> HandlerWrapper:
         self.__max_channel_len = max(self.__max_channel_len, len(channel))
 
         def wrapper(func: AnyCallable) -> DecoratedCallable:
-            func = self._wrap_handler(
+            func, dependant = self._wrap_handler(
                 func,
                 channel=channel,
+                extra_dependencies=dependencies,
                 _raw=_raw,
             )
-            handler = Handler(callback=func, channel=channel, pattern=pattern)
+            handler = Handler(
+                callback=func,
+                channel=channel,
+                pattern=pattern,
+                _description=description,
+                dependant=dependant,
+            )
             self.handlers.append(handler)
 
             return func

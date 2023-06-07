@@ -14,6 +14,7 @@ from typing import (
 
 from aiobotocore.client import AioBaseClient
 from aiobotocore.config import AioConfig
+from fast_depends.model import Depends
 from typing_extensions import TypeAlias
 
 from propan.brokers._model import BrokerUsecase
@@ -51,6 +52,8 @@ class SQSBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        dependencies: Sequence[Depends] = (),
+        protocol: str = "sqs",
     ) -> None:
         """"""
     async def connect(
@@ -97,6 +100,8 @@ class SQSBroker(BrokerUsecase):
         request_attempt_id: Optional[str] = None,
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
+        description: str = "",
+        dependencies: Sequence[Depends] = (),
     ) -> HandlerWrapper:
         """"""
     async def start(self) -> None:
