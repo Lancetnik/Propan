@@ -1,7 +1,7 @@
 import asyncio
 import inspect
 from itertools import dropwhile
-from typing import Any, Callable, Coroutine, Optional
+from typing import Any, Callable, Coroutine, Optional, Union
 
 from fastapi.dependencies.models import Dependant
 from fastapi.dependencies.utils import get_dependant, solve_dependencies
@@ -12,27 +12,38 @@ from starlette.routing import BaseRoute
 
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage as NativeMessage
+from propan.brokers._model.schemas import Queue
 from propan.types import AnyDict
 
 
 class PropanRoute(BaseRoute):
     def __init__(
         self,
-        path: str,
+        path: Union[Queue, str],
+        *extra: Union[Queue, str],
         endpoint: Callable[..., Any],
         broker: BrokerUsecase,
-        *,
         dependency_overrides_provider: Optional[Any] = None,
         **handle_kwargs: AnyDict,
     ) -> None:
         self.path = path
         self.broker = broker
-        self.dependant = get_dependant(path=path, call=endpoint)
+        self.dependant = get_dependant(
+            path=(path if isinstance(path, str) else path.name) or "",
+            call=endpoint,
+        )
 
         handler = PropanMessage.get_session(
-            self.dependant, dependency_overrides_provider
+            self.dependant,
+            dependency_overrides_provider,
         )
-        broker.handle(path, _raw=True, **handle_kwargs)(handler)  # type: ignore
+
+        broker.handle(
+            path,
+            *extra,
+            _raw=True,
+            **handle_kwargs,  # type: ignore
+        )(handler)
 
 
 class PropanMessage(Request):
