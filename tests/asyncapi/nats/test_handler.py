@@ -1,5 +1,5 @@
 from propan import NatsBroker, PropanApp
-from propan.cli.docs.gen import get_schema_json
+from propan.cli.docs.gen import gen_app_schema_json
 
 
 def test_base_handler():
@@ -9,7 +9,7 @@ def test_base_handler():
     async def handler(a: int):
         ...
 
-    schema = get_schema_json(PropanApp(broker))
+    schema = gen_app_schema_json(PropanApp(broker))
     assert schema["channels"] == {
         "Handler": {
             "bindings": {"nats": {"bindingVersion": "custom", "subject": "test"}},
@@ -29,7 +29,7 @@ def test_group_handler():
     async def handler(a: int) -> str:
         ...
 
-    schema = get_schema_json(PropanApp(broker))
+    schema = gen_app_schema_json(PropanApp(broker))
 
     assert isinstance(
         schema["channels"]["Handler"]["subscribe"]["bindings"]["nats"]["replyTo"].pop(

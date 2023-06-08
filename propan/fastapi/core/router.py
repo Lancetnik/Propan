@@ -25,10 +25,11 @@ from starlette.types import ASGIApp, Lifespan
 from typing_extensions import AsyncIterator, TypeVar
 
 from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import Queue
 from propan.fastapi.core.route import PropanRoute
 from propan.types import AnyDict
 
-Broker = TypeVar("Broker", bound=BrokerUsecase)
+Broker = TypeVar("Broker", bound=BrokerUsecase[Any, Any])
 
 
 class PropanRouter(APIRouter, Generic[Broker]):
@@ -91,13 +92,14 @@ class PropanRouter(APIRouter, Generic[Broker]):
 
     def add_api_mq_route(
         self,
-        path: str,
-        *,
+        path: Union[Queue, str],
+        *extra: Union[Queue, str],
         endpoint: Callable[..., Any],
         **broker_kwargs: AnyDict,
     ) -> None:
         route = PropanRoute(
             path,
+            *extra,
             endpoint=endpoint,
             dependency_overrides_provider=self.dependency_overrides_provider,
             broker=self.broker,
@@ -107,12 +109,14 @@ class PropanRouter(APIRouter, Generic[Broker]):
 
     def event(
         self,
-        path: str,
+        path: Union[str, Queue],
+        *extra: Union[Queue, str],
         **broker_kwargs: Dict[str, Any],
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         def decorator(func: DecoratedCallable) -> DecoratedCallable:
             self.add_api_mq_route(
                 path,
+                *extra,
                 endpoint=func,
                 **broker_kwargs,
             )

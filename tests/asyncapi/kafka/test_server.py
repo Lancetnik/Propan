@@ -1,9 +1,9 @@
 from propan import KafkaBroker, PropanApp
-from propan.cli.docs.gen import get_schema_json
+from propan.cli.docs.gen import gen_app_schema_json
 
 
 def test_server_info():
-    schema = get_schema_json(PropanApp(KafkaBroker()))
+    schema = gen_app_schema_json(PropanApp(KafkaBroker()))
     assert schema["servers"]["dev"] == {
         "protocol": "kafka",
         "url": "localhost",
@@ -12,7 +12,7 @@ def test_server_info():
 
 
 def test_server_custom_info():
-    schema = get_schema_json(
+    schema = gen_app_schema_json(
         PropanApp(
             KafkaBroker(
                 "kafka:9092",

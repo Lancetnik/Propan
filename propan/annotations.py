@@ -58,7 +58,7 @@ try:
     KafkaMessage = Annotated[ConsumerRecord, ContextField("message")]
     Producer = Annotated[AIOKafkaProducer, ContextField("producer")]
 except Exception:
-    KafkaBroker = KafkaMessage = about.INSTALL_KAFKA
+    KafkaBroker = KafkaMessage = Producer = about.INSTALL_KAFKA
 
 
 try:

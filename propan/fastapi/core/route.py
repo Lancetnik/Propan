@@ -1,7 +1,7 @@
 import asyncio
 import inspect
 from itertools import dropwhile
-from typing import Any, Callable, Coroutine, Optional
+from typing import Any, Callable, Coroutine, Optional, Union
 
 from fastapi.dependencies.models import Dependant
 from fastapi.dependencies.utils import get_dependant, solve_dependencies
@@ -12,27 +12,38 @@ from starlette.routing import BaseRoute
 
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage as NativeMessage
+from propan.brokers._model.schemas import Queue
 from propan.types import AnyDict
 
 
 class PropanRoute(BaseRoute):
     def __init__(
         self,
-        path: str,
+        path: Union[Queue, str],
+        *extra: Union[Queue, str],
         endpoint: Callable[..., Any],
-        broker: BrokerUsecase,
-        *,
+        broker: BrokerUsecase[Any, Any],
         dependency_overrides_provider: Optional[Any] = None,
         **handle_kwargs: AnyDict,
     ) -> None:
         self.path = path
         self.broker = broker
-        self.dependant = get_dependant(path=path, call=endpoint)
+        self.dependant = get_dependant(
+            path=(path if isinstance(path, str) else path.name) or "",
+            call=endpoint,
+        )
 
         handler = PropanMessage.get_session(
-            self.dependant, dependency_overrides_provider
+            self.dependant,
+            dependency_overrides_provider,
         )
-        broker.handle(path, _raw=True, **handle_kwargs)(handler)  # type: ignore
+
+        broker.handle(
+            path,
+            *extra,
+            _raw=True,
+            **handle_kwargs,  # type: ignore
+        )(handler)
 
 
 class PropanMessage(Request):
@@ -58,7 +69,7 @@ class PropanMessage(Request):
         cls,
         dependant: Dependant,
         dependency_overrides_provider: Optional[Any] = None,
-    ) -> Callable[[NativeMessage], Any]:
+    ) -> Callable[[NativeMessage[Any]], Any]:
         assert dependant.call
         func = get_app(dependant, dependency_overrides_provider)
 
@@ -72,7 +83,7 @@ class PropanMessage(Request):
             None,
         )
 
-        async def app(message: NativeMessage) -> Any:
+        async def app(message: NativeMessage[Any]) -> Any:
             body = message.decoded_body
             if first_arg is not None:
                 if not isinstance(body, dict):  # pragma: no branch

@@ -11,9 +11,6 @@ def try_import_propan(module: Path, app: str) -> PropanApp:
     try:
         propan_app = import_object(module, app)
 
-        if not isinstance(propan_app, PropanApp):
-            raise ValueError(f"{propan_app} is not a PropanApp")
-
     except (ValueError, FileNotFoundError, AttributeError) as e:
         typer.echo(e, err=True)
         raise typer.BadParameter(
@@ -21,11 +18,15 @@ def try_import_propan(module: Path, app: str) -> PropanApp:
         ) from e
 
     else:
-        return propan_app
+        return propan_app  # type: ignore
 
 
 def import_object(module: Path, app: str) -> Any:
-    spec = spec_from_file_location("mode", f"{module}.py")
+    spec = spec_from_file_location(
+        "mode",
+        f"{module}.py",
+        submodule_search_locations=[str(module.parent.absolute())],
+    )
 
     if spec is None:  # pragma: no cover
         raise FileNotFoundError(module)
@@ -38,7 +39,6 @@ def import_object(module: Path, app: str) -> Any:
 
     loader.exec_module(mod)
     obj = getattr(mod, app)
-
     return obj
 
 

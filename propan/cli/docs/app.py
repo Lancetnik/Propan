@@ -3,7 +3,12 @@ from pathlib import Path
 
 import typer
 
-from propan.cli.docs.gen import generate_doc_file, get_schema_yaml
+from propan.cli.docs.gen import (
+    generate_doc_file,
+    get_app_schema,
+    json_schema_to_yaml,
+    schema_to_json,
+)
 from propan.cli.docs.serve import serve_docs
 from propan.cli.utils.imports import get_app_path, try_import_propan
 
@@ -43,8 +48,14 @@ def serve(
         ...,
         help="[python_module:PropanApp] or [asyncapi.yaml] - path to your application documentation",
     ),
-    host: str = typer.Option("localhost", help="documentation hosting address"),
-    port: int = typer.Option(8000, help="documentation hosting port"),
+    host: str = typer.Option(
+        "localhost",
+        help="documentation hosting address",
+    ),
+    port: int = typer.Option(
+        8000,
+        help="documentation hosting port",
+    ),
 ) -> None:
     """Serve project AsyncAPI scheme"""
     if ":" in app:
@@ -52,12 +63,17 @@ def serve(
         app_dir = module.parent
         sys.path.insert(0, str(app_dir))
         propan_app = try_import_propan(module, app)
-
-        schema = get_schema_yaml(propan_app)
+        raw_schema = get_app_schema(propan_app)
+        schema = json_schema_to_yaml(schema_to_json(raw_schema))
 
     else:
         schema_filepath = Path.cwd() / app
-
         schema = schema_filepath.read_text()
+        raw_schema = None
 
-    serve_docs(schema, host, port)
+    serve_docs(
+        schema=schema,
+        host=host,
+        port=port,
+        raw_schema=raw_schema,
+    )

@@ -1,12 +1,24 @@
 import asyncio
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, TypeVar, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+)
 from uuid import uuid4
 
 import aio_pika
 import aiormq
 from aio_pika.abc import DeliveryMode
 from fast_depends.model import Depends
+from typing_extensions import TypeAlias
 from yarl import URL
 
 from propan.brokers._model import BrokerUsecase
@@ -17,7 +29,8 @@ from propan.types import AnyDict, DecoratedCallable, HandlerWrapper, SendableMes
 from propan.utils import context
 
 TimeoutType = Optional[Union[int, float]]
-PikaSendableMessage = Union[aio_pika.message.Message, SendableMessage]
+PikaSendableMessage: TypeAlias = Union[aio_pika.message.Message, SendableMessage]
+RabbitMessage: TypeAlias = PropanMessage[aio_pika.message.IncomingMessage]
 T = TypeVar("T")
 
 
@@ -91,10 +104,9 @@ class RabbitBroker(BrokerUsecase):
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         *,
-        retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
         description: str = "",
-        _raw: bool = False,
+        **original_kwargs: AnyDict,
     ) -> HandlerWrapper:
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
@@ -106,8 +118,7 @@ class RabbitBroker(BrokerUsecase):
                 queue=queue,
                 exchange=exchange,
                 extra_dependencies=dependencies,
-                retry=retry,
-                _raw=_raw,
+                **original_kwargs,
             )
             handler = Handler(
                 callback=func,
@@ -242,7 +253,7 @@ class RabbitBroker(BrokerUsecase):
 
     def _get_log_context(
         self,
-        message: Optional[PropanMessage],
+        message: Optional[RabbitMessage],
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
     ) -> Dict[str, Any]:
@@ -266,8 +277,8 @@ class RabbitBroker(BrokerUsecase):
     @staticmethod
     async def _parse_message(
         message: aio_pika.message.IncomingMessage,
-    ) -> PropanMessage:
-        return PropanMessage(
+    ) -> RabbitMessage:
+        return RabbitMessage(
             body=message.body,
             headers=message.headers,
             reply_to=message.reply_to or "",
@@ -277,10 +288,12 @@ class RabbitBroker(BrokerUsecase):
         )
 
     def _process_message(
-        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
-    ) -> Callable[[PropanMessage], T]:
+        self,
+        func: Callable[[RabbitMessage], Awaitable[T]],
+        watcher: Optional[BaseWatcher],
+    ) -> Callable[[RabbitMessage], Awaitable[T]]:
         @wraps(func)
-        async def wrapper(message: PropanMessage) -> T:
+        async def wrapper(message: RabbitMessage) -> T:
             pika_message = message.raw_message
             if watcher is None:
                 context = pika_message.process()

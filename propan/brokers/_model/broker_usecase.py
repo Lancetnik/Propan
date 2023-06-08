@@ -8,6 +8,7 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    Generic,
     List,
     Mapping,
     Optional,
@@ -15,12 +16,13 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    cast,
 )
 
 from fast_depends.construct import get_dependant
 from fast_depends.model import Dependant, Depends
 from fast_depends.utils import args_to_kwargs
-from typing_extensions import Self
+from typing_extensions import Self, TypeAlias
 
 from propan.brokers._model.schemas import (
     BaseHandler,
@@ -38,27 +40,40 @@ from propan.brokers._model.utils import (
 from propan.brokers.exceptions import SkipMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import (
-    AnyCallable,
-    AnyDict,
-    DecodedMessage,
-    DecoratedAsync,
-    HandlerWrapper,
-    SendableMessage,
-    Wrapper,
-)
+from propan.types import AnyDict, DecodedMessage, HandlerWrapper, SendableMessage
 from propan.utils import apply_types, context
 from propan.utils.functions import get_function_positional_arguments, to_async
 
-T = TypeVar("T")
+T = TypeVar("T", bound=DecodedMessage)
+
+MsgType = TypeVar("MsgType")
+ConnectionType = TypeVar("ConnectionType")
+
+CustomParser: TypeAlias = Optional[
+    Callable[
+        [MsgType, Callable[[MsgType], Awaitable[PropanMessage[MsgType]]]],
+        Awaitable[PropanMessage[MsgType]],
+    ]
+]
+CustomDecoder: TypeAlias = Optional[
+    Callable[
+        [
+            PropanMessage[MsgType],
+            Callable[[PropanMessage[MsgType]], Awaitable[DecodedMessage]],
+        ],
+        Awaitable[DecodedMessage],
+    ]
+]
 
 
-class BrokerUsecase(ABC):
+class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
     logger: Optional[logging.Logger]
     log_level: int
     handlers: Sequence[BaseHandler]
     dependencies: Sequence[Depends]
-    _connection: Any
+    _global_parser: CustomParser[MsgType]
+    _global_decoder: CustomDecoder[MsgType]
+    _connection: Optional[ConnectionType]
     _fmt: Optional[str]
 
     def __init__(
@@ -69,6 +84,8 @@ class BrokerUsecase(ABC):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
         dependencies: Sequence[Depends] = (),
+        decode_message: CustomDecoder[MsgType] = None,
+        parse_message: CustomParser[MsgType] = None,
         # AsyncAPI
         protocol: str = "",
         protocol_version: Optional[str] = None,
@@ -87,6 +104,9 @@ class BrokerUsecase(ABC):
         self._connection_args = args
         self._connection_kwargs = kwargs
 
+        self._global_parser = parse_message
+        self._global_decoder = decode_message
+
         context.set_global("logger", logger)
         context.set_global("broker", self)
 
@@ -94,7 +114,7 @@ class BrokerUsecase(ABC):
         self.protocol_version = protocol_version
         self.url = url_
 
-    async def connect(self, *args: Any, **kwargs: Any) -> Any:
+    async def connect(self, *args: Any, **kwargs: Any) -> ConnectionType:
         if self._connection is None:
             arguments = get_function_positional_arguments(self.__init__)  # type: ignore
             init_kwargs = args_to_kwargs(
@@ -108,7 +128,7 @@ class BrokerUsecase(ABC):
         return self._connection
 
     @abstractmethod
-    async def _connect(self, **kwargs: Any) -> Any:
+    async def _connect(self, **kwargs: Any) -> ConnectionType:
         raise NotImplementedError()
 
     @abstractmethod
@@ -129,20 +149,20 @@ class BrokerUsecase(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    async def _parse_message(self, message: Any) -> PropanMessage:
+    async def _parse_message(self, message: MsgType) -> PropanMessage[MsgType]:
         raise NotImplementedError()
 
     @abstractmethod
     def _process_message(
         self,
-        func: Callable[[PropanMessage], T],
+        func: Callable[[PropanMessage[MsgType]], Awaitable[T]],
         watcher: Optional[BaseWatcher],
-    ) -> Callable[[PropanMessage], T]:
+    ) -> Callable[[PropanMessage[MsgType]], Awaitable[T]]:
         raise NotImplementedError()
 
     def _get_log_context(
         self,
-        message: Optional[PropanMessage],
+        message: Optional[PropanMessage[MsgType]],
         **kwargs: Dict[str, str],
     ) -> Dict[str, Any]:
         return {
@@ -153,15 +173,18 @@ class BrokerUsecase(ABC):
     def handle(
         self,
         *broker_args: Any,
-        dependencies: Sequence[Depends] = (),
         retry: Union[bool, int] = False,
+        dependencies: Sequence[Depends] = (),
+        decode_message: CustomDecoder[MsgType] = None,
+        parse_message: CustomParser[MsgType] = None,
+        description: str = "",
         _raw: bool = False,
         **broker_kwargs: Any,
     ) -> HandlerWrapper:
         raise NotImplementedError()
 
     @staticmethod
-    async def _decode_message(message: PropanMessage) -> DecodedMessage:
+    async def _decode_message(message: PropanMessage[MsgType]) -> DecodedMessage:
         body = message.body
         m: DecodedMessage = body
         if message.content_type is not None:
@@ -194,20 +217,22 @@ class BrokerUsecase(ABC):
 
     def _wrap_handler(
         self,
-        func: AnyCallable,
+        func: Union[Callable[..., T], Callable[..., Awaitable[T]]],
         retry: Union[bool, int] = False,
-        _raw: bool = False,
         extra_dependencies: Sequence[Depends] = (),
-        **broker_args: Any,
-    ) -> Tuple[DecoratedAsync, Dependant]:
-        dependant: Dependant = get_dependant(path="", call=func)
-        extra: List[Dependant] = [
+        decode_message: CustomDecoder[MsgType] = None,
+        parse_message: CustomParser[MsgType] = None,
+        _raw: bool = False,
+        **broker_log_context_kwargs: Any,
+    ) -> Tuple[Callable[[MsgType, bool], Awaitable[Optional[T]]], Dependant]:
+        dependant = get_dependant(path="", call=func)
+        extra = [
             get_dependant(path="", call=d.dependency)
             for d in chain(extra_dependencies, self.dependencies)
         ]
         dependant.dependencies.extend(extra)
 
-        f = to_async(func)
+        f = cast(Callable[..., Awaitable[T]], to_async(func))
 
         if self._is_apply_types is True:
             f = apply_types(
@@ -216,35 +241,45 @@ class BrokerUsecase(ABC):
             )
 
         f = self._wrap_decode_message(
-            f,
+            func=f,
             _raw=_raw,
             params=tuple(chain(dependant.flat_params, extra)),
+            decoder=decode_message or self._global_decoder,
         )
 
         if self.logger is not None:
-            f = self._log_execution(**broker_args)(f)
+            f = self._log_execution(**broker_log_context_kwargs)(f)
 
-        f = self._process_message(f, get_watcher(self.logger, retry))
+        f = self._process_message(
+            func=f,
+            watcher=get_watcher(self.logger, retry),
+        )
 
-        f = self._wrap_parse_message(f)
+        f = self._wrap_parse_message(
+            func=f,
+            parser=parse_message or self._global_parser,
+        )
 
         f = set_message_context(f)
 
-        f = suppress_decor(f)
-
-        return f, dependant
+        return suppress_decor(f), dependant
 
     def _wrap_decode_message(
         self,
         func: Callable[..., Awaitable[T]],
+        decoder: CustomDecoder[MsgType],
         params: Sequence[Any] = (),
         _raw: bool = False,
-    ) -> Callable[[PropanMessage], Awaitable[T]]:
+    ) -> Callable[[PropanMessage[MsgType]], Awaitable[T]]:
         is_unwrap = len(params) > 1
 
         @wraps(func)
-        async def wrapper(message: PropanMessage) -> T:
-            msg = await self._decode_message(message)
+        async def wrapper(message: PropanMessage[MsgType]) -> T:
+            if decoder is not None:
+                msg = await decoder(message, self._decode_message)
+            else:
+                msg = await self._decode_message(message)
+
             message.decoded_body = msg
 
             if _raw is True:
@@ -259,23 +294,32 @@ class BrokerUsecase(ABC):
         return wrapper
 
     def _wrap_parse_message(
-        self, func: Callable[[PropanMessage], Awaitable[T]]
-    ) -> Callable[[Any], Awaitable[T]]:
+        self,
+        func: Callable[..., Awaitable[T]],
+        parser: CustomParser[MsgType],
+    ) -> Callable[[MsgType], Awaitable[T]]:
         @wraps(func)
         async def parse_wrapper(message: Any) -> T:
-            return await func(await self._parse_message(message))
+            if parser is not None:
+                m = await parser(message, self._parse_message)
+            else:
+                m = await self._parse_message(message)
+            return await func(m)
 
         return parse_wrapper
 
     def _log_execution(
         self,
         **broker_args: Any,
-    ) -> Wrapper:
+    ) -> Callable[
+        [Callable[[PropanMessage[MsgType]], Awaitable[T]]],
+        Callable[[PropanMessage[MsgType]], Awaitable[T]],
+    ]:
         def decor(
-            func: Callable[[PropanMessage], Awaitable[T]]
-        ) -> Callable[[PropanMessage], Awaitable[T]]:
+            func: Callable[[PropanMessage[MsgType]], Awaitable[T]]
+        ) -> Callable[[PropanMessage[MsgType]], Awaitable[T]]:
             @wraps(func)
-            async def log_wrapper(message: PropanMessage) -> T:
+            async def log_wrapper(message: PropanMessage[MsgType]) -> T:
                 log_context = self._get_log_context(message=message, **broker_args)
 
                 with context.scope("log_context", log_context):

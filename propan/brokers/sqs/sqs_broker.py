@@ -3,6 +3,7 @@ import logging
 from functools import wraps
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Dict,
     List,
@@ -27,9 +28,12 @@ from propan.brokers.push_back_watcher import (
     NotPushBackWatcher,
     WatcherContext,
 )
-from propan.brokers.sqs.schema import Handler, SQSMessage, SQSQueue
+from propan.brokers.sqs.schema import Handler
+from propan.brokers.sqs.schema import SQSMessage as SM
+from propan.brokers.sqs.schema import SQSQueue
 from propan.types import (
     AnyCallable,
+    AnyDict,
     DecodedMessage,
     DecoratedCallable,
     HandlerWrapper,
@@ -40,6 +44,7 @@ from propan.utils import context
 T = TypeVar("T")
 QueueUrl: TypeAlias = str
 CorrelationId: TypeAlias = str
+SQSMessage: TypeAlias = PropanMessage[AnyDict]
 
 
 class SQSBroker(BrokerUsecase):
@@ -94,12 +99,12 @@ class SQSBroker(BrokerUsecase):
             await self._connection.__aexit__(None, None, None)
             self._connection = None
 
-    async def _parse_message(self, message: Dict[str, Any]) -> PropanMessage:
+    async def _parse_message(self, message: Dict[str, Any]) -> SQSMessage:
         attributes = message.get("MessageAttributes", {})
 
         headers = {i: j.get("StringValue") for i, j in attributes.items()}
 
-        return PropanMessage(
+        return SQSMessage(
             body=message.get("Body", "").encode(),
             message_id=message.get("MessageId"),
             content_type=headers.pop("content-type", None),
@@ -110,14 +115,14 @@ class SQSBroker(BrokerUsecase):
 
     def _process_message(
         self,
-        func: Callable[[PropanMessage], T],
+        func: Callable[[SQSMessage], Awaitable[T]],
         watcher: Optional[BaseWatcher],
-    ) -> Callable[[PropanMessage], T]:
+    ) -> Callable[[SQSMessage], Awaitable[T]]:
         if watcher is None:
             watcher = NotPushBackWatcher()
 
         @wraps(func)
-        async def process_wrapper(message: PropanMessage) -> T:
+        async def process_wrapper(message: SQSMessage) -> T:
             context = WatcherContext(
                 watcher,
                 message.message_id,
@@ -151,10 +156,9 @@ class SQSBroker(BrokerUsecase):
         message_attributes: Sequence[str] = (),
         request_attempt_id: Optional[str] = None,
         visibility_timeout: int = 0,
-        retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
         description: str = "",
-        _raw: bool = False,
+        **original_kwargs: AnyDict,
     ) -> HandlerWrapper:
         if isinstance(queue, str):
             queue = SQSQueue(queue)
@@ -180,9 +184,8 @@ class SQSBroker(BrokerUsecase):
             func, dependant = self._wrap_handler(
                 func,
                 queue=queue.name,
-                retry=retry,
                 extra_dependencies=dependencies,
-                _raw=_raw,
+                **original_kwargs,
             )
             handler = Handler(
                 callback=func,
@@ -256,7 +259,7 @@ class SQSBroker(BrokerUsecase):
         else:
             response_future = None
 
-        params = SQSMessage(
+        params = SM(
             message=message,
             headers=headers or {},
             delay_seconds=delay_seconds,
@@ -364,7 +367,7 @@ class SQSBroker(BrokerUsecase):
                             handler.consumer_params.get("WaitTimeSeconds", 1.0)
                         )
 
-    async def _consume_response(self, message: PropanMessage):
+    async def _consume_response(self, message: SQSMessage):
         correlation_id = message.headers.get("correlation_id")
         if correlation_id is not None:
             callback = self.response_callbacks.pop(correlation_id, None)
@@ -384,7 +387,7 @@ class SQSBroker(BrokerUsecase):
         )
 
     def _get_log_context(
-        self, message: Optional[PropanMessage], queue: str
+        self, message: Optional[SQSMessage], queue: str
     ) -> Dict[str, Any]:
         context = {
             "queue": queue,

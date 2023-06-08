@@ -2,7 +2,7 @@ import json
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Generic, Optional, Sequence, Tuple, TypeVar, Union
 from uuid import uuid4
 
 from fast_depends.model import Dependant
@@ -15,6 +15,8 @@ from propan.asyncapi.utils import add_example_to_model
 from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMessage
 
 ContentType: TypeAlias = str
+
+Msg = TypeVar("Msg")
 
 
 @dataclass
@@ -189,9 +191,9 @@ class RawDecoced(BaseModel):
 
 
 @pydantic_dataclass
-class PropanMessage:
-    body: bytes
-    raw_message: Any
+class PropanMessage(Generic[Msg]):
+    body: Union[bytes, Any]
+    raw_message: Msg
     content_type: Optional[str] = None
     reply_to: str = ""
     headers: AnyDict = Field(default_factory=dict)

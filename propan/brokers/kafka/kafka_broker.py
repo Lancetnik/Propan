@@ -1,13 +1,26 @@
 import asyncio
 import logging
 from functools import partial, wraps
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    NoReturn,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 from uuid import uuid4
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.structs import ConsumerRecord
 from fast_depends.model import Depends
-from typing_extensions import TypeAlias, TypeVar
+from kafka.coordinator.assignors.abstract import AbstractPartitionAssignor
+from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
+from typing_extensions import Literal, TypeAlias, TypeVar
 
 from propan.__about__ import __version__
 from propan.brokers._model.broker_usecase import BrokerUsecase
@@ -27,11 +40,13 @@ from propan.utils.context import context
 
 T = TypeVar("T")
 CorrelationId: TypeAlias = str
+KafkaMessage: TypeAlias = PropanMessage[ConsumerRecord]
 
 
-class KafkaBroker(BrokerUsecase):
+class KafkaBroker(
+    BrokerUsecase[ConsumerRecord, Callable[[Tuple[str, ...]], AIOKafkaConsumer]]
+):
     _publisher: Optional[AIOKafkaProducer]
-    _connection: Callable[[Tuple[str, ...]], AIOKafkaConsumer]
     __max_topic_len: int
     response_topic: str
     response_callbacks: Dict[CorrelationId, "asyncio.Future[DecodedMessage]"]
@@ -116,11 +131,39 @@ class KafkaBroker(BrokerUsecase):
     def handle(
         self,
         *topics: str,
-        _raw: bool = False,
+        group_id: Optional[str] = None,
+        key_deserializer: Optional[Callable[[bytes], Any]] = None,
+        value_deserializer: Optional[Callable[[bytes], Any]] = None,
+        fetch_max_wait_ms: int = 500,
+        fetch_max_bytes: int = 52428800,
+        fetch_min_bytes: int = 1,
+        max_partition_fetch_bytes: int = 1 * 1024 * 1024,
+        auto_offset_reset: Literal[
+            "latest",
+            "earliest",
+            "none",
+        ] = "latest",
+        enable_auto_commit: bool = True,
+        auto_commit_interval_ms: int = 5000,
+        check_crcs: bool = True,
+        partition_assignment_strategy: Sequence[AbstractPartitionAssignor] = (
+            RoundRobinPartitionAssignor,
+        ),
+        max_poll_interval_ms: int = 300000,
+        rebalance_timeout_ms: Optional[int] = None,
+        session_timeout_ms: int = 10000,
+        heartbeat_interval_ms: int = 3000,
+        consumer_timeout_ms: int = 200,
+        max_poll_records: Optional[int] = None,
+        exclude_internal_topics: bool = True,
+        isolation_level: Literal[
+            "read_uncommitted",
+            "read_committed",
+        ] = "read_uncommitted",
+        ## broker
         dependencies: Sequence[Depends] = (),
         description: str = "",
-        group_id: Optional[str] = None,
-        **kwargs: AnyDict,
+        **original_kwargs: AnyDict,
     ) -> Wrapper:
         def wrapper(func: AnyCallable) -> DecoratedCallable:
             for t in topics:
@@ -128,15 +171,35 @@ class KafkaBroker(BrokerUsecase):
 
             func, dependant = self._wrap_handler(
                 func,
-                _raw=_raw,
                 extra_dependencies=dependencies,
+                **original_kwargs,
             )
             handler = Handler(
                 callback=func,
                 topics=topics,
                 _description=description,
                 group_id=group_id,
-                consumer_kwargs=kwargs,
+                consumer_kwargs={
+                    "key_deserializer": key_deserializer,
+                    "value_deserializer": value_deserializer,
+                    "fetch_max_wait_ms": fetch_max_wait_ms,
+                    "fetch_max_bytes": fetch_max_bytes,
+                    "fetch_min_bytes": fetch_min_bytes,
+                    "max_partition_fetch_bytes": max_partition_fetch_bytes,
+                    "auto_offset_reset": auto_offset_reset,
+                    "enable_auto_commit": enable_auto_commit,
+                    "auto_commit_interval_ms": auto_commit_interval_ms,
+                    "check_crcs": check_crcs,
+                    "partition_assignment_strategy": partition_assignment_strategy,
+                    "max_poll_interval_ms": max_poll_interval_ms,
+                    "rebalance_timeout_ms": rebalance_timeout_ms,
+                    "session_timeout_ms": session_timeout_ms,
+                    "heartbeat_interval_ms": heartbeat_interval_ms,
+                    "consumer_timeout_ms": consumer_timeout_ms,
+                    "max_poll_records": max_poll_records,
+                    "exclude_internal_topics": exclude_internal_topics,
+                    "isolation_level": isolation_level,
+                },
                 dependant=dependant,
             )
             self.handlers.append(handler)
@@ -174,7 +237,7 @@ class KafkaBroker(BrokerUsecase):
             handler.task = asyncio.create_task(self._consume(handler))
 
     @staticmethod
-    async def _parse_message(message: ConsumerRecord) -> PropanMessage:
+    async def _parse_message(message: ConsumerRecord) -> KafkaMessage:
         headers = {i: j.decode() for i, j in message.headers}
         return PropanMessage(
             body=message.value,
@@ -186,10 +249,12 @@ class KafkaBroker(BrokerUsecase):
         )
 
     def _process_message(
-        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
-    ) -> Callable[[PropanMessage], T]:
+        self,
+        func: Callable[[KafkaMessage], Awaitable[T]],
+        watcher: Optional[BaseWatcher],
+    ) -> Callable[[KafkaMessage], Awaitable[T]]:
         @wraps(func)
-        async def wrapper(message: PropanMessage) -> T:
+        async def wrapper(message: KafkaMessage) -> T:
             r = await func(message)
 
             if message.reply_to:
@@ -279,7 +344,7 @@ class KafkaBroker(BrokerUsecase):
 
     def _get_log_context(
         self,
-        message: Optional[PropanMessage],
+        message: Optional[KafkaMessage],
         topics: Sequence[str] = (),
     ) -> Dict[str, Any]:
         if topics:
@@ -315,7 +380,7 @@ class KafkaBroker(BrokerUsecase):
 
                 await handler.callback(msg)
 
-    async def _consume_response(self, message: PropanMessage):
+    async def _consume_response(self, message: KafkaMessage):
         correlation_id = message.headers.get("correlation_id")
         if correlation_id is not None:
             callback = self.response_callbacks.pop(correlation_id, None)

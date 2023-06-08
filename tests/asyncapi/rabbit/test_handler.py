@@ -1,6 +1,6 @@
 from propan import PropanApp, RabbitBroker
 from propan.brokers.rabbit import ExchangeType, RabbitExchange
-from propan.cli.docs.gen import get_schema_json
+from propan.cli.docs.gen import gen_app_schema_json
 
 
 def test_base_handler():
@@ -10,7 +10,7 @@ def test_base_handler():
     async def handler(a: int):
         ...
 
-    schema = get_schema_json(PropanApp(broker))
+    schema = gen_app_schema_json(PropanApp(broker))
 
     assert schema["channels"] == {
         "Handler": {
@@ -47,7 +47,7 @@ def test_fanout_exchange_handler():
         """Test description"""
         ...
 
-    schema = get_schema_json(PropanApp(broker))
+    schema = gen_app_schema_json(PropanApp(broker))
     assert schema["channels"] == {
         "Handler": {
             "bindings": {
@@ -80,7 +80,7 @@ def test_direct_exchange_handler():
     async def handler(a: int):
         ...
 
-    schema = get_schema_json(PropanApp(broker))
+    schema = gen_app_schema_json(PropanApp(broker))
     assert schema["channels"] == {
         "Handler": {
             "bindings": {

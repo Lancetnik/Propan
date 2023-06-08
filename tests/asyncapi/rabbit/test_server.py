@@ -1,9 +1,9 @@
 from propan import PropanApp, RabbitBroker
-from propan.cli.docs.gen import get_schema_json
+from propan.cli.docs.gen import gen_app_schema_json
 
 
 def test_server_info():
-    schema = get_schema_json(PropanApp(RabbitBroker()))
+    schema = gen_app_schema_json(PropanApp(RabbitBroker()))
     assert schema["servers"]["dev"] == {
         "protocol": "amqp",
         "url": "amqp://guest:guest@localhost:5672/",
@@ -12,7 +12,7 @@ def test_server_info():
 
 
 def test_server_custom_info():
-    schema = get_schema_json(
+    schema = gen_app_schema_json(
         PropanApp(
             RabbitBroker(
                 "amqps://rabbithost.com", protocol="amqps", protocol_version="0.8.0"

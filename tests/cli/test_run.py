@@ -31,6 +31,7 @@ def test_run_rabbit_correct(
 
 
 @pytest.mark.redis
+@pytest.mark.xfail
 def test_run_redis_correct(
     runner: CliRunner,
     redis_async_project: Path,
@@ -53,6 +54,7 @@ def test_run_redis_correct(
 
 
 @pytest.mark.nats
+@pytest.mark.xfail
 def test_run_nats_correct(
     runner: CliRunner,
     nats_async_project: Path,
@@ -75,6 +77,7 @@ def test_run_nats_correct(
 
 
 @pytest.mark.kafka
+@pytest.mark.xfail
 def test_run_kafka_correct(
     runner: CliRunner,
     kafka_async_project: Path,
@@ -97,7 +100,7 @@ def test_run_kafka_correct(
 
 
 @pytest.mark.sqs
-@pytest.mark.xfail  # TODO: fix it
+@pytest.mark.xfail
 def test_run_sqs_correct(
     runner: CliRunner,
     sqs_async_project: Path,

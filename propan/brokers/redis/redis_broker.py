@@ -1,19 +1,32 @@
 import asyncio
 import logging
 from functools import wraps
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Sequence, TypeVar
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    NoReturn,
+    Optional,
+    Sequence,
+    TypeVar,
+)
 from uuid import uuid4
 
 from fast_depends.model import Depends
 from redis.asyncio.client import PubSub, Redis
 from redis.asyncio.connection import ConnectionPool, parse_url
+from typing_extensions import TypeAlias
 
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage, RawDecoced
 from propan.brokers.push_back_watcher import BaseWatcher
-from propan.brokers.redis.schemas import Handler, RedisMessage
+from propan.brokers.redis.schemas import Handler
+from propan.brokers.redis.schemas import RedisMessage as RM
 from propan.types import (
     AnyCallable,
+    AnyDict,
     DecodedMessage,
     DecoratedCallable,
     HandlerWrapper,
@@ -22,6 +35,7 @@ from propan.types import (
 from propan.utils import context
 
 T = TypeVar("T")
+RedisMessage: TypeAlias = PropanMessage[AnyDict]
 
 
 class RedisBroker(BrokerUsecase):
@@ -76,15 +90,15 @@ class RedisBroker(BrokerUsecase):
 
     def _process_message(
         self,
-        func: Callable[[PropanMessage], T],
+        func: Callable[[RedisMessage], Awaitable[T]],
         watcher: Optional[BaseWatcher],
-    ) -> Callable[[PropanMessage], T]:
+    ) -> Callable[[RedisMessage], Awaitable[T]]:
         @wraps(func)
-        async def wrapper(message: PropanMessage) -> T:
+        async def wrapper(message: RedisMessage) -> T:
             r = await func(message)
 
             msg = message.raw_message
-            if isinstance(msg, RedisMessage) and message.reply_to:
+            if isinstance(msg, RM) and message.reply_to:
                 await self.publish(r or "", message.reply_to)
 
             return r
@@ -98,7 +112,7 @@ class RedisBroker(BrokerUsecase):
         pattern: bool = False,
         dependencies: Sequence[Depends] = (),
         description: str = "",
-        _raw: bool = False,
+        **original_kwargs: AnyDict,
     ) -> HandlerWrapper:
         self.__max_channel_len = max(self.__max_channel_len, len(channel))
 
@@ -107,7 +121,7 @@ class RedisBroker(BrokerUsecase):
                 func,
                 channel=channel,
                 extra_dependencies=dependencies,
-                _raw=_raw,
+                **original_kwargs,
             )
             handler = Handler(
                 callback=func,
@@ -173,7 +187,7 @@ class RedisBroker(BrokerUsecase):
 
         await self._connection.publish(
             channel,
-            RedisMessage(
+            RM(
                 data=msg,
                 headers={
                     "content-type": content_type or "",
@@ -200,18 +214,18 @@ class RedisBroker(BrokerUsecase):
                 task.cancel()
 
     @staticmethod
-    async def _parse_message(message: Any) -> PropanMessage:
+    async def _parse_message(message: Any) -> RedisMessage:
         data = message.get("data", b"")
 
         try:
-            obj = RedisMessage.parse_raw(data)
+            obj = RM.parse_raw(data)
         except Exception:
-            msg = PropanMessage(
+            msg = RedisMessage(
                 body=data,
                 raw_message=message,
             )
         else:
-            msg = PropanMessage(
+            msg = RedisMessage(
                 body=obj.data,
                 content_type=obj.headers.get("content-type", ""),
                 reply_to=obj.reply_to,
@@ -221,14 +235,14 @@ class RedisBroker(BrokerUsecase):
 
         return msg
 
-    async def _decode_message(self, message: PropanMessage) -> DecodedMessage:
+    async def _decode_message(self, message: RedisMessage) -> DecodedMessage:
         if message.headers.get("content-type") is not None:
             return await super()._decode_message(message)
         else:
             return RawDecoced(message=message.body).message
 
     def _get_log_context(
-        self, message: Optional[PropanMessage], channel: str
+        self, message: Optional[RedisMessage], channel: str
     ) -> Dict[str, Any]:
         context = {
             "channel": channel,

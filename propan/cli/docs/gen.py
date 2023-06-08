@@ -1,7 +1,7 @@
 import json
 from io import StringIO
 from pathlib import Path
-from typing import Dict, cast
+from typing import Any, Dict, cast
 
 import typer
 
@@ -19,12 +19,24 @@ from propan.types import AnyDict
 
 
 def generate_doc_file(app: PropanApp, filename: Path) -> None:
-    schema = get_schema_yaml(app)
-    filename.write_text(schema)
+    schema = get_app_schema(app)
+    json_schema = schema_to_json(schema)
+    yaml_schema = json_schema_to_yaml(json_schema)
+    filename.write_text(yaml_schema)
     typer.echo(f"Your project AsyncAPI schema was placed to `{filename}`")
 
 
-def get_schema_yaml(app: PropanApp) -> str:
+def gen_app_schema_yaml(app: PropanApp) -> str:
+    json_schema = gen_app_schema_json(app)
+    return json_schema_to_yaml(json_schema)
+
+
+def gen_app_schema_json(app: PropanApp) -> AnyDict:
+    schema = get_app_schema(app)
+    return schema_to_json(schema)
+
+
+def json_schema_to_yaml(schema: AnyDict) -> str:
     try:
         import yaml
     except ImportError as e:  # pragma: no cover
@@ -34,20 +46,16 @@ def get_schema_yaml(app: PropanApp) -> str:
         )
         raise typer.Exit(1) from e
 
-    if app.broker is None:
-        raise typer.BadParameter("Your PropanApp has no broker")
-
-    schema = get_schema_json(app)
     io = StringIO(initial_value="", newline="\n")
     yaml.dump(schema, io, sort_keys=False)
     return io.getvalue()
 
 
-def get_schema_json(app: PropanApp) -> AnyDict:
+def schema_to_json(schema: AsyncAPISchema) -> AnyDict:
     return cast(
         AnyDict,
         json.loads(
-            get_app_schema(app).json(
+            schema.json(
                 by_alias=True,
                 exclude_none=True,
             )
@@ -79,7 +87,9 @@ def get_app_schema(app: PropanApp) -> AsyncAPISchema:
             m.payload = {"$ref": f"#/components/schemas/{p_title}"}
 
             messages[m_title] = m
-            ch.subscribe.message = {"$ref": f"#/components/messages/{m_title}"}  # type: ignore
+            ch.subscribe.message = {
+                "$ref": f"#/components/messages/{m_title}"
+            }  # type: ignore
 
     schema = AsyncAPISchema(
         info=_get_app_info(app),
@@ -103,7 +113,7 @@ def _get_app_info(app: PropanApp) -> AsyncAPIInfo:
     )
 
 
-def _get_broker_servers(broker: BrokerUsecase) -> Dict[str, AsyncAPIServer]:
+def _get_broker_servers(broker: BrokerUsecase[Any, Any]) -> Dict[str, AsyncAPIServer]:
     if isinstance(broker.url, str):
         url = broker.url
     else:
@@ -118,7 +128,7 @@ def _get_broker_servers(broker: BrokerUsecase) -> Dict[str, AsyncAPIServer]:
     }
 
 
-def _get_broker_channels(broker: BrokerUsecase) -> Dict[str, AsyncAPIChannel]:
+def _get_broker_channels(broker: BrokerUsecase[Any, Any]) -> Dict[str, AsyncAPIChannel]:
     channels = {}
     for handler in broker.handlers:
         channels.update(handler.get_schema())

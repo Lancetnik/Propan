@@ -1,10 +1,10 @@
 from propan import PropanApp, RabbitBroker
 from propan.asyncapi import AsyncAPIContact, AsyncAPILicense
-from propan.cli.docs.gen import get_schema_json
+from propan.cli.docs.gen import gen_app_schema_json
 
 
 def test_app_default_info():
-    schema = get_schema_json(PropanApp(RabbitBroker()))
+    schema = gen_app_schema_json(PropanApp(RabbitBroker()))
     assert schema["info"] == {
         "description": "",
         "title": "Propan",
@@ -13,7 +13,7 @@ def test_app_default_info():
 
 
 def test_app_base_info():
-    schema = get_schema_json(
+    schema = gen_app_schema_json(
         PropanApp(
             RabbitBroker(),
             title="My App",
@@ -29,7 +29,7 @@ def test_app_base_info():
 
 
 def test_app_detail_info():
-    schema = get_schema_json(
+    schema = gen_app_schema_json(
         PropanApp(
             RabbitBroker(),
             title="My App",

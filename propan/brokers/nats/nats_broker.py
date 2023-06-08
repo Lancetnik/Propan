@@ -2,12 +2,23 @@ import asyncio
 import logging
 from functools import wraps
 from secrets import token_hex
-from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    TypeVar,
+    Union,
+)
 
 import nats
 from fast_depends.model import Depends
 from nats.aio.client import Callback, Client, ErrorCallback
 from nats.aio.msg import Msg
+from typing_extensions import TypeAlias
 
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage
@@ -17,11 +28,11 @@ from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMes
 from propan.utils import context
 
 T = TypeVar("T")
+NatsMessage: TypeAlias = PropanMessage[Msg]
 
 
-class NatsBroker(BrokerUsecase):
+class NatsBroker(BrokerUsecase[Msg, Client]):
     handlers: List[Handler]
-    _connection: Optional[Client]
 
     __max_queue_len: int
     __max_subject_len: int
@@ -66,10 +77,9 @@ class NatsBroker(BrokerUsecase):
         subject: str,
         queue: str = "",
         *,
-        retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        _raw: bool = False,
         description: str = "",
+        **original_kwargs: AnyDict,
     ) -> Callable[[DecoratedCallable], None]:
         self.__max_subject_len = max((self.__max_subject_len, len(subject)))
         self.__max_queue_len = max((self.__max_queue_len, len(queue)))
@@ -80,8 +90,7 @@ class NatsBroker(BrokerUsecase):
                 queue=queue,
                 subject=subject,
                 extra_dependencies=dependencies,
-                retry=retry,
-                _raw=_raw,
+                **original_kwargs,
             )
             handler = Handler(
                 callback=func,
@@ -185,7 +194,7 @@ class NatsBroker(BrokerUsecase):
 
     def _get_log_context(
         self,
-        message: Optional[PropanMessage],
+        message: Optional[NatsMessage],
         subject: str,
         queue: str = "",
     ) -> Dict[str, Any]:
@@ -206,7 +215,7 @@ class NatsBroker(BrokerUsecase):
             "- %(message)s"
         )
 
-    async def _parse_message(self, message: Msg) -> PropanMessage:
+    async def _parse_message(self, message: Msg) -> NatsMessage:
         return PropanMessage(
             body=message.data,
             content_type=message.header.get("content-type", ""),
@@ -216,10 +225,12 @@ class NatsBroker(BrokerUsecase):
         )
 
     def _process_message(
-        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher] = None
-    ) -> Callable[[PropanMessage], T]:
+        self,
+        func: Callable[[NatsMessage], Awaitable[T]],
+        watcher: Optional[BaseWatcher] = None,
+    ) -> Callable[[NatsMessage], Awaitable[T]]:
         @wraps(func)
-        async def wrapper(message: PropanMessage) -> T:
+        async def wrapper(message: NatsMessage) -> T:
             r = await func(message)
 
             if message.reply_to:
