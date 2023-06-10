@@ -30,7 +30,7 @@ def gen(
         help="generated document filename",
     ),
 ) -> None:
-    """Generate an AsyncAPI schema.yaml for your project"""
+    """Generate an AsyncAPI scheme.yaml for your project"""
     current_dir = Path.cwd()
     generated_filepath = current_dir / filename
 

@@ -12,9 +12,10 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from propan import RedisBroker
+from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable
+from propan.types import AnyCallable, AnyDict
 
 class RedisRouter(PropanRouter[RedisBroker]):
     def __init__(
@@ -60,10 +61,14 @@ class RedisRouter(PropanRouter[RedisBroker]):
             generate_unique_id
         ),
         # Broker kwargs
+        schema_url: str = "/asyncapi",
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        protocol: str = "redis",
     ) -> None:
         pass
     def add_api_mq_route(  # type: ignore[override]
@@ -72,6 +77,9 @@ class RedisRouter(PropanRouter[RedisBroker]):
         *,
         endpoint: AnyCallable,
         pattern: bool = False,
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        description: str = "",
     ) -> None:
         pass
     def event(  # type: ignore[override]
@@ -79,5 +87,8 @@ class RedisRouter(PropanRouter[RedisBroker]):
         channel: str,
         *,
         pattern: bool = False,
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        description: str = "",
     ) -> None:
         pass

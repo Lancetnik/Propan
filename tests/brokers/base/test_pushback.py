@@ -65,10 +65,10 @@ async def test_push_back_watcher(async_mock):
         on_max=async_mock.on_max,
     )
 
-    async_mock.side_effect = Exception("Ooops!")
+    async_mock.side_effect = ValueError("Ooops!")
 
     while not async_mock.on_max.called:
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             async with context:
                 await async_mock()
 
@@ -90,10 +90,10 @@ async def test_push_endless_back_watcher(async_mock):
         on_max=async_mock.on_max,
     )
 
-    async_mock.side_effect = Exception("Ooops!")
+    async_mock.side_effect = ValueError("Ooops!")
 
     while async_mock.on_error.call_count < 10:
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             async with context:
                 await async_mock()
 

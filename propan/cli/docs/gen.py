@@ -23,7 +23,7 @@ def generate_doc_file(app: PropanApp, filename: Path) -> None:
     json_schema = schema_to_json(schema)
     yaml_schema = json_schema_to_yaml(json_schema)
     filename.write_text(yaml_schema)
-    typer.echo(f"Your project AsyncAPI schema was placed to `{filename}`")
+    typer.echo(f"Your project AsyncAPI scheme was placed to `{filename}`")
 
 
 def gen_app_schema_yaml(app: PropanApp) -> str:
@@ -108,8 +108,8 @@ def _get_app_info(app: PropanApp) -> AsyncAPIInfo:
         title=app.title,
         version=app.version,
         description=app.description,
-        license=app.license,
-        contact=app.contact,
+        license=getattr(app, "license", None),
+        contact=getattr(app, "contact", None),
     )
 
 

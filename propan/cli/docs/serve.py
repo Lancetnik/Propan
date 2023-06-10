@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Optional, Union, cast
+from typing import Any, Callable, Dict, Optional, Union
 
 from propan.asyncapi import AsyncAPISchema
 from propan.cli.docs.gen import schema_to_json
@@ -16,48 +16,21 @@ def serve_docs(
 
     import uvicorn
     from fastapi import FastAPI
-    from fastapi.responses import HTMLResponse, Response
 
     app = FastAPI()
 
-    @app.get("/", response_class=HTMLResponse)
-    def read_items(
-        sidebar: bool = True,
-        info: bool = True,
-        servers: bool = True,
-        operations: bool = True,
-        messages: bool = True,
-        schemas: bool = True,
-        errors: bool = True,
-        expandMessageExamples: bool = True,
-    ) -> str:
-        return get_asyncapi_html(
-            schema,
-            sidebar=sidebar,
-            info=info,
-            servers=servers,
-            operations=operations,
-            messages=messages,
-            schemas=schemas,
-            errors=errors,
-            expand_message_examples=expandMessageExamples,
-            title=raw_schema.info.title if raw_schema else "Propan",
-        )
+    app.get("/")(asyncapi_html_endpoint(schema, raw_schema))
 
     if raw_schema is not None:
+        app.get("/asyncapi.json")(download_json_endpoint(raw_schema))
 
-        @app.get("/asyncapi.json")
-        def download_json() -> Response:
-            return Response(
-                content=json.dumps(
-                    schema_to_json(cast(AsyncAPISchema, raw_schema)), indent=4
-                ),
-                headers={
-                    "Content-Type": "application/octet-stream",
-                },
-            )
+    app.get("/asyncapi.yaml")(download_yaml_endpoint(schema))
+    uvicorn.run(app, host=host, port=port)
 
-    @app.get("/asyncapi.yaml")
+
+def download_yaml_endpoint(schema: str) -> Callable[[], Any]:
+    from fastapi.responses import Response
+
     def download_yaml() -> Response:
         return Response(
             content=schema,
@@ -66,7 +39,57 @@ def serve_docs(
             },
         )
 
-    uvicorn.run(app, host=host, port=port)
+    return download_yaml
+
+
+def download_json_endpoint(raw_schema: AsyncAPISchema) -> Callable[[], Any]:
+    from fastapi.responses import Response
+
+    def download_json() -> Response:
+        return Response(
+            content=json.dumps(
+                schema_to_json(raw_schema),
+                indent=4,
+            ),
+            headers={
+                "Content-Type": "application/octet-stream",
+            },
+        )
+
+    return download_json
+
+
+def asyncapi_html_endpoint(
+    schema: str, raw_schema: Optional[AsyncAPISchema] = None
+) -> Callable[[], Any]:
+    from fastapi.responses import HTMLResponse
+
+    def asyncapi(
+        sidebar: bool = True,
+        info: bool = True,
+        servers: bool = True,
+        operations: bool = True,
+        messages: bool = True,
+        schemas: bool = True,
+        errors: bool = True,
+        expandMessageExamples: bool = True,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            content=get_asyncapi_html(
+                schema,
+                sidebar=sidebar,
+                info=info,
+                servers=servers,
+                operations=operations,
+                messages=messages,
+                schemas=schemas,
+                errors=errors,
+                expand_message_examples=expandMessageExamples,
+                title=raw_schema.info.title if raw_schema else "Propan",
+            )
+        )
+
+    return asyncapi
 
 
 def get_asyncapi_html(

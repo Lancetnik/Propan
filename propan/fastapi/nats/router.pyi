@@ -23,11 +23,13 @@ from nats.aio.client import (
     JWTCallback,
     SignatureCallback,
 )
+from nats.aio.msg import Msg
 from starlette import routing
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from propan import NatsBroker
+from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
@@ -86,10 +88,14 @@ class NatsRouter(PropanRouter[NatsBroker]):
             generate_unique_id
         ),
         # Broker kwargs
+        schema_url: str = "/asyncapi",
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        decode_message: CustomDecoder[Msg] = None,
+        parse_message: CustomParser[Msg] = None,
+        protocol: str = "nats",
     ) -> None:
         pass
     def add_api_mq_route(  # type: ignore[override]
@@ -99,6 +105,9 @@ class NatsRouter(PropanRouter[NatsBroker]):
         queue: str = "",
         endpoint: AnyCallable,
         retry: Union[bool, int] = False,
+        decode_message: CustomDecoder[Msg] = None,
+        parse_message: CustomParser[Msg] = None,
+        description: str = "",
     ) -> None:
         pass
     def event(  # type: ignore[override]
@@ -107,5 +116,8 @@ class NatsRouter(PropanRouter[NatsBroker]):
         *,
         queue: str = "",
         retry: Union[bool, int] = False,
+        decode_message: CustomDecoder[Msg] = None,
+        parse_message: CustomParser[Msg] = None,
+        description: str = "",
     ) -> None:
         pass

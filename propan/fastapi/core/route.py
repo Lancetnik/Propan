@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+from functools import wraps
 from itertools import dropwhile
 from typing import Any, Callable, Coroutine, Optional, Union
 
@@ -33,15 +34,18 @@ class PropanRoute(BaseRoute):
             call=endpoint,
         )
 
-        handler = PropanMessage.get_session(
-            self.dependant,
-            dependency_overrides_provider,
+        handler = wraps(endpoint)(
+            PropanMessage.get_session(
+                self.dependant,
+                dependency_overrides_provider,
+            )
         )
 
         broker.handle(
             path,
             *extra,
             _raw=True,
+            _get_dependant=get_dependant,  # type: ignore
             **handle_kwargs,  # type: ignore
         )(handler)
 

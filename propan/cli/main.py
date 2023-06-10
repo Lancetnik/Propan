@@ -18,7 +18,7 @@ cli = typer.Typer(pretty_exceptions_short=True)
 cli.add_typer(
     create_app, name="create", help="Create a new Propan project at [APPNAME] directory"
 )
-cli.add_typer(docs_app, name="docs", help="AsyncAPI schema commands")
+cli.add_typer(docs_app, name="docs", help="AsyncAPI scheme commands")
 
 
 def version_callback(version: bool) -> None:

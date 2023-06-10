@@ -179,6 +179,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         parse_message: CustomParser[MsgType] = None,
         description: str = "",
         _raw: bool = False,
+        _get_dependant: Callable[[Callable[..., Any]], Dependant] = get_dependant,
         **broker_kwargs: Any,
     ) -> HandlerWrapper:
         raise NotImplementedError()
@@ -223,14 +224,28 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         decode_message: CustomDecoder[MsgType] = None,
         parse_message: CustomParser[MsgType] = None,
         _raw: bool = False,
+        _get_dependant: Callable[..., Dependant] = get_dependant,
         **broker_log_context_kwargs: Any,
     ) -> Tuple[Callable[[MsgType, bool], Awaitable[Optional[T]]], Dependant]:
-        dependant = get_dependant(path="", call=func)
+        dependant = _get_dependant(path="", call=func)
         extra = [
-            get_dependant(path="", call=d.dependency)
+            _get_dependant(path="", call=d.dependency)
             for d in chain(extra_dependencies, self.dependencies)
         ]
         dependant.dependencies.extend(extra)
+
+        if getattr(dependant, "flat_params", None) is None:  # handle FastAPI Dependant
+            params = dependant.path_params + dependant.body_params
+
+            for d in dependant.dependencies:
+                params.extend(d.path_params + d.body_params)
+
+            params_unique = []
+            for p in params:
+                if p not in params_unique:
+                    params_unique.append(p)
+
+            dependant.flat_params = params_unique
 
         f = cast(Callable[..., Awaitable[T]], to_async(func))
 

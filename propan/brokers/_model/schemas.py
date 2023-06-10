@@ -42,7 +42,7 @@ class BaseHandler:
 
         dependant = self.dependant
 
-        if dependant.return_field:
+        if getattr(dependant, "return_field", None) is not None:
             return_field = dependant.return_field
 
             if issubclass(return_field.type_, BaseModel):
