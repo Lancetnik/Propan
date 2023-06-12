@@ -6,9 +6,9 @@ your application.
 
 Most HTTP frameworks have built-in lifecycle hooks for this.
 
-=== "Fastapi"
+=== "FastAPI"
     !!! tip
-        If you want to use **Propan** in conjunction with **Facetapi**, perhaps you should use a special
+        If you want to use **Propan** in conjunction with **FastAPI**, perhaps you should use a special
         [plugin](../2_fastapi-plugin/)
 
     ```python hl_lines="6 13 15 18-20"
