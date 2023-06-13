@@ -217,8 +217,9 @@ class RabbitBroker(BrokerUsecase[IncomingMessage, aio_pika.RobustConnection]):
         description: str = "",
     ) -> Callable[
         [
-            Callable[
-                P, Union[PikaSendableMessage, Coroutine[Any, Any, PikaSendableMessage]]
+            Union[
+                Callable[P, PikaSendableMessage],
+                Callable[P, Awaitable[PikaSendableMessage]],
             ]
         ],
         Callable[P, PikaSendableMessage],

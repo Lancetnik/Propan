@@ -33,7 +33,7 @@ from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.kafka.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import DecodedMessage, SendableMessage, Wrapper
+from propan.types import DecodedMessage, SendableMessage, HandlerWrapper
 
 T = TypeVar("T")
 Partition = TypeVar("Partition")
@@ -190,7 +190,7 @@ class KafkaBroker(
         decode_message: CustomDecoder[ConsumerRecord] = None,
         parse_message: CustomParser[ConsumerRecord] = None,
         description: str = "",
-    ) -> Wrapper: ...
+    ) -> HandlerWrapper: ...
     @staticmethod
     async def _parse_message(
         message: ConsumerRecord,
