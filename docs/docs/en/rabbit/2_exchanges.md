@@ -5,12 +5,12 @@ To declare an `Exchange` with all parameters in `Propan`, a special class `propa
 You can use it both when receiving messages and sending them:
 
 ```python hl_lines="5 10"
-import from propan.brokers.rabbit RabbitBroker, RabbitExchange
+from propan.brokers.rabbit import RabbitBroker, RabbitExchange
 
 broker = RabbitBroker()
 
 @broker.handler("test", exchange=RabbitExchange("test"))
-asynchronous definition handler():
+async def handler():
       ...
 
 ...

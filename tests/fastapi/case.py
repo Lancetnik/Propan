@@ -30,7 +30,9 @@ class FastAPITestcase:
         async def hello2(b: int):
             return "2"
 
-        async with router.lifespan_context(app):
+        async with router.lifespan_context(app) as context:
+            assert context["broker"] is router.broker
+
             r = await router.broker.publish(
                 "", name, callback=True, callback_timeout=0.5
             )

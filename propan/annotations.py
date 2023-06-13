@@ -20,7 +20,7 @@ try:
     RabbitBroker = Annotated[RB, ContextField("broker")]
     RabbitMessage = Annotated[aio_pika.message.IncomingMessage, ContextField("message")]
     Channel = Annotated[
-        aio_pika.robust_channel.RobustChannel, ContextField("broker._channel")
+        aio_pika.robust_channel.RobustChannel, ContextField("broker.channel")
     ]
 except Exception:
     RabbitBroker = RabbitMessage = Channel = about.INSTALL_RABBIT

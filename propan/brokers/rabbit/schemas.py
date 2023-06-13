@@ -35,6 +35,15 @@ class RabbitQueue(Queue):
     bind_arguments: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
     routing_key: str = Field(default="", exclude=True)
 
+    def __hash__(self) -> int:
+        return (
+            hash(self.name)
+            + int(self.durable)
+            + int(self.passive)
+            + int(self.exclusive)
+            + int(self.auto_delete)
+        )
+
     @property
     def routing(self) -> Optional[str]:
         return self.routing_key or self.name or None
@@ -79,6 +88,15 @@ class RabbitExchange(NameRequired):
     bind_to: Optional["RabbitExchange"] = Field(default=None, exclude=True)
     bind_arguments: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
     routing_key: str = Field(default="", exclude=True)
+
+    def __hash__(self) -> int:
+        return (
+            hash(self.name)
+            + hash(self.type.value)
+            + int(self.durable)
+            + int(self.passive)
+            + int(self.auto_delete)
+        )
 
     def __init__(
         self,
