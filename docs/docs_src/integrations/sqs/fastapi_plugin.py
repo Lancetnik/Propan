@@ -2,9 +2,9 @@ from fastapi import Depends, FastAPI
 from pydantic import BaseModel
 from propan.fastapi import SQSRouter
 
-app = FastAPI()
-
 router = SQSRouter("http://localhost:9324")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 class Incoming(BaseModel):
     m: dict

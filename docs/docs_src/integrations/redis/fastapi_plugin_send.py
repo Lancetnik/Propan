@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from propan.fastapi import RedisRouter
 
-app = FastAPI()
-
 router = RedisRouter("redis://localhost:6379")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 @router.get("/")
 async def hello_http():

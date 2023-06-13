@@ -1,4 +1,5 @@
 import asyncio
+import warnings
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 from uuid import uuid4
@@ -24,9 +25,8 @@ class RabbitBroker(BrokerUsecase):
     handlers: List[Handler]
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
-    _queues: List[
-        aio_pika.RobustQueue
-    ]  # save queues to shield aio-pika WeakRef from GC
+    _queues: Dict[RabbitQueue, aio_pika.RobustQueue]
+    _exchanges: Dict[RabbitExchange, aio_pika.RobustExchange]
 
     __max_queue_len: int
     __max_exchange_len: int
@@ -46,7 +46,8 @@ class RabbitBroker(BrokerUsecase):
 
         self.__max_queue_len = 4
         self.__max_exchange_len = 4
-        self._queues = []
+        self._queues = {}
+        self._exchanges = {}
 
     async def close(self) -> None:
         if self._channel is not None:
@@ -56,6 +57,9 @@ class RabbitBroker(BrokerUsecase):
         if self._connection is not None:
             await self._connection.close()
             self._connection = None
+
+        self._queues = {}
+        self._exchanges = {}
 
     async def _connect(
         self,
@@ -120,7 +124,6 @@ class RabbitBroker(BrokerUsecase):
             self._log(f"`{func.__name__}` waiting for messages", extra=c)
 
             await queue.consume(func)
-            self._queues.append(queue)
 
     async def publish(
         self,
@@ -151,7 +154,7 @@ class RabbitBroker(BrokerUsecase):
         if exchange is None:
             exchange_obj = self._channel.default_exchange
         else:
-            exchange_obj = await self._init_exchange(exchange)
+            exchange_obj = await self.declare_exchange(exchange)
 
         message = self._validate_message(
             message=message,
@@ -185,9 +188,9 @@ class RabbitBroker(BrokerUsecase):
         self,
         handler: Handler,
     ) -> aio_pika.abc.AbstractRobustQueue:
-        queue = await self._init_queue(handler.queue)
+        queue = await self.declare_queue(handler.queue)
         if handler.exchange is not None and handler.exchange.name != "default":
-            exchange = await self._init_exchange(handler.exchange)
+            exchange = await self.declare_exchange(handler.exchange)
             await queue.bind(
                 exchange,
                 routing_key=handler.queue.routing,
@@ -195,31 +198,37 @@ class RabbitBroker(BrokerUsecase):
             )
         return queue
 
-    async def _init_queue(
-        self,
-        queue: RabbitQueue,
-    ) -> aio_pika.abc.AbstractRobustQueue:
-        return await self._channel.declare_queue(**queue.dict())
+    async def declare_queue(self, queue: RabbitQueue) -> aio_pika.RobustQueue:
+        q = self._queues.get(queue)
+        if q is None:
+            q = await self._channel.declare_queue(**queue.dict())
+            self._queues[queue] = q
+        return q
 
-    async def _init_exchange(
-        self,
-        exchange: RabbitExchange,
-    ) -> aio_pika.abc.AbstractRobustExchange:
-        original = await self._channel.declare_exchange(**exchange.dict())
+    async def declare_exchange(
+        self, exchange: RabbitExchange
+    ) -> aio_pika.RobustExchange:
+        exch = self._exchanges.get(exchange)
 
-        current = exchange
-        current_exch = original
-        while current.bind_to is not None:
-            parent_exch = await self._channel.declare_exchange(**current.bind_to.dict())
-            await current_exch.bind(
-                exchange=parent_exch,
-                routing_key=current.routing_key,
-                arguments=current.bind_arguments,
-            )
-            current = current.bind_to
-            current_exch = parent_exch
+        if exch is None:
+            exch = await self._channel.declare_exchange(**exchange.dict())
+            self._exchanges[exchange] = exch
 
-        return original
+            current = exchange
+            current_exch = exch
+            while current.bind_to is not None:
+                parent_exch = await self._channel.declare_exchange(
+                    **current.bind_to.dict()
+                )
+                await current_exch.bind(
+                    exchange=parent_exch,
+                    routing_key=current.routing_key,
+                    arguments=current.bind_arguments,
+                )
+                current = current.bind_to
+                current_exch = parent_exch
+
+        return exch
 
     def _get_log_context(
         self,
@@ -325,6 +334,61 @@ class RabbitBroker(BrokerUsecase):
 
         if queue is not None:  # pragma: no branch
             self.__max_queue_len = max(self.__max_queue_len, len(queue.name))
+
+    @property
+    def channel(self) -> aio_pika.RobustChannel:
+        return self._channel
+
+    async def _init_queue(
+        self,
+        queue: RabbitQueue,
+    ) -> aio_pika.abc.AbstractRobustQueue:
+        warnings.warn(
+            "The `_init_queue` method is deprecated, "  # noqa: E501
+            "and will be removed in version 1.3.0. "  # noqa: E501
+            "Use `declare_queue` instead.",  # noqa: E501
+            category=DeprecationWarning,
+            stacklevel=1,
+        )
+        q = self._queues.get(queue)
+        if q is None:
+            q = await self._channel.declare_queue(**queue.dict())
+            self._queues[queue] = q
+        return q
+
+    async def _init_exchange(
+        self,
+        exchange: RabbitExchange,
+    ) -> aio_pika.abc.AbstractRobustExchange:
+        warnings.warn(
+            "The `_init_exchange` method is deprecated, "  # noqa: E501
+            "and will be removed in version 1.3.0. "  # noqa: E501
+            "Use `declare_exchange` instead.",  # noqa: E501
+            category=DeprecationWarning,
+            stacklevel=1,
+        )
+
+        exch = self._exchanges.get(exchange)
+
+        if exch is None:
+            exch = await self._channel.declare_exchange(**exchange.dict())
+            self._exchanges[exchange] = exch
+
+            current = exchange
+            current_exch = exch
+            while current.bind_to is not None:
+                parent_exch = await self._channel.declare_exchange(
+                    **current.bind_to.dict()
+                )
+                await current_exch.bind(
+                    exchange=parent_exch,
+                    routing_key=current.routing_key,
+                    arguments=current.bind_arguments,
+                )
+                current = current.bind_to
+                current_exch = parent_exch
+
+        return exch
 
 
 def _validate_exchange(
