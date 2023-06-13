@@ -1,6 +1,7 @@
+from unittest.mock import Mock
+
 import pytest
 from fastapi import FastAPI
-from unittest.mock import Mock
 
 from propan.fastapi import RabbitRouter
 from propan.test import TestRabbitBroker
