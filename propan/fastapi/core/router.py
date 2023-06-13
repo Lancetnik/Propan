@@ -2,10 +2,12 @@ from contextlib import asynccontextmanager
 from enum import Enum
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Dict,
     Generic,
     List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -21,13 +23,14 @@ from fastapi.utils import generate_unique_id
 from starlette import routing
 from starlette.responses import JSONResponse, Response
 from starlette.routing import _DefaultLifespan
-from starlette.types import ASGIApp, Lifespan
+from starlette.types import AppType, ASGIApp, Lifespan
 from typing_extensions import AsyncIterator, TypeVar
 
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import Queue
 from propan.fastapi.core.route import PropanRoute
 from propan.types import AnyDict
+from propan.utils.functions import to_async
 
 Broker = TypeVar("Broker", bound=BrokerUsecase)
 
@@ -35,6 +38,9 @@ Broker = TypeVar("Broker", bound=BrokerUsecase)
 class PropanRouter(APIRouter, Generic[Broker]):
     broker_class: Type[Broker]
     broker: Broker
+    _after_startup_hooks: List[
+        Callable[[AppType], Awaitable[Optional[Mapping[str, Any]]]]
+    ]
 
     def __init__(
         self,
@@ -90,6 +96,8 @@ class PropanRouter(APIRouter, Generic[Broker]):
             on_shutdown=on_shutdown,
         )
 
+        self._after_startup_hooks = []
+
     def add_api_mq_route(
         self,
         path: Union[Queue, str],
@@ -133,13 +141,36 @@ class PropanRouter(APIRouter, Generic[Broker]):
         @asynccontextmanager
         async def start_broker_lifespan(
             app: FastAPI,
-        ) -> AsyncIterator[Dict[str, Broker]]:
+        ) -> AsyncIterator[Mapping[str, Any]]:
+            app.broker = self.broker  # type: ignore
+
             async with lifespan_context(app) as maybe_context:
+                if maybe_context is None:
+                    context: Dict[str, Any] = {}
+                else:
+                    context = dict(maybe_context)
+
+                context.update({"broker": self.broker})
+
                 await self.broker.start()
-                context = {"broker": self.broker}
-                if maybe_context:
-                    context.update(maybe_context)
+
+                for h in self._after_startup_hooks:
+                    h_context = await h(app)
+                    if h_context:
+                        context.update(h_context)
+
                 yield context
                 await self.broker.close()
 
         return start_broker_lifespan
+
+    def after_startup(
+        self,
+        func: Union[
+            Callable[[AppType], Mapping[str, Any]],
+            Callable[[AppType], Awaitable[Mapping[str, Any]]],
+            Callable[[AppType], None],
+            Callable[[AppType], Awaitable[None]],
+        ],
+    ) -> None:
+        self._after_startup_hooks.append(to_async(func))  # type: ignore
