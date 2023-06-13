@@ -19,7 +19,13 @@ from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
 
+<<<<<<< HEAD
+class RabbitRouter(PropanRouter):
+    broker: RabbitBroker
+
+=======
 class RabbitRouter(PropanRouter[RabbitBroker]):
+>>>>>>> 1acd1a468477ed27a085d3d1c6f38d967e64f1f9
     def __init__(
         self,
         host: str = "localhost",
