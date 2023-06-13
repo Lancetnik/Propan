@@ -16,13 +16,7 @@ from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
 
-<<<<<<< HEAD
-class RedisRouter(PropanRouter):
-    broker: RedisBroker
-
-=======
 class RedisRouter(PropanRouter[RedisBroker]):
->>>>>>> 1acd1a468477ed27a085d3d1c6f38d967e64f1f9
     def __init__(
         self,
         url: str = "redis://localhost:6379",
