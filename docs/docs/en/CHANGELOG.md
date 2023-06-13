@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## 2023-06-13 **0.1.2.17**
+
+The current update is a sum of several changes and improvements released from the previous release.
+
+The main change - **Propan** no longer obliges you to receive a message in the form of only one argument.
+Your handler function can consume as many arguments as needed and also combine them with **pydantic.BaseModel**.
+
+```python
+@router.handle(...)
+async def handler(a: int, b: float):
+...
+async def handler(a: Message, b: float, c: str):
+```
+
+A few public methods for declaring objects **RabbitMQ** were added to **RabbitBroker**:
+
+```python
+broker = RabbitBroker()
+...
+     await broker.declare_exchange(RabbitExchange("test"))
+     await broker.declare_queue(RabbitQueue("test"))
+     channel: aio_pika.RobustChannel = broker.channel
+```
+
+To maintain the ability to send messages and initialize channels, an `after_startup` hook has been added to all **FastAPI PropanRouters**.
+
+```python
+router = RabbitRouter()
+
+@router.after_startup
+async def init_whatever(app: FastAPI): ...
+```
+
+In addition, the behavior of the `__init__` and `connect` methods for all brokers have been improved (now the `connect` parameters have priority and override the `__init__` parameters when connecting to the broker), a correct exception has been implemented when accessing an object unavailable for import, several errors have been fixed and other minor internal changes.
+
 ## 2023-05-28 **0.1.2.3** SQS Beta
 
 **Propan** added support for *SQS* as a message broker. This functionality is full tested.
