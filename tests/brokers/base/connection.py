@@ -39,7 +39,7 @@ class BrokerConnectionTestcase:
         await broker.close()
 
     @pytest.mark.asyncio
-    async def test_connect_merge_args_and_kwargs(self, settings):
+    async def test_connect_merge_args_and_kwargs_base(self, settings):
         args, kwargs = self.get_broker_args(settings)
         broker = self.broker(*args)
         assert await broker.connect(**kwargs)

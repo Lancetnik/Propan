@@ -207,6 +207,15 @@ class RabbitBroker(BrokerUsecase):
         """Initialize RabbitMQ connection and startup all consumers"""
     async def close(self) -> None:
         """Close RabbitMQ connection"""
+    async def declare_queue(self, queue: RabbitQueue) -> aio_pika.RobustQueue:
+        """Check existence or create RabbitMQ queue"""
+    async def declare_exchange(
+        self, exchange: RabbitExchange
+    ) -> aio_pika.RobustExchange:
+        """Check existence or create RabbitMQ exchange"""
+    @property
+    def channel(self) -> aio_pika.RobustChannel:
+        """Access to brokers' aio-pika channel object"""
     def _process_message(
         self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
     ) -> Callable[[PropanMessage], T]: ...
@@ -220,14 +229,6 @@ class RabbitBroker(BrokerUsecase):
         self,
         handler: Handler,
     ) -> aio_pika.abc.AbstractRobustQueue: ...
-    async def _init_queue(
-        self,
-        queue: RabbitQueue,
-    ) -> aio_pika.abc.AbstractRobustQueue: ...
-    async def _init_exchange(
-        self,
-        exchange: RabbitExchange,
-    ) -> aio_pika.abc.AbstractRobustExchange: ...
     @classmethod
     def _validate_message(
         cls: Type["RabbitBroker"],

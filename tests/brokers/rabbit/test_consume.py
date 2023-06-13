@@ -41,8 +41,8 @@ class TestRabbitConsume(BrokerConsumeTestcase):
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
         await broker.connect()
-        await broker._init_queue(RabbitQueue(queue))
-        await broker._init_exchange(exchange)
+        await broker.declare_queue(RabbitQueue(queue))
+        await broker.declare_exchange(exchange)
 
         broker.handle(
             queue=RabbitQueue(name=queue, passive=True),
