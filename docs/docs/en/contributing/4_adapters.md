@@ -90,7 +90,7 @@ There are two possible options here:
 
 In the second case, we were less lucky and we need to convert a loop into a `callback`. This can be done, for example, using `asyncio.Task`, as in the *Redis* example. However, in this case, you should not forget to correctly cancel these tasks in the `close` method.
 
-```python linenums='1' hl_lines="15 25-26 44 54"
+```python linenums='1' hl_lines="16 26-27 45 55"
 {!> docs_src/contributing/adapter/redis_start.py !}
 ```
 
