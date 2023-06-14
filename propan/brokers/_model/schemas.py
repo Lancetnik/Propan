@@ -62,7 +62,7 @@ class BaseHandler:
                 return_info = jsonref.replace_refs(
                     return_model.schema(), jsonschema=True, proxies=False
                 )
-                return_info["examples"] = [return_info.pop("example")]
+                return_info["examples"] = [return_info.pop("example", [])]
 
             else:
                 return_model = create_model(  # type: ignore
