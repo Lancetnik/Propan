@@ -70,18 +70,28 @@ async-nats = [
 ]
 
 async-redis = [
-    "redis>=4.2.0rc1"
+    "redis>=4.2.0rc1",
 ]
 
 async-kafka = [
-    "aiokafka>=0.8"
+    "aiokafka>=0.8",
+]
+
+doc = [
+    "PyYAML",
+    "pytest[email]",
+    "polyfactory",
+    "jsonref",
+    "fastapi",
+    "uvicorn",
 ]
 
 async-sqs = [
-    "aiobotocore"
+    "aiobotocore",
 ]
 
 test = [
+    "propan[doc]",
     "propan[async-rabbit]",
     "propan[async-nats]",
     "propan[async-redis]",
@@ -93,24 +103,27 @@ test = [
     "pytest-asyncio>=0.21",
 
     "fastapi",
+    "python-dotenv",
 
     "asyncmock; python_version < '3.8'",
 ]
 
-doc = [
+dev-doc = [
     "mkdocs-material >=8.1.4,<9.0.0",
     "mkdocs-static-i18n",
     "mdx-include >=1.4.1,<2.0.0",
     "mkdocs-macros-plugin",
+    "mkdocs-glightbox",
 
     "typer[all]",
 ]
 
 dev = [
     "propan[test]",
-    "propan[doc]",
+    "propan[dev-doc]",
 
     "types-redis",
+    "types-PyYAML",
 
     "mypy==1.1.1",
     "black==23.3.0",

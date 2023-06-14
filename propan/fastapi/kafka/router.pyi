@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Union
 
 from aiokafka.abc import AbstractTokenProvider
 from aiokafka.producer.producer import _missing
+from aiokafka.structs import ConsumerRecord
 from fastapi import params
 from fastapi.datastructures import Default
 from fastapi.routing import APIRoute
@@ -20,6 +21,7 @@ from typing_extensions import Literal, TypeVar
 
 from propan import KafkaBroker
 from propan.__about__ import __version__
+from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
 from propan.types import AnyCallable
@@ -92,10 +94,14 @@ class KafkaRouter(PropanRouter[KafkaBroker]):
         ),
         loop: Optional[AbstractEventLoop] = None,
         # Broker kwargs
+        schema_url: str = "/asyncapi",
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        decode_message: CustomDecoder[ConsumerRecord] = None,
+        parse_message: CustomParser[ConsumerRecord] = None,
+        protocol: str = "kafka",
     ) -> None:
         pass
     def add_api_mq_route(  # type: ignore[override]
@@ -131,7 +137,11 @@ class KafkaRouter(PropanRouter[KafkaBroker]):
             "read_uncommitted",
             "read_committed",
         ] = "read_uncommitted",
+        # broker kwargs
         retry: Union[bool, int] = False,
+        decode_message: CustomDecoder[ConsumerRecord] = None,
+        parse_message: CustomParser[ConsumerRecord] = None,
+        description: str = "",
     ) -> None:
         pass
     def event(  # type: ignore[override]
@@ -166,6 +176,10 @@ class KafkaRouter(PropanRouter[KafkaBroker]):
             "read_uncommitted",
             "read_committed",
         ] = "read_uncommitted",
+        # broker kwargs
         retry: Union[bool, int] = False,
+        decode_message: CustomDecoder[ConsumerRecord] = None,
+        parse_message: CustomParser[ConsumerRecord] = None,
+        description: str = "",
     ) -> None:
         pass

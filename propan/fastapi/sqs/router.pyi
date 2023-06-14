@@ -12,10 +12,11 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from propan import SQSBroker
+from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.brokers.sqs.schema import SQSQueue
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable
+from propan.types import AnyCallable, AnyDict
 
 class SQSRouter(PropanRouter[SQSBroker]):
     def __init__(
@@ -50,10 +51,14 @@ class SQSRouter(PropanRouter[SQSBroker]):
             generate_unique_id
         ),
         # Broker kwargs
+        schema_url: str = "/asyncapi",
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        protocol: str = "sqs",
     ) -> None:
         pass
     def add_api_mq_route(  # type: ignore[override]
@@ -68,6 +73,9 @@ class SQSRouter(PropanRouter[SQSBroker]):
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
         endpoint: AnyCallable,
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        description: str = "",
     ) -> None:
         pass
     def event(  # type: ignore[override]
@@ -81,5 +89,8 @@ class SQSRouter(PropanRouter[SQSBroker]):
         request_attempt_id: Optional[str] = None,
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        description: str = "",
     ) -> None:
         pass

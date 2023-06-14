@@ -1,16 +1,18 @@
 # TODO: remove mypy ignore at complete
 # type: ignore
 from functools import wraps
-from typing import Any, Optional
+from typing import Any, Awaitable, Callable, Optional, TypeVar
 
 import nats
-from nats.aio.msg import Msg
 from nats.js.client import JetStreamContext
 
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.nats.nats_broker import NatsBroker
 from propan.brokers.nats.schemas import JetStream
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
-from propan.types import AnyDict, DecoratedCallable
+from propan.types import AnyDict
+
+T = TypeVar("T")
 
 
 class NatsJSBroker(NatsBroker):
@@ -34,19 +36,20 @@ class NatsJSBroker(NatsBroker):
 
     @staticmethod
     def _process_message(
-        func: DecoratedCallable, watcher: Optional[BaseWatcher] = None
-    ) -> DecoratedCallable:
+        func: Callable[[PropanMessage], Awaitable[T]],
+        watcher: Optional[BaseWatcher] = None,
+    ) -> Callable[[PropanMessage], Awaitable[T]]:
         @wraps(func)
-        async def wrapper(message: Msg) -> Any:
+        async def wrapper(message: PropanMessage) -> T:
             if watcher is None:
                 return await func(message)
             else:
                 async with WatcherContext(
                     watcher,
                     message.message_id,
-                    on_success=message.ack,
-                    on_error=message.nak,
-                    on_max=message.term,
+                    on_success=message.raw_message.ack,
+                    on_error=message.raw_message.nak,
+                    on_max=message.raw_message.term,
                 ):
                     await message.in_progress()
                     return await func(message)

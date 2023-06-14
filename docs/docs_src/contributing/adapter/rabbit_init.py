@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 
 
 class RabbitBroker(BrokerUsecase):

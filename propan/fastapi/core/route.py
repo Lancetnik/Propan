@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+from functools import wraps
 from itertools import dropwhile
 from typing import Any, Callable, Coroutine, Optional, Union
 
@@ -22,7 +23,7 @@ class PropanRoute(BaseRoute):
         path: Union[Queue, str],
         *extra: Union[Queue, str],
         endpoint: Callable[..., Any],
-        broker: BrokerUsecase,
+        broker: BrokerUsecase[Any, Any],
         dependency_overrides_provider: Optional[Any] = None,
         **handle_kwargs: AnyDict,
     ) -> None:
@@ -33,15 +34,18 @@ class PropanRoute(BaseRoute):
             call=endpoint,
         )
 
-        handler = PropanMessage.get_session(
-            self.dependant,
-            dependency_overrides_provider,
+        handler = wraps(endpoint)(
+            PropanMessage.get_session(
+                self.dependant,
+                dependency_overrides_provider,
+            )
         )
 
         broker.handle(
             path,
             *extra,
             _raw=True,
+            _get_dependant=get_dependant,  # type: ignore
             **handle_kwargs,  # type: ignore
         )(handler)
 
@@ -69,7 +73,7 @@ class PropanMessage(Request):
         cls,
         dependant: Dependant,
         dependency_overrides_provider: Optional[Any] = None,
-    ) -> Callable[[NativeMessage], Any]:
+    ) -> Callable[[NativeMessage[Any]], Any]:
         assert dependant.call
         func = get_app(dependant, dependency_overrides_provider)
 
@@ -83,7 +87,7 @@ class PropanMessage(Request):
             None,
         )
 
-        async def app(message: NativeMessage) -> Any:
+        async def app(message: NativeMessage[Any]) -> Any:
             body = message.decoded_body
             if first_arg is not None:
                 if not isinstance(body, dict):  # pragma: no branch

@@ -25,13 +25,13 @@ def to_async(
     return wrapper
 
 
-def get_function_arguments(func: Callable[P, T]) -> List[str]:
+def get_function_positional_arguments(func: Callable[P, T]) -> List[str]:
     signature = inspect.signature(func)
 
-    arg_kinds = [
+    arg_kinds = (
         inspect.Parameter.POSITIONAL_ONLY,
         inspect.Parameter.POSITIONAL_OR_KEYWORD,
-    ]
+    )
 
     return [
         param.name for param in signature.parameters.values() if param.kind in arg_kinds

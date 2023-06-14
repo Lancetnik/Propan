@@ -54,6 +54,7 @@ theme:
 
 plugins:
   - search
+  - glightbox
   - macros:
       include_dir: includes
   - i18n:
@@ -104,6 +105,7 @@ extra:
     nats_py: https://github.com/nats-io/nats.py
     pydantic: https://docs.pydantic.dev/
     pytest: https://docs.pytest.org/en/latest/
+    asyncapi: https://www.asyncapi.com/
   social:
     - icon: fontawesome/brands/github-alt
       link: https://github.com/lancetnik/propan
@@ -128,6 +130,7 @@ nav:
     - Lifespan: getting_started/6_lifespans.md
     - Testing: getting_started/7_testing.md
     - Logging: getting_started/8_logging.md
+    - Documentation: getting_started/9_documentation.md
   - RabbitMQ:
     - Routing: rabbit/1_routing.md
     - Exchanges: rabbit/2_exchanges.md

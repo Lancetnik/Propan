@@ -1,13 +1,8 @@
 from pathlib import Path
-from typing import Union, cast
 
 
-def touch_dir(dir: Union[Path, str]) -> Path:
-    if isinstance(dir, str) is True:
-        dir = Path(dir).resolve()
-
-    dir = cast(Path, dir)
-    if dir.exists() is False:
+def touch_dir(dir: Path) -> Path:
+    if not dir.exists():  # pragma: no branch
         dir.mkdir()
     return dir
 
