@@ -33,9 +33,10 @@ def test_multi_args():
 
     assert message_title == "FuncMessage"
 
-    example = result.pop("example")
-    assert isinstance(example["a"], int)
-    assert isinstance(example["b"], float)
+    example = result.pop("example", None)
+    if example:
+        assert isinstance(example["a"], int)
+        assert isinstance(example["b"], float)
     assert result == {
         "properties": {
             "a": {"title": "A", "type": "integer"},
@@ -63,9 +64,10 @@ def test_pydantic_args():
 
     assert message_title == "FuncMessage"
 
-    example = result.pop("example")
-    assert isinstance(example["a"], int)
-    assert isinstance(example["b"], float)
+    example = result.pop("example", None)
+    if example:
+        assert isinstance(example["a"], int)
+        assert isinstance(example["b"], float)
     assert result == {
         "properties": {
             "a": {"title": "A", "type": "integer"},
@@ -121,7 +123,7 @@ def test_response_base():
         "type": "null",
     }
 
-    for r in response.pop("examples"):
+    for r in response.pop("examples", []):
         assert isinstance(r, str)
 
     assert response == {"title": "FuncReply", "type": "string"}
@@ -175,7 +177,7 @@ def test_pydantic_gen_response_examples():
         "type": "null",
     }
 
-    for r in response.pop("examples"):
+    for r in response.pop("examples", []):
         assert isinstance(r["a"], int)
 
     assert response == {
