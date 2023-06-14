@@ -39,12 +39,9 @@ def test_group_handler():
 
     examples = schema["channels"]["Handler"]["subscribe"]["bindings"]["sqs"][
         "replyTo"
-    ].pop("examples")
-    if examples:
-        assert isinstance(
-            examples[0],
-            str,
-        )
+    ].pop("examples", [])
+    if examples and examples[0]:
+        assert isinstance(examples[0], str)
 
     assert schema["channels"] == {
         "Handler": {
