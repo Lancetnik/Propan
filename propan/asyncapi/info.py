@@ -1,6 +1,12 @@
+import importlib.util
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl
+
+if importlib.util.find_spec("email_validator"):
+    from pydantic import EmailStr
+else:
+    EmailStr = str
 
 
 class AsyncAPIContact(BaseModel):
