@@ -23,6 +23,6 @@ jobs:
         with:
           key: ${{ github.ref }}
           path: .cache
-      - run: pip install mkdocs-material mkdocs-static-i18n mdx-include mkdocs-macros-plugin
+      - run: pip install mkdocs-material mkdocs-static-i18n mdx-include mkdocs-macros-plugin mkdocs-glightbox
       - working-directory: ./docs
         run: mkdocs gh-deploy --force

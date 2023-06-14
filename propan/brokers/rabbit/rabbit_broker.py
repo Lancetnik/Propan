@@ -1,12 +1,25 @@
 import asyncio
 import warnings
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+)
 from uuid import uuid4
 
 import aio_pika
 import aiormq
 from aio_pika.abc import DeliveryMode
+from fast_depends.model import Depends
+from typing_extensions import TypeAlias
 from yarl import URL
 
 from propan.brokers._model import BrokerUsecase
@@ -17,7 +30,8 @@ from propan.types import AnyDict, DecoratedCallable, HandlerWrapper, SendableMes
 from propan.utils import context
 
 TimeoutType = Optional[Union[int, float]]
-PikaSendableMessage = Union[aio_pika.message.Message, SendableMessage]
+PikaSendableMessage: TypeAlias = Union[aio_pika.message.Message, SendableMessage]
+RabbitMessage: TypeAlias = PropanMessage[aio_pika.message.IncomingMessage]
 T = TypeVar("T")
 
 
@@ -37,9 +51,18 @@ class RabbitBroker(BrokerUsecase):
         *,
         log_fmt: Optional[str] = None,
         consumers: Optional[int] = None,
+        protocol: str = "amqp",
+        protocol_version: str = "0.9.1",
         **kwargs: AnyDict,
     ) -> None:
-        super().__init__(url, log_fmt=log_fmt, **kwargs)
+        super().__init__(
+            url,
+            log_fmt=log_fmt,
+            url_=url or "amqp://guest:guest@localhost:5672/",
+            protocol=protocol,
+            protocol_version=protocol_version,
+            **kwargs,
+        )
         self._max_consumers = consumers
 
         self._channel = None
@@ -85,22 +108,29 @@ class RabbitBroker(BrokerUsecase):
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         *,
-        retry: Union[bool, int] = False,
-        _raw: bool = False,
+        dependencies: Sequence[Depends] = (),
+        description: str = "",
+        **original_kwargs: AnyDict,
     ) -> HandlerWrapper:
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
         self.__setup_log_context(queue, exchange)
 
         def wrapper(func: DecoratedCallable) -> Any:
-            func = self._wrap_handler(
+            func, dependant = self._wrap_handler(
                 func,
                 queue=queue,
                 exchange=exchange,
-                retry=retry,
-                _raw=_raw,
+                extra_dependencies=dependencies,
+                **original_kwargs,
             )
-            handler = Handler(callback=func, queue=queue, exchange=exchange)
+            handler = Handler(
+                callback=func,
+                queue=queue,
+                exchange=exchange,
+                _description=description,
+                dependant=dependant,
+            )
             self.handlers.append(handler)
 
             return func
@@ -232,7 +262,7 @@ class RabbitBroker(BrokerUsecase):
 
     def _get_log_context(
         self,
-        message: Optional[PropanMessage],
+        message: Optional[RabbitMessage],
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
     ) -> Dict[str, Any]:
@@ -256,8 +286,8 @@ class RabbitBroker(BrokerUsecase):
     @staticmethod
     async def _parse_message(
         message: aio_pika.message.IncomingMessage,
-    ) -> PropanMessage:
-        return PropanMessage(
+    ) -> RabbitMessage:
+        return RabbitMessage(
             body=message.body,
             headers=message.headers,
             reply_to=message.reply_to or "",
@@ -267,10 +297,12 @@ class RabbitBroker(BrokerUsecase):
         )
 
     def _process_message(
-        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
-    ) -> Callable[[PropanMessage], T]:
+        self,
+        func: Callable[[RabbitMessage], Awaitable[T]],
+        watcher: Optional[BaseWatcher],
+    ) -> Callable[[RabbitMessage], Awaitable[T]]:
         @wraps(func)
-        async def wrapper(message: PropanMessage) -> T:
+        async def wrapper(message: RabbitMessage) -> T:
             pika_message = message.raw_message
             if watcher is None:
                 context = pika_message.process()
@@ -345,7 +377,7 @@ class RabbitBroker(BrokerUsecase):
     ) -> aio_pika.abc.AbstractRobustQueue:
         warnings.warn(
             "The `_init_queue` method is deprecated, "  # noqa: E501
-            "and will be removed in version 1.3.0. "  # noqa: E501
+            "and will be removed in version 1.4.0. "  # noqa: E501
             "Use `declare_queue` instead.",  # noqa: E501
             category=DeprecationWarning,
             stacklevel=1,
@@ -362,7 +394,7 @@ class RabbitBroker(BrokerUsecase):
     ) -> aio_pika.abc.AbstractRobustExchange:
         warnings.warn(
             "The `_init_exchange` method is deprecated, "  # noqa: E501
-            "and will be removed in version 1.3.0. "  # noqa: E501
+            "and will be removed in version 1.4.0. "  # noqa: E501
             "Use `declare_exchange` instead.",  # noqa: E501
             category=DeprecationWarning,
             stacklevel=1,

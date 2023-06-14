@@ -1,8 +1,8 @@
 from functools import wraps
 from typing import Optional, TypeVar, Callable
 
-from propan.brokers.model import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage
+from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 
 T = TypeVar("T")

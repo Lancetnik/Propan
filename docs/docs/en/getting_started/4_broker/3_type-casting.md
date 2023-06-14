@@ -2,13 +2,13 @@
 
 The first argument of the function decorated by `@broker.hanle` is the decrypted body of the incoming message.
 
-It can be of three types:
+Incoming message body can be of three types:
 
 * `str` - if the message has the header `content-type: text/plain`
 * `dict` - if the message has the header `content-type: application/json`
 * `bytes` - if the message has any other header
 
-All incoming messages will be automatically brought to this view.
+Either these types can be used as an annotation, or any primitive types to which **pydantic** can cast incoming arguments (for example, `str -> float`).
 
 A few examples:
 
@@ -19,7 +19,7 @@ A few examples:
 async def base_handler(body: str):
     '''
     We are expecting a text/plain message
-    Messages of a different kind will trigger an error
+    Messages of a different kind will raise an error
     '''
 
 ```
@@ -31,7 +31,7 @@ async def base_handler(body: str):
 async def base_handler(body: dict):
     '''
     We are expecting an application/json message
-    Messages of a different kind will trigger an error
+    Messages of a different kind will raise an error
     '''
 ```
 
@@ -42,7 +42,7 @@ async def base_handler(body: dict):
 async def base_handler(body: bytes):
     '''
     We are expecting a 'raw' message
-    Messages of a different kind will trigger an error
+    Messages of a different kind will raise an error
     '''
 ```
 
@@ -62,6 +62,27 @@ async def base_handler(body: Message):
     '''
     We are expecting an application/json message
     Type { key: 1.0 }
-    Messages of a different kind will trigger an error
+    Messages of a different kind will raise an error
+    '''
+```
+
+### Multiple arguments
+
+When annotating multiple incoming arguments, the result will be equivalent to using a similar `pydantic' model.
+
+```python
+from pydantic import BaseModel
+
+class Message(BaseModel):
+    a: int
+    b: float
+
+@broker.handle("test")
+async def base_handler(a: int, b: float):
+# async def base_handler(body: Message): - the same
+    '''
+    We are expecting an application/json message
+    Type { a: 1, b: 1.0 }
+    Messages of a different kind will raise an error
     '''
 ```

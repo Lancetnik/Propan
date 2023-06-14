@@ -4,7 +4,7 @@ from typing import Any, List, NoReturn, Optional
 
 from redis.asyncio.client import PubSub, Redis
 
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 
 
 @dataclass

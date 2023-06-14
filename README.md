@@ -57,6 +57,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
   * framework-independent way to manage the project environment
   * application code *hot reload*
   * robust application templates
+* [**Documentation**](#project-documentation): **Propan** automatically generates and presents an interactive <a href="https://www.asyncapi.com/" target="_blank">**AsyncAPI**</a> documentation for your project
 * <a href="https://lancetnik.github.io/Propan/getting_started/7_testing" target="_blank">**Testability**</a>: **Propan** allows you to test your app without external dependencies: you do not have to set up a Message Broker, you can use a virtual one!
 
 ### Supported MQ brokers
@@ -235,6 +236,16 @@ async def base_handler(body: dict,
     assert dep is True
     assert broker is rabbit_broker
 ```
+
+---
+
+## Project Documentation
+
+**Propan** automatically generates documentation for your project according to the <a href="https://www.asyncapi.com/" target="_blank">**AsyncAPI**</a> specification. You can work with both generated artifacts and place a Web view of your documentation on resources available to related teams.
+
+The availability of such documentation significantly simplifies the integration of services: you can immediately see what channels and message format the application works with. And most importantly, it doesn't cost you anything - **Propan** has already done everything for you!
+
+![HTML-page](../../assets/img/docs-html-short.png)
 
 ---
 

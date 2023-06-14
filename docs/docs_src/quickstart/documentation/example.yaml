@@ -1,0 +1,67 @@
+asyncapi: 2.6.0
+defaultContentType: application/json
+info:
+  title: Smartylighting Streetlights Propan API
+  version: 1.0.0
+  description: "\n    The Smartylighting Streetlights API.\n    ### Check out its\
+    \ awesome features:\n    * Turn a specific streetlight on/off \U0001F303\n   \
+    \ * Receive real-time information about environmental \U0001F4C8\n    "
+servers:
+  dev:
+    url: amqp://guest:guest@localhost:5672/
+    protocol: amqp
+    protocolVersion: 0.9.1
+channels:
+  HandleLogs:
+    servers:
+    - dev
+    bindings:
+      amqp:
+        is: routingKey
+        bindingVersion: 0.2.0
+        queue:
+          name: '*.info'
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        exchange:
+          name: logs
+          type: topic
+          durable: true
+          autoDelete: false
+          vhost: /
+    subscribe:
+      description: Handle all environmental events
+      bindings:
+        amqp:
+          cc: '*.info'
+          ack: true
+          bindingVersion: 0.2.0
+      message:
+        $ref: '#/components/messages/HandleLogsMessage'
+components:
+  messages:
+    HandleLogsMessage:
+      title: HandleLogsMessage
+      correlationId:
+        location: $message.header#/correlation_id
+      payload:
+        $ref: '#/components/schemas/HandleLogsPayload'
+  schemas:
+    HandleLogsPayload:
+      title: HandleLogsPayload
+      type: object
+      properties:
+        level:
+          title: Level
+          type: integer
+        message:
+          title: Message
+          default: ''
+          type: string
+      required:
+      - level
+      example:
+        level: 4015
+        message: evwWheCeRIGhHEHYxKSJ

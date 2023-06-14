@@ -142,7 +142,7 @@ def create_apps_dir(apps: Path) -> Path:
 
     write_file(
         apps_dir / "__init__.py",
-        "from .handlers import base_handler",
+        "from .handlers import *",
     )
 
     return apps_dir

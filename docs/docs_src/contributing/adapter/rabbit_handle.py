@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import List, Union, Optional
 
 from propan.types import HandlerWrapper, HandlerCallable
-from propan.brokers.model import BrokerUsecase
-from propan.brokers.model.schemas import BaseHandler
+from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import BaseHandler
 from propan.brokers.rabbit import RabbitExchange, RabbitQueue
 
 

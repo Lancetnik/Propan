@@ -1,7 +1,7 @@
 from typing import Any, Callable, Optional, TypeVar
 
-from propan.brokers.model import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage
+from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.types import HandlerWrapper, SendableMessage
 

@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any
 
 from propan.types import SendableMessage
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 from propan.brokers.redis.schemas import RedisMessage
 
 

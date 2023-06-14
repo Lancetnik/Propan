@@ -2,9 +2,31 @@ from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from typing import Any, Tuple
 
+import typer
+
+from propan.cli.app import PropanApp
+
+
+def try_import_propan(module: Path, app: str) -> PropanApp:
+    try:
+        propan_app = import_object(module, app)
+
+    except (ValueError, FileNotFoundError, AttributeError) as e:
+        typer.echo(e, err=True)
+        raise typer.BadParameter(
+            "Please, input module like [python_file:propan_app_name]"
+        ) from e
+
+    else:
+        return propan_app  # type: ignore
+
 
 def import_object(module: Path, app: str) -> Any:
-    spec = spec_from_file_location("mode", f"{module}.py")
+    spec = spec_from_file_location(
+        "mode",
+        f"{module}.py",
+        submodule_search_locations=[str(module.parent.absolute())],
+    )
 
     if spec is None:  # pragma: no cover
         raise FileNotFoundError(module)
@@ -17,7 +39,6 @@ def import_object(module: Path, app: str) -> Any:
 
     loader.exec_module(mod)
     obj = getattr(mod, app)
-
     return obj
 
 

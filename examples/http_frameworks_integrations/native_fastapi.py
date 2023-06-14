@@ -3,9 +3,9 @@ from pydantic import BaseModel
 
 from propan.fastapi import RabbitRouter
 
-app = FastAPI()
-
 router = RabbitRouter("amqp://guest:guest@localhost:5672")
+
+app = FastAPI(lifespan=router.lifespan_context)
 
 
 class Incoming(BaseModel):

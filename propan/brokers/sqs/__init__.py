@@ -2,10 +2,9 @@ from propan.brokers.sqs.schema import (
     FifoQueue,
     RedriveAllowPolicy,
     RedrivePolicy,
-    SQSMessage,
     SQSQueue,
 )
-from propan.brokers.sqs.sqs_broker import SQSBroker
+from propan.brokers.sqs.sqs_broker import SQSBroker, SQSMessage
 
 __all__ = (
     "SQSBroker",

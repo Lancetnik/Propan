@@ -45,9 +45,10 @@ __all__ = (  # noqa: F405
     ## context
     "context",
     "Context",
-    "ContextRepo" "Alias",
+    "ContextRepo",
     "Depends",
     # brokers
+    "PropanMessage",
     "NatsBroker",
     "RabbitBroker",
     "RedisBroker",

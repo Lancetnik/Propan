@@ -1,7 +1,7 @@
 import aio_pika
 
-from propan.brokers.model import BrokerUsecase
-from propan.brokers.model.schemas import PropanMessage
+from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.schemas import PropanMessage
 
 
 class RabbitBroker(BrokerUsecase):

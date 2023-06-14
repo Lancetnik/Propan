@@ -1,9 +1,17 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
 from aio_pika.abc import ExchangeType, TimeoutType
 from pydantic import Field
 
+from propan.asyncapi.bindings import (
+    AsyncAPIChannelBinding,
+    AsyncAPIOperationBinding,
+    amqp,
+)
+from propan.asyncapi.channels import AsyncAPIChannel
+from propan.asyncapi.message import AsyncAPICorrelationId, AsyncAPIMessage
+from propan.asyncapi.subscription import AsyncAPISubscription
 from propan.brokers._model.schemas import BaseHandler, NameRequired, Queue
 
 __all__ = (
@@ -28,12 +36,13 @@ class RabbitQueue(Queue):
     routing_key: str = Field(default="", exclude=True)
 
     def __hash__(self) -> int:
-        return (
-            hash(self.name)
-            + int(self.durable)
-            + int(self.passive)
-            + int(self.exclusive)
-            + int(self.auto_delete)
+        return sum(
+            (
+                hash(self.name),
+                int(self.durable),
+                int(self.exclusive),
+                int(self.auto_delete),
+            )
         )
 
     @property
@@ -82,12 +91,13 @@ class RabbitExchange(NameRequired):
     routing_key: str = Field(default="", exclude=True)
 
     def __hash__(self) -> int:
-        return (
-            hash(self.name)
-            + hash(self.type.value)
-            + int(self.durable)
-            + int(self.passive)
-            + int(self.auto_delete)
+        return sum(
+            (
+                hash(self.name),
+                hash(self.type.value),
+                int(self.durable),
+                int(self.auto_delete),
+            )
         )
 
     def __init__(
@@ -124,4 +134,61 @@ class RabbitExchange(NameRequired):
 @dataclass
 class Handler(BaseHandler):
     queue: RabbitQueue
-    exchange: Optional[RabbitExchange] = None
+    exchange: Optional[RabbitExchange] = field(default=None, kw_only=True)  # type: ignore
+
+    def get_schema(self) -> Dict[str, AsyncAPIChannel]:
+        message_title, body, reply_to = self.get_message_object()
+
+        return {
+            self.title: AsyncAPIChannel(
+                subscribe=AsyncAPISubscription(
+                    description=self.description,
+                    bindings=AsyncAPIOperationBinding(
+                        amqp=amqp.AsyncAPIAmqpOperationBinding(
+                            cc=None
+                            if (
+                                self.exchange
+                                and self.exchange.type
+                                in (ExchangeType.FANOUT, ExchangeType.HEADERS)
+                            )
+                            else self.queue.name,
+                            replyTo=reply_to,
+                        ),
+                    ),
+                    message=AsyncAPIMessage(
+                        title=message_title,
+                        payload=body,
+                        correlationId=AsyncAPICorrelationId(
+                            location="$message.header#/correlation_id"
+                        ),
+                    ),
+                ),
+                bindings=AsyncAPIChannelBinding(
+                    amqp=amqp.AsyncAPIAmqpChannelBinding(
+                        is_="routingKey",  # type: ignore
+                        queue=None
+                        if (
+                            self.exchange
+                            and self.exchange.type
+                            in (ExchangeType.FANOUT, ExchangeType.HEADERS)
+                        )
+                        else amqp.AsyncAPIAmqpQueue(
+                            name=self.queue.name,
+                            durable=self.queue.durable,
+                            exclusive=self.queue.exclusive,
+                            autoDelete=self.queue.auto_delete,
+                        ),
+                        exchange=(
+                            amqp.AsyncAPIAmqpExchange(type="default")
+                            if self.exchange is None
+                            else amqp.AsyncAPIAmqpExchange(
+                                type=self.exchange.type.value,  # type: ignore
+                                name=self.exchange.name,
+                                durable=self.exchange.durable,
+                                autoDelete=self.exchange.auto_delete,
+                            )
+                        ),
+                    )
+                ),
+            ),
+        }

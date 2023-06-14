@@ -1,6 +1,6 @@
 import logging
 from functools import wraps
-from typing import Any, Awaitable, Callable, Optional, TypeVar, Union
+from typing import Awaitable, Callable, Optional, TypeVar, Union
 
 from propan.brokers.push_back_watcher import (
     BaseWatcher,
@@ -40,10 +40,10 @@ def get_watcher(
 
 
 def suppress_decor(
-    func: Callable[[Any], Awaitable[T]]
-) -> Callable[[Any, bool], Awaitable[Optional[T]]]:
+    func: Callable[[T], Awaitable[P]]
+) -> Callable[[T, bool], Awaitable[Optional[P]]]:
     @wraps(func)
-    async def wrapper(message: Any, reraise_exc: bool = False) -> Optional[T]:
+    async def wrapper(message: T, reraise_exc: bool = False) -> Optional[P]:
         try:
             return await func(message)
         except Exception as e:
@@ -55,10 +55,10 @@ def suppress_decor(
 
 
 def set_message_context(
-    func: Callable[[Any], Awaitable[T]]
-) -> Callable[[Any], Awaitable[T]]:
+    func: Callable[[T], Awaitable[P]]
+) -> Callable[[T], Awaitable[P]]:
     @wraps(func)
-    async def wrapper(message: Any) -> T:
+    async def wrapper(message: T) -> P:
         with context.scope("message", message):
             return await func(message)
 

@@ -6,6 +6,14 @@ from typing import Any, Dict, Optional, Sequence
 from pydantic import BaseModel, Field, PositiveInt
 from typing_extensions import Literal
 
+from propan.asyncapi.bindings import (
+    AsyncAPIChannelBinding,
+    AsyncAPIOperationBinding,
+    sqs,
+)
+from propan.asyncapi.channels import AsyncAPIChannel
+from propan.asyncapi.message import AsyncAPICorrelationId, AsyncAPIMessage
+from propan.asyncapi.subscription import AsyncAPISubscription
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import BaseHandler, Queue
 from propan.types import SendableMessage
@@ -204,6 +212,34 @@ class Handler(BaseHandler):
     consumer_params: Dict[str, Any]
 
     task: Optional["asyncio.Task[Any]"] = None
+
+    def get_schema(self) -> Dict[str, AsyncAPIChannel]:
+        message_title, body, reply_to = self.get_message_object()
+
+        return {
+            self.title: AsyncAPIChannel(
+                subscribe=AsyncAPISubscription(
+                    description=self.description,
+                    bindings=AsyncAPIOperationBinding(
+                        sqs=sqs.AsyncAPISQSOperationBinding(
+                            replyTo=reply_to,
+                        ),
+                    ),
+                    message=AsyncAPIMessage(
+                        title=message_title,
+                        correlationId=AsyncAPICorrelationId(
+                            location="$message.header#/correlation_id"
+                        ),
+                        payload=body,
+                    ),
+                ),
+                bindings=AsyncAPIChannelBinding(
+                    sqs=sqs.AsyncAPISQSChannelBinding(
+                        queue=self.queue.dict(include={"name", "fifo"}),
+                    )
+                ),
+            ),
+        }
 
 
 @dataclass

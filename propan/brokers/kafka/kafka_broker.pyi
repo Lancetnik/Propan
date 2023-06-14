@@ -1,32 +1,49 @@
 import logging
 from asyncio import AbstractEventLoop, Future
 from ssl import SSLContext
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.abc import AbstractTokenProvider
 from aiokafka.producer.producer import _missing
 from aiokafka.structs import ConsumerRecord
+from fast_depends.model import Depends
 from kafka.coordinator.assignors.abstract import AbstractPartitionAssignor
 from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from kafka.partitioner.default import DefaultPartitioner
 from typing_extensions import Literal, TypeAlias, TypeVar
 
 from propan.__about__ import __version__
-from propan.brokers._model.broker_usecase import BrokerUsecase
+from propan.brokers._model.broker_usecase import (
+    BrokerUsecase,
+    CustomDecoder,
+    CustomParser,
+)
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.kafka.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import DecodedMessage, SendableMessage, Wrapper
+from propan.types import DecodedMessage, HandlerWrapper, SendableMessage
 
 T = TypeVar("T")
 Partition = TypeVar("Partition")
 CorrelationId: TypeAlias = str
+KafkaMessage: TypeAlias = PropanMessage[ConsumerRecord]
 
-class KafkaBroker(BrokerUsecase):
+class KafkaBroker(
+    BrokerUsecase[ConsumerRecord, Callable[[Tuple[str, ...]], AIOKafkaConsumer]]
+):
     _publisher: Optional[AIOKafkaProducer]
-    _connection: Callable[[Tuple[str, ...]], AIOKafkaConsumer]
     __max_topic_len: int
     response_topic: str
     response_callbacks: Dict[CorrelationId, "Future[DecodedMessage]"]
@@ -80,9 +97,13 @@ class KafkaBroker(BrokerUsecase):
         loop: Optional[AbstractEventLoop] = None,
         # broker
         logger: Optional[logging.Logger] = access_logger,
+        decode_message: CustomDecoder[ConsumerRecord] = None,
+        parse_message: CustomParser[ConsumerRecord] = None,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        dependencies: Sequence[Depends] = (),
+        protocol: str = "kafka",
     ) -> None: ...
     async def connect(
         self,
@@ -165,13 +186,15 @@ class KafkaBroker(BrokerUsecase):
             "read_committed",
         ] = "read_uncommitted",
         retry: Union[bool, int] = False,
-    ) -> Wrapper: ...
-    async def start(self) -> None: ...
+        dependencies: Sequence[Depends] = (),
+        decode_message: CustomDecoder[ConsumerRecord] = None,
+        parse_message: CustomParser[ConsumerRecord] = None,
+        description: str = "",
+    ) -> HandlerWrapper: ...
     @staticmethod
-    async def _parse_message(message: ConsumerRecord) -> PropanMessage: ...
-    def _process_message(
-        self, func: Callable[[PropanMessage], T], watcher: Optional[BaseWatcher]
-    ) -> Callable[[PropanMessage], T]: ...
+    async def _parse_message(
+        message: ConsumerRecord,
+    ) -> KafkaMessage: ...
     async def publish(  # type: ignore[override]
         self,
         message: SendableMessage,
@@ -186,10 +209,13 @@ class KafkaBroker(BrokerUsecase):
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
     ) -> Optional[DecodedMessage]: ...
-    @property
-    def fmt(self) -> str: ...
     def _get_log_context(  # type: ignore[override]
         self,
-        message: Optional[PropanMessage],
+        message: Optional[KafkaMessage],
         topics: Sequence[str] = (),
     ) -> Dict[str, Any]: ...
+    def _process_message(
+        self,
+        func: Callable[[KafkaMessage], Awaitable[T]],
+        watcher: Optional[BaseWatcher],
+    ) -> Callable[[KafkaMessage], Awaitable[T]]: ...

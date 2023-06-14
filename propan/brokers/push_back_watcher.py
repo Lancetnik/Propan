@@ -112,7 +112,7 @@ class WatcherContext:
             await call_or_await(self.on_success)
             self.watcher.remove(self._message_id)
 
-        elif isinstance(exc_val, SkipMessage) is True:
+        elif isinstance(exc_val, SkipMessage):
             self.watcher.remove(self._message_id)
 
         elif self.watcher.is_max(self._message_id):

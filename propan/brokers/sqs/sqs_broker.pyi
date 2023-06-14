@@ -14,20 +14,22 @@ from typing import (
 
 from aiobotocore.client import AioBaseClient
 from aiobotocore.config import AioConfig
+from fast_depends.model import Depends
 from typing_extensions import TypeAlias
 
 from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.sqs.schema import Handler, SQSQueue
 from propan.log import access_logger
-from propan.types import DecodedMessage, HandlerWrapper, SendableMessage
+from propan.types import AnyDict, DecodedMessage, HandlerWrapper, SendableMessage
 
 T = TypeVar("T")
 QueueUrl: TypeAlias = str
+SQSMessage: TypeAlias = PropanMessage[AnyDict]
 
-class SQSBroker(BrokerUsecase):
-    _connection: AioBaseClient
+class SQSBroker(BrokerUsecase[AnyDict, AioBaseClient]):
     _queues: Dict[str, QueueUrl]
     response_queue: str
     response_callbacks: Dict[str, "asyncio.Future[DecodedMessage]"]
@@ -51,6 +53,10 @@ class SQSBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        dependencies: Sequence[Depends] = (),
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        protocol: str = "sqs",
     ) -> None:
         """"""
     async def connect(
@@ -97,6 +103,10 @@ class SQSBroker(BrokerUsecase):
         request_attempt_id: Optional[str] = None,
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
+        dependencies: Sequence[Depends] = (),
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        description: str = "",
     ) -> HandlerWrapper:
         """"""
     async def start(self) -> None:
@@ -113,7 +123,7 @@ class SQSBroker(BrokerUsecase):
     @property
     def fmt(self) -> str: ...
     def _get_log_context(  # type: ignore[override]
-        self, message: Optional[PropanMessage], queue: str
+        self, message: Optional[SQSMessage], queue: str
     ) -> Dict[str, Any]: ...
     @classmethod
     def _build_message(
@@ -131,10 +141,10 @@ class SQSBroker(BrokerUsecase):
         # broker
         reply_to: str = "",
     ) -> Dict[str, Any]: ...
-    async def _parse_message(self, message: Dict[str, Any]) -> PropanMessage: ...
+    async def _parse_message(self, message: Dict[str, Any]) -> SQSMessage: ...
     def _process_message(
         self,
-        func: Callable[[PropanMessage], T],
+        func: Callable[[SQSMessage], T],
         watcher: Optional[BaseWatcher],
-    ) -> Callable[[PropanMessage], T]: ...
+    ) -> Callable[[SQSMessage], T]: ...
     async def _connect(self, *args: Any, **kwargs: Any) -> AioBaseClient: ...

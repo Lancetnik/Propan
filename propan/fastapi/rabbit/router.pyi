@@ -4,6 +4,7 @@ from ssl import SSLContext
 from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Union
 
 import aio_pika
+from aio_pika.message import IncomingMessage
 from fastapi import params
 from fastapi.datastructures import Default
 from fastapi.routing import APIRoute
@@ -14,6 +15,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from propan import RabbitBroker
+from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.brokers.rabbit import RabbitExchange, RabbitQueue
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
@@ -57,6 +59,11 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         consumers: Optional[int] = None,
+        decode_message: CustomDecoder[IncomingMessage] = None,
+        parse_message: CustomParser[IncomingMessage] = None,
+        schema_url: str = "/asyncapi",
+        protocol: str = "amqp",
+        protocol_version: str = "0.9.1",
     ) -> None:
         pass
     def add_api_mq_route(  # type: ignore[override]
@@ -66,6 +73,9 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         endpoint: AnyCallable,
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
+        decode_message: CustomDecoder[IncomingMessage] = None,
+        parse_message: CustomParser[IncomingMessage] = None,
+        description: str = "",
     ) -> None:
         pass
     def event(  # type: ignore[override]
@@ -74,5 +84,8 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         *,
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
+        decode_message: CustomDecoder[IncomingMessage] = None,
+        parse_message: CustomParser[IncomingMessage] = None,
+        description: str = "",
     ) -> None:
         pass

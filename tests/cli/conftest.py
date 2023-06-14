@@ -1,67 +1,70 @@
-from tempfile import TemporaryDirectory
+from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
 from propan import PropanApp
 from propan.brokers.rabbit import RabbitBroker
-from propan.cli.startproject.async_app.kafka import create_kafka
-from propan.cli.startproject.async_app.nats import create_nats
-from propan.cli.startproject.async_app.rabbit import create_rabbit
-from propan.cli.startproject.async_app.redis import create_redis
-from propan.cli.startproject.async_app.sqs import create_sqs
+from propan.cli import cli
 
 
-@pytest.fixture
+@pytest.fixture()
 def broker():
     yield RabbitBroker()
 
 
-@pytest.fixture
+@pytest.fixture()
 def app_without_logger(broker):
     return PropanApp(broker, None)
 
 
-@pytest.fixture
+@pytest.fixture()
 def app_without_broker():
     return PropanApp()
 
 
-@pytest.fixture
+@pytest.fixture()
 def app(broker):
     return PropanApp(broker)
 
 
-@pytest.fixture
-def runner():
-    return CliRunner()
+@pytest.fixture(scope="session")
+def runner() -> CliRunner:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        yield runner
 
 
-@pytest.fixture(scope="module")
-def rabbit_async_project():
-    with TemporaryDirectory() as dir:
-        yield create_rabbit(dir)
+@pytest.fixture(scope="session")
+def rabbit_async_project(runner: CliRunner) -> Path:
+    project_name = "rabbit"
+    runner.invoke(cli, ["create", "async", "rabbit", project_name])
+    yield Path.cwd() / Path(project_name)
 
 
-@pytest.fixture(scope="module")
-def redis_async_project():
-    with TemporaryDirectory() as dir:
-        yield create_redis(dir)
+@pytest.fixture(scope="session")
+def redis_async_project(runner: CliRunner) -> Path:
+    project_name = "redis"
+    runner.invoke(cli, ["create", "async", "redis", project_name])
+    yield Path.cwd() / Path(project_name)
 
 
-@pytest.fixture(scope="module")
-def nats_async_project():
-    with TemporaryDirectory() as dir:
-        yield create_nats(dir)
+@pytest.fixture(scope="session")
+def nats_async_project(runner: CliRunner) -> Path:
+    project_name = "nats"
+    runner.invoke(cli, ["create", "async", "nats", project_name])
+    yield Path.cwd() / Path(project_name)
 
 
-@pytest.fixture(scope="module")
-def kafka_async_project():
-    with TemporaryDirectory() as dir:
-        yield create_kafka(dir)
+@pytest.fixture(scope="session")
+def kafka_async_project(runner: CliRunner) -> Path:
+    project_name = "kafka"
+    runner.invoke(cli, ["create", "async", "kafka", project_name])
+    yield Path.cwd() / Path(project_name)
 
 
-@pytest.fixture(scope="module")
-def sqs_async_project():
-    with TemporaryDirectory() as dir:
-        yield create_sqs(dir)
+@pytest.fixture(scope="session")
+def sqs_async_project(runner: CliRunner) -> Path:
+    project_name = "sqs"
+    runner.invoke(cli, ["create", "async", "sqs", project_name])
+    yield Path.cwd() / Path(project_name)

@@ -1,21 +1,36 @@
 import logging
-from typing import Any, Callable, Dict, List, Mapping, Optional, Type, TypeVar, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+)
 
+from fast_depends.model import Depends
 from redis.asyncio.client import Redis
 from redis.asyncio.connection import BaseParser, Connection, DefaultParser, Encoder
+from typing_extensions import TypeAlias
 
 from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.redis.schemas import Handler
 from propan.log import access_logger
-from propan.types import DecodedMessage, HandlerWrapper, SendableMessage
+from propan.types import AnyDict, DecodedMessage, HandlerWrapper, SendableMessage
 
 T = TypeVar("T")
+RedisMessage: TypeAlias = PropanMessage[AnyDict]
 
-class RedisBroker(BrokerUsecase):
+class RedisBroker(BrokerUsecase[AnyDict, Redis[bytes]]):
     handlers: List[Handler]
-    _connection: Redis[bytes]
     __max_channel_len: int
 
     def __init__(
@@ -49,6 +64,10 @@ class RedisBroker(BrokerUsecase):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
+        dependencies: Sequence[Depends] = (),
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        protocol: str = "redis",
     ) -> None:
         """Redis Pub/sub Propan broker
 
@@ -122,12 +141,20 @@ class RedisBroker(BrokerUsecase):
         channel: str,
         *,
         pattern: bool = False,
+        dependencies: Sequence[Depends] = (),
+        decode_message: CustomDecoder[AnyDict] = None,
+        parse_message: CustomParser[AnyDict] = None,
+        description: str = "",
     ) -> HandlerWrapper:
         """Register channel consumer method
 
         Args:
             channel: channel to consume messages
             pattern: use psubscribe or subscribe method
+            dependencies: wrap handler dependencies
+            decode_message: custom PropanMessage[AnyDict] decoder
+            parse_message: custom redis message to PropanMessage[AnyDict] parser
+            description: AsyncAPI channel object description
 
         Returns:
             Async or sync function decorator
@@ -161,16 +188,14 @@ class RedisBroker(BrokerUsecase):
             `DecodedMessage` | `None` if response is expected
         """
     def _get_log_context(  # type: ignore[override]
-        self, message: Optional[PropanMessage], channel: str
+        self, message: Optional[RedisMessage], channel: str
     ) -> Dict[str, Any]: ...
     @staticmethod
-    async def _decode_message(message: PropanMessage) -> DecodedMessage: ...
+    async def _decode_message(message: RedisMessage) -> DecodedMessage: ...
     @staticmethod
-    async def _parse_message(message: Any) -> PropanMessage: ...
+    async def _parse_message(message: AnyDict) -> RedisMessage: ...
     def _process_message(
         self,
-        func: Callable[[PropanMessage], T],
+        func: Callable[[RedisMessage], Awaitable[T]],
         watcher: Optional[BaseWatcher],
-    ) -> Callable[[PropanMessage], T]: ...
-    @property
-    def fmt(self) -> str: ...
+    ) -> Callable[[RedisMessage], Awaitable[T]]: ...

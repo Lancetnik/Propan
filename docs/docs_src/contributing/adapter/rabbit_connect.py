@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 
 import aio_pika
-from propan.brokers.model import BrokerUsecase
+from propan.brokers._model import BrokerUsecase
 
 class RabbitBroker(BrokerUsecase):
     _connection: Optional[aio_pika.RobustConnection]

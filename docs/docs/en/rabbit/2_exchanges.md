@@ -10,7 +10,7 @@ from propan.brokers.rabbit import RabbitBroker, RabbitExchange
 broker = RabbitBroker()
 
 @broker.handler("test", exchange=RabbitExchange("test"))
-asynchronous definition handler():
+async def handler():
       ...
 
 ...

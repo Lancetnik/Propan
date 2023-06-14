@@ -56,6 +56,16 @@ and [more](../5_dependency/1_di-index).
 
 ---
 
+## Project Documentation
+
+**Propan** automatically generates documentation for your project according to the [**AsyncAPI**]({{ urls.asyncapi }}){ target="_blank"} specification. You can work with both generated artifacts and place a Web view of your documentation on resources available to related teams.
+
+The availability of such documentation significantly simplifies the integration of services: you can immediately see what channels and message format the application works with. And most importantly, it doesn't cost you anything - **Propan** has already done everything for you!
+
+![HTML-page](../../assets/img/docs-html-short.png)
+
+---
+
 ## Project template
 
 Also, **Propan CLI** is able to generate a production-ready application template:

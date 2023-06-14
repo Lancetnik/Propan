@@ -51,6 +51,7 @@ It is a modern, high-level framework on top of popular Python libraries for vari
     * framework-independent way to manage the project environment
     * application code *hot reload*
     * robust application templates
+* [**Documentation**](getting_started/9_documentation/): **Propan** automatically generates and presents an interactive [**AsyncAPI**]({{ urls.asyncapi }}){target="_blank"} documentation for your project
 * [**Testability**](getting_started/7_testing): **Propan** allows you to test your app without external dependencies: you do not have to set up a Message Broker, you can use a virtual one!
 
 ---

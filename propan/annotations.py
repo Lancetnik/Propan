@@ -1,16 +1,19 @@
 import logging
 
-from typing_extensions import Annotated
+from typing_extensions import Annotated, TypeVar
 
 from propan import __about__ as about
 from propan.cli.app import PropanApp
 from propan.utils.context import Context as ContextField
 from propan.utils.context import ContextRepo as CR
+from propan.utils.no_cast import NoCast as NC
 
 Logger = Annotated[logging.Logger, ContextField("logger")]
 App = Annotated[PropanApp, ContextField("app")]
 ContextRepo = Annotated[CR, ContextField("context")]
 
+NoCastType = TypeVar("NoCastType")
+NoCast = Annotated[NoCastType, NC()]
 
 try:
     import aio_pika

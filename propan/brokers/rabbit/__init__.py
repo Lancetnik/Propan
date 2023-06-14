@@ -1,4 +1,4 @@
-from propan.brokers.rabbit.rabbit_broker import RabbitBroker
+from propan.brokers.rabbit.rabbit_broker import RabbitBroker, RabbitMessage
 from propan.brokers.rabbit.schemas import ExchangeType, RabbitExchange, RabbitQueue
 
 __all__ = (
@@ -6,4 +6,5 @@ __all__ = (
     "RabbitQueue",
     "RabbitExchange",
     "ExchangeType",
+    "RabbitMessage",
 )

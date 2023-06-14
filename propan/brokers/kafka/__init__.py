@@ -1,3 +1,3 @@
-from propan.brokers.kafka.kafka_broker import KafkaBroker
+from propan.brokers.kafka.kafka_broker import KafkaBroker, KafkaMessage
 
-__all__ = ("KafkaBroker",)
+__all__ = ("KafkaBroker", "KafkaMessage")

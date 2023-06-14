@@ -10,6 +10,8 @@ def create_app_file(
     imports: Sequence[str] = (),
     broker_init: Sequence[str] = ("    await broker.connect(settings.broker.url)",),
 ) -> None:
+    write_file(app_dir / "__init__.py")
+
     write_file(
         app_dir / "serve.py",
         "import logging",
