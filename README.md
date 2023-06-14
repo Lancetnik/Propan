@@ -245,7 +245,7 @@ async def base_handler(body: dict,
 
 The availability of such documentation significantly simplifies the integration of services: you can immediately see what channels and message format the application works with. And most importantly, it doesn't cost you anything - **Propan** has already done everything for you!
 
-![HTML-page](../../assets/img/docs-html-short.png)
+![HTML-page](https://lancetnik.github.io/Propan/assets/img/docs-html-short.png)
 
 ---
 
