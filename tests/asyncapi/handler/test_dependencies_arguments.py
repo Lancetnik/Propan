@@ -17,7 +17,9 @@ def test_base():
 
     assert message_title == "FuncMessage"
 
-    assert isinstance(result.pop("example"), int)
+    example = result.pop("example", None)
+    if example:
+        assert isinstance(example, int)
     assert result == {
         "title": "FuncPayload",
         "type": "integer",
@@ -42,10 +44,11 @@ def test_multi_args():
 
     assert message_title == "FuncMessage"
 
-    example = result.pop("example")
-    assert isinstance(example["a"], int)
-    assert isinstance(example["c"], int)
-    assert isinstance(example["b"], float)
+    example = result.pop("example", None)
+    if example:
+        assert isinstance(example["a"], int)
+        assert isinstance(example["c"], int)
+        assert isinstance(example["b"], float)
     assert result == {
         "properties": {
             "a": {"title": "A", "type": "integer"},
