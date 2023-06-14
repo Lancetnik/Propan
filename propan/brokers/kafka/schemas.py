@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from aiokafka import AIOKafkaConsumer
+from fast_depends.model import Dependant
 
 from propan.asyncapi.bindings import (
     AsyncAPIChannelBinding,
@@ -13,7 +14,7 @@ from propan.asyncapi.channels import AsyncAPIChannel
 from propan.asyncapi.message import AsyncAPICorrelationId, AsyncAPIMessage
 from propan.asyncapi.subscription import AsyncAPISubscription
 from propan.brokers._model.schemas import BaseHandler
-from propan.types import AnyDict
+from propan.types import AnyDict, DecoratedCallable
 
 
 @dataclass
@@ -24,6 +25,26 @@ class Handler(BaseHandler):
     consumer: Optional[AIOKafkaConsumer] = None
     task: Optional["asyncio.Task[Any]"] = None
     consumer_kwargs: AnyDict = field(default_factory=dict)
+
+    def __init__(
+        self,
+        callback: DecoratedCallable,
+        dependant: Dependant,
+        topics: List[str],
+        group_id: Optional[str] = None,
+        consumer: Optional[AIOKafkaConsumer] = None,
+        task: Optional["asyncio.Task[Any]"] = None,
+        consumer_kwargs: Optional[AnyDict] = None,
+        _description: str = "",
+    ):
+        self.callback = callback
+        self.dependant = dependant
+        self._description = _description
+        self.task = task
+        self.topics = topics
+        self.group_id = group_id
+        self.consumer = consumer
+        self.consumer_kwargs = consumer_kwargs or {}
 
     def get_schema(self) -> Dict[str, AsyncAPIChannel]:
         message_title, body, reply_to = self.get_message_object()

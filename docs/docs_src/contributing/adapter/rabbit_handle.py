@@ -23,7 +23,6 @@ class RabbitBroker(BrokerUsecase):
         *,
         retry: Union[bool, int] = False,
     ) -> HandlerWrapper:
-
         def wrapper(func: HandlerCallable) -> HandlerCallable:
             func = self._wrap_handler(func, retry=retry)
             handler = Handler(callback=func, queue=queue, exchange=exchange)

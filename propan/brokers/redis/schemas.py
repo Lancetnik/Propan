@@ -2,6 +2,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
+from fast_depends.model import Dependant
 from pydantic import BaseModel, Field
 from redis.asyncio.client import PubSub
 
@@ -14,6 +15,7 @@ from propan.asyncapi.channels import AsyncAPIChannel
 from propan.asyncapi.message import AsyncAPIMessage
 from propan.asyncapi.subscription import AsyncAPISubscription
 from propan.brokers._model.schemas import BaseHandler
+from propan.types import DecoratedCallable
 
 
 @dataclass
@@ -23,6 +25,24 @@ class Handler(BaseHandler):
 
     task: Optional["asyncio.Task[Any]"] = None
     subscription: Optional[PubSub] = None
+
+    def __init__(
+        self,
+        callback: DecoratedCallable,
+        dependant: Dependant,
+        channel: str,
+        pattern: bool = False,
+        task: Optional["asyncio.Task[Any]"] = None,
+        subscription: Optional[PubSub] = None,
+        _description: str = "",
+    ):
+        self.callback = callback
+        self.dependant = dependant
+        self._description = _description
+        self.channel = channel
+        self.pattern = pattern
+        self.task = task
+        self.subscription = subscription
 
     def get_schema(self) -> Dict[str, AsyncAPIChannel]:
         message_title, body, reply_to = self.get_message_object()
