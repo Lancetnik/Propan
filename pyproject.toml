@@ -80,7 +80,7 @@ async-kafka = [
 doc = [
     "PyYAML",
     "pytest[email]",
-    "polyfactory",
+    "polyfactory; python_version > '3.7'",
     "jsonref",
     "fastapi",
     "uvicorn",
