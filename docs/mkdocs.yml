@@ -54,6 +54,7 @@ theme:
 
 plugins:
   - search
+  - glightbox
   - macros:
       include_dir: includes
   - i18n:

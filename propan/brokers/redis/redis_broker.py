@@ -214,7 +214,7 @@ class RedisBroker(BrokerUsecase):
                 task.cancel()
 
     @staticmethod
-    async def _parse_message(message: Any) -> RedisMessage:
+    async def _parse_message(message: AnyCallable) -> RedisMessage:
         data = message.get("data", b"")
 
         try:

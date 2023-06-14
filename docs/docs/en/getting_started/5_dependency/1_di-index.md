@@ -50,6 +50,28 @@ It's easy, isn't it?
     In the code above, we didn't use this decorator for our dependencies. However, it still applies
     to all functions used as dependencies. Keep this in your mind.
 
+## Top-level dependencies
+
+If you don't need a dependency result you can use the following code:
+
+```python
+@broker.handle("test")
+def method(_ = Depends(...)): ...
+```
+
+But, using a special `handle` parameter is more suitable:
+
+```python
+@broker.handle("test", dependencies=[Depends(...)])
+def method(): ...
+```
+
+Also, you are able to declare broker-level dependencies: they will be applied to all brokers' handlers.
+
+```python
+broker = RabbitBroker(dependencies=[Depends(...)])
+```
+
 ## Nested dependencies
 
 Dependencies can also contain other dependencies. This works in a very predictable way: just declare

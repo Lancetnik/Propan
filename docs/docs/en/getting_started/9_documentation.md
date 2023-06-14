@@ -7,6 +7,13 @@ hide:
 
 **Propan** allows you not to think about the documentation of your project - it is already generated automatically in accordance with the  [**AsyncAPI**]({{ urls.asyncapi }}){.external-link target="_blank"} specification !
 
+!!! note ""
+    To work with a documentation you should install an extra requirements:
+
+    ```console
+    pip install "propan[doc]"
+    ```
+
 ## Example
 
 Let's look at an example.

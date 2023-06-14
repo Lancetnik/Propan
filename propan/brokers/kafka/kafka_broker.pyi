@@ -33,7 +33,7 @@ from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.kafka.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import DecodedMessage, SendableMessage, HandlerWrapper
+from propan.types import DecodedMessage, HandlerWrapper, SendableMessage
 
 T = TypeVar("T")
 Partition = TypeVar("Partition")

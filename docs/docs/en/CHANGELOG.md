@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 2023-06-14 **0.1.3.0** AsyncAPI
+
+The current update adds functionality that I've been working hard on for the last month:
+Now **Propan** can automatically generate and host documentation for your application
+according to the [**AsyncAPI**]({{ urls.asyncapi }}){.external-link target="_blank"} specification.
+
+You can simply provide related teams with a link to your documentation page, where they can get acquainted with all the parameters of the server used, channels, and the format of messages consumed by your service.
+
+![HTML-page](../../assets/img/docs-html-short.png)
+
+You can learn more about this functionality in the corresponding [documentation section] (getting_started/9_documentation.md).
+
+Also, the ability to determine the dependencies of the broker level and consumers has been added.:
+
+```python
+from propan import RabbitBroker, Depends
+
+broker = RabbitBroker(dependencies=[Depends(...)])
+
+@broker.handler(..., dependencies=[Depends(...)])
+async def handler():
+    ...
+```
+
 ## 2023-06-13 **0.1.2.17**
 
 The current update is a sum of several changes and improvements released from the previous release.

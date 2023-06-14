@@ -377,7 +377,7 @@ class RabbitBroker(BrokerUsecase):
     ) -> aio_pika.abc.AbstractRobustQueue:
         warnings.warn(
             "The `_init_queue` method is deprecated, "  # noqa: E501
-            "and will be removed in version 1.3.0. "  # noqa: E501
+            "and will be removed in version 1.4.0. "  # noqa: E501
             "Use `declare_queue` instead.",  # noqa: E501
             category=DeprecationWarning,
             stacklevel=1,
@@ -394,7 +394,7 @@ class RabbitBroker(BrokerUsecase):
     ) -> aio_pika.abc.AbstractRobustExchange:
         warnings.warn(
             "The `_init_exchange` method is deprecated, "  # noqa: E501
-            "and will be removed in version 1.3.0. "  # noqa: E501
+            "and will be removed in version 1.4.0. "  # noqa: E501
             "Use `declare_exchange` instead.",  # noqa: E501
             category=DeprecationWarning,
             stacklevel=1,

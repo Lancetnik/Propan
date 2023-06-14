@@ -11,7 +11,7 @@ else:
     from unittest.mock import AsyncMock
 
 from propan import SQSBroker
-from propan.brokers.sqs import SQSMessage
+from propan.brokers.sqs.schema import SQSMessage
 from propan.test.utils import call_handler
 from propan.types import SendableMessage
 

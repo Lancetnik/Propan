@@ -112,3 +112,5 @@ Command line arguments are available in all `@app.on_startup` hooks. To use them
 ### Broker initialization
 
 The `@app.on_startup` hooks are called **BEFORE** the broker is launched by the application. The `@app.after_shutdown` hooks are triggered **AFTER** stopping the broker.
+
+If you want to perform some actions **AFTER** initializing the broker: send messages, initialize objects, etc., you should use the `@app.after_startup` hook.

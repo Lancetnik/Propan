@@ -16,15 +16,7 @@ To participate in the development of documentation, go to the following [section
 
 ## Code
 
-If you want to work a little with the code, then you have even more opportunities to prove yourself. At the moment, the priority of the project is the following tasks:
-
-* `PushBackWatcher` should store information about the number of message processing in the header:
-this will allow you to keep a common counter for all consumers.
-* Merge the arguments of the methods `__init__` and `connect` brokers for more flexible management of default values
-* Coverage with `NatsBroker` tests
-* Implementation of `NatsJSBroker`
-* Implementation of the synchronous version of the application and brokers
-* Broker implementation for `Apache Kafka' and other brokers from [plan](../../#supported-mq-brokers)
+All actual tasks you can find at project [Issues](https://github.com/Lancetnik/Propan/issues){.external-link target="_blank"}.
 
 To start developing the project, go to the following [section](../2_contributing-index/).
 

@@ -36,12 +36,13 @@ class RabbitQueue(Queue):
     routing_key: str = Field(default="", exclude=True)
 
     def __hash__(self) -> int:
-        return (
-            hash(self.name)
-            + int(self.durable)
-            + int(self.passive)
-            + int(self.exclusive)
-            + int(self.auto_delete)
+        return sum(
+            (
+                hash(self.name),
+                int(self.durable),
+                int(self.exclusive),
+                int(self.auto_delete),
+            )
         )
 
     @property
@@ -90,12 +91,13 @@ class RabbitExchange(NameRequired):
     routing_key: str = Field(default="", exclude=True)
 
     def __hash__(self) -> int:
-        return (
-            hash(self.name)
-            + hash(self.type.value)
-            + int(self.durable)
-            + int(self.passive)
-            + int(self.auto_delete)
+        return sum(
+            (
+                hash(self.name),
+                hash(self.type.value),
+                int(self.durable),
+                int(self.auto_delete),
+            )
         )
 
     def __init__(

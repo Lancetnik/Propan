@@ -113,6 +113,7 @@ dev-doc = [
     "mkdocs-static-i18n",
     "mdx-include >=1.4.1,<2.0.0",
     "mkdocs-macros-plugin",
+    "mkdocs-glightbox",
 
     "typer[all]",
 ]
