@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from dataclasses import field as DField
 from typing import Any, Dict, Optional, Sequence
 
+from fast_depends.model import Dependant
 from pydantic import BaseModel, Field, PositiveInt
 from typing_extensions import Literal
 
@@ -16,7 +17,7 @@ from propan.asyncapi.message import AsyncAPICorrelationId, AsyncAPIMessage
 from propan.asyncapi.subscription import AsyncAPISubscription
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import BaseHandler, Queue
-from propan.types import SendableMessage
+from propan.types import AnyDict, DecoratedCallable, SendableMessage
 
 
 class RedrivePolicy(BaseModel):
@@ -209,9 +210,25 @@ class Handler(BaseHandler):
     """Store SQSBroker hanlder information and runtime objects"""
 
     queue: SQSQueue
-    consumer_params: Dict[str, Any]
+    consumer_params: AnyDict
 
     task: Optional["asyncio.Task[Any]"] = None
+
+    def __init__(
+        self,
+        callback: DecoratedCallable,
+        dependant: Dependant,
+        queue: SQSQueue,
+        consumer_params: AnyDict,
+        _description: str = "",
+        task: Optional["asyncio.Task[Any]"] = None,
+    ):
+        self.callback = callback
+        self.dependant = dependant
+        self._description = _description
+        self.queue = queue
+        self.consumer_params = consumer_params
+        self.task = task
 
     def get_schema(self) -> Dict[str, AsyncAPIChannel]:
         message_title, body, reply_to = self.get_message_object()
@@ -249,10 +266,10 @@ class SQSMessage:
     deduplication_id: Optional[str] = None
     group_id: Optional[str] = None
     headers: Dict[str, str] = DField(default_factory=dict)
-    message_attributes: Dict[str, Any] = DField(default_factory=dict)
-    message_system_attributes: Dict[str, Any] = DField(default_factory=dict)
+    message_attributes: AnyDict = DField(default_factory=dict)
+    message_system_attributes: AnyDict = DField(default_factory=dict)
 
-    def to_params(self, **extra_headers: Any) -> Dict[str, Any]:
+    def to_params(self, **extra_headers: Any) -> AnyDict:
         msg, content_type = BrokerUsecase._encode_message(self.message)
 
         headers = {**extra_headers, "content-type": content_type, **self.headers}

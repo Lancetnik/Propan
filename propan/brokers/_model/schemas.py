@@ -1,6 +1,6 @@
 import json
 from abc import abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Generic, Optional, Sequence, Tuple, TypeVar, Union
 from uuid import uuid4
@@ -23,7 +23,17 @@ Msg = TypeVar("Msg")
 class BaseHandler:
     callback: DecoratedCallable
     dependant: Dependant
-    _description: str = field(default="", kw_only=True)  # type: ignore
+    _description: str
+
+    def __init__(
+        self,
+        callback: DecoratedCallable,
+        dependant: Dependant,
+        _description: str = "",
+    ):
+        self.callback = callback
+        self.dependant = dependant
+        self._description = _description
 
     @abstractmethod
     def get_schema(self) -> Dict[str, AsyncAPIChannel]:

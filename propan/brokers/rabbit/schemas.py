@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
 from aio_pika.abc import ExchangeType, TimeoutType
+from fast_depends.model import Dependant
 from pydantic import Field
 
 from propan.asyncapi.bindings import (
@@ -13,6 +14,7 @@ from propan.asyncapi.channels import AsyncAPIChannel
 from propan.asyncapi.message import AsyncAPICorrelationId, AsyncAPIMessage
 from propan.asyncapi.subscription import AsyncAPISubscription
 from propan.brokers._model.schemas import BaseHandler, NameRequired, Queue
+from propan.types import DecoratedCallable
 
 __all__ = (
     "RabbitQueue",
@@ -134,7 +136,21 @@ class RabbitExchange(NameRequired):
 @dataclass
 class Handler(BaseHandler):
     queue: RabbitQueue
-    exchange: Optional[RabbitExchange] = field(default=None, kw_only=True)  # type: ignore
+    exchange: Optional[RabbitExchange] = field(default=None)
+
+    def __init__(
+        self,
+        callback: DecoratedCallable,
+        dependant: Dependant,
+        queue: RabbitQueue,
+        exchange: Optional[RabbitExchange] = None,
+        _description: str = "",
+    ):
+        self.callback = callback
+        self.dependant = dependant
+        self.queue = queue
+        self.exchange = exchange
+        self._description = _description
 
     def get_schema(self) -> Dict[str, AsyncAPIChannel]:
         message_title, body, reply_to = self.get_message_object()
