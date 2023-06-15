@@ -9,7 +9,7 @@ from propan.cli.docs.gen import (
     json_schema_to_yaml,
     schema_to_json,
 )
-from propan.cli.docs.serve import serve_docs
+from propan.cli.docs.serving import serve_docs
 from propan.cli.utils.imports import get_app_path, try_import_propan
 
 docs_app = typer.Typer(pretty_exceptions_short=True)
