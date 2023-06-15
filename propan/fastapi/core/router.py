@@ -36,7 +36,7 @@ from propan.cli.docs.gen import (
     json_schema_to_yaml,
     schema_to_json,
 )
-from propan.cli.docs.serve import get_asyncapi_html
+from propan.cli.docs.serving import get_asyncapi_html
 from propan.fastapi.core.route import PropanRoute
 from propan.types import AnyDict
 from propan.utils.functions import to_async
