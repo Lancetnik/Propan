@@ -195,10 +195,9 @@ class RabbitBroker(BrokerUsecase):
                 propan_message = await self._parse_message(msg)
                 await response_queue.put(propan_message)
 
-            await callback_queue.consume(handle_response, no_ack=True)
+            consumer_tag = await callback_queue.consume(handle_response, no_ack=True)
         else:
-            callback_queue = None
-            response_queue = None
+            callback_queue = consumer_tag = response_queue = None
 
         if exchange is None:
             exchange_obj = self._channel.default_exchange
@@ -222,7 +221,7 @@ class RabbitBroker(BrokerUsecase):
         if callback_queue is None:
             return r
 
-        elif response_queue is not None:
+        elif response_queue and consumer_tag:
             try:
                 msg = await asyncio.wait_for(response_queue.get(), callback_timeout)
             except asyncio.TimeoutError as e:
@@ -230,6 +229,8 @@ class RabbitBroker(BrokerUsecase):
                     raise e
             else:
                 return await self._decode_message(msg)
+            finally:
+                await callback_queue.cancel(consumer_tag)
 
     async def _init_handler(
         self,
