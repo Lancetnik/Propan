@@ -56,7 +56,7 @@ class BaseHandler:
         if getattr(dependant, "return_field", None) is not None:
             return_field = dependant.return_field
 
-            if issubclass(return_field.type_, BaseModel):
+            if return_field.type_ != Any and issubclass(return_field.type_, BaseModel):
                 return_model = return_field.type_
                 if not return_model.Config.schema_extra.get("example"):
                     return_model = add_example_to_model(return_model)
@@ -101,7 +101,7 @@ class BaseHandler:
         elif params_number == 1:
             param = params[0]
 
-            if issubclass(param.annotation, BaseModel):
+            if param.annotation != Any and issubclass(param.annotation, BaseModel):
                 model = param.annotation
                 gen_examples = model.Config.schema_extra.get("example") is None
                 use_original_model = True

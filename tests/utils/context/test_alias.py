@@ -4,7 +4,6 @@ import pytest
 from typing_extensions import Annotated
 
 from propan.utils import Context, ContextRepo, apply_types
-from tests.tools.marks import needs_py310
 
 
 @pytest.mark.asyncio
@@ -35,7 +34,6 @@ async def test_nested_context_alias(context: ContextRepo):
     assert await func(model=model)
 
 
-@needs_py310
 @pytest.mark.asyncio
 async def test_annotated_alias(context: ContextRepo):
     model = SomeModel(field=SomeModel(field=1000))
