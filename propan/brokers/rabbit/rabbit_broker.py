@@ -1,5 +1,6 @@
 import asyncio
 import warnings
+from contextlib import asynccontextmanager
 from functools import wraps
 from typing import (
     Any,
@@ -9,6 +10,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -182,59 +184,48 @@ class RabbitBroker(BrokerUsecase):
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
         if callback is True:
-            response_queue: asyncio.Queue[PropanMessage] = asyncio.Queue(1)
-
             if reply_to is not None:
                 raise ValueError(
                     "You should use `reply_to` to send response to long-living queue "
                     "and `callback` to get response in sync mode."
                 )
-
-            await self._rpc_lock.acquire()
-            callback_queue = await self._channel.get_queue(RABBIT_REPLY)
-            reply_to = RABBIT_REPLY
-
-            async def handle_response(msg: RabbitMessage) -> None:
-                propan_message = await self._parse_message(msg)
-                await response_queue.put(propan_message)
-
-            consumer_tag = await callback_queue.consume(handle_response, no_ack=True)
+            else:
+                context = RPCCallback(self._rpc_lock, self)
         else:
-            callback_queue = consumer_tag = response_queue = None
+            context = fake_context(reply_to)
 
         if exchange is None:
             exchange_obj = self._channel.default_exchange
         else:
             exchange_obj = await self.declare_exchange(exchange)
 
-        message = self._validate_message(
-            message=message,
-            persist=persist,
-            reply_to=reply_to,
-            **message_kwargs,
-        )
+        async with context as (reply_to, response_queue):
+            message = self._validate_message(
+                message=message,
+                persist=persist,
+                reply_to=reply_to,
+                **message_kwargs,
+            )
 
-        r = await exchange_obj.publish(
-            message=message,
-            routing_key=routing_key or queue.routing or "",
-            mandatory=mandatory,
-            immediate=immediate,
-            timeout=timeout,
-        )
-        if callback_queue is None:
-            return r
+            r = await exchange_obj.publish(
+                message=message,
+                routing_key=routing_key or queue.routing or "",
+                mandatory=mandatory,
+                immediate=immediate,
+                timeout=timeout,
+            )
 
-        elif response_queue and consumer_tag:
-            try:
-                msg = await asyncio.wait_for(response_queue.get(), callback_timeout)
-            except asyncio.TimeoutError as e:
-                if raise_timeout is True:  # pragma: no branch
-                    raise e
+            if response_queue is None:
+                return r
+
             else:
-                return await self._decode_message(msg)
-            finally:
-                self._rpc_lock.release()
-                await callback_queue.cancel(consumer_tag)
+                try:
+                    msg = await asyncio.wait_for(response_queue.get(), callback_timeout)
+                except asyncio.TimeoutError as e:
+                    if raise_timeout is True:  # pragma: no branch
+                        raise e
+                else:
+                    return await self._decode_message(msg)
 
     async def _init_handler(
         self,
@@ -470,3 +461,32 @@ def _validate_queue(
                 f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance"
             )
     return queue
+
+
+class RPCCallback:
+    def __init__(self, lock: asyncio.Lock, broker: RabbitBroker):
+        self.lock = lock
+        self.broker = broker
+
+    async def __aenter__(self) -> Tuple[str, asyncio.Queue]:
+        response_queue: asyncio.Queue[PropanMessage] = asyncio.Queue(1)
+        await self.lock.acquire()
+
+        self.queue = callback_queue = await self.broker._channel.get_queue(RABBIT_REPLY)
+
+        async def handle_response(msg: RabbitMessage) -> None:
+            propan_message = await self.broker._parse_message(msg)
+            await response_queue.put(propan_message)
+
+        self.consumer_tag = await callback_queue.consume(handle_response, no_ack=True)
+
+        return callback_queue.name, response_queue
+
+    async def __aexit__(self, *args, **kwargs):
+        self.lock.release()
+        await self.queue.cancel(self.consumer_tag)
+
+
+@asynccontextmanager
+async def fake_context(reply_to: str) -> Tuple[str, None]:
+    yield reply_to, None
