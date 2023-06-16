@@ -102,3 +102,17 @@ class BrokerRPCTestcase:
                 callback=True,
             )
             assert r == "1"
+
+
+class ReplyAndConsumeForbidden:
+    @pytest.mark.asyncio
+    async def test_rpc_with_reply_and_callback(self, full_broker: BrokerUsecase):
+        async with full_broker:
+            with pytest.raises(ValueError):
+                await full_broker.publish(
+                    "hello",
+                    "some",
+                    reply_to="some",
+                    callback=True,
+                    callback_timeout=0,
+                )

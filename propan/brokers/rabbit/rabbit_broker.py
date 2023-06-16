@@ -169,6 +169,7 @@ class RabbitBroker(BrokerUsecase):
         callback_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
         persist: bool = False,
+        reply_to: Optional[str] = None,
         **message_kwargs,
     ) -> Union[aiormq.abc.ConfirmationFrameType, Dict, str, bytes, None]:
         if self._channel is None:
@@ -176,7 +177,13 @@ class RabbitBroker(BrokerUsecase):
 
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
-        if callback is not False:
+        if callback is True:
+            if reply_to is not None:
+                raise ValueError(
+                    "You should use `reply_to` to send response to long-living queue "
+                    "and `callback` to get response in sync mode."
+                )
+
             callback_queue = await self._channel.declare_queue(exclusive=True)
         else:
             callback_queue = None
@@ -190,6 +197,7 @@ class RabbitBroker(BrokerUsecase):
             message=message,
             callback_queue=callback_queue,
             persist=persist,
+            reply_to=reply_to,
             **message_kwargs,
         )
 
@@ -334,6 +342,7 @@ class RabbitBroker(BrokerUsecase):
         message: PikaSendableMessage,
         persist: bool = False,
         callback_queue: Optional[aio_pika.abc.AbstractRobustQueue] = None,
+        reply_to: Optional[str] = None,
         **message_kwargs: Dict[str, Any],
     ) -> aio_pika.Message:
         if not isinstance(message, aio_pika.message.Message):
@@ -348,7 +357,7 @@ class RabbitBroker(BrokerUsecase):
                 **{
                     "delivery_mode": delivery_mode,
                     "content_type": content_type,
-                    "reply_to": callback_queue,
+                    "reply_to": callback_queue or reply_to,
                     "correlation_id": str(uuid4()),
                     **message_kwargs,
                 },

@@ -174,6 +174,12 @@ class RedisBroker(BrokerUsecase):
         msg, content_type = self._encode_message(message)
 
         if callback is True:
+            if reply_to:
+                raise ValueError(
+                    "You should use `reply_to` to send response to long-living queue "
+                    "and `callback` to get response in sync mode."
+                )
+
             callback_channel = str(uuid4())
             psub = self._connection.pubsub()
             response_queue = asyncio.Queue(maxsize=1)

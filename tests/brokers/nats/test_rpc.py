@@ -1,8 +1,8 @@
 import pytest
 
-from tests.brokers.base.rpc import BrokerRPCTestcase
+from tests.brokers.base.rpc import BrokerRPCTestcase, ReplyAndConsumeForbidden
 
 
 @pytest.mark.nats
-class TestNatsRPC(BrokerRPCTestcase):
+class TestNatsRPC(BrokerRPCTestcase, ReplyAndConsumeForbidden):
     pass
