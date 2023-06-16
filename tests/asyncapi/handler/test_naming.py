@@ -1,7 +1,9 @@
 from fast_depends.construct import get_dependant
 from pydantic import Field
 
+from propan import PropanApp, RabbitBroker
 from propan.brokers._model.schemas import BaseHandler
+from propan.cli.docs.gen import get_app_schema
 
 
 def test_pydantic_field_rename():
@@ -37,3 +39,18 @@ def test_pydantic_field_rename_miltiple():
         == result["properties"]["a"]["description"]
         == "AField"
     )
+
+
+def test_scheme_naming():
+    broker = RabbitBroker()
+    app = PropanApp(broker)
+
+    @broker.handle("test")
+    def handler(a = Field(title="PerfectArgument")):
+        ...
+
+    scheme = get_app_schema(app)
+
+    assert tuple(scheme.channels.keys())[0] == "Handler"
+    assert tuple(scheme.components.messages.keys())[0] == "HandlerMessage"
+    assert tuple(scheme.components.schemas.keys())[0] == "PerfectArgument"

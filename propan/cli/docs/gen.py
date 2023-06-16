@@ -73,15 +73,15 @@ def get_app_schema(app: PropanApp) -> AsyncAPISchema:
     payloads: Dict[str, AnyDict] = {}
 
     channels = _get_broker_channels(app.broker)
-    for ch in channels.values():
+    for channel_name, ch in channels.items():
         ch.servers = list(servers.keys())
 
         if ch.subscribe is not None:  # pragma: no branch
             m = ch.subscribe.message
-            m_title = m.title or "Message"
+            m_title = m.title or f"{channel_name}Message"
 
             p = m.payload
-            p_title = p.get("title", m_title)
+            p_title = p.get("title", f"{channel_name}Payload")
             payloads[p_title] = p
 
             m.payload = {"$ref": f"#/components/schemas/{p_title}"}
