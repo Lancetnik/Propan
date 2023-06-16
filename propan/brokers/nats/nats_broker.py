@@ -144,7 +144,13 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
 
         client = self._connection
 
-        if callback is True and not reply_to:
+        if callback is True:
+            if reply_to:
+                raise ValueError(
+                    "You should use `reply_to` to send response to long-living queue "
+                    "and `callback` to get response in sync mode."
+                )
+
             token = client._nuid.next()
             token.extend(token_hex(2).encode())
             reply_to = token.decode()
