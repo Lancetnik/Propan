@@ -34,6 +34,8 @@ PikaSendableMessage: TypeAlias = Union[aio_pika.message.Message, SendableMessage
 RabbitMessage: TypeAlias = PropanMessage[aio_pika.message.IncomingMessage]
 T = TypeVar("T")
 
+RABBIT_REPLY = "amq.rabbitmq.reply-to"
+
 
 class RabbitBroker(BrokerUsecase):
     handlers: List[Handler]
@@ -178,15 +180,25 @@ class RabbitBroker(BrokerUsecase):
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
         if callback is True:
+            response_queue: asyncio.Queue[PropanMessage] = asyncio.Queue(1)
+
             if reply_to is not None:
                 raise ValueError(
                     "You should use `reply_to` to send response to long-living queue "
                     "and `callback` to get response in sync mode."
                 )
 
-            callback_queue = await self._channel.declare_queue(exclusive=True)
+            callback_queue = await self._channel.get_queue(RABBIT_REPLY)
+            reply_to = RABBIT_REPLY
+
+            async def handle_response(msg: RabbitMessage) -> None:
+                propan_message = await self._parse_message(msg)
+                await response_queue.put(propan_message)
+
+            await callback_queue.consume(handle_response, no_ack=True)
         else:
             callback_queue = None
+            response_queue = None
 
         if exchange is None:
             exchange_obj = self._channel.default_exchange
@@ -195,7 +207,6 @@ class RabbitBroker(BrokerUsecase):
 
         message = self._validate_message(
             message=message,
-            callback_queue=callback_queue,
             persist=persist,
             reply_to=reply_to,
             **message_kwargs,
@@ -211,11 +222,9 @@ class RabbitBroker(BrokerUsecase):
         if callback_queue is None:
             return r
 
-        else:
-            iter = callback_queue.iterator()
-            await iter.consume()
+        elif response_queue is not None:
             try:
-                msg = await asyncio.wait_for(iter._queue.get(), callback_timeout)
+                msg = await asyncio.wait_for(response_queue.get(), callback_timeout)
             except asyncio.TimeoutError as e:
                 if raise_timeout is True:  # pragma: no branch
                     raise e
