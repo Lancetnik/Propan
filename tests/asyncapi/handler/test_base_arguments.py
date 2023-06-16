@@ -15,7 +15,7 @@ def test_base():
     assert message_title == "FuncMessage"
 
     example = result.pop("example")
-    if example:
+    if example:  # pragma: no branch
         assert isinstance(example, int)
     assert result == {
         "title": "FuncPayload",
@@ -36,7 +36,7 @@ def test_multi_args():
     assert message_title == "FuncMessage"
 
     example = result.pop("example", None)
-    if example:
+    if example:  # pragma: no branch
         assert isinstance(example["a"], int)
         assert isinstance(example["b"], float)
     assert result == {
@@ -67,7 +67,7 @@ def test_pydantic_args():
     assert message_title == "FuncMessage"
 
     example = result.pop("example", None)
-    if example:
+    if example:  # pragma: no branch
         assert isinstance(example["a"], int)
         assert isinstance(example["b"], float)
     assert result == {
@@ -126,7 +126,7 @@ def test_response_base():
     }
 
     for r in response.pop("examples", []):
-        if r:
+        if r:  # pragma: no branch
             assert isinstance(r, str)
 
     assert response == {"title": "FuncReply", "type": "string"}
@@ -181,7 +181,7 @@ def test_pydantic_gen_response_examples():
     }
 
     for r in response.pop("examples", []):
-        if r:
+        if r:  # pragma: no branch
             assert isinstance(r["a"], int)
 
     assert response == {

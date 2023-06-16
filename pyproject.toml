@@ -228,6 +228,7 @@ extend-immutable-calls = [
     "propan.utils.Depends", "propan.utils.Context",
     "propan.utils.context.Depends", "propan.utils.context.Context",
     "typer.Argument", "typer.Option",
+    "pydantic.Field",
     "fastapi.Depends", "fastapi.datastructures.Default",
     "kafka.partitioner.default.DefaultPartitioner",
 ]

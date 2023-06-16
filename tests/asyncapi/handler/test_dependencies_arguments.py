@@ -18,7 +18,7 @@ def test_base():
     assert message_title == "FuncMessage"
 
     example = result.pop("example", None)
-    if example:
+    if example:  # pragma: no branch
         assert isinstance(example, int)
     assert result == {
         "title": "FuncPayload",
@@ -45,7 +45,7 @@ def test_multi_args():
     assert message_title == "FuncMessage"
 
     example = result.pop("example", None)
-    if example:
+    if example:  # pragma: no branch
         assert isinstance(example["a"], int)
         assert isinstance(example["c"], int)
         assert isinstance(example["b"], float)
