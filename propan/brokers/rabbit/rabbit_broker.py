@@ -46,6 +46,7 @@ class RabbitBroker(BrokerUsecase):
 
     __max_queue_len: int
     __max_exchange_len: int
+    _rpc_lock: asyncio.Lock
 
     def __init__(
         self,
@@ -68,6 +69,7 @@ class RabbitBroker(BrokerUsecase):
         self._max_consumers = consumers
 
         self._channel = None
+        self._rpc_lock = asyncio.Lock()
 
         self.__max_queue_len = 4
         self.__max_exchange_len = 4
@@ -188,6 +190,7 @@ class RabbitBroker(BrokerUsecase):
                     "and `callback` to get response in sync mode."
                 )
 
+            await self._rpc_lock.acquire()
             callback_queue = await self._channel.get_queue(RABBIT_REPLY)
             reply_to = RABBIT_REPLY
 
@@ -230,6 +233,7 @@ class RabbitBroker(BrokerUsecase):
             else:
                 return await self._decode_message(msg)
             finally:
+                self._rpc_lock.release()
                 await callback_queue.cancel(consumer_tag)
 
     async def _init_handler(
