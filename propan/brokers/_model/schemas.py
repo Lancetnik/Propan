@@ -2,6 +2,7 @@ import json
 from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum
+from inspect import _empty
 from typing import Any, Dict, Generic, Optional, Sequence, Tuple, TypeVar, Union
 from uuid import uuid4
 
@@ -106,12 +107,13 @@ class BaseHandler:
                 use_original_model = True
 
             else:
+                is_pydantic = param.field_info.default is not _empty
                 model = create_model(  # type: ignore
-                    payload_title,
+                    param.field_info.title or payload_title,
                     **{
                         param.name: (
                             param.annotation,
-                            ... if param.required else param.default,
+                            param.field_info if is_pydantic else ...,
                         )
                     },
                 )
@@ -121,7 +123,10 @@ class BaseHandler:
             model = create_model(  # type: ignore
                 payload_title,
                 **{
-                    p.name: (p.annotation, ... if p.required else p.default)
+                    p.name: (
+                        p.annotation,
+                        ... if p.field_info.default is _empty else p.field_info,
+                    )
                     for p in params
                 },
             )
