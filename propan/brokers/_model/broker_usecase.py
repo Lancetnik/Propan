@@ -24,18 +24,15 @@ from fast_depends.model import Dependant, Depends
 from fast_depends.utils import args_to_kwargs
 from typing_extensions import Self, TypeAlias
 
-from propan.brokers._model.schemas import (
-    BaseHandler,
+from propan.brokers._model.schemas import BaseHandler, PropanMessage
+from propan.brokers._model.utils import (
     ContentType,
     ContentTypes,
-    PropanMessage,
-    SendableModel,
-)
-from propan.brokers._model.utils import (
     change_logger_handlers,
     get_watcher,
     set_message_context,
     suppress_decor,
+    to_send,
 )
 from propan.brokers.exceptions import SkipMessage
 from propan.brokers.push_back_watcher import BaseWatcher
@@ -197,7 +194,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
 
     @staticmethod
     def _encode_message(msg: SendableMessage) -> Tuple[bytes, Optional[ContentType]]:
-        return SendableModel.to_send(msg)
+        return to_send(msg)
 
     @property
     def fmt(self) -> str:  # pragma: no cover

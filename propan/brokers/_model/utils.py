@@ -1,16 +1,42 @@
+import json
 import logging
+from enum import Enum
 from functools import wraps
-from typing import Awaitable, Callable, Optional, TypeVar, Union
+from typing import Awaitable, Callable, Optional, Tuple, TypeVar, Union
+
+from pydantic.json import pydantic_encoder
+from typing_extensions import TypeAlias
 
 from propan.brokers.push_back_watcher import (
     BaseWatcher,
     FakePushBackWatcher,
     PushBackWatcher,
 )
+from propan.types import SendableMessage
 from propan.utils import context
 
 T = TypeVar("T")
 P = TypeVar("P")
+
+ContentType: TypeAlias = str
+
+
+class ContentTypes(str, Enum):
+    text = "text/plain"
+    json = "application/json"
+
+
+def to_send(msg: SendableMessage) -> Tuple[bytes, Optional[ContentType]]:
+    if msg is None:
+        return b"", None
+
+    if isinstance(msg, bytes):
+        return msg, None
+
+    return (
+        json.dumps(msg, default=pydantic_encoder).encode(),
+        ContentTypes.json.value,
+    )
 
 
 def change_logger_handlers(logger: logging.Logger, fmt: str) -> None:

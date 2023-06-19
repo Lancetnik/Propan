@@ -1,23 +1,16 @@
-import json
 from abc import abstractmethod
 from dataclasses import dataclass
-from enum import Enum
 from inspect import _empty
-from typing import Any, Dict, Generic, Optional, Sequence, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 from uuid import uuid4
 
 from fast_depends.model import Dependant
 from pydantic import BaseModel, Field, Json, create_model
 from pydantic.dataclasses import dataclass as pydantic_dataclass
-from typing_extensions import TypeAlias, assert_never
 
 from propan.asyncapi.channels import AsyncAPIChannel
 from propan.asyncapi.utils import add_example_to_model
-from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMessage
-
-ContentType: TypeAlias = str
-
-Msg = TypeVar("Msg")
+from propan.types import AnyDict, DecodedMessage, DecoratedCallable
 
 
 @dataclass
@@ -160,11 +153,6 @@ class BaseHandler:
         return f"{self.title}Message", body, return_info
 
 
-class ContentTypes(str, Enum):
-    text = "text/plain"
-    json = "application/json"
-
-
 class NameRequired(BaseModel):
     name: Optional[str] = Field(...)
 
@@ -179,30 +167,11 @@ class Queue(NameRequired):
         super().__init__(name=name, **kwargs)
 
 
-class SendableModel(BaseModel):
-    message: DecodedMessage
-
-    @classmethod
-    def to_send(cls, msg: SendableMessage) -> Tuple[bytes, Optional[ContentType]]:
-        if msg is None:
-            return b"", None
-
-        if isinstance(msg, bytes):
-            return msg, None
-
-        m = cls(message=msg).message  # type: ignore
-
-        if isinstance(m, str):
-            return m.encode(), ContentTypes.text.value
-
-        if isinstance(m, (Dict, Sequence)):
-            return json.dumps(m).encode(), ContentTypes.json.value
-
-        assert_never()  # pragma: no cover
-
-
 class RawDecoced(BaseModel):
     message: Union[Json[Any], str]
+
+
+Msg = TypeVar("Msg")
 
 
 @pydantic_dataclass
