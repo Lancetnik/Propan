@@ -46,7 +46,7 @@ def test_scheme_naming():
     app = PropanApp(broker)
 
     @broker.handle("test")
-    def handler(a = Field(title="PerfectArgument")):
+    def handler(a=Field(title="PerfectArgument")):
         ...
 
     scheme = get_app_schema(app)
