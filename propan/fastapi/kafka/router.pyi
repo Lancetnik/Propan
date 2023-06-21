@@ -24,7 +24,7 @@ from propan.__about__ import __version__
 from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable
+from propan.types import AnyCallable, DecoratedCallable
 
 Partition = TypeVar("Partition")
 
@@ -181,5 +181,5 @@ class KafkaRouter(PropanRouter[KafkaBroker]):
         decode_message: CustomDecoder[ConsumerRecord] = None,
         parse_message: CustomParser[ConsumerRecord] = None,
         description: str = "",
-    ) -> None:
+    ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         pass

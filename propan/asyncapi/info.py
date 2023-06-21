@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, HttpUrl
 if importlib.util.find_spec("email_validator"):
     from pydantic import EmailStr
 else:
-    EmailStr = str
+    EmailStr = str  # type: ignore
 
 
 class AsyncAPIContact(BaseModel):
