@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Awaitable, Callable, Dict, Sequence, Union
 
 from pydantic import BaseModel
@@ -21,13 +22,19 @@ AsyncWrapper: TypeAlias = Callable[
     [AnyCallable],
     DecoratedAsync,
 ]
-DecodedMessage: TypeAlias = Union[
-    AnyDict,
-    Sequence[Any],
+
+JsonDecodable: TypeAlias = Union[
+    float,
+    int,
+    bool,
     str,
     bytes,
 ]
+DecodedMessage: TypeAlias = Union[
+    Dict[str, JsonDecodable], Sequence[JsonDecodable], JsonDecodable
+]
 SendableMessage: TypeAlias = Union[
+    datetime,
     DecodedMessage,
     BaseModel,
     None,

@@ -15,7 +15,7 @@ from propan import RedisBroker
 from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable, AnyDict
+from propan.types import AnyCallable, AnyDict, DecoratedCallable
 
 class RedisRouter(PropanRouter[RedisBroker]):
     def __init__(
@@ -90,5 +90,5 @@ class RedisRouter(PropanRouter[RedisBroker]):
         decode_message: CustomDecoder[AnyDict] = None,
         parse_message: CustomParser[AnyDict] = None,
         description: str = "",
-    ) -> None:
+    ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         pass

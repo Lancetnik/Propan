@@ -32,7 +32,7 @@ from propan import NatsBroker
 from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable
+from propan.types import AnyCallable, DecoratedCallable
 
 class NatsRouter(PropanRouter[NatsBroker]):
     def __init__(
@@ -119,5 +119,5 @@ class NatsRouter(PropanRouter[NatsBroker]):
         decode_message: CustomDecoder[Msg] = None,
         parse_message: CustomParser[Msg] = None,
         description: str = "",
-    ) -> None:
+    ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         pass

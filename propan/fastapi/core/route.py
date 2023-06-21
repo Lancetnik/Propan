@@ -91,9 +91,11 @@ class PropanMessage(Request):
             body = message.decoded_body
             if first_arg is not None:
                 if not isinstance(body, dict):  # pragma: no branch
-                    body = {first_arg: body}
+                    fastapi_body: AnyDict = {first_arg: body}
+                else:
+                    fastapi_body = body
 
-                session = cls(body, message.headers)
+                session = cls(fastapi_body, message.headers)
             else:
                 session = cls()
             return await func(session)

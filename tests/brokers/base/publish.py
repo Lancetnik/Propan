@@ -1,38 +1,60 @@
 from asyncio import Event, wait_for
-from typing import Any
+from datetime import datetime
+from typing import Dict, List
 from unittest.mock import Mock
 
 import pytest
-from pydantic import create_model
+from pydantic import BaseModel
 
 from propan.brokers._model import BrokerUsecase
+
+
+class SimpleModel(BaseModel):
+    r: str
+
+
+now = datetime.now()
 
 
 class BrokerPublishTestcase:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "message",
+        ("message", "message_type", "expected_message"),
         (
-            b"hello!",
-            "hello",
-            {"message": "hello!"},
-            create_model("Message", r=str)(r="hello!"),
-            [1, 2, 3],
+            ("hello", str, None),
+            (b"hello", bytes, None),
+            (1, int, None),
+            (1.0, float, None),
+            (False, bool, None),
+            ({"m": 1}, Dict[str, int], None),
+            ([1, 2, 3], List[int], None),
+            (SimpleModel(r="hello!"), SimpleModel, None),
+            (SimpleModel(r="hello!"), dict, {"r": "hello!"}),
+            (now, datetime, now),
         ),
     )
-    async def test_rpc(
-        self, message: Any, mock: Mock, queue: str, broker: BrokerUsecase
+    async def test_serialize(
+        self,
+        full_broker: BrokerUsecase,
+        mock: Mock,
+        queue: str,
+        message,
+        message_type,
+        expected_message,
     ):
         consume = Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
-        @broker.handle(queue)
-        async def handler(m):
+        @full_broker.handle(queue)
+        async def handler(m: message_type):
             mock(m)
 
-        async with broker:
-            await broker.start()
-            await broker.publish(message, queue)
+        async with full_broker:
+            await full_broker.start()
+            await full_broker.publish(message, queue)
             await wait_for(consume.wait(), 3)
 
-        mock.assert_called_with(message)
+        if expected_message is None:
+            expected_message = message
+
+        mock.assert_called_with(expected_message)
