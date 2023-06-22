@@ -41,6 +41,3 @@ class AsyncAPIMessage(BaseModel):
         default=None,
         alias="externalDocs",
     )
-
-    class Config:
-        allow_population_by_field_name = True

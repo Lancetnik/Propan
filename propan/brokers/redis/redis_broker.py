@@ -14,7 +14,7 @@ from typing import (
 )
 from uuid import uuid4
 
-from fast_depends.model import Depends
+from fast_depends.dependencies import Depends
 from redis.asyncio.client import PubSub, Redis
 from redis.asyncio.connection import ConnectionPool, parse_url
 from typing_extensions import TypeAlias

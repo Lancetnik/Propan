@@ -1,12 +1,14 @@
+from dataclasses import dataclass
+
 import pytest
 import pytest_asyncio
-from pydantic import BaseSettings
 
 from propan import RedisBroker
 from propan.test import TestRedisBroker
 
 
-class Settings(BaseSettings):
+@dataclass
+class Settings:
     url = "redis://localhost:6379"
 
     host = "localhost"

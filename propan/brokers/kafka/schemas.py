@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from aiokafka import AIOKafkaConsumer
-from fast_depends.model import Dependant
+from fast_depends.core import CallModel
 
 from propan.asyncapi.bindings import (
     AsyncAPIChannelBinding,
@@ -29,7 +29,7 @@ class Handler(BaseHandler):
     def __init__(
         self,
         callback: DecoratedCallable,
-        dependant: Dependant,
+        dependant: CallModel,
         topics: List[str],
         group_id: Optional[str] = None,
         consumer: Optional[AIOKafkaConsumer] = None,

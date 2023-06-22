@@ -16,7 +16,7 @@ from typing import (
 import aio_pika
 import aiormq
 from aio_pika.message import IncomingMessage
-from fast_depends.model import Depends
+from fast_depends.dependencies import Depends
 from pamqp.common import FieldTable
 from typing_extensions import ParamSpec, TypeAlias
 from yarl import URL

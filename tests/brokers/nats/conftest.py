@@ -1,12 +1,14 @@
+from dataclasses import dataclass
+
 import pytest
 import pytest_asyncio
-from pydantic import BaseSettings
 
 from propan import NatsBroker
 from propan.test import TestNatsBroker
 
 
-class Settings(BaseSettings):
+@dataclass
+class Settings:
     url = "nats://localhost:4222"
 
 

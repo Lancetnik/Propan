@@ -19,6 +19,3 @@ class AsyncAPIServer(BaseModel):
     # TODO:
     # variables
     # bindings
-
-    class Config:
-        allow_population_by_field_name = True

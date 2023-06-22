@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from dataclasses import field as DField
 from typing import Any, Dict, Optional, Sequence
 
-from fast_depends.model import Dependant
+from fast_depends.core import CallModel
 from pydantic import BaseModel, Field, PositiveInt
 from typing_extensions import Literal
 
@@ -217,7 +217,7 @@ class Handler(BaseHandler):
     def __init__(
         self,
         callback: DecoratedCallable,
-        dependant: Dependant,
+        dependant: CallModel,
         queue: SQSQueue,
         consumer_params: AnyDict,
         _description: str = "",

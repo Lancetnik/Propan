@@ -20,7 +20,7 @@ from uuid import uuid4
 import aio_pika
 import aiormq
 from aio_pika.abc import DeliveryMode
-from fast_depends.model import Depends
+from fast_depends.dependencies import Depends
 from typing_extensions import TypeAlias
 from yarl import URL
 

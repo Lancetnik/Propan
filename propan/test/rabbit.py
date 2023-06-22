@@ -101,7 +101,11 @@ async def publish(
             if not exchange:  # pragma: no branch
                 if handler.queue.name == incoming.routing_key:
                     r = await call_handler(
-                        handler, incoming, callback, callback_timeout, raise_timeout
+                        handler,
+                        incoming,
+                        callback,
+                        callback_timeout,
+                        raise_timeout,
                     )
                     if callback:  # pragma: no branch
                         return r
@@ -112,14 +116,22 @@ async def publish(
         ):
             if handler.queue.name == incoming.routing_key:
                 r = await call_handler(
-                    handler, incoming, callback, callback_timeout, raise_timeout
+                    handler,
+                    incoming,
+                    callback,
+                    callback_timeout,
+                    raise_timeout,
                 )
                 if callback:
                     return r
 
         elif handler.exchange.type == ExchangeType.FANOUT:
             r = await call_handler(
-                handler, incoming, callback, callback_timeout, raise_timeout
+                handler,
+                incoming,
+                callback,
+                callback_timeout,
+                raise_timeout,
             )
             if callback:
                 return r

@@ -16,9 +16,6 @@ class AsyncAPIKafkaChannelBinding(BaseModel):
         alias="bindingVersion",
     )
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class AsyncAPIKafkaOperationBinding(BaseModel):
     group_id: Optional[AnyDict] = Field(
@@ -36,6 +33,3 @@ class AsyncAPIKafkaOperationBinding(BaseModel):
         default="0.4.0",
         alias="bindingVersion",
     )
-
-    class Config:
-        allow_population_by_field_name = True

@@ -45,7 +45,7 @@ class PropanRoute(BaseRoute):
             path,
             *extra,
             _raw=True,
-            _get_dependant=get_dependant,  # type: ignore
+            _get_dependant=get_dependant,
             **handle_kwargs,  # type: ignore
         )(handler)
 

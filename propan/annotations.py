@@ -25,7 +25,7 @@ try:
     Channel = Annotated[
         aio_pika.robust_channel.RobustChannel, ContextField("broker.channel")
     ]
-except Exception:
+except ImportError:
     RabbitBroker = RabbitMessage = Channel = about.INSTALL_RABBIT
 
 
@@ -36,7 +36,7 @@ try:
 
     NatsBroker = Annotated[NB, ContextField("broker")]
     NatsMessage = Annotated[Msg, ContextField("message")]
-except Exception:
+except ImportError:
     NatsBroker = NatsMessage = about.INSTALL_NATS
 
 
@@ -47,7 +47,7 @@ try:
 
     RedisBroker = Annotated[RedB, ContextField("broker")]
     Redis = Annotated[R, ContextField("broker._connection")]
-except Exception:
+except ImportError:
     RedisBroker = Redis = about.INSTALL_REDIS
 
 
@@ -60,7 +60,7 @@ try:
     KafkaBroker = Annotated[KB, ContextField("broker")]
     KafkaMessage = Annotated[ConsumerRecord, ContextField("message")]
     Producer = Annotated[AIOKafkaProducer, ContextField("producer")]
-except Exception:
+except ImportError:
     KafkaBroker = KafkaMessage = Producer = about.INSTALL_KAFKA
 
 
@@ -72,7 +72,7 @@ try:
     SQSBroker = Annotated[SB, ContextField("broker")]
     client = Annotated[AioBaseClient, ContextField("client")]
     queue_url = Annotated[str, ContextField("queue_url")]
-except Exception:
+except ImportError:
     SQSBroker = client = queue_url = about.INSTALL_SQS
 
 

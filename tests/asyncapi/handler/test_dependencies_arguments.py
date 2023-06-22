@@ -1,4 +1,4 @@
-from fast_depends.construct import get_dependant
+from fast_depends.core import build_call_model
 
 from propan import Depends
 from propan.brokers._model.schemas import BaseHandler
@@ -11,7 +11,7 @@ def test_base():
     def func(a=Depends(dep)):
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     message_title, result, response = handler.get_message_object()
 
@@ -38,7 +38,7 @@ def test_multi_args():
     def func(b: float, _=Depends(dep)):
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     message_title, result, response = handler.get_message_object()
 
@@ -49,13 +49,14 @@ def test_multi_args():
         assert isinstance(example["a"], int)
         assert isinstance(example["c"], int)
         assert isinstance(example["b"], float)
+
+    assert set(result.pop("required")) == {"b", "a", "c"}
     assert result == {
         "properties": {
             "a": {"title": "A", "type": "integer"},
             "b": {"title": "B", "type": "number"},
             "c": {"title": "C", "type": "integer"},
         },
-        "required": ["b", "a", "c"],
         "title": "FuncPayload",
         "type": "object",
     }

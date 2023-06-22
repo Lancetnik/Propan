@@ -14,15 +14,14 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    TypeVar,
     Union,
     cast,
 )
 
-from fast_depends.construct import get_dependant
-from fast_depends.model import Dependant, Depends
+from fast_depends.core import CallModel, build_call_model
+from fast_depends.dependencies import Depends
 from fast_depends.utils import args_to_kwargs
-from typing_extensions import Self, TypeAlias
+from typing_extensions import ParamSpec, Self, TypeAlias, TypeVar
 
 from propan.brokers._model.schemas import BaseHandler, PropanMessage
 from propan.brokers._model.utils import (
@@ -61,6 +60,14 @@ CustomDecoder: TypeAlias = Optional[
         Awaitable[DecodedMessage],
     ]
 ]
+
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def WRAPPED_BUILDER(path: str, call: Callable[P, R]) -> CallModel[P, R]:
+    return build_call_model(call)
 
 
 class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
@@ -176,7 +183,10 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         parse_message: CustomParser[MsgType] = None,
         description: str = "",
         _raw: bool = False,
-        _get_dependant: Callable[[Callable[..., Any]], Dependant] = get_dependant,
+        _get_dependant: Callable[
+            ...,
+            CallModel,
+        ] = WRAPPED_BUILDER,
         **broker_kwargs: Any,
     ) -> HandlerWrapper:
         raise NotImplementedError()
@@ -221,15 +231,16 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         decode_message: CustomDecoder[MsgType] = None,
         parse_message: CustomParser[MsgType] = None,
         _raw: bool = False,
-        _get_dependant: Callable[..., Dependant] = get_dependant,
+        _get_dependant: Callable[..., CallModel] = WRAPPED_BUILDER,
         **broker_log_context_kwargs: Any,
-    ) -> Tuple[Callable[[MsgType, bool], Awaitable[Optional[T]]], Dependant]:
+    ) -> Tuple[Callable[[MsgType, bool], Awaitable[Optional[T]]], CallModel]:
         dependant = _get_dependant(path="", call=func)
         extra = [
             _get_dependant(path="", call=d.dependency)
             for d in chain(extra_dependencies, self.dependencies)
         ]
-        dependant.dependencies.extend(extra)
+
+        extend_dependencies(extra)(dependant)
 
         if getattr(dependant, "flat_params", None) is None:  # handle FastAPI Dependant
             params = dependant.path_params + dependant.body_params
@@ -249,7 +260,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         if self._is_apply_types is True:
             f = apply_types(
                 func=f,
-                wrap_dependant=extend_dependencies(extra),
+                wrap_model=extend_dependencies(extra),
             )
 
         f = self._wrap_decode_message(
@@ -365,9 +376,12 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
             )
 
 
-def extend_dependencies(extra: Sequence[Dependant]) -> Callable[[Dependant], Dependant]:
-    def dependant_wrapper(dependant: Dependant) -> Dependant:
-        dependant.dependencies.extend(extra)
+def extend_dependencies(extra: Sequence[CallModel]) -> Callable[[CallModel], CallModel]:
+    def dependant_wrapper(dependant: CallModel) -> CallModel:
+        if isinstance(dependant, CallModel):
+            dependant.extra_dependencies.extend(extra)
+        else:  # FastAPI dependencies
+            dependant.dependencies.extend(extra)
         return dependant
 
     return dependant_wrapper

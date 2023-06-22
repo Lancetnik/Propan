@@ -14,9 +14,6 @@ class AsyncAPIRedisChannelBinding(BaseModel):
         alias="bindingVersion",
     )
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class AsyncAPIRedisOperationBinding(BaseModel):
     reply_to: Optional[AnyDict] = Field(default=None, alias="replyTo")
@@ -24,6 +21,3 @@ class AsyncAPIRedisOperationBinding(BaseModel):
         default="custom",
         alias="bindingVersion",
     )
-
-    class Config:
-        allow_population_by_field_name = True

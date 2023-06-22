@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
 from aio_pika.abc import ExchangeType, TimeoutType
-from fast_depends.model import Dependant
+from fast_depends.core import CallModel
 from pydantic import Field
 
 from propan.asyncapi.bindings import (
@@ -141,7 +141,7 @@ class Handler(BaseHandler):
     def __init__(
         self,
         callback: DecoratedCallable,
-        dependant: Dependant,
+        dependant: CallModel,
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
         _description: str = "",
@@ -181,29 +181,31 @@ class Handler(BaseHandler):
                 ),
                 bindings=AsyncAPIChannelBinding(
                     amqp=amqp.AsyncAPIAmqpChannelBinding(
-                        is_="routingKey",  # type: ignore
-                        queue=None
-                        if (
-                            self.exchange
-                            and self.exchange.type
-                            in (ExchangeType.FANOUT, ExchangeType.HEADERS)
-                        )
-                        else amqp.AsyncAPIAmqpQueue(
-                            name=self.queue.name,
-                            durable=self.queue.durable,
-                            exclusive=self.queue.exclusive,
-                            autoDelete=self.queue.auto_delete,
-                        ),
-                        exchange=(
-                            amqp.AsyncAPIAmqpExchange(type="default")
-                            if self.exchange is None
-                            else amqp.AsyncAPIAmqpExchange(
-                                type=self.exchange.type.value,  # type: ignore
-                                name=self.exchange.name,
-                                durable=self.exchange.durable,
-                                autoDelete=self.exchange.auto_delete,
+                        **{
+                            "is": "routingKey",  # type: ignore
+                            "queue": None
+                            if (
+                                self.exchange
+                                and self.exchange.type
+                                in (ExchangeType.FANOUT, ExchangeType.HEADERS)
                             )
-                        ),
+                            else amqp.AsyncAPIAmqpQueue(
+                                name=self.queue.name,
+                                durable=self.queue.durable,
+                                exclusive=self.queue.exclusive,
+                                autoDelete=self.queue.auto_delete,
+                            ),
+                            "exchange": (
+                                amqp.AsyncAPIAmqpExchange(type="default")
+                                if self.exchange is None
+                                else amqp.AsyncAPIAmqpExchange(
+                                    type=self.exchange.type.value,  # type: ignore
+                                    name=self.exchange.name,
+                                    durable=self.exchange.durable,
+                                    autoDelete=self.exchange.auto_delete,
+                                )
+                            ),
+                        }
                     )
                 ),
             ),

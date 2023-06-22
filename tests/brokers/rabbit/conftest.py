@@ -1,14 +1,15 @@
+from dataclasses import dataclass
 from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from pydantic import BaseSettings
 
 from propan.brokers.rabbit import RabbitBroker, RabbitExchange
 from propan.test import TestRabbitBroker
 
 
-class Settings(BaseSettings):
+@dataclass
+class Settings:
     url = "amqp://guest:guest@localhost:5672/"
 
     host = "localhost"

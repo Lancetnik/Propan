@@ -1,14 +1,15 @@
+from dataclasses import dataclass
 from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from pydantic import BaseSettings
 
 from propan import KafkaBroker
 from propan.test.kafka import TestKafkaBroker
 
 
-class Settings(BaseSettings):
+@dataclass
+class Settings:
     url = "localhost:9092"
 
 

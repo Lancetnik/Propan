@@ -12,7 +12,7 @@ from typing import (
     Union,
 )
 
-from fast_depends.model import Depends
+from fast_depends.dependencies import Depends
 from nats.aio.client import (
     DEFAULT_CONNECT_TIMEOUT,
     DEFAULT_DRAIN_TIMEOUT,
