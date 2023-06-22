@@ -9,24 +9,37 @@ from propan.utils.context import context
 
 class Context(CustomField):  # type: ignore
     def __init__(
-        self, real_name: str = "", *, cast: bool = False, default: Any = _empty
+        self,
+        real_name: str = "",
+        *,
+        cast: bool = False,
+        default: Any = _empty,
     ):
         self.name = real_name
         self.default = default
-        super().__init__(cast=cast, required=(default is _empty))
+        super().__init__(
+            cast=cast,
+            required=(default is _empty),
+        )
 
     def use(self, **kwargs: AnyDict) -> AnyDict:
         name = self.name or self.param_name
-        default = None if self.default is _empty else self.default
-        return {**kwargs, self.param_name: resolve_context(name) or default}
+
+        try:
+            kwargs[self.param_name] = resolve_context(name)
+        except (KeyError, AttributeError):
+            if self.required is False:
+                kwargs[self.param_name] = self.default
+
+        return kwargs
 
 
 def resolve_context(argument: str) -> Any:
     keys = argument.split(".")
 
-    v = context.context.get(keys[0])
+    v = context.context[keys[0]]
     for i in keys[1:]:
-        v = getattr(v, i, None)
+        v = getattr(v, i)
         if v is None:
             return v
 

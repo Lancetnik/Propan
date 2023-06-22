@@ -12,9 +12,6 @@ class AsyncAPISQSChannelBinding(BaseModel):
         alias="bindingVersion",
     )
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class AsyncAPISQSOperationBinding(BaseModel):
     reply_to: Optional[AnyDict] = Field(default=None, alias="replyTo")
@@ -23,6 +20,3 @@ class AsyncAPISQSOperationBinding(BaseModel):
         default="custom",
         alias="bindingVersion",
     )
-
-    class Config:
-        allow_population_by_field_name = True

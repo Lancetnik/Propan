@@ -32,9 +32,6 @@ class AsyncAPIOauthFlows(BaseModel):
         alias="authorizationCode",
     )
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class AsyncAPISecuritySchemeComponent(BaseModel):
     type: Literal[
@@ -68,6 +65,3 @@ class AsyncAPISecuritySchemeComponent(BaseModel):
         alias="openIdConnectUrl",
     )
     flows: Optional[AsyncAPIOauthFlows] = None
-
-    class Config:
-        allow_population_by_field_name = True

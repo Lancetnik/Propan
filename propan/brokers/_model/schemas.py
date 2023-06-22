@@ -1,10 +1,9 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from inspect import _empty
-from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, Optional, Tuple, Type, TypeVar, Union
 from uuid import uuid4
 
-from fast_depends.model import Dependant
+from fast_depends.core import CallModel
 from pydantic import BaseModel, Field, Json, create_model
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
@@ -16,13 +15,13 @@ from propan.types import AnyDict, DecodedMessage, DecoratedCallable
 @dataclass
 class BaseHandler:
     callback: DecoratedCallable
-    dependant: Dependant
+    dependant: CallModel
     _description: str
 
     def __init__(
         self,
         callback: DecoratedCallable,
-        dependant: Dependant,
+        dependant: CallModel,
         _description: str = "",
     ):
         self.callback = callback
@@ -46,39 +45,39 @@ class BaseHandler:
 
         dependant = self.dependant
 
-        if getattr(dependant, "return_field", None) is not None:
-            return_field = dependant.return_field
+        if getattr(dependant, "response_model", None) is not None:
+            response_model: Type[BaseModel] = dependant.response_model
+            return_field = list(response_model.__fields__.values())[0]
 
-            if return_field.type_ != Any and issubclass(return_field.type_, BaseModel):
-                return_model = return_field.type_
-                if not return_model.Config.schema_extra.get("example"):
-                    return_model = add_example_to_model(return_model)
+            if issubclass(return_field.annotation, BaseModel):
+                response_model = return_field.annotation
+
+                schema_extra = response_model.Config.schema_extra
+                if not isinstance(schema_extra, dict) or not schema_extra.get(
+                    "example"
+                ):
+                    response_model = add_example_to_model(response_model)
+
                 return_info = jsonref.replace_refs(
-                    return_model.schema(), jsonschema=True, proxies=False
+                    response_model.schema(), jsonschema=True, proxies=False
                 )
-                return_info["examples"] = [return_info.pop("example", [])]
+                return_info["examples"] = [return_info.pop("example", None)]
 
             else:
-                return_model = create_model(  # type: ignore
-                    f"{self.title}Reply",
-                    **{return_field.name: (return_field.annotation, ...)},
-                )
-                return_model = add_example_to_model(return_model)
-                return_info = jsonref.replace_refs(
-                    return_model.schema(), jsonschema=True, proxies=False
-                )
-                return_info.pop("required")
-                return_info.update(
-                    {
-                        "type": return_info.pop("properties", {})
-                        .get(return_field.name, {})
-                        .get("type"),
-                        "examples": [
-                            return_info.pop("example", {}).get(return_field.name)
-                        ],
-                    }
+                response_model = add_example_to_model(response_model)
+                response_field_name = "response"
+
+                raw = jsonref.replace_refs(
+                    response_model.schema(),
+                    jsonschema=True,
+                    proxies=False,
                 )
 
+                return_info = raw.get("properties", {}).get(response_field_name)
+                return_info["examples"] = [
+                    raw.pop("example", {}).get(response_field_name)
+                ]
+                return_info["title"] = f"{self.title}Reply"
         else:
             return_info = None
 
@@ -92,35 +91,32 @@ class BaseHandler:
             model = None
 
         elif params_number == 1:
-            param = params[0]
+            name, param = list(params.items())[0]
+            info = getattr(param, "field_info", param)
 
-            if param.annotation != Any and issubclass(param.annotation, BaseModel):
+            if issubclass(param.annotation, BaseModel):
                 model = param.annotation
-                gen_examples = model.Config.schema_extra.get("example") is None
+
+                schema_extra = model.Config.schema_extra
+                if isinstance(schema_extra, dict):
+                    gen_examples = schema_extra.get("example") is None
+                else:
+                    gen_examples = True
+
                 use_original_model = True
 
             else:
-                is_pydantic = param.field_info.default is not _empty
                 model = create_model(  # type: ignore
-                    param.field_info.title or payload_title,
-                    **{
-                        param.name: (
-                            param.annotation,
-                            param.field_info if is_pydantic else ...,
-                        )
-                    },
+                    info.title or payload_title,
+                    **{name: (param.annotation, info)},
                 )
                 gen_examples = True
-
         else:
             model = create_model(  # type: ignore
                 payload_title,
                 **{
-                    p.name: (
-                        p.annotation,
-                        ... if p.field_info.default is _empty else p.field_info,
-                    )
-                    for p in params
+                    i: (j.annotation, getattr(j, "field_info", j))
+                    for i, j in params.items()
                 },
             )
             gen_examples = True

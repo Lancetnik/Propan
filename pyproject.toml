@@ -43,7 +43,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fast-depends==1.1.6",
+    "fast-depends==2.0.2",
     "watchfiles",
     "typer",
     "uvloop>=0.14.0,!=0.15.0,!=0.15.1; sys_platform != 'win32' and (sys_platform != 'cygwin' and platform_python_implementation != 'PyPy')",
@@ -80,7 +80,7 @@ async-kafka = [
 doc = [
     "PyYAML",
     "pydantic[email]",
-    "polyfactory; python_version > '3.7'",
+    "polyfactory>=2.3.0; python_version > '3.7'",
     "jsonref",
     "fastapi",
     "uvicorn",
@@ -102,7 +102,7 @@ test = [
     "pytest>=7",
     "pytest-asyncio>=0.21",
 
-    "fastapi",
+    "fastapi==0.100.0b1",
     "python-dotenv",
 
     "asyncmock; python_version < '3.8'",

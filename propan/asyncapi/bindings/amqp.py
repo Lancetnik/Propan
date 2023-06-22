@@ -13,9 +13,6 @@ class AsyncAPIAmqpQueue(BaseModel):
     auto_delete: bool = Field(alias="autoDelete")
     vhost: str = "/"
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class AsyncAPIAmqpExchange(BaseModel):
     name: Optional[str] = None
@@ -27,9 +24,6 @@ class AsyncAPIAmqpExchange(BaseModel):
     )
     vhost: str = "/"
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class AsyncAPIAmqpChannelBinding(BaseModel):
     is_: Literal["queue", "routingKey"] = Field(..., alias="is")
@@ -40,9 +34,6 @@ class AsyncAPIAmqpChannelBinding(BaseModel):
     queue: Optional[AsyncAPIAmqpQueue] = None
     exchange: Optional[AsyncAPIAmqpExchange] = None
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class AsyncAPIAmqpOperationBinding(BaseModel):
     cc: Optional[str] = None
@@ -52,6 +43,3 @@ class AsyncAPIAmqpOperationBinding(BaseModel):
         default="0.2.0",
         alias="bindingVersion",
     )
-
-    class Config:
-        allow_population_by_field_name = True

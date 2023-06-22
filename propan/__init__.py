@@ -6,27 +6,27 @@ from propan.utils import *  # noqa: F403
 
 try:
     from propan.brokers.rabbit import RabbitBroker
-except Exception:
+except ImportError:
     RabbitBroker = about.INSTALL_RABBIT  # type: ignore
 
 try:
     from propan.brokers.nats import NatsBroker
-except Exception:
+except ImportError:
     NatsBroker = about.INSTALL_NATS  # type: ignore
 
 try:
     from propan.brokers.redis import RedisBroker
-except Exception:
+except ImportError:
     RedisBroker = about.INSTALL_REDIS  # type: ignore
 
 try:
     from propan.brokers.kafka import KafkaBroker
-except Exception:
+except ImportError:
     KafkaBroker = about.INSTALL_KAFKA  # type: ignore
 
 try:
     from propan.brokers.sqs import SQSBroker
-except Exception:
+except ImportError:
     SQSBroker = about.INSTALL_SQS  # type: ignore
 
 assert any(

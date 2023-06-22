@@ -15,7 +15,7 @@ from typing import (
 )
 
 import nats
-from fast_depends.model import Depends
+from fast_depends.dependencies import Depends
 from nats.aio.client import Callback, Client, ErrorCallback
 from nats.aio.msg import Msg
 from typing_extensions import TypeAlias

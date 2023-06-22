@@ -1,4 +1,4 @@
-from fast_depends.construct import get_dependant
+from fast_depends.core import build_call_model
 from pydantic import BaseModel
 
 from propan.brokers._model.schemas import BaseHandler
@@ -8,7 +8,7 @@ def test_base():
     def func(a: int):
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     message_title, result, response = handler.get_message_object()
 
@@ -29,7 +29,7 @@ def test_multi_args():
     def func(a: int, b: float):
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     message_title, result, response = handler.get_message_object()
 
@@ -60,7 +60,7 @@ def test_pydantic_args():
     def func(a: Message):
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     message_title, result, response = handler.get_message_object()
 
@@ -93,7 +93,7 @@ def test_pydantic_example():
     def func(a: Message):
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     message_title, result, response = handler.get_message_object()
 
@@ -115,7 +115,7 @@ def test_response_base():
     def func() -> str:
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     message_title, result, response = handler.get_message_object()
 
@@ -142,7 +142,7 @@ def test_pydantic_response():
     def func() -> Message:
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     message_title, result, response = handler.get_message_object()
 
@@ -170,7 +170,7 @@ def test_pydantic_gen_response_examples():
     def func() -> Message:
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     message_title, result, response = handler.get_message_object()
 

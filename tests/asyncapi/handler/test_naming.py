@@ -1,4 +1,4 @@
-from fast_depends.construct import get_dependant
+from fast_depends.core import build_call_model
 from pydantic import Field
 
 from propan import PropanApp, RabbitBroker
@@ -10,7 +10,7 @@ def test_pydantic_field_rename():
     def func(a: int = Field(title="MyField", description="MyField")):
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     _, result, _ = handler.get_message_object()
 
@@ -25,7 +25,7 @@ def test_pydantic_field_rename_miltiple():
     ):
         ...
 
-    handler = BaseHandler(func, get_dependant(path="", call=func))
+    handler = BaseHandler(func, build_call_model(call=func))
 
     _, result, _ = handler.get_message_object()
 

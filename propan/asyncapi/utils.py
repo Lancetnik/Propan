@@ -2,6 +2,7 @@ import json
 import sys
 from typing import Optional, Type
 
+from fast_depends._compat import PYDANTIC_V2
 from pydantic import BaseModel, Field
 
 
@@ -18,12 +19,9 @@ class AsyncAPITag(BaseModel):
         alias="externalDocs",
     )
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 def add_example_to_model(model: Type[BaseModel]) -> Type[BaseModel]:
-    if sys.version_info >= (3, 8):
+    if sys.version_info >= (3, 8) and not PYDANTIC_V2:
         from polyfactory.factories.pydantic_factory import ModelFactory
 
         factory = type(

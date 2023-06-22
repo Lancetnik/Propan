@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, Optional, Sequence
 
-from fast_depends.model import Dependant
+from fast_depends.core import CallModel
 from nats.aio.subscription import Subscription
 from nats.js.api import DEFAULT_PREFIX
 from pydantic import BaseModel
@@ -28,7 +28,7 @@ class Handler(BaseHandler):
     def __init__(
         self,
         callback: DecoratedCallable,
-        dependant: Dependant,
+        dependant: CallModel,
         subject: str,
         queue: str = "",
         subscription: Optional[Subscription] = None,

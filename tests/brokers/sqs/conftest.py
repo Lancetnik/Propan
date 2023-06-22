@@ -1,16 +1,17 @@
+from dataclasses import dataclass
 from uuid import uuid4
 
 import pytest
 import pytest_asyncio
 from aiobotocore.config import AioConfig
 from botocore import UNSIGNED
-from pydantic import BaseSettings
 
 from propan import SQSBroker
 from propan.test import TestSQSBroker
 
 
-class Settings(BaseSettings):
+@dataclass
+class Settings:
     url = "http://localhost:9324/"
     region_name = "us-west-2"
 

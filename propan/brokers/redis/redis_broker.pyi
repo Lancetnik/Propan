@@ -13,7 +13,7 @@ from typing import (
     Union,
 )
 
-from fast_depends.model import Depends
+from fast_depends.dependencies import Depends
 from redis.asyncio.client import Redis
 from redis.asyncio.connection import BaseParser, Connection, DefaultParser, Encoder
 from typing_extensions import TypeAlias

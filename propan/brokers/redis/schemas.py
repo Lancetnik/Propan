@@ -2,7 +2,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from fast_depends.model import Dependant
+from fast_depends.core import CallModel
 from pydantic import BaseModel, Field
 from redis.asyncio.client import PubSub
 
@@ -29,7 +29,7 @@ class Handler(BaseHandler):
     def __init__(
         self,
         callback: DecoratedCallable,
-        dependant: Dependant,
+        dependant: CallModel,
         channel: str,
         pattern: bool = False,
         task: Optional["asyncio.Task[Any]"] = None,

@@ -14,7 +14,7 @@ from typing import (
 
 from aiobotocore.client import AioBaseClient
 from aiobotocore.config import AioConfig
-from fast_depends.model import Depends
+from fast_depends.dependencies import Depends
 from typing_extensions import TypeAlias
 
 from propan.brokers._model import BrokerUsecase

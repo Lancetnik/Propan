@@ -2,27 +2,27 @@ from propan import __about__ as about
 
 try:
     from propan.fastapi.rabbit import RabbitRouter
-except Exception:
+except ImportError:
     RabbitRouter = about.INSTALL_RABBIT  # type: ignore
 
 try:
     from propan.fastapi.redis import RedisRouter
-except Exception:
+except ImportError:
     RedisRouter = about.INSTALL_REDIS  # type: ignore
 
 try:
     from propan.fastapi.kafka import KafkaRouter
-except Exception:
+except ImportError:
     KafkaRouter = about.INSTALL_KAFKA  # type: ignore
 
 try:
     from propan.fastapi.nats import NatsRouter
-except Exception:
+except ImportError:
     NatsRouter = about.INSTALL_NATS  # type: ignore
 
 try:
     from propan.fastapi.sqs import SQSRouter
-except Exception:
+except ImportError:
     SQSRouter = about.INSTALL_SQS  # type: ignore
 
 assert any(

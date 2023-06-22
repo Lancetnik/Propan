@@ -30,8 +30,6 @@ class AsyncAPIComponents(BaseModel):
     # channelBindings
     # operationBindings
     # messageBindings
-    class Config:
-        allow_population_by_field_name = True
 
 
 class AsyncAPISchema(BaseModel):
@@ -52,6 +50,3 @@ class AsyncAPISchema(BaseModel):
     # TODO:
     # id
     components: Optional[AsyncAPIComponents] = None
-
-    class Config:
-        allow_population_by_field_name = True
