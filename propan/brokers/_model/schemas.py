@@ -49,7 +49,10 @@ class BaseHandler:
             response_model: Type[BaseModel] = dependant.response_model
             return_field = list(response_model.__fields__.values())[0]
 
-            if issubclass(return_field.annotation, BaseModel):
+            if (
+                return_field.annotation != Any  # NOTE: 3.7-3.10 compatibility
+                and issubclass(return_field.annotation, BaseModel)
+            ):
                 response_model = return_field.annotation
 
                 schema_extra = response_model.Config.schema_extra
@@ -94,7 +97,10 @@ class BaseHandler:
             name, param = list(params.items())[0]
             info = getattr(param, "field_info", param)
 
-            if issubclass(param.annotation, BaseModel):
+            if (
+                param.annotation != Any  # NOTE: 3.7-3.10 compatibility
+                and issubclass(param.annotation, BaseModel)
+            ):
                 model = param.annotation
 
                 schema_extra = model.Config.schema_extra
