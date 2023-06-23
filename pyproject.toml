@@ -79,7 +79,7 @@ async-kafka = [
 
 doc = [
     "PyYAML",
-    "pydantic[email]",
+    "email-validator>=2.0.0",
     "polyfactory>=2.3.0; python_version > '3.7'",
     "jsonref",
     "fastapi",
