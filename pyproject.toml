@@ -43,7 +43,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fast-depends==2.0.2",
+    "fast-depends>=2.0.3",
     "watchfiles",
     "typer",
     "uvloop>=0.14.0,!=0.15.0,!=0.15.1; sys_platform != 'win32' and (sys_platform != 'cygwin' and platform_python_implementation != 'PyPy')",
@@ -101,6 +101,7 @@ test = [
     "coverage[toml]>=7.2",
     "pytest>=7",
     "pytest-asyncio>=0.21",
+    "pydantic-settings>=2.0a1",
 
     "fastapi==0.100.0b1",
     "python-dotenv",

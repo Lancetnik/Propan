@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 if importlib.util.find_spec("email_validator"):
     from pydantic import EmailStr
-else:
+else:  # pragma: no cover
     EmailStr = str  # type: ignore
 
 

@@ -6,6 +6,7 @@ from unittest.mock import Mock
 import pytest
 from pydantic import BaseModel
 
+from propan.annotations import Logger
 from propan.brokers._model import BrokerUsecase
 
 
@@ -46,7 +47,7 @@ class BrokerPublishTestcase:
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
         @full_broker.handle(queue)
-        async def handler(m: message_type):
+        async def handler(m: message_type, logger: Logger):
             mock(m)
 
         async with full_broker:

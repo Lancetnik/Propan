@@ -1,6 +1,7 @@
 from fast_depends.core import build_call_model
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 
+from propan.asyncapi.utils import SCHEMA_FIELD, ConfigDict
 from propan.brokers._model.schemas import BaseHandler
 
 
@@ -83,34 +84,6 @@ def test_pydantic_args():
     assert response is None
 
 
-def test_pydantic_example():
-    class Message(BaseModel):
-        a: int
-
-        class Config:
-            schema_extra = {"example": {"a": 1}}
-
-    def func(a: Message):
-        ...
-
-    handler = BaseHandler(func, build_call_model(call=func))
-
-    message_title, result, response = handler.get_message_object()
-
-    assert message_title == "FuncMessage"
-    assert result == {
-        "example": {"a": 1},
-        "properties": {
-            "a": {"title": "A", "type": "integer"},
-        },
-        "required": ["a"],
-        "title": "Message",
-        "type": "object",
-    }
-
-    assert response is None
-
-
 def test_response_base():
     def func() -> str:
         ...
@@ -130,37 +103,6 @@ def test_response_base():
             assert isinstance(r, str)
 
     assert response == {"title": "FuncReply", "type": "string"}
-
-
-def test_pydantic_response():
-    class Message(BaseModel):
-        a: int
-
-        class Config:
-            schema_extra = {"example": {"a": 1}}
-
-    def func() -> Message:
-        ...
-
-    handler = BaseHandler(func, build_call_model(call=func))
-
-    message_title, result, response = handler.get_message_object()
-
-    assert message_title == "FuncMessage"
-    assert result == {
-        "title": "FuncPayload",
-        "type": "null",
-    }
-
-    assert response == {
-        "examples": [{"a": 1}],
-        "properties": {
-            "a": {"title": "A", "type": "integer"},
-        },
-        "required": ["a"],
-        "title": "Message",
-        "type": "object",
-    }
 
 
 def test_pydantic_gen_response_examples():
@@ -192,3 +134,62 @@ def test_pydantic_gen_response_examples():
         "title": "Message",
         "type": "object",
     }
+
+
+def test_pydantic_response():
+    Message = create_model(
+        "Message",
+        __config__=ConfigDict(**{SCHEMA_FIELD: {"example": {"a": 1}}}),
+        a=(int, ...),
+    )
+
+    def func() -> Message:
+        ...
+
+    handler = BaseHandler(func, build_call_model(call=func))
+
+    message_title, result, response = handler.get_message_object()
+
+    assert message_title == "FuncMessage"
+    assert result == {
+        "title": "FuncPayload",
+        "type": "null",
+    }
+
+    assert response == {
+        "examples": [{"a": 1}],
+        "properties": {
+            "a": {"title": "A", "type": "integer"},
+        },
+        "required": ["a"],
+        "title": "Message",
+        "type": "object",
+    }
+
+
+def test_pydantic_example():
+    Message = create_model(
+        "Message",
+        __config__=ConfigDict(**{SCHEMA_FIELD: {"example": {"a": 1}}}),
+        a=(int, ...),
+    )
+
+    def func(a: Message):
+        ...
+
+    handler = BaseHandler(func, build_call_model(call=func))
+
+    message_title, result, response = handler.get_message_object()
+
+    assert message_title == "FuncMessage"
+    assert result == {
+        "example": {"a": 1},
+        "properties": {
+            "a": {"title": "A", "type": "integer"},
+        },
+        "required": ["a"],
+        "title": "Message",
+        "type": "object",
+    }
+
+    assert response is None

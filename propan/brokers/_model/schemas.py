@@ -53,13 +53,7 @@ class BaseHandler:
                 return_field.annotation != Any  # NOTE: 3.7-3.10 compatibility
                 and issubclass(return_field.annotation, BaseModel)
             ):
-                response_model = return_field.annotation
-
-                schema_extra = response_model.Config.schema_extra
-                if not isinstance(schema_extra, dict) or not schema_extra.get(
-                    "example"
-                ):
-                    response_model = add_example_to_model(response_model)
+                response_model = add_example_to_model(return_field.annotation)
 
                 return_info = jsonref.replace_refs(
                     response_model.schema(), jsonschema=True, proxies=False
@@ -88,7 +82,6 @@ class BaseHandler:
         params = dependant.flat_params
         params_number = len(params)
 
-        gen_examples: bool
         use_original_model = False
         if params_number == 0:
             model = None
@@ -97,18 +90,10 @@ class BaseHandler:
             name, param = list(params.items())[0]
             info = getattr(param, "field_info", param)
 
-            if (
-                param.annotation != Any  # NOTE: 3.7-3.10 compatibility
-                and issubclass(param.annotation, BaseModel)
+            if param.annotation != Any and issubclass(  # NOTE: 3.7-3.10 compatibility
+                param.annotation, BaseModel
             ):
                 model = param.annotation
-
-                schema_extra = model.Config.schema_extra
-                if isinstance(schema_extra, dict):
-                    gen_examples = schema_extra.get("example") is None
-                else:
-                    gen_examples = True
-
                 use_original_model = True
 
             else:
@@ -116,7 +101,7 @@ class BaseHandler:
                     info.title or payload_title,
                     **{name: (param.annotation, info)},
                 )
-                gen_examples = True
+
         else:
             model = create_model(  # type: ignore
                 payload_title,
@@ -125,14 +110,12 @@ class BaseHandler:
                     for i, j in params.items()
                 },
             )
-            gen_examples = True
 
         body: AnyDict
         if model is None:
             body = {"title": payload_title, "type": "null"}
         else:
-            if gen_examples is True:
-                model = add_example_to_model(model)
+            model = add_example_to_model(model)
             body = jsonref.replace_refs(model.schema(), jsonschema=True, proxies=False)
 
         body.pop("definitions", None)

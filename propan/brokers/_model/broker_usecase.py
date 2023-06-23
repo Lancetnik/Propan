@@ -304,7 +304,6 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
                 msg = await self._decode_message(message)
 
             message.decoded_body = msg
-
             if _raw is True:
                 return await func(message)
 

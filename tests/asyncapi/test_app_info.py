@@ -43,17 +43,25 @@ def test_app_detail_info():
             ),
         )
     )
+
     assert schema["info"] == {
+        "contact": {
+            "email": "my-domain@gmail.com",
+            "name": "Developer",
+            "url": "http://my-domain.com/",
+        },
+        "description": "description",
+        "license": {"name": "MIT", "url": "http://mit.com/"},
+        "title": "My App",
+        "version": "1.0.0",
+    } or schema["info"] == {
         "contact": {
             "email": "my-domain@gmail.com",
             "name": "Developer",
             "url": "http://my-domain.com",
         },
         "description": "description",
-        "license": {
-            "name": "MIT",
-            "url": "http://mit.com",
-        },
+        "license": {"name": "MIT", "url": "http://mit.com"},
         "title": "My App",
         "version": "1.0.0",
     }

@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from fast_depends._compat import PYDANTIC_V2
+
 from propan.__about__ import __version__
 from propan.cli.startproject.utils import touch_dir, write_file
 
@@ -56,6 +58,7 @@ def create_requirements(project_dir: Path, version: str) -> None:
         project_dir / "requirements.txt",
         f"{version}=={__version__}",
         "python-dotenv",
+        "pydantic-settings>=2.0a1" if PYDANTIC_V2 else "",
     )
 
 
@@ -81,7 +84,10 @@ def create_config_dir(config: Path, *broker_settings: str) -> Path:
         "from pathlib import Path",
         "from typing import Optional",
         "",
-        "from pydantic import BaseSettings, BaseModel, Field",
+        "from pydantic import BaseModel, Field",
+        "from pydantic_settings import BaseSettings"
+        if PYDANTIC_V2
+        else "from pydantic import BaseSettings",
         "",
         "",
         "CONFIG_DIR = Path(__file__).resolve().parent",
