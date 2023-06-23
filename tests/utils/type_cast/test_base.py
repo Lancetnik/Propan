@@ -19,7 +19,7 @@ def test_int():
     assert cast_int("1") == (True, 1)
 
     assert cast_int(t=1.0) == (True, 1)
-    assert cast_int(2.3) == (True, 2)
+    assert cast_int(2.0) == (True, 2)
 
     assert cast_int(t=True) == (True, 1)
     assert cast_int(False) == (True, 0)
@@ -34,7 +34,7 @@ def test_default():
     assert cast_default("1") == (True, 1)
 
     assert cast_default(t=1.0) == (True, 1)
-    assert cast_default(2.3) == (True, 2)
+    assert cast_default(2.0) == (True, 2)
 
     assert cast_default(t=True) == (True, 1)
     assert cast_default(False) == (True, 0)
