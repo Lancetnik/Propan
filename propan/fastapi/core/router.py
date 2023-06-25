@@ -47,6 +47,7 @@ Broker = TypeVar("Broker", bound=BrokerUsecase[Any, Any])
 class PropanRouter(APIRouter, Generic[Broker]):
     broker_class: Type[Broker]
     broker: Broker
+    docs_router: Optional[APIRouter]
     _after_startup_hooks: List[
         Callable[[AppType], Awaitable[Optional[Mapping[str, Any]]]]
     ]
@@ -107,9 +108,19 @@ class PropanRouter(APIRouter, Generic[Broker]):
         )
 
         if self.include_in_schema is True:  # pragma: no branch
-            self.get(schema_url)(serve_asyncapi_schema)
-            self.get(f"{schema_url}.json")(download_app_json_schema)
-            self.get(f"{schema_url}.yaml")(download_app_yaml_schema)
+            docs_router = APIRouter(
+                prefix=prefix,
+                tags=["asyncapi"],
+                redirect_slashes=redirect_slashes,
+                default=default,
+                deprecated=deprecated,
+            )
+            docs_router.get(schema_url)(serve_asyncapi_schema)
+            docs_router.get(f"{schema_url}.json")(download_app_json_schema)
+            docs_router.get(f"{schema_url}.yaml")(download_app_yaml_schema)
+            self.docs_router = docs_router
+        else:
+            self.docs_router = None
 
         self._after_startup_hooks = []
 
@@ -166,6 +177,8 @@ class PropanRouter(APIRouter, Generic[Broker]):
             app: FastAPI,
         ) -> AsyncIterator[Mapping[str, Any]]:
             app.broker = self.broker  # type: ignore
+            if self.docs_router:
+                app.include_router(self.docs_router)
 
             async with lifespan_context(app) as maybe_context:
                 if maybe_context is None:

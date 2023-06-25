@@ -65,10 +65,13 @@ def test_get_schema_yaml(router: KafkaRouter):
 
 
 def test_get_schema_json():
+    async def dep3(k: str):
+        ...
+
     async def dep2(m: str):
         ...
 
-    router = KafkaRouter()
+    router = KafkaRouter(dependencies=(Depends(dep3),))
     router.broker = TestKafkaBroker(router.broker)
 
     async def dep(a: str, c: float):
@@ -88,7 +91,7 @@ def test_get_schema_json():
 
     assert set(
         response.json()["components"]["schemas"]["HandlerPayload"]["properties"].keys()
-    ) == {"a", "b", "c", "m"}
+    ) == {"a", "b", "c", "m", "k"}
 
 
 def test_get_schema_html(router: KafkaRouter):
