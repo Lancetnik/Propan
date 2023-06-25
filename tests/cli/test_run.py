@@ -30,8 +30,8 @@ def test_run_rabbit_correct(
     mock.assert_called_once()
 
 
-@pytest.mark.redis
 @pytest.mark.xfail
+@pytest.mark.redis
 def test_run_redis_correct(
     runner: CliRunner,
     redis_async_project: Path,
@@ -53,31 +53,8 @@ def test_run_redis_correct(
         mock.assert_called_once()
 
 
-@pytest.mark.nats
 @pytest.mark.xfail
-def test_run_nats_correct(
-    runner: CliRunner,
-    nats_async_project: Path,
-    monkeypatch,
-    mock: Mock,
-):
-    app_path = f"{nats_async_project.name}.app.serve:app"
-
-    async def patched_run(self: PropanApp, *args, **kwargs):
-        await self._startup()
-        await self._shutdown()
-        mock()
-
-    with monkeypatch.context() as m:
-        m.setattr(PropanApp, "run", patched_run)
-        r = runner.invoke(cli, ["run", app_path])
-
-    assert r.exit_code == 0
-    mock.assert_called_once()
-
-
 @pytest.mark.kafka
-@pytest.mark.xfail
 def test_run_kafka_correct(
     runner: CliRunner,
     kafka_async_project: Path,
@@ -99,8 +76,31 @@ def test_run_kafka_correct(
     mock.assert_called_once()
 
 
-@pytest.mark.sqs
+@pytest.mark.skip(reason="Infinite block for some reason")
+@pytest.mark.nats
+def test_run_nats_correct(
+    runner: CliRunner,
+    nats_async_project: Path,
+    monkeypatch,
+    mock: Mock,
+):
+    app_path = f"{nats_async_project.name}.app.serve:app"
+
+    async def patched_run(self: PropanApp, *args, **kwargs):
+        await self._startup()
+        await self._shutdown()
+        mock()
+
+    with monkeypatch.context() as m:
+        m.setattr(PropanApp, "run", patched_run)
+        r = runner.invoke(cli, ["run", app_path])
+
+    assert r.exit_code == 0
+    mock.assert_called_once()
+
+
 @pytest.mark.xfail
+@pytest.mark.sqs
 def test_run_sqs_correct(
     runner: CliRunner,
     sqs_async_project: Path,

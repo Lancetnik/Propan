@@ -1,10 +1,9 @@
 from pathlib import Path
 
-from propan.cli.startproject.async_app.core import create_app_file
+from propan.cli.startproject.async_app.core import create_app_file, create_handlers_file
 from propan.cli.startproject.core import (
     create_apps_dir,
     create_config_dir,
-    create_core_dir,
     create_env,
     create_project_dir,
 )
@@ -15,7 +14,6 @@ def create_redis(dir: Path) -> Path:
     project_dir = _create_project_dir(dir)
     app_dir = _create_app_dir(project_dir / "app")
     _create_config_dir(app_dir / "config")
-    _create_core_dir(app_dir / "core")
     _create_apps_dir(app_dir / "apps")
     return project_dir
 
@@ -64,24 +62,12 @@ def _create_config_dir(config: Path) -> Path:
     return config_dir
 
 
-def _create_core_dir(core: Path) -> Path:
-    core_dir = create_core_dir(core, "RedisBroker")
-    return core_dir
-
-
 def _create_apps_dir(apps: Path) -> Path:
     apps_dir = create_apps_dir(apps)
 
-    write_file(
+    create_handlers_file(
         apps_dir / "handlers.py",
-        "from propan.annotations import Logger",
-        "",
-        "from core import broker",
-        "",
-        "",
-        "@broker.handle('test')",
-        "async def base_handler(body: dict, logger: Logger):",
-        "    logger.info(body)",
+        "RedisRouter",
     )
 
     return apps_dir
