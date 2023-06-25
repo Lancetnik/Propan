@@ -1,10 +1,10 @@
-import json
 from io import StringIO
 from pathlib import Path
 from typing import Any, Dict, cast
 
 import typer
 
+from propan._compat import model_to_jsonable
 from propan.asyncapi import (
     AsyncAPIChannel,
     AsyncAPIComponents,
@@ -54,11 +54,10 @@ def json_schema_to_yaml(schema: AnyDict) -> str:
 def schema_to_json(schema: AsyncAPISchema) -> AnyDict:
     return cast(
         AnyDict,
-        json.loads(
-            schema.json(
-                by_alias=True,
-                exclude_none=True,
-            )
+        model_to_jsonable(
+            schema,
+            by_alias=True,
+            exclude_none=True,
         ),
     )
 

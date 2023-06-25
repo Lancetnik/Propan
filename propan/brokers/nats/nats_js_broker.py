@@ -6,6 +6,7 @@ from typing import Any, Awaitable, Callable, Optional, TypeVar
 import nats
 from nats.js.client import JetStreamContext
 
+from propan._compat import model_to_dict
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.nats.nats_broker import NatsBroker
 from propan.brokers.nats.schemas import JetStream
@@ -29,7 +30,7 @@ class NatsJSBroker(NatsBroker):
         nc = await nats.connect(*args, **kwargs)
 
         stream = await nc.jetstream(
-            **self._js.dict(include={"prefix", "domain", "timeout"})
+            **model_to_dict(self._js, include={"prefix", "domain", "timeout"})
         )
 
         return stream

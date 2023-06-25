@@ -2,9 +2,8 @@ import asyncio
 import inspect
 from functools import wraps
 from itertools import dropwhile
-from typing import Any, Callable, Coroutine, List, Optional, Sequence, Union
+from typing import Any, Callable, Coroutine, Optional, Sequence, Union
 
-from fastapi import __version__ as FASTAPI_VERSION
 from fastapi import params
 from fastapi.dependencies.models import Dependant
 from fastapi.dependencies.utils import (
@@ -15,27 +14,12 @@ from fastapi.dependencies.utils import (
 from fastapi.routing import run_endpoint_function
 from starlette.requests import Request
 from starlette.routing import BaseRoute
-from typing_extensions import Never
 
+from propan._compat import raise_fastapi_validation_error
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage as NativeMessage
 from propan.brokers._model.schemas import Queue
 from propan.types import AnyDict
-
-if FASTAPI_VERSION.startswith("0.10"):
-    from fastapi._compat import _normalize_errors
-    from fastapi.exceptions import ResponseValidationError
-
-    def raise_error(errors: List[Any], body: AnyDict) -> Never:
-        raise ResponseValidationError(_normalize_errors(errors), body=body)
-
-else:
-    from pydantic import ValidationError, create_model
-
-    ROUTER_VALIDATION_ERROR_MODEL = create_model("PropanRoute")
-
-    def raise_error(errors: List[Any], body: AnyDict) -> Never:
-        raise ValidationError(errors, ROUTER_VALIDATION_ERROR_MODEL)
 
 
 class PropanRoute(BaseRoute):
@@ -148,7 +132,7 @@ def get_app(
 
         values, errors, _, _2, _3 = solved_result
         if errors:
-            raise_error(errors, request._body)
+            raise_fastapi_validation_error(errors, request._body)
 
         return await run_endpoint_function(
             dependant=dependant,

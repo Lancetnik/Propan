@@ -1,7 +1,7 @@
 from fast_depends.core import build_call_model
 from pydantic import BaseModel, create_model
 
-from propan.asyncapi.utils import SCHEMA_FIELD, ConfigDict
+from propan._compat import SCHEMA_FIELD, ConfigDict
 from propan.brokers._model.schemas import BaseHandler
 
 

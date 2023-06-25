@@ -191,6 +191,7 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
                 return await self._decode_message(await self._parse_message(msg))
 
     async def close(self) -> None:
+        await super().close()
         for h in self.handlers:
             if h.subscription is not None:
                 await h.subscription.unsubscribe()

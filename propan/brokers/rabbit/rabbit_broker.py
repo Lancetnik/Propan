@@ -24,6 +24,7 @@ from fast_depends.dependencies import Depends
 from typing_extensions import TypeAlias
 from yarl import URL
 
+from propan._compat import model_to_dict
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
@@ -79,6 +80,7 @@ class RabbitBroker(BrokerUsecase):
         self._exchanges = {}
 
     async def close(self) -> None:
+        await super().close()
         if self._channel is not None:
             await self._channel.close()
             self._channel = None
@@ -246,7 +248,7 @@ class RabbitBroker(BrokerUsecase):
     async def declare_queue(self, queue: RabbitQueue) -> aio_pika.RobustQueue:
         q = self._queues.get(queue)
         if q is None:
-            q = await self._channel.declare_queue(**queue.dict())
+            q = await self._channel.declare_queue(**model_to_dict(queue))
             self._queues[queue] = q
         return q
 
@@ -256,14 +258,14 @@ class RabbitBroker(BrokerUsecase):
         exch = self._exchanges.get(exchange)
 
         if exch is None:
-            exch = await self._channel.declare_exchange(**exchange.dict())
+            exch = await self._channel.declare_exchange(**model_to_dict(exchange))
             self._exchanges[exchange] = exch
 
             current = exchange
             current_exch = exch
             while current.bind_to is not None:
                 parent_exch = await self._channel.declare_exchange(
-                    **current.bind_to.dict()
+                    **model_to_dict(current.bind_to)
                 )
                 await current_exch.bind(
                     exchange=parent_exch,
@@ -402,7 +404,7 @@ class RabbitBroker(BrokerUsecase):
 
         q = self._queues.get(queue)
         if q is None:  # pragma: no cover
-            q = await self._channel.declare_queue(**queue.dict())
+            q = await self._channel.declare_queue(**model_to_dict(queue))
             self._queues[queue] = q
         return q
 
@@ -422,14 +424,14 @@ class RabbitBroker(BrokerUsecase):
         exch = self._exchanges.get(exchange)
 
         if exch is None:  # pragma: no cover
-            exch = await self._channel.declare_exchange(**exchange.dict())
+            exch = await self._channel.declare_exchange(**model_to_dict(exchange))
             self._exchanges[exchange] = exch
 
             current = exchange
             current_exch = exch
             while current.bind_to is not None:
                 parent_exch = await self._channel.declare_exchange(
-                    **current.bind_to.dict()
+                    **model_to_dict(current.bind_to)
                 )
                 await current_exch.bind(
                     exchange=parent_exch,

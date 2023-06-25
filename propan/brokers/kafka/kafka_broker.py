@@ -111,6 +111,8 @@ class KafkaBroker(
         return partial(AIOKafkaConsumer, **consumer_kwargs)
 
     async def close(self) -> None:
+        await super().close()
+
         for f in self.response_callbacks.values():
             f.cancel()
         self.response_callbacks = {}
