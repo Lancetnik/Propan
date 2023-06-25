@@ -102,3 +102,15 @@ def test_get_schema_html(router: KafkaRouter):
         response = client.get("/schema")
 
     assert response.status_code == 200
+
+
+def test_not_generate_schema(router: KafkaRouter):
+    router = KafkaRouter(include_in_schema=False)
+    router.broker = TestKafkaBroker(router.broker)
+    app = FastAPI(lifespan=router.lifespan_context)
+    app.include_router(router)
+
+    with TestClient(app) as client:
+        response = client.get("/schema")
+
+    assert response.status_code == 404
