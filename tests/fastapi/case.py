@@ -6,7 +6,6 @@ import pytest
 from fastapi import APIRouter, Depends, FastAPI, Header
 from fastapi.testclient import TestClient
 
-
 Broker = TypeVar("Broker")
 
 

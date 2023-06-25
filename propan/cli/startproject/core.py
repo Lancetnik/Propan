@@ -119,28 +119,10 @@ def create_config_dir(config: Path, *broker_settings: str) -> Path:
 
     write_file(
         config_dir / "__init__.py",
-        "from .settings import Settings, init_settings",
+        "from config.settings import Settings, init_settings",
     )
 
     return config_dir
-
-
-def create_core_dir(core: Path, broker_class: str) -> Path:
-    core_dir = touch_dir(core)
-
-    write_file(
-        core_dir / "__init__.py",
-        "from .dependencies import broker",
-    )
-
-    write_file(
-        core_dir / "dependencies.py",
-        f"from propan import {broker_class}",
-        "",
-        f"broker = {broker_class}()",
-    )
-
-    return core_dir
 
 
 def create_apps_dir(apps: Path) -> Path:
@@ -148,7 +130,7 @@ def create_apps_dir(apps: Path) -> Path:
 
     write_file(
         apps_dir / "__init__.py",
-        "from .handlers import *",
+        "from apps.handlers import router",
     )
 
     return apps_dir
