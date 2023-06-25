@@ -47,7 +47,8 @@ class BaseHandler:
 
         if getattr(dependant, "response_model", None) is not None:
             response_model: Type[BaseModel] = dependant.response_model
-            return_field = list(response_model.__fields__.values())[0]
+            # TODO: migrate to model_fields with stable PydanticV2
+            return_field = list(response_model.__fields__.values())[0]  # type: ignore[attr-defined]
 
             if (
                 return_field.annotation != Any  # NOTE: 3.7-3.10 compatibility

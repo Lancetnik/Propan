@@ -165,6 +165,8 @@ class KafkaBroker(
         description: str = "",
         **original_kwargs: AnyDict,
     ) -> Wrapper:
+        super().handle()
+
         def wrapper(func: AnyCallable) -> DecoratedCallable:
             for t in topics:
                 self.__max_topic_len = max((self.__max_topic_len, len(t)))

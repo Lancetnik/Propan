@@ -3,13 +3,18 @@ from dataclasses import dataclass
 import pytest
 import pytest_asyncio
 
-from propan import NatsBroker
+from propan import NatsBroker, NatsRouter
 from propan.test import TestNatsBroker
 
 
 @dataclass
 class Settings:
     url = "nats://localhost:4222"
+
+
+@pytest.fixture()
+def router():
+    return NatsRouter()
 
 
 @pytest.fixture(scope="session")

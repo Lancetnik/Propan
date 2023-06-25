@@ -38,7 +38,7 @@ from propan.cli.docs.gen import (
 )
 from propan.cli.docs.serving import get_asyncapi_html
 from propan.fastapi.core.route import PropanRoute
-from propan.types import AnyDict
+from propan.types import AnyDict, HandlerCallable
 from propan.utils.functions import to_async
 
 Broker = TypeVar("Broker", bound=BrokerUsecase[Any, Any])
@@ -101,7 +101,7 @@ class PropanRouter(APIRouter, Generic[Broker]):
             deprecated=deprecated,
             include_in_schema=include_in_schema,
             generate_unique_id_function=generate_unique_id_function,
-            lifespan=self._wrap_lifespan(lifespan),
+            lifespan=self.wrap_lifespan(lifespan),
             on_startup=on_startup,
             on_shutdown=on_shutdown,
         )
@@ -117,37 +117,45 @@ class PropanRouter(APIRouter, Generic[Broker]):
         self,
         path: Union[Queue, str],
         *extra: Union[Queue, str],
-        endpoint: Callable[..., Any],
+        endpoint: DecoratedCallable,
+        dependencies: Sequence[params.Depends],
         **broker_kwargs: AnyDict,
-    ) -> None:
+    ) -> HandlerCallable:
         route = PropanRoute(
             path,
             *extra,
             endpoint=endpoint,
+            dependencies=dependencies,
             dependency_overrides_provider=self.dependency_overrides_provider,
             broker=self.broker,
             **broker_kwargs,
         )
         self.routes.append(route)
+        return route.handler
 
     def event(
         self,
         path: Union[str, Queue],
         *extra: Union[Queue, str],
+        dependencies: Optional[Sequence[params.Depends]] = None,
         **broker_kwargs: Dict[str, Any],
-    ) -> Callable[[DecoratedCallable], DecoratedCallable]:
-        def decorator(func: DecoratedCallable) -> DecoratedCallable:
-            self.add_api_mq_route(
+    ) -> Callable[[DecoratedCallable], HandlerCallable]:
+        current_dependencies = self.dependencies.copy()
+        if dependencies:
+            current_dependencies.extend(dependencies)
+
+        def decorator(func: DecoratedCallable) -> HandlerCallable:
+            return self.add_api_mq_route(
                 path,
                 *extra,
                 endpoint=func,
+                dependencies=current_dependencies,
                 **broker_kwargs,
             )
-            return func
 
         return decorator
 
-    def _wrap_lifespan(self, lifespan: Optional[Lifespan[Any]] = None) -> Lifespan[Any]:
+    def wrap_lifespan(self, lifespan: Optional[Lifespan[Any]] = None) -> Lifespan[Any]:
         if lifespan is not None:
             lifespan_context = lifespan
         else:
@@ -166,7 +174,6 @@ class PropanRouter(APIRouter, Generic[Broker]):
                     context = dict(maybe_context)
 
                 context.update({"broker": self.broker})
-
                 await self.broker.start()
 
                 for h in self._after_startup_hooks:

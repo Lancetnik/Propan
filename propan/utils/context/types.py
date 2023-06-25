@@ -40,7 +40,5 @@ def resolve_context(argument: str) -> Any:
     v = context.context[keys[0]]
     for i in keys[1:]:
         v = getattr(v, i)
-        if v is None:
-            return v
 
     return v

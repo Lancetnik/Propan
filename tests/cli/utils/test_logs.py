@@ -22,8 +22,7 @@ from propan.cli.utils.logs import LogLevels, get_log_level, set_log_level
     ),
 )
 def test_set_level(level, app: PropanApp):
-    if isinstance(level, str):
-        level = get_log_level(level)
+    level = get_log_level(level)
 
     set_log_level(level, app)
     assert app.logger.level is app.broker.logger.level is level

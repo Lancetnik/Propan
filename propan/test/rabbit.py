@@ -55,6 +55,7 @@ def build_message(
     msg = RabbitBroker._validate_message(message, None, **message_kwargs)
 
     routing = routing_key or (que.name if que else "")
+
     return PatchedMessage(
         aiormq.abc.DeliveredMessage(
             delivery=spec.Basic.Deliver(
@@ -65,6 +66,7 @@ def build_message(
                 properties=spec.Basic.Properties(
                     content_type=msg.content_type,
                     message_id=str(uuid4()),
+                    headers=msg.headers,
                 )
             ),
             body=msg.body,

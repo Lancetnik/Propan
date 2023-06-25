@@ -7,6 +7,7 @@ from aiobotocore.config import AioConfig
 from botocore import UNSIGNED
 
 from propan import SQSBroker
+from propan.brokers.sqs import SQSRouter
 from propan.test import TestSQSBroker
 
 
@@ -19,6 +20,11 @@ class Settings:
 @pytest.fixture(scope="session")
 def settings():
     return Settings()
+
+
+@pytest.fixture()
+def router():
+    return SQSRouter()
 
 
 @pytest_asyncio.fixture

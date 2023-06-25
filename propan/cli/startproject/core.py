@@ -87,7 +87,7 @@ def create_config_dir(config: Path, *broker_settings: str) -> Path:
         "from pydantic import BaseModel, Field",
         "from pydantic_settings import BaseSettings"
         if PYDANTIC_V2
-        else "from pydantic import BaseSettings",
+        else "from pydantic import BaseSettings",  # TODO: remove it from with stable PydanticV2
         "",
         "",
         "CONFIG_DIR = Path(__file__).resolve().parent",

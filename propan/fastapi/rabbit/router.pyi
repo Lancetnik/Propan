@@ -19,7 +19,7 @@ from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.brokers.rabbit import RabbitExchange, RabbitQueue
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable, DecoratedCallable
+from propan.types import AnyCallable, DecoratedCallable, HandlerCallable
 
 class RabbitRouter(PropanRouter[RabbitBroker]):
     def __init__(
@@ -76,7 +76,8 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         decode_message: CustomDecoder[IncomingMessage] = None,
         parse_message: CustomParser[IncomingMessage] = None,
         description: str = "",
-    ) -> None:
+        dependencies: Optional[Sequence[params.Depends]] = None,
+    ) -> HandlerCallable:
         pass
     def event(  # type: ignore[override]
         self,
@@ -87,5 +88,6 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         decode_message: CustomDecoder[IncomingMessage] = None,
         parse_message: CustomParser[IncomingMessage] = None,
         description: str = "",
-    ) -> Callable[[DecoratedCallable], DecoratedCallable]:
+        dependencies: Optional[Sequence[params.Depends]] = None,
+    ) -> Callable[[DecoratedCallable], HandlerCallable]:
         pass

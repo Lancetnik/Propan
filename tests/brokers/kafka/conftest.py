@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 
-from propan import KafkaBroker
+from propan import KafkaBroker, KafkaRouter
 from propan.test.kafka import TestKafkaBroker
 
 
@@ -16,6 +16,11 @@ class Settings:
 @pytest.fixture(scope="session")
 def settings():
     return Settings()
+
+
+@pytest.fixture()
+def router():
+    return KafkaRouter()
 
 
 @pytest_asyncio.fixture

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 import pytest_asyncio
 
-from propan import RedisBroker
+from propan import RedisBroker, RedisRouter
 from propan.test import TestRedisBroker
 
 
@@ -13,6 +13,11 @@ class Settings:
 
     host = "localhost"
     port = 6379
+
+
+@pytest.fixture()
+def router():
+    return RedisRouter()
 
 
 @pytest.fixture(scope="session")

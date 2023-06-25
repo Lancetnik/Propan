@@ -160,6 +160,8 @@ class SQSBroker(BrokerUsecase):
         description: str = "",
         **original_kwargs: AnyDict,
     ) -> HandlerWrapper:
+        super().handle()
+
         if isinstance(queue, str):
             queue = SQSQueue(queue)
 

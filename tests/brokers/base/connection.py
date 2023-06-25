@@ -14,6 +14,12 @@ class BrokerConnectionTestcase:
     async def ping(self, broker) -> bool:
         return True
 
+    def test_warning(self):
+        broker = self.broker()
+        broker._connection = "Smth"
+        with pytest.warns(RuntimeWarning):
+            broker.handle("test")
+
     @pytest.mark.asyncio
     async def test_init_connect_by_url(self, settings):
         args, kwargs = self.get_broker_args(settings)
