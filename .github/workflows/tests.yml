@@ -18,7 +18,7 @@ jobs:
 
     services:
       rabbitmq:
-        image: rabbitmq
+        image: rabbitmq:alpine
         ports:
           - 5672:5672
       
@@ -49,7 +49,7 @@ jobs:
           - 4222:4222
 
       redis:
-        image: redis
+        image: redis:alpine
         ports:
           - 6379:6379
 
