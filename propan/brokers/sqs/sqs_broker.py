@@ -20,6 +20,7 @@ from aiobotocore.session import get_session
 from fast_depends.dependencies import Depends
 from typing_extensions import TypeAlias
 
+from propan._compat import model_to_dict
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.exceptions import SkipMessage
@@ -86,6 +87,7 @@ class SQSBroker(BrokerUsecase):
         return client
 
     async def close(self) -> None:
+        await super().close()
         for f in self.response_callbacks.values():
             f.cancel()
         self.response_callbacks = {}
@@ -294,7 +296,8 @@ class SQSBroker(BrokerUsecase):
                     QueueName=queue.name,
                     Attributes={
                         i: str(j)
-                        for i, j in queue.dict(
+                        for i, j in model_to_dict(
+                            queue,
                             exclude={"name"},
                             by_alias=True,
                             exclude_defaults=True,

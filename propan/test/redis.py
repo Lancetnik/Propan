@@ -10,6 +10,7 @@ if sys.version_info < (3, 8):
 else:
     from unittest.mock import AsyncMock
 
+from propan._compat import model_to_json
 from propan.brokers.redis.redis_broker import RedisBroker
 from propan.brokers.redis.schemas import RedisMessage
 from propan.test.utils import call_handler
@@ -35,16 +36,16 @@ def build_message(
         "type": "message",
         "pattern": None,
         "channel": channel.encode(),
-        "data": RedisMessage(
-            data=msg,
-            headers={
-                "content-type": content_type or "",
-                **(headers or {}),
-            },
-            reply_to=reply_to,
-        )
-        .json()
-        .encode(),
+        "data": model_to_json(
+            RedisMessage(
+                data=msg,
+                headers={
+                    "content-type": content_type or "",
+                    **(headers or {}),
+                },
+                reply_to=reply_to,
+            )
+        ).encode(),
     }
 
 

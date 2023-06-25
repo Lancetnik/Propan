@@ -30,17 +30,17 @@ async def test_declare_exchange(
     async_mock,
     mock,
     monkeypatch: pytest.MonkeyPatch,
-    exchange: RabbitExchange,
+    queue: str,
 ):
     with monkeypatch.context():
         monkeypatch.setattr(broker, "_channel", mock)
         monkeypatch.setattr(broker.channel, "declare_exchange", async_mock)
 
-        q1 = await broker.declare_exchange(exchange)
-        q2 = await broker.declare_exchange(exchange.copy())
+        q1 = await broker.declare_exchange(RabbitExchange(queue))
+        q2 = await broker.declare_exchange(RabbitExchange(queue))
 
         with pytest.warns(DeprecationWarning):
-            q3 = await broker._init_exchange(exchange.copy())
+            q3 = await broker._init_exchange(RabbitExchange(queue))
 
     assert q1 is q2 is q3
     async_mock.assert_awaited_once()

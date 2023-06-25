@@ -7,6 +7,7 @@ from fast_depends.core import CallModel
 from pydantic import BaseModel, Field, PositiveInt
 from typing_extensions import Literal
 
+from propan._compat import model_to_dict
 from propan.asyncapi.bindings import (
     AsyncAPIChannelBinding,
     AsyncAPIOperationBinding,
@@ -252,7 +253,7 @@ class Handler(BaseHandler):
                 ),
                 bindings=AsyncAPIChannelBinding(
                     sqs=sqs.AsyncAPISQSChannelBinding(
-                        queue=self.queue.dict(include={"name", "fifo"}),
+                        queue=model_to_dict(self.queue, include={"name", "fifo"}),
                     )
                 ),
             ),

@@ -7,6 +7,7 @@ from fast_depends.core import CallModel
 from pydantic import BaseModel, Field, Json, create_model
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
+from propan._compat import get_model_fileds, model_schema
 from propan.asyncapi.channels import AsyncAPIChannel
 from propan.asyncapi.utils import add_example_to_model
 from propan.types import AnyDict, DecodedMessage, DecoratedCallable
@@ -47,8 +48,7 @@ class BaseHandler:
 
         if getattr(dependant, "response_model", None) is not None:
             response_model: Type[BaseModel] = dependant.response_model
-            # TODO: migrate to model_fields with stable PydanticV2
-            return_field = list(response_model.__fields__.values())[0]  # type: ignore[attr-defined]
+            return_field = list(get_model_fileds(response_model).values())[0]
 
             if (
                 return_field.annotation != Any  # NOTE: 3.7-3.10 compatibility
@@ -57,7 +57,7 @@ class BaseHandler:
                 response_model = add_example_to_model(return_field.annotation)
 
                 return_info = jsonref.replace_refs(
-                    response_model.schema(), jsonschema=True, proxies=False
+                    model_schema(response_model), jsonschema=True, proxies=False
                 )
                 return_info["examples"] = [return_info.pop("example", None)]
 
@@ -66,7 +66,7 @@ class BaseHandler:
                 response_field_name = "response"
 
                 raw = jsonref.replace_refs(
-                    response_model.schema(),
+                    model_schema(response_model),
                     jsonschema=True,
                     proxies=False,
                 )
@@ -117,7 +117,9 @@ class BaseHandler:
             body = {"title": payload_title, "type": "null"}
         else:
             model = add_example_to_model(model)
-            body = jsonref.replace_refs(model.schema(), jsonschema=True, proxies=False)
+            body = jsonref.replace_refs(
+                model_schema(model), jsonschema=True, proxies=False
+            )
 
         body.pop("definitions", None)
         if return_info is not None:

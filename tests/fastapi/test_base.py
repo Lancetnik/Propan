@@ -2,21 +2,13 @@ from contextlib import asynccontextmanager
 from unittest.mock import Mock
 
 import pytest
-
-# TODO: remove it from with stable FastAPI 0.100.*
 from fastapi import Depends, FastAPI
-from fastapi import __version__ as FASTAPI_VERSION
 from fastapi.testclient import TestClient
 
+from propan._compat import ResponseValidationError
 from propan.fastapi import KafkaRouter
 from propan.test import TestKafkaBroker
 from propan.test.kafka import build_message
-
-if FASTAPI_VERSION.startswith("0.10"):
-    from fastapi.exceptions import ResponseValidationError
-else:
-    from pydantic import ValidationError as ResponseValidationError
-
 from tests.tools.marks import needs_py38
 
 

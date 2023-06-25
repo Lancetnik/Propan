@@ -94,9 +94,13 @@ async def publish(
                 return r
 
 
+async def delete_message(self: SQSBroker) -> None:
+    pass
+
+
 def TestSQSBroker(broker: SQSBroker) -> SQSBroker:
     broker.connect = AsyncMock()  # type: ignore
     broker.start = AsyncMock()  # type: ignore
-    broker.delete_message = AsyncMock()  # type: ignore
+    broker.delete_message = MethodType(delete_message, broker)  # type: ignore
     broker.publish = MethodType(publish, broker)  # type: ignore
     return broker

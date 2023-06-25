@@ -74,6 +74,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
     log_level: int
     handlers: Sequence[BaseHandler]
     dependencies: Sequence[Depends]
+    started: bool
     _global_parser: CustomParser[MsgType]
     _global_decoder: CustomDecoder[MsgType]
     _connection: Optional[ConnectionType]
@@ -116,6 +117,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         self.protocol = protocol
         self.protocol_version = protocol_version
         self.url = url_
+        self.started = False
 
     async def connect(self, *args: Any, **kwargs: Any) -> ConnectionType:
         if self._connection is None:
@@ -149,7 +151,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
 
     @abstractmethod
     async def close(self) -> None:
-        raise NotImplementedError()
+        self.started = False
 
     @abstractmethod
     async def _parse_message(self, message: MsgType) -> PropanMessage[MsgType]:
@@ -187,7 +189,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         ] = build_call_model,
         **broker_kwargs: Any,
     ) -> HandlerWrapper:
-        if self._connection is not None:
+        if self.started:
             warnings.warn(
                 "You are trying to register `handler` with already running broker\n"  # noqa: E501
                 "It has no effect until broker restarting.",  # noqa: E501
@@ -215,6 +217,8 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         return self._fmt or ""
 
     async def start(self) -> None:
+        self.started = True
+
         if self.logger is not None:
             change_logger_handlers(self.logger, self.fmt)
 

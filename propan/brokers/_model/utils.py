@@ -1,12 +1,11 @@
-import json
 import logging
 from enum import Enum
 from functools import wraps
 from typing import Awaitable, Callable, Optional, Tuple, TypeVar, Union
 
-from pydantic.json import pydantic_encoder
 from typing_extensions import TypeAlias
 
+from propan._compat import dump_json
 from propan.brokers.push_back_watcher import (
     BaseWatcher,
     FakePushBackWatcher,
@@ -37,7 +36,7 @@ def to_send(msg: SendableMessage) -> Tuple[bytes, Optional[ContentType]]:
         return msg.encode(), ContentTypes.text.value
 
     return (
-        json.dumps(msg, default=pydantic_encoder).encode(),
+        dump_json(msg).encode(),
         ContentTypes.json.value,
     )
 

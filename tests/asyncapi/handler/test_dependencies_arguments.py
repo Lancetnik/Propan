@@ -32,10 +32,10 @@ def test_multi_args():
     def dep2(c: int):
         ...
 
-    def dep(a: int, _=Depends(dep2)):
+    def dep(a: int, m=Depends(dep2)):
         ...
 
-    def func(b: float, _=Depends(dep)):
+    def func(b: float, d=Depends(dep)):
         ...
 
     handler = BaseHandler(func, build_call_model(call=func))

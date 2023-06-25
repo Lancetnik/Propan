@@ -19,6 +19,7 @@ from redis.asyncio.client import PubSub, Redis
 from redis.asyncio.connection import ConnectionPool, parse_url
 from typing_extensions import TypeAlias
 
+from propan._compat import model_parse, model_to_json
 from propan.brokers._model import BrokerUsecase
 from propan.brokers._model.schemas import PropanMessage, RawDecoced
 from propan.brokers.push_back_watcher import BaseWatcher
@@ -74,6 +75,7 @@ class RedisBroker(BrokerUsecase):
         return Redis(connection_pool=pool)
 
     async def close(self) -> None:
+        await super().close()
         for h in self.handlers:
             if h.task is not None:  # pragma: no branch
                 h.task.cancel()
@@ -195,14 +197,16 @@ class RedisBroker(BrokerUsecase):
 
         await self._connection.publish(
             channel,
-            RM(
-                data=msg,
-                headers={
-                    "content-type": content_type or "",
-                    **(headers or {}),
-                },
-                reply_to=callback_channel,
-            ).json(),
+            model_to_json(
+                RM(
+                    data=msg,
+                    headers={
+                        "content-type": content_type or "",
+                        **(headers or {}),
+                    },
+                    reply_to=callback_channel,
+                )
+            ),
         )
 
         if psub and response_queue and task:
@@ -226,7 +230,7 @@ class RedisBroker(BrokerUsecase):
         data = message.get("data", b"")
 
         try:
-            obj = RM.parse_raw(data)
+            obj = model_parse(RM, data)
         except Exception:
             msg = RedisMessage(
                 body=data,
