@@ -114,6 +114,8 @@ class RedisBroker(BrokerUsecase):
         description: str = "",
         **original_kwargs: AnyDict,
     ) -> HandlerWrapper:
+        super().handle()
+
         self.__max_channel_len = max(self.__max_channel_len, len(channel))
 
         def wrapper(func: AnyCallable) -> DecoratedCallable:

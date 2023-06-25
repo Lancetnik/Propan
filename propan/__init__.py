@@ -5,29 +5,29 @@ from propan.log import *  # noqa: F403
 from propan.utils import *  # noqa: F403
 
 try:
-    from propan.brokers.rabbit import RabbitBroker
+    from propan.brokers.rabbit import RabbitBroker, RabbitRouter
 except ImportError:
-    RabbitBroker = about.INSTALL_RABBIT  # type: ignore
+    RabbitBroker = RabbitRouter = about.INSTALL_RABBIT  # type: ignore
 
 try:
-    from propan.brokers.nats import NatsBroker
+    from propan.brokers.nats import NatsBroker, NatsRouter
 except ImportError:
-    NatsBroker = about.INSTALL_NATS  # type: ignore
+    NatsBroker = NatsRouter = about.INSTALL_NATS  # type: ignore
 
 try:
-    from propan.brokers.redis import RedisBroker
+    from propan.brokers.redis import RedisBroker, RedisRouter
 except ImportError:
-    RedisBroker = about.INSTALL_REDIS  # type: ignore
+    RedisBroker = RedisRouter = about.INSTALL_REDIS  # type: ignore
 
 try:
-    from propan.brokers.kafka import KafkaBroker
+    from propan.brokers.kafka import KafkaBroker, KafkaRouter
 except ImportError:
-    KafkaBroker = about.INSTALL_KAFKA  # type: ignore
+    KafkaBroker = KafkaRouter = about.INSTALL_KAFKA  # type: ignore
 
 try:
-    from propan.brokers.sqs import SQSBroker
+    from propan.brokers.sqs import SQSBroker, SQSRouter
 except ImportError:
-    SQSBroker = about.INSTALL_SQS  # type: ignore
+    SQSBroker = SQSRouter = about.INSTALL_SQS  # type: ignore
 
 assert any(
     (RabbitBroker, NatsBroker, RedisBroker, SQSBroker, KafkaBroker)
@@ -49,9 +49,19 @@ __all__ = (  # noqa: F405
     "Depends",
     # brokers
     "PropanMessage",
+    ## nats
     "NatsBroker",
+    "NatsRouter",
+    ## rabbit
     "RabbitBroker",
+    "RabbitRouter",
+    ## redis
     "RedisBroker",
+    "RedisRouter",
+    ## kafka
+    "KafkaRouter",
     "KafkaBroker",
+    ## sqs
     "SQSBroker",
+    "SQSRouter",
 )

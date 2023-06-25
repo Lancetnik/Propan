@@ -1,5 +1,6 @@
 import json
 import logging
+import warnings
 from abc import ABC, abstractmethod
 from functools import wraps
 from itertools import chain
@@ -18,11 +19,13 @@ from typing import (
     cast,
 )
 
+from fast_depends._compat import PYDANTIC_V2
 from fast_depends.core import CallModel, build_call_model
 from fast_depends.dependencies import Depends
 from fast_depends.utils import args_to_kwargs
 from typing_extensions import ParamSpec, Self, TypeAlias, TypeVar
 
+from propan.brokers._model.routing import BrokerRouter
 from propan.brokers._model.schemas import BaseHandler, PropanMessage
 from propan.brokers._model.utils import (
     ContentType,
@@ -64,10 +67,6 @@ CustomDecoder: TypeAlias = Optional[
 
 P = ParamSpec("P")
 R = TypeVar("R")
-
-
-def WRAPPED_BUILDER(path: str, call: Callable[P, R]) -> CallModel[P, R]:
-    return build_call_model(call)
 
 
 class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
@@ -174,7 +173,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         }
 
     @abstractmethod
-    def handle(
+    def handle(  # type: ignore[return]
         self,
         *broker_args: Any,
         retry: Union[bool, int] = False,
@@ -184,12 +183,17 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         description: str = "",
         _raw: bool = False,
         _get_dependant: Callable[
-            ...,
-            CallModel,
-        ] = WRAPPED_BUILDER,
+            [Union[Callable[..., T], Callable[..., Awaitable[T]]]], CallModel
+        ] = build_call_model,
         **broker_kwargs: Any,
     ) -> HandlerWrapper:
-        raise NotImplementedError()
+        if self._connection is not None:
+            warnings.warn(
+                "You are trying to register `handler` with already running broker\n"  # noqa: E501
+                "It has no effect until broker restarting.",  # noqa: E501
+                category=RuntimeWarning,
+                stacklevel=1,
+            )
 
     @staticmethod
     async def _decode_message(message: PropanMessage[MsgType]) -> DecodedMessage:
@@ -231,27 +235,35 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         decode_message: CustomDecoder[MsgType] = None,
         parse_message: CustomParser[MsgType] = None,
         _raw: bool = False,
-        _get_dependant: Callable[..., CallModel] = WRAPPED_BUILDER,
+        _get_dependant: Callable[
+            [Union[Callable[..., T], Callable[..., Awaitable[T]]]], CallModel
+        ] = build_call_model,
         **broker_log_context_kwargs: Any,
     ) -> Tuple[Callable[[MsgType, bool], Awaitable[Optional[T]]], CallModel]:
-        dependant = _get_dependant(path="", call=func)
+        dependant = _get_dependant(func)
         extra = [
-            _get_dependant(path="", call=d.dependency)
+            _get_dependant(d.dependency)
             for d in chain(extra_dependencies, self.dependencies)
         ]
 
         extend_dependencies(extra)(dependant)
 
         if getattr(dependant, "flat_params", None) is None:  # handle FastAPI Dependant
-            params = dependant.path_params + dependant.body_params
+            params = dependant.query_params + dependant.body_params
 
             for d in dependant.dependencies:
-                params.extend(d.path_params + d.body_params)
+                params.extend(d.query_params + d.body_params)
 
-            params_unique = []
+            params_unique = {}
+            params_names = set()
             for p in params:
-                if p not in params_unique:
-                    params_unique.append(p)
+                if p.name not in params_names:
+                    params_names.add(p.name)
+                    if PYDANTIC_V2:
+                        params_unique[p.name] = p.field_info
+                    else:
+                        # TODO: remove it from with stable PydanticV2
+                        params_unique[p.name] = p
 
             dependant.flat_params = params_unique
 
@@ -286,6 +298,10 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         f = set_message_context(f)
 
         return suppress_decor(f), dependant
+
+    def include_router(self, router: BrokerRouter) -> None:
+        for r in router.handlers:
+            self.handle(*r.args, **r.kwargs)(r.call)
 
     def _wrap_decode_message(
         self,

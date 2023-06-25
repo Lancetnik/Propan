@@ -10,6 +10,7 @@ if PYDANTIC_V2:
 
     SCHEMA_FIELD = "json_schema_extra"
 else:
+    # TODO: remove it from with stable PydanticV2
     from pydantic.config import BaseConfig
     from pydantic.config import ConfigDict as CD
     from pydantic.config import get_config
@@ -61,6 +62,7 @@ def add_example_to_model(model: Type[BaseModel]) -> Type[BaseModel]:
             else:
                 config[SCHEMA_FIELD] = schema_extra
         else:
+            # TODO: remove it from with stable PydanticV2
             schema_extra = model.Config.schema_extra.copy()
             schema_extra["example"] = schema_extra.get(
                 "example",

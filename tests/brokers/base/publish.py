@@ -59,3 +59,24 @@ class BrokerPublishTestcase:
             expected_message = message
 
         mock.assert_called_with(expected_message)
+
+    @pytest.mark.asyncio
+    async def test_unwrap(self, mock: Mock, queue: str, full_broker: BrokerUsecase):
+        consume = Event()
+        mock.side_effect = lambda *_: consume.set()
+
+        @full_broker.handle(queue)
+        async def m(a: int, b: int, logger: Logger):
+            mock({"a": a, "b": b})
+
+        async with full_broker:
+            await full_broker.start()
+            await full_broker.publish({"a": 1, "b": 1.0}, queue)
+            await wait_for(consume.wait(), 3)
+
+        mock.assert_called_with(
+            {
+                "a": 1,
+                "b": 1,
+            }
+        )

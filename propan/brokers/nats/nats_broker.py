@@ -81,6 +81,8 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
         description: str = "",
         **original_kwargs: AnyDict,
     ) -> Callable[[DecoratedCallable], None]:
+        super().handle()
+
         self.__max_subject_len = max((self.__max_subject_len, len(subject)))
         self.__max_queue_len = max((self.__max_queue_len, len(queue)))
 

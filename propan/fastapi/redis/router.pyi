@@ -15,7 +15,7 @@ from propan import RedisBroker
 from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable, AnyDict, DecoratedCallable
+from propan.types import AnyCallable, AnyDict, DecoratedCallable, HandlerCallable
 
 class RedisRouter(PropanRouter[RedisBroker]):
     def __init__(
@@ -80,7 +80,8 @@ class RedisRouter(PropanRouter[RedisBroker]):
         decode_message: CustomDecoder[AnyDict] = None,
         parse_message: CustomParser[AnyDict] = None,
         description: str = "",
-    ) -> None:
+        dependencies: Optional[Sequence[params.Depends]] = None,
+    ) -> HandlerCallable:
         pass
     def event(  # type: ignore[override]
         self,
@@ -90,5 +91,6 @@ class RedisRouter(PropanRouter[RedisBroker]):
         decode_message: CustomDecoder[AnyDict] = None,
         parse_message: CustomParser[AnyDict] = None,
         description: str = "",
-    ) -> Callable[[DecoratedCallable], DecoratedCallable]:
+        dependencies: Optional[Sequence[params.Depends]] = None,
+    ) -> Callable[[DecoratedCallable], HandlerCallable]:
         pass

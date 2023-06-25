@@ -101,9 +101,10 @@ test = [
     "coverage[toml]>=7.2",
     "pytest>=7",
     "pytest-asyncio>=0.21",
-    "pydantic-settings>=2.0a1",
 
     "fastapi==0.100.0b1",
+    "httpx",
+    "pydantic-settings>=2.0a1",
     "python-dotenv",
 
     "asyncmock; python_version < '3.8'",

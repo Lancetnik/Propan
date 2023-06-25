@@ -118,6 +118,8 @@ class RabbitBroker(BrokerUsecase):
         description: str = "",
         **original_kwargs: AnyDict,
     ) -> HandlerWrapper:
+        super().handle()
+
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
         self.__setup_log_context(queue, exchange)
@@ -389,6 +391,7 @@ class RabbitBroker(BrokerUsecase):
         self,
         queue: RabbitQueue,
     ) -> aio_pika.abc.AbstractRobustQueue:
+        # TODO: remove method
         warnings.warn(
             "The `_init_queue` method is deprecated, "  # noqa: E501
             "and will be removed in version 1.4.0. "  # noqa: E501
@@ -396,8 +399,9 @@ class RabbitBroker(BrokerUsecase):
             category=DeprecationWarning,
             stacklevel=1,
         )
+
         q = self._queues.get(queue)
-        if q is None:
+        if q is None:  # pragma: no cover
             q = await self._channel.declare_queue(**queue.dict())
             self._queues[queue] = q
         return q
@@ -406,6 +410,7 @@ class RabbitBroker(BrokerUsecase):
         self,
         exchange: RabbitExchange,
     ) -> aio_pika.abc.AbstractRobustExchange:
+        # TODO: remove method
         warnings.warn(
             "The `_init_exchange` method is deprecated, "  # noqa: E501
             "and will be removed in version 1.4.0. "  # noqa: E501
@@ -416,7 +421,7 @@ class RabbitBroker(BrokerUsecase):
 
         exch = self._exchanges.get(exchange)
 
-        if exch is None:
+        if exch is None:  # pragma: no cover
             exch = await self._channel.declare_exchange(**exchange.dict())
             self._exchanges[exchange] = exch
 

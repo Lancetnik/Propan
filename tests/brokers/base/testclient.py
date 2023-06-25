@@ -47,9 +47,7 @@ class BrokerTestclientTestcase:
         async def handler(m: message_type):
             return m
 
-        async with test_broker:
-            await test_broker.start()
-            r = await test_broker.publish(message, queue, callback=True)
+        r = await test_broker.publish(message, queue, callback=True)
 
         if expected_message is None:
             expected_message = message
@@ -67,14 +65,12 @@ class BrokerTestclientTestcase:
 
         wrong_msg = self.build_message("Hi!", queue)
 
-        async with test_broker:
-            await test_broker.start()
-            assert raw_msg == await handler(message)
+        assert raw_msg == await handler(message)
 
-            await handler(wrong_msg)
+        await handler(wrong_msg)
 
-            with pytest.raises(ValidationError):
-                await handler(wrong_msg, reraise_exc=True)
+        with pytest.raises(ValidationError):
+            await handler(wrong_msg, reraise_exc=True)
 
     @pytest.mark.asyncio
     async def test_rpc_timeout_raises(self, queue: str, test_broker: BrokerUsecase):
@@ -82,17 +78,14 @@ class BrokerTestclientTestcase:
         async def m():  # pragma: no cover
             await asyncio.sleep(1)
 
-        async with test_broker:
-            await test_broker.start()
-
-            with pytest.raises(asyncio.TimeoutError):
-                await test_broker.publish(
-                    "hello",
-                    queue,
-                    callback=True,
-                    raise_timeout=True,
-                    callback_timeout=0,
-                )
+        with pytest.raises(asyncio.TimeoutError):
+            await test_broker.publish(
+                "hello",
+                queue,
+                callback=True,
+                raise_timeout=True,
+                callback_timeout=0,
+            )
 
     @pytest.mark.asyncio
     async def test_rpc_timeout(self, queue: str, test_broker: BrokerUsecase):
@@ -100,14 +93,11 @@ class BrokerTestclientTestcase:
         async def m():  # pragma: no cover
             await asyncio.sleep(1)
 
-        async with test_broker:
-            await test_broker.start()
-
-            r = await test_broker.publish(
-                "hello",
-                queue,
-                callback=True,
-                callback_timeout=0,
-            )
+        r = await test_broker.publish(
+            "hello",
+            queue,
+            callback=True,
+            callback_timeout=0,
+        )
 
         assert r is None

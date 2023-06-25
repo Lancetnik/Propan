@@ -81,28 +81,6 @@ class BrokerRPCTestcase:
 
         mock.assert_called_with("1")
 
-    @pytest.mark.asyncio
-    async def test_unwrap(self, queue: str, full_broker: BrokerUsecase):
-        @full_broker.handle(queue)
-        async def m(a: int, b: int):  # pragma: no cover
-            assert a == 1
-            assert b == 1
-            return "1"
-
-        async with full_broker:
-            await full_broker.start()
-
-            r = await full_broker.publish(
-                {
-                    "a": 1,
-                    "b": 1,
-                },
-                queue,
-                callback_timeout=3,
-                callback=True,
-            )
-            assert r == "1"
-
 
 class ReplyAndConsumeForbidden:
     @pytest.mark.asyncio

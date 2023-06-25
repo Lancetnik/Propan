@@ -112,10 +112,10 @@ def _run(
 
     propan_app._command_line_options = extra_options
 
-    if sys.platform not in ("win32", "cygwin", "cli"):
+    if sys.platform not in ("win32", "cygwin", "cli"):  # pragma: no cover
         try:
             import uvloop
-        except Exception:
+        except ImportError:
             logger.warning("You have no installed `uvloop`")
         else:
             uvloop.install()

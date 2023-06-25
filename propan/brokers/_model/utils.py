@@ -33,6 +33,9 @@ def to_send(msg: SendableMessage) -> Tuple[bytes, Optional[ContentType]]:
     if isinstance(msg, bytes):
         return msg, None
 
+    if isinstance(msg, str):
+        return msg.encode(), ContentTypes.text.value
+
     return (
         json.dumps(msg, default=pydantic_encoder).encode(),
         ContentTypes.json.value,

@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 
-from propan.brokers.rabbit import RabbitBroker, RabbitExchange
+from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitRouter
 from propan.test import TestRabbitBroker
 
 
@@ -24,6 +24,11 @@ class Settings:
 def queue():
     name = str(uuid4())
     return name
+
+
+@pytest.fixture
+def router():
+    return RabbitRouter()
 
 
 @pytest.fixture
