@@ -47,6 +47,7 @@ def test_nested_lifespan(mock: Mock):
     mock.closed.assert_called_once()
 
 
+@needs_py38
 def test_after_startup_sync(router: KafkaRouter, mock: Mock):
     @router.after_startup
     def call_after(app):
@@ -62,6 +63,7 @@ def test_after_startup_sync(router: KafkaRouter, mock: Mock):
         assert client.app_state["after"] is True
 
 
+@needs_py38
 def test_after_startup_async(router: KafkaRouter, mock: Mock):
     @router.after_startup
     async def call_after(app):
