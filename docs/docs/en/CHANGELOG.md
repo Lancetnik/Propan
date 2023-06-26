@@ -1,5 +1,67 @@
 # CHANGELOG
 
+## 2023-06-26 **0.1.4.0** PydanticV2
+
+The main change in this update is the support for the **PydanticV2** beta version.
+
+Also, this update **still supports Pydantic v1**, so if something with **PydanticV2** breaks you can simply roll it back - the latest **Propan** continues to work without changes.
+
+Be careful: if you use **Propan** together with **FastAPI** when migrating to **PydanticV2**, you must install the version `fastapi>=0.100.0b1`, which is also compatible with both versions of **Pydantic**. However, if you are working on versions of **FastAPI** `0.9*`, the current release is compatible with them as well (but only using **PydanticV1**).
+
+!!! quote ""
+All test suites work correctly with all variations of the dependencies and on all supported Python versions.
+
+Other changes:
+
+Improved compatibility with **FastAPI**:
+
+* **PropanRouter** supports top-level dependencies
+     ```python
+     from propan.fastapi import RabbitRouter
+
+     router = RabbitRouter(dependencies=[...])
+     @router.event("test", dependencies=[...])
+     async def handler(a: str, b: int):
+          ...
+     ```
+
+* You can test `router.event` using [`build_message`](../getting_started/7_testing/#regular-function-calling) directly
+     ```python
+     import pytest, pydantic
+     from propan.fastapi import RabbitRouter
+     from propan.test.rabbit import build_message
+
+     router = RabbitRouter()
+
+     @router.event("test")
+     async def handler(a: str, b: int):
+          ...
+
+     with pytest.raises(pydantic.ValidationError):
+     handler(build_message("Hello", "test"), reraise_exc=True)
+     ```
+
+Implemented [**BrokerRouter**](../getting_started/4_broker/2_routing/#brokerrouter) for the convenience of splitting the application code into imported submodules.
+
+```python
+from propan import RabbitBroker, RabbitRouter
+
+router = RabbitRouter(prefix="user/")
+
+@router.handle("created")
+async def handle_user_created_event(user_id: str):
+     ...
+
+broker = RabbitBroker()
+broker.include_router(router)
+```
+
+Added documentation [section](../getting_started/4_broker/4_custom_serialization/) about custom message serialization (using the example with *Protobuf*).
+
+And also updated several other sections of the documentation, fixed several non-critical bugs, removed **RabbitBroker** *deprecated* methods, and increased test coverage of rare scenarios.
+
+---
+
 ## 2023-06-14 **0.1.3.0** AsyncAPI
 
 The current update adds functionality that I've been working hard on for the last month:
@@ -23,6 +85,8 @@ broker = RabbitBroker(dependencies=[Depends(...)])
 async def handler():
     ...
 ```
+
+---
 
 ## 2023-06-13 **0.1.2.17**
 
@@ -59,6 +123,8 @@ async def init_whatever(app: FastAPI): ...
 
 In addition, the behavior of the `__init__` and `connect` methods for all brokers have been improved (now the `connect` parameters have priority and override the `__init__` parameters when connecting to the broker), a correct exception has been implemented when accessing an object unavailable for import, several errors have been fixed and other minor internal changes.
 
+---
+
 ## 2023-05-28 **0.1.2.3** SQS Beta
 
 **Propan** added support for *SQS* as a message broker. This functionality is full tested.
@@ -77,6 +143,8 @@ Also, current release include the following fixes:
 * *Nats* connection recovery
 * *Redis* connection methods supports not-url parameters
 
+---
+
 ## 2023-05-26 **0.1.2.2** NATS Stable
 
 `NatsBroker` is full tested now.
@@ -86,6 +154,8 @@ Also, to **Nats** supporting added:
 * `TestNatsBroker` and test messages to local testing
 * **RPC** supporting
 * `NatsRouter` for **FastAPI**
+
+---
 
 ## 2023-05-23 **0.1.2.0** Kafka
 
@@ -98,6 +168,8 @@ Also, to **Nats** supporting added:
 * *FastAPI* Plugin
 
 *KafkaBroker* not supports **RPC** yet.
+
+---
 
 ## 2023-05-18 **0.1.1.0** REDIS
 
@@ -116,6 +188,8 @@ Also, **Propan CLI** is able to generate templates to any supported broker
 propan create async [broker] [APPNAME]
 ```
 
+---
+
 ## 2023-05-15 **0.1.0.0** STABLE
 
 Stable and fully documented **Propan** release!
@@ -124,6 +198,8 @@ From the current release, no more breaking changes - use the framework safely!
 
 At the current release, all *RabbitMQ* use cases are supported, tested, and described in the documentation.
 Expect support for *Redis* (testing now), *Kafka* (in development), and full support for *Nats* (also in development) soon.
+
+---
 
 ## 2023-05-01 **0.0.9.4**
 
@@ -171,6 +247,8 @@ Also added support for [RPC over MQ](../getting_started/4_broker/5_rpc) (RabbitM
 
 * Brokers `publish_message` method has been renamed to `publish`
 * removed `declare` argument in `RabbitQueue` and `RabbitExchange` - now you need to use `passive`
+
+---
 
 ## 2023-04-18 **0.0.9**
 

@@ -1,5 +1,6 @@
 # Imports to use at __all__
 from propan import __about__ as about
+from propan.brokers import PropanMessage
 from propan.cli.app import *  # noqa: F403
 from propan.log import *  # noqa: F403
 from propan.utils import *  # noqa: F403

@@ -1,5 +1,66 @@
 # CHANGELOG
 
+## 2023-06-26 **0.1.4.0** PydanticV2
+
+Основное изменение в этом обновлении - поддержка бета-версии **PydanticV2**.
+
+Также, это обновление работает и с **PydanticV1**, поэтому, если ваше приложение перестает функционировать при миграции на новую версию **Pydantic**, вы можете просто откатить его обратно - **Propan** продолжит работать без изменений.
+
+Будьте внимательны: если вы используете **Propan** вместе с **FastAPI** при миграции на **PydanticV2** вы должны установить версию `fastapi>=0.100.0b1`, которая также совместима с обоими версиями **Pydantic**. Однако, если вы работаете на версиях **FastAPI** `0.9*`, текущий релиз совместим и с ними (но только с использованием **PydanticV1**).
+
+!!! quote ""
+    Все тестовые сценарии корректно отрабатывают со всеми вариациями вышеописанных зависимостей и на всех поддерживаемых версиях Python.
+
+Другие изменения:
+
+Улучшена совместимость с **FastAPI**:
+
+* **PropanRouter** поддерживает зависимости верхнего уровня
+    ```python
+    from propan.fastapi import RabbitRouter
+
+    router = RabbitRouter(dependencies=[...])
+    @router.event("test", dependencies=[...])
+    async def handler(a: str, b: int):
+        ...
+    ```
+* Вы можете тестировать `router.event` с помощью [`build_message`](../getting_started/7_testing/#_4) напрямую
+    ```python
+    import pytest, pydantic
+    from propan.fastapi import RabbitRouter
+    from propan.test.rabbit import build_message
+
+    router = RabbitRouter()
+
+    @router.event("test")
+    async def handler(a: str, b: int):
+        ...
+
+    with pytest.raises(pydantic.ValidationError):
+        handler(build_message("Hello", "test"), reraise_exc=True)
+    ```
+
+Реализован [**BrokerRouter**](../getting_started/4_broker/2_routing/#brokerrouter) для удобства разделения кода приложения на импортируемые подмодули.
+
+```python
+from propan import RabbitBroker, RabbitRouter
+
+router = RabbitRouter(prefix="user/")
+
+@router.handle("created")
+async def handle_user_created_event(user_id: str):
+    ...
+
+broker = RabbitBroker()
+broker.include_router(router)
+```
+
+Добавлен [раздел](../getting_started/4_broker/4_custom_serialization/) документации про кастомные сценарии сериализации сообщений (на примере *Protobuf*).
+
+А также обновлены несколько других разделов документации, исправлен ряд некритических багов, удалены **RabbitBroker** *deprecated* методы, увеличено тестовое покрытие редких сценариев.
+
+---
+
 ## 2023-06-14 **0.1.3.0** AsyncAPI
 
 Текущее обновление добавляет функционал, над которым я усердно работал последний месяц:
@@ -23,6 +84,8 @@ broker = RabbitBroker(dependencies=[Depends(...)])
 async def handler():
     ...
 ```
+
+---
 
 ## 2023-06-13 **0.1.2.17**
 
@@ -59,6 +122,8 @@ async def init_whatever(app: FastAPI): ...
 
 Кроме этого, улучшено поведение методов `__init__` и `connect` у всех брокеров (теперь параметры `connect` имеют приоритет и переопределяют параметры `__init__` при подключении к брокеру), реализовано корректное исключение при обращении к недоступному для импортирования объекту, исправлено несколько ошибок и произведены другие мелкие внутренние изменения.
 
+---
+
 ## 2023-05-28 **0.1.2.3** SQS Beta
 
 В **Propan** добавлена поддержка *SQS* в качестве брокера сообщений. Данный функционал полностью протестирован.
@@ -77,6 +142,8 @@ async def init_whatever(app: FastAPI): ...
 * автоматическое восстановления соединения с *Nats*
 * *Redis* поддерживает подключение по явным аргументам
 
+---
+
 ## 2023-05-26 **0.1.2.2** NATS Stable
 
 `NatsBroker` полностью протестирован.
@@ -86,6 +153,8 @@ async def init_whatever(app: FastAPI): ...
 * Тестовый клиент и тестовые сообщения
 * Поддержка **RPC**
 * `NatsRouter` для использования с **FastAPI**
+
+---
 
 ## 2023-05-23 **0.1.2.0** Kafka
 
@@ -98,6 +167,8 @@ async def init_whatever(app: FastAPI): ...
 * В качестве плагина *FastAPI*
 
 *KafkaBroker* на данный момент не поддерживает **RPC** запросы.
+
+---
 
 ## 2023-05-18 **0.1.1.0** REDIS
 
@@ -116,6 +187,8 @@ async def init_whatever(app: FastAPI): ...
 propan create async [broker] [APPNAME]
 ```
 
+---
+
 ## 2023-05-15 **0.1.0.0** STABLE
 
 Стабильный и полностью задокументированный релиз **Propan**!
@@ -124,6 +197,8 @@ propan create async [broker] [APPNAME]
 
 На данный момент поддерживаются, протестированы и описаны в документации все варианты взаимодействия с *RabbitMQ*.
 В скором времени ожидайте поддержку *Redis* (находится в тестировании сейчас), *Kafka* (находится в разработке) и полную поддержку *Nats* (также в разработке).
+
+---
 
 ## 2023-05-01 **0.0.9.4**
 
@@ -172,6 +247,8 @@ def test_publish():
 * метод брокеров `publish_message` был переименован в `publish`
 * удален аргумент `declare` в `RabbitQueue` и `RabbitExchange` - теперь необходимо использовать `passive`
 
+---
+
 ## 2023-04-18 **0.0.9**
 
 Релиз приурочен к выходу в свет другой библиотеки: [fast-depends](https://lancetnik.github.io/FastDepends/).
@@ -217,6 +294,7 @@ def func(logger: Logger): ...
 Привет! Поздравляю всех и, особенно, себя с первым стабильным релизом *Propan*!
 
 </h3>Особенности сборки</h3>
+
 </h4>Стабильныe</h4>
 
 * async RabbitMQ broker

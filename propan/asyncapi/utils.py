@@ -1,8 +1,6 @@
-from typing import Optional, Type
+from typing import Optional
 
 from pydantic import BaseModel, Field
-
-from propan._compat import update_model_example
 
 
 class AsyncAPIExternalDocs(BaseModel):
@@ -17,7 +15,3 @@ class AsyncAPITag(BaseModel):
         default=None,
         alias="externalDocs",
     )
-
-
-def add_example_to_model(model: Type[BaseModel]) -> Type[BaseModel]:
-    return update_model_example(model)
