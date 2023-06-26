@@ -76,6 +76,7 @@ markdown_extensions:  # do not reorder
       guess_lang: false
   - mdx_include:
       base_path: .
+  - footnotes
   - tables
   - admonition
   - codehilite
@@ -122,8 +123,9 @@ nav:
       - Basics: getting_started/4_broker/1_index.md
       - Routing and Errors: getting_started/4_broker/2_routing.md
       - Incoming Messages: getting_started/4_broker/3_type-casting.md
-      - Publish Messages: getting_started/4_broker/4_publishing.md
-      - RPC over MQ: getting_started/4_broker/5_rpc.md
+      - Custom Serialization: getting_started/4_broker/4_custom_serialization.md
+      - Publish Messages: getting_started/4_broker/5_publishing.md
+      - RPC over MQ: getting_started/4_broker/6_rpc.md
     - Dependency Injection:
       - Depends: getting_started/5_dependency/1_di-index.md
       - Context: getting_started/5_dependency/2_context.md

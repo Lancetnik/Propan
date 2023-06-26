@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -21,14 +22,18 @@ def router():
 
 @needs_py38
 def test_nested_lifespan(mock: Mock):
+    start_mock: Any
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        assert not start_mock.called
         mock.started()
         yield {"lifespan": True}
         mock.closed()
 
     router = KafkaRouter(lifespan=lifespan)
     router.broker = TestKafkaBroker(router.broker)
+    start_mock = router.broker.start
 
     app = FastAPI(lifespan=router.lifespan_context)
     app.include_router(router)
@@ -40,6 +45,36 @@ def test_nested_lifespan(mock: Mock):
         assert client.app_state["broker"] is router.broker
 
     mock.closed.assert_called_once()
+
+
+def test_after_startup_sync(router: KafkaRouter, mock: Mock):
+    @router.after_startup
+    def call_after(app):
+        router.broker.start.assert_called_once()
+        mock()
+        return {"after": True}
+
+    app = FastAPI(lifespan=router.lifespan_context)
+    app.include_router(router)
+
+    with TestClient(app) as client:
+        mock.assert_called_once()
+        assert client.app_state["after"] is True
+
+
+def test_after_startup_async(router: KafkaRouter, mock: Mock):
+    @router.after_startup
+    async def call_after(app):
+        router.broker.start.assert_called_once()
+        mock()
+        return {"after": True}
+
+    app = FastAPI(lifespan=router.lifespan_context)
+    app.include_router(router)
+
+    with TestClient(app) as client:
+        mock.assert_called_once()
+        assert client.app_state["after"] is True
 
 
 @pytest.mark.asyncio

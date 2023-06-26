@@ -7,9 +7,8 @@ from fast_depends.core import CallModel
 from pydantic import BaseModel, Field, Json, create_model
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
-from propan._compat import get_model_fileds, model_schema
+from propan._compat import get_model_fileds, model_schema, update_model_example
 from propan.asyncapi.channels import AsyncAPIChannel
-from propan.asyncapi.utils import add_example_to_model
 from propan.types import AnyDict, DecodedMessage, DecoratedCallable
 
 
@@ -54,7 +53,7 @@ class BaseHandler:
                 return_field.annotation != Any  # NOTE: 3.7-3.10 compatibility
                 and issubclass(return_field.annotation, BaseModel)
             ):
-                response_model = add_example_to_model(return_field.annotation)
+                response_model = update_model_example(return_field.annotation)
 
                 return_info = jsonref.replace_refs(
                     model_schema(response_model), jsonschema=True, proxies=False
@@ -62,7 +61,7 @@ class BaseHandler:
                 return_info["examples"] = [return_info.pop("example", None)]
 
             else:
-                response_model = add_example_to_model(response_model)
+                response_model = update_model_example(response_model)
                 response_field_name = "response"
 
                 raw = jsonref.replace_refs(
@@ -116,7 +115,7 @@ class BaseHandler:
         if model is None:
             body = {"title": payload_title, "type": "null"}
         else:
-            model = add_example_to_model(model)
+            model = update_model_example(model)
             body = jsonref.replace_refs(
                 model_schema(model), jsonschema=True, proxies=False
             )

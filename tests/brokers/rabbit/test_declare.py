@@ -16,10 +16,7 @@ async def test_declare_queue(
         q1 = await broker.declare_queue(RabbitQueue(queue))
         q2 = await broker.declare_queue(RabbitQueue(queue))
 
-        with pytest.warns(DeprecationWarning):
-            q3 = await broker._init_queue(RabbitQueue(queue))
-
-    assert q1 is q2 is q3
+    assert q1 is q2
     async_mock.assert_awaited_once()
 
 
@@ -39,8 +36,5 @@ async def test_declare_exchange(
         q1 = await broker.declare_exchange(RabbitExchange(queue))
         q2 = await broker.declare_exchange(RabbitExchange(queue))
 
-        with pytest.warns(DeprecationWarning):
-            q3 = await broker._init_exchange(RabbitExchange(queue))
-
-    assert q1 is q2 is q3
+    assert q1 is q2
     async_mock.assert_awaited_once()

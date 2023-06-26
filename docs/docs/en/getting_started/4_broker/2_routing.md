@@ -18,9 +18,24 @@ To learn more about the behavior of specialized brokers, go to the following sec
 * [NatsBroker](../../../nats/1_nats-index/#routing-rules)
 * [RedisBroker](../../../redis/1_redis-index/#routing-rules)
 
+## BrokerRouter
+
+Sometimes it can be convenient to divide handlers into groups that can be connected to your application with just one command.
+To do this, **Propan** provides **BrokerRouter**: you can register your handlers within the router, and then connect this router to your broker.
+
+This will help to better organize your application's code and also allow you to divide it into plug-ins.
+
+{! includes/getting_started/broker/routers.md !}
+
+In this case, the router prefix will be added to the name of the queue of your handlers.
+
+```python hl_lines="3"
+{!> docs_src/quickstart/broker/routers/publish.py !}
+```
+
 ## Error handling
 
-However, all brokers have the `retry` flag in the `@broker.hanle` method, which is responsible for error handling logic.
+However, all brokers supporting acknowledgement have the `retry` flag in the `@broker.hanle` method, which is responsible for error handling logic.
 
 By default, this flag has the value `False`, which indicates that if an error occurred during message processing, it will still be retrieved from the queue.
 
