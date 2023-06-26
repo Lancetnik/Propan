@@ -82,9 +82,9 @@ If you are interested in this project, please give me feedback by:
 
 - giving the [repository](https://github.com/Lancetnik/Propan) a star
 
-- tweet about **Propan** and let me and others know why you use it.
+- tweet about <a href="https://twitter.com/PropanFramework" target="_blank">**Propan**</a> and let me and others know why you use it.
 
-- joining [Discord server](https://discord.gg/ChhMXJpvz7).
+- joining <a href="https://discord.gg/ChhMXJpvz7" target="_blank">Discord server</a>.
 
 Your support helps me to stay in touch with you and encourages us to
 continue developing and improving the library. Thank you for your
