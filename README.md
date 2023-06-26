@@ -74,11 +74,21 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
 
-### Community
+---
 
-If you are interested in this project, please give me feedback by star or/and watch repository.
+### ⭐ Support the project ⭐
 
-If you have any questions or ideas about features to implement, welcome to [discussions](https://github.com/Lancetnik/Propan/discussions).
+If you are interested in this project, please give me feedback by:
+
+- giving the [repository](https://github.com/Lancetnik/Propan) a star
+
+- tweet about **Propan** and let me and others know why you use it.
+
+- joining [Discord server](https://discord.gg/ChhMXJpvz7).
+
+Your support helps me to stay in touch with you and encourages us to
+continue developing and improving the library. Thank you for your
+support!
 
 ---
 
