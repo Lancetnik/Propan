@@ -1,9 +1,10 @@
-import importlib.util
 from typing import Optional
 
 from pydantic import BaseModel, Field, HttpUrl
 
-if importlib.util.find_spec("email_validator"):
+from propan._compat import is_installed
+
+if is_installed("email_validator"):
     from pydantic import EmailStr
 else:  # pragma: no cover
     EmailStr = str  # type: ignore

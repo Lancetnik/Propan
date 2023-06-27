@@ -1,6 +1,7 @@
 import logging
 from asyncio import AbstractEventLoop, Future
 from ssl import SSLContext
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -10,6 +11,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    Type,
     Union,
 )
 
@@ -152,7 +154,12 @@ class KafkaBroker(
         transaction_timeout_ms: int = 60000,
     ) -> AIOKafkaConsumer: ...
     async def _connect(self, *args: Any, **kwargs: Any) -> AIOKafkaConsumer: ...
-    async def close(self) -> None: ...
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None: ...
     def handle(  # type: ignore[override]
         self,
         *topics: str,

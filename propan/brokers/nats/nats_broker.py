@@ -2,6 +2,7 @@ import asyncio
 import logging
 from functools import wraps
 from secrets import token_hex
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -10,10 +11,12 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Type,
     TypeVar,
     Union,
 )
 
+import anyio
 import nats
 from fast_depends.dependencies import Depends
 from nats.aio.client import Callback, Client, ErrorCallback
@@ -173,25 +176,31 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
         )
 
         if reply_to:
-            try:
-                msg = await asyncio.wait_for(future, callback_timeout)
+            if raise_timeout:
+                scope = anyio.fail_after
+            else:
+                scope = anyio.move_on_after
+
+            msg: Any = None
+            with scope(callback_timeout):
+                msg = await future
+
+            if msg:
                 if msg.headers:  # pragma: no branch
                     if (
                         msg.headers.get(nats.js.api.Header.STATUS)
                         == nats.aio.client.NO_RESPONDERS_STATUS
                     ):
                         raise nats.errors.NoRespondersError
-            except asyncio.TimeoutError as e:
-                await sub.unsubscribe()
-                future.cancel()
-                if raise_timeout is True:
-                    raise e
-                return None
-            else:
                 return await self._decode_message(await self._parse_message(msg))
 
-    async def close(self) -> None:
-        await super().close()
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
+        await super().close(exc_type, exc_val, exec_tb)
         for h in self.handlers:
             if h.subscription is not None:
                 await h.subscription.unsubscribe()

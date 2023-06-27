@@ -47,7 +47,7 @@ Function arguments declare which dependencies you want are needed, and a special
 Already declared context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
 If you call a non-existent field, raises *pydantic.error_wrappers.ValidationError* value.
 
-But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
+But you can specify your own dependencies, call dependencies functions (like `FastAPI Depends`)
 and [more](../5_dependency/1_di-index).
 
 ```python linenums="1" hl_lines="11-12"

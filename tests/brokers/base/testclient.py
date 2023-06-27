@@ -1,7 +1,7 @@
-import asyncio
 from datetime import datetime
 from typing import Dict, List
 
+import anyio
 import pytest
 from pydantic import BaseModel, ValidationError
 
@@ -76,9 +76,9 @@ class BrokerTestclientTestcase:
     async def test_rpc_timeout_raises(self, queue: str, test_broker: BrokerUsecase):
         @test_broker.handle(queue)
         async def m():  # pragma: no cover
-            await asyncio.sleep(1)
+            await anyio.sleep(1)
 
-        with pytest.raises(asyncio.TimeoutError):
+        with pytest.raises(TimeoutError):
             await test_broker.publish(
                 "hello",
                 queue,
@@ -91,7 +91,7 @@ class BrokerTestclientTestcase:
     async def test_rpc_timeout(self, queue: str, test_broker: BrokerUsecase):
         @test_broker.handle(queue)
         async def m():  # pragma: no cover
-            await asyncio.sleep(1)
+            await anyio.sleep(1)
 
         r = await test_broker.publish(
             "hello",

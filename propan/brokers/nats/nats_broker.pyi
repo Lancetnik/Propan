@@ -1,5 +1,6 @@
 import logging
 import ssl
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -8,6 +9,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Type,
     TypeVar,
     Union,
 )
@@ -162,7 +164,12 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
         reconnected_cb: Optional[Callback] = None,
         **kwargs: Any,
     ) -> Client: ...
-    async def close(self) -> None: ...
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None: ...
     async def _parse_message(self, message: Msg) -> NatsMessage: ...
     def _process_message(
         self,

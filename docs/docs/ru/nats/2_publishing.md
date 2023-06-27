@@ -33,4 +33,4 @@ asyncio.run(pub())
 * `callback_timeout`: float | None = 30.0 - таймаут ожидания ответа. В случае `None` - ждет бесконечно
 * `raise_timeout`: bool = False
     * `False` - возвращать None в случае таймаута
-    * `True` - ошибка `asyncio.TimeoutError` в случае таймаута
+    * `True` - ошибка `TimeoutError` в случае таймаута

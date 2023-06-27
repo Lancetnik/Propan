@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from functools import wraps
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -10,11 +11,13 @@ from typing import (
     NoReturn,
     Optional,
     Sequence,
+    Type,
     TypeVar,
     Union,
 )
 from uuid import uuid4
 
+import anyio
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
 from fast_depends.dependencies import Depends
@@ -86,8 +89,13 @@ class SQSBroker(BrokerUsecase):
         await client.__aenter__()
         return client
 
-    async def close(self) -> None:
-        await super().close()
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
+        await super().close(exc_type, exc_val, exec_tb)
         for f in self.response_callbacks.values():
             f.cancel()
         self.response_callbacks = {}
@@ -279,14 +287,17 @@ class SQSBroker(BrokerUsecase):
         await self._connection.send_message(QueueUrl=queue_url, **params)
 
         if response_future is not None:
-            try:
-                response = await asyncio.wait_for(response_future, callback_timeout)
-            except asyncio.TimeoutError as e:
-                if raise_timeout is True:
-                    raise e
-                return None
+            if raise_timeout:
+                scope = anyio.fail_after
             else:
-                return response
+                scope = anyio.move_on_after
+
+            msg: Any = None
+            with scope(callback_timeout):
+                msg = await response_future
+
+            if msg:
+                return await self._decode_message(msg)
 
     async def create_queue(self, queue: SQSQueue) -> QueueUrl:
         url = self._queues.get(queue.name)
@@ -351,7 +362,7 @@ class SQSBroker(BrokerUsecase):
                         self._queues.pop(handler.queue.name)
                         connected = False
 
-                    await asyncio.sleep(5)
+                    await anyio.sleep(5)
 
                 else:
                     if connected is False:
@@ -368,7 +379,7 @@ class SQSBroker(BrokerUsecase):
                             has_trash_messages = False
 
                     if has_trash_messages is True:
-                        await asyncio.sleep(
+                        await anyio.sleep(
                             handler.consumer_params.get("WaitTimeSeconds", 1.0)
                         )
 
@@ -377,7 +388,7 @@ class SQSBroker(BrokerUsecase):
         if correlation_id is not None:
             callback = self.response_callbacks.pop(correlation_id, None)
             if callback is not None:
-                callback.set_result(await self._decode_message(message))
+                callback.set_result(message)
                 return
 
         raise SkipMessage()

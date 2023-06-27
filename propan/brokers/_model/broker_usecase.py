@@ -4,6 +4,7 @@ import warnings
 from abc import ABC, abstractmethod
 from functools import wraps
 from itertools import chain
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -15,6 +16,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    Type,
     Union,
     cast,
 )
@@ -150,7 +152,12 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         raise NotImplementedError()
 
     @abstractmethod
-    async def close(self) -> None:
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
         self.started = False
 
     @abstractmethod
@@ -228,8 +235,13 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         await self.connect()
         return self
 
-    async def __aexit__(self, *args: Any, **kwargs: Any) -> None:
-        await self.close()
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exec_tb: Optional[TracebackType],
+    ) -> None:
+        await self.close(exc_type, exc_val, exec_tb)
 
     def _wrap_handler(
         self,

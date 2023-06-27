@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from functools import partial, wraps
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -11,10 +12,12 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    Type,
     Union,
 )
 from uuid import uuid4
 
+import anyio
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.structs import ConsumerRecord
 from fast_depends.dependencies import Depends
@@ -110,8 +113,13 @@ class KafkaBroker(
         }
         return partial(AIOKafkaConsumer, **consumer_kwargs)
 
-    async def close(self) -> None:
-        await super().close()
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
+        await super().close(exc_type, exc_val, exec_tb)
 
         for f in self.response_callbacks.values():
             f.cancel()
@@ -328,14 +336,17 @@ class KafkaBroker(
         )
 
         if response_future is not None:
-            try:
-                response = await asyncio.wait_for(response_future, callback_timeout)
-            except asyncio.TimeoutError as e:
-                if raise_timeout is True:
-                    raise e
-                return None
+            if raise_timeout:
+                scope = anyio.fail_after
             else:
-                return response
+                scope = anyio.move_on_after
+
+            msg: Any = None
+            with scope(callback_timeout):
+                msg = await response_future
+
+            if msg:
+                return await self._decode_message(msg)
 
     @property
     def fmt(self) -> str:
@@ -375,7 +386,7 @@ class KafkaBroker(
                 if connected is True:
                     self._log(e, logging.WATNING, c)
                     connected = False
-                await asyncio.sleep(5)
+                await anyio.sleep(5)
 
             else:
                 if connected is False:
@@ -389,6 +400,6 @@ class KafkaBroker(
         if correlation_id is not None:
             callback = self.response_callbacks.pop(correlation_id, None)
             if callback is not None:
-                callback.set_result(await self._decode_message(message))
+                callback.set_result(message)
 
         raise SkipMessage()

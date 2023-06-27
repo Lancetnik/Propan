@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from types import TracebackType
 from typing import (
     Any,
     Callable,
@@ -8,6 +9,7 @@ from typing import (
     NoReturn,
     Optional,
     Sequence,
+    Type,
     TypeVar,
     Union,
 )
@@ -73,7 +75,12 @@ class SQSBroker(BrokerUsecase[AnyDict, AioBaseClient]):
         config: Optional[AioConfig] = None,
     ) -> AioBaseClient:
         """"""
-    async def close(self) -> None:
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
         """"""
     async def publish(  # type: ignore[override]
         self,

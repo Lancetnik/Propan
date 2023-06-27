@@ -1,5 +1,6 @@
-import asyncio
 from typing import Any, Optional
+
+import anyio
 
 from propan.brokers._model.schemas import BaseHandler
 
@@ -11,15 +12,14 @@ async def call_handler(
     callback_timeout: Optional[float] = 30.0,
     raise_timeout: bool = False,
 ) -> Any:
-    try:
-        result = await asyncio.wait_for(
-            handler.callback(message),
-            timeout=callback_timeout,
-        )
-    except asyncio.TimeoutError as e:
-        if raise_timeout is True:  # pragma: no branch
-            raise e
-        result = None
+    if raise_timeout:
+        scope = anyio.fail_after
+    else:
+        scope = anyio.move_on_after
+
+    result: Any = None
+    with scope(callback_timeout):
+        result = await handler.callback(message)
 
     if callback is True:  # pragma: no branch
         return result

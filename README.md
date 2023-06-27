@@ -28,11 +28,11 @@
 
 # Propan
 
-**Propan** - just *~~an another one HTTP~~* a **declarative Python MQ framework**. It's following by <a href="https://fastapi.tiangolo.com/ru/" target="_blank">*fastapi*</a>, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *~~an another one HTTP~~* a **declarative Python MQ framework**. It's following by <a href="https://FastAPI.tiangolo.com/ru/" target="_blank">*FastAPI*</a>, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
-It is a modern, high-level framework on top of popular specific Python brokers libraries, based on <a href="https://docs.pydantic.dev/" target="_blank">*pydantic*</a> and <a href="https://fastapi.tiangolo.com/ru/" target="_blank">*fastapi*</a>, <a href="https://docs.pytest.org/en/latest/" target="_blank">*pytest*</a> concepts.
+It is a modern, high-level framework on top of popular specific Python brokers libraries, based on <a href="https://docs.pydantic.dev/" target="_blank">*pydantic*</a> and <a href="https://FastAPI.tiangolo.com/ru/" target="_blank">*FastAPI*</a>, <a href="https://docs.pytest.org/en/latest/" target="_blank">*pytest*</a> concepts.
 
 ---
 
@@ -222,10 +222,7 @@ async def second_handler(body: SimpleMessage):
 You can specify in functions arguments which dependencies
 you would to use. Framework passes them from the global Context object.
 
-Already existed context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
-If you call not existing field, raises *pydantic.ValidationError* value.
-
-But you can specify your own dependencies, call dependencies functions (like `Fastapi Depends`)
+Also, you can specify your own dependencies, call dependencies functions (like `FastAPI Depends`)
 and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 
 ```python
@@ -266,6 +263,7 @@ The availability of such documentation significantly simplifies the integration 
 * project generation
 * multiprocessing workers
 * project hot reloading
+* documentation generating and hosting
 * custom command line arguments passing
 
 ### Context passing
