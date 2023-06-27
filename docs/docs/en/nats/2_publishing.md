@@ -33,4 +33,4 @@ Also `publish` supports common arguments for creating [*RPC* queries](../../gett
 * `callback_timeout`: float | None = 30.0 - timeout waiting for a response. In the case of `None` - waits indefinitely
 * `raise_timeout`: bool = False
     * `False` - return None in case of timeout
-    * `True` - error `asyncio.TimeoutError` in case of timeout
+    * `True` - error `TimeoutError` in case of timeout

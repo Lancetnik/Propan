@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import sys
 from typing import Any, Dict, List, Type
@@ -10,6 +11,11 @@ from typing_extensions import Never
 from propan.types import AnyDict
 
 FASTAPI_V2 = FASTAPI_VERSION.startswith("0.10")
+
+
+def is_installed(package: str) -> bool:
+    return importlib.util.find_spec(package)
+
 
 if FASTAPI_V2:
     from fastapi._compat import _normalize_errors
@@ -71,7 +77,8 @@ else:
     from pydantic.config import get_config
     from pydantic.json import pydantic_encoder
 
-    def ConfigDict(**kwargs: Dict[str, Any]) -> Type[BaseConfig]:  # type: ignore[no-redef]
+    # type: ignore[no-redef]
+    def ConfigDict(**kwargs: Dict[str, Any]) -> Type[BaseConfig]:
         return get_config(CD(**kwargs))  # type: ignore
 
     SCHEMA_FIELD = "schema_extra"

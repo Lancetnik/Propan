@@ -1,4 +1,5 @@
 import logging
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -134,7 +135,12 @@ class RedisBroker(BrokerUsecase[AnyDict, Redis[bytes]]):
     async def _connect(self, *args: Any, **kwargs: Any) -> Redis[bytes]: ...
     async def start(self) -> None:
         """Initialize Redis connection and startup all consumers"""
-    async def close(self) -> None:
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
         """Cancel all consumers tasks and subscribtions, close Redis connection"""
     def handle(  # type: ignore[override]
         self,
@@ -179,7 +185,7 @@ class RedisBroker(BrokerUsecase[AnyDict, Redis[bytes]]):
             headers: message headers (for consumers)
             callback: wait for response
             callback_timeout: response waiting time
-            raise_timeout: if False timeout returns None instead asyncio.TimeoutError
+            raise_timeout: if False timeout returns None instead TimeoutError
 
         Returns:
             `None` if you are not waiting for response

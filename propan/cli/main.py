@@ -1,9 +1,9 @@
-import asyncio
 import logging
 import sys
 from pathlib import Path
 from typing import Dict, Optional
 
+import anyio
 import typer
 
 from propan.__about__ import __version__
@@ -120,4 +120,4 @@ def _run(
         else:
             uvloop.install()
 
-    asyncio.run(propan_app.run(log_level=app_level))
+    anyio.run(propan_app.run, app_level)

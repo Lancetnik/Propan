@@ -1,6 +1,7 @@
 import asyncio
 from unittest.mock import Mock
 
+import anyio
 import pytest
 
 from propan.brokers._model import BrokerUsecase
@@ -25,12 +26,12 @@ class BrokerRPCTestcase:
     async def test_rpc_timeout_raises(self, queue: str, full_broker: BrokerUsecase):
         @full_broker.handle(queue)
         async def m():  # pragma: no cover
-            await asyncio.sleep(1)
+            await anyio.sleep(1)
 
         async with full_broker:
             await full_broker.start()
 
-            with pytest.raises(asyncio.TimeoutError):  # pragma: no branch
+            with pytest.raises(TimeoutError):  # pragma: no branch
                 await full_broker.publish(
                     "hello",
                     queue,
@@ -43,7 +44,7 @@ class BrokerRPCTestcase:
     async def test_rpc_timeout_none(self, queue: str, full_broker: BrokerUsecase):
         @full_broker.handle(queue)
         async def m():  # pragma: no cover
-            await asyncio.sleep(1)
+            await anyio.sleep(1)
 
         async with full_broker:
             await full_broker.start()

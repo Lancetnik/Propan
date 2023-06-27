@@ -52,7 +52,7 @@ If you are ready to wait for a response as long as it takes, you can set `callba
 !!! warning
     This code will wait for a response indefinitely, even if the server is unable to process the message or processing takes a long time.
 
-By default, if **Propan** did not wait for the server response, the function will return `None`. If you want to explicitly process `asyncio.TimeoutError`, use the `raise_timeout` parameter.
+By default, if **Propan** did not wait for the server response, the function will return `None`. If you want to explicitly process `TimeoutError`, use the `raise_timeout` parameter.
 
 ```python linenums="1" hl_lines="4"
 {!> docs_src/quickstart/broker/rpc/5_blocking_client_timeout_error.py !}

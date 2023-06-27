@@ -3,6 +3,7 @@ import os
 import signal
 from unittest.mock import Mock, patch
 
+import anyio
 import pytest
 
 from propan import PropanApp
@@ -139,8 +140,9 @@ async def test_stop_with_sigint(async_mock, app: PropanApp):
 
     with patch.object(app.broker, "start", async_mock.broker_run_sigint):
         with patch.object(app.broker, "close", async_mock.broker_stopped_sigint):
-            app.loop.call_later(0.01, lambda: os.kill(os.getpid(), signal.SIGINT))
-            await app.run()
+            async with anyio.create_task_group() as tg:
+                tg.start_soon(app.run)
+                tg.start_soon(_kill, signal.SIGINT)
 
     async_mock.broker_run_sigint.assert_called_once()
     async_mock.broker_stopped_sigint.assert_called_once()
@@ -153,8 +155,13 @@ async def test_stop_with_sigterm(async_mock, app: PropanApp):
 
     with patch.object(app.broker, "start", async_mock.broker_run_sigterm):
         with patch.object(app.broker, "close", async_mock.broker_stopped_sigterm):
-            app.loop.call_later(0.01, lambda: os.kill(os.getpid(), signal.SIGTERM))
-            await app.run()
+            async with anyio.create_task_group() as tg:
+                tg.start_soon(app.run)
+                tg.start_soon(_kill, signal.SIGTERM)
 
     async_mock.broker_run_sigterm.assert_called_once()
     async_mock.broker_stopped_sigterm.assert_called_once()
+
+
+async def _kill(sig):
+    os.kill(os.getpid(), sig)

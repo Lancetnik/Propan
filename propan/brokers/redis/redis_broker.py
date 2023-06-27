@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from functools import wraps
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -10,10 +11,13 @@ from typing import (
     NoReturn,
     Optional,
     Sequence,
+    Type,
     TypeVar,
 )
 from uuid import uuid4
 
+import anyio
+from anyio.streams.memory import MemoryObjectSendStream
 from fast_depends.dependencies import Depends
 from redis.asyncio.client import PubSub, Redis
 from redis.asyncio.connection import ConnectionPool, parse_url
@@ -74,8 +78,13 @@ class RedisBroker(BrokerUsecase):
         pool = ConnectionPool(**url_options)
         return Redis(connection_pool=pool)
 
-    async def close(self) -> None:
-        await super().close()
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
+        await super().close(exc_type, exc_val, exec_tb)
         for h in self.handlers:
             if h.task is not None:  # pragma: no branch
                 h.task.cancel()
@@ -186,13 +195,16 @@ class RedisBroker(BrokerUsecase):
 
             callback_channel = str(uuid4())
             psub = self._connection.pubsub()
-            response_queue = asyncio.Queue(maxsize=1)
+            (
+                send_response_stream,
+                receive_response_stream,
+            ) = anyio.create_memory_object_stream(max_buffer_size=1)
             await psub.subscribe(callback_channel)
-            task = asyncio.create_task(_consume_one(response_queue, psub))
+            task = asyncio.create_task(_consume_one(send_response_stream, psub))
         else:
             callback_channel = reply_to
             psub = None
-            response_queue = None
+            send_response_stream = receive_response_stream = None
             task = None
 
         await self._connection.publish(
@@ -209,12 +221,11 @@ class RedisBroker(BrokerUsecase):
             ),
         )
 
-        if psub and response_queue and task:
+        if psub and receive_response_stream and task:
             try:
-                response = await asyncio.wait_for(
-                    response_queue.get(), callback_timeout
-                )
-            except asyncio.TimeoutError as e:
+                with anyio.fail_after(callback_timeout):
+                    response = await receive_response_stream.receive()
+            except TimeoutError as e:
                 if raise_timeout is True:
                     raise e
                 return None
@@ -285,7 +296,7 @@ class RedisBroker(BrokerUsecase):
                 if connected is True:
                     self._log("Connection broken", logging.WARNING, c)
                     connected = False
-                await asyncio.sleep(5)
+                await anyio.sleep(5)
             else:
                 if connected is False:
                     self._log("Connection established", logging.INFO, c)
@@ -294,12 +305,12 @@ class RedisBroker(BrokerUsecase):
                 if m:  # pragma: no branch
                     await handler.callback(m)
             finally:
-                await asyncio.sleep(0.01)
+                await anyio.sleep(0.01)
 
 
-async def _consume_one(queue: asyncio.Queue, psub: PubSub) -> NoReturn:
+async def _consume_one(queue: MemoryObjectSendStream[any], psub: PubSub) -> NoReturn:
     async for m in psub.listen():
         t = m.get("type")
         if t and "message" in t:  # pragma: no branch
-            await queue.put(m)
+            await queue.send(m)
             break

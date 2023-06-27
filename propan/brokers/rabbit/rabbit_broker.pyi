@@ -1,5 +1,6 @@
 import logging
 from ssl import SSLContext
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -193,7 +194,7 @@ class RabbitBroker(BrokerUsecase[IncomingMessage, aio_pika.RobustConnection]):
             app_id: application identifier (for consumers)
             callback: wait for response
             callback_timeout: response waiting time
-            raise_timeout: if False timeout returns None instead asyncio.TimeoutError
+            raise_timeout: if False timeout returns None instead TimeoutError
 
         Returns:
             `aiormq.abc.ConfirmationFrameType` if you are not waiting for response
@@ -239,7 +240,12 @@ class RabbitBroker(BrokerUsecase[IncomingMessage, aio_pika.RobustConnection]):
         """
     async def start(self) -> None:
         """Initialize RabbitMQ connection and startup all consumers"""
-    async def close(self) -> None:
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
         """Close RabbitMQ connection"""
     async def declare_queue(self, queue: RabbitQueue) -> aio_pika.RobustQueue:
         """Check existence or create RabbitMQ queue"""

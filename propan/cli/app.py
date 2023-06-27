@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import Dict, List, Optional
 
@@ -87,7 +86,6 @@ class PropanApp:
             tg.start_soon(self._start, log_level)
 
     def _init_async_cycle(self) -> None:
-        self.loop = asyncio.get_event_loop()
         if not self._stop_stream and not self._receive_stream:
             self._stop_stream, self._receive_stream = create_memory_object_stream(1)
 

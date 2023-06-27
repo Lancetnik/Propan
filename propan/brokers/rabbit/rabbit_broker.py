@@ -1,6 +1,6 @@
-import asyncio
 from contextlib import asynccontextmanager
 from functools import wraps
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -18,7 +18,9 @@ from uuid import uuid4
 
 import aio_pika
 import aiormq
+import anyio
 from aio_pika.abc import DeliveryMode
+from anyio.streams.memory import MemoryObjectReceiveStream
 from fast_depends.dependencies import Depends
 from typing_extensions import TypeAlias
 from yarl import URL
@@ -48,7 +50,7 @@ class RabbitBroker(BrokerUsecase):
 
     __max_queue_len: int
     __max_exchange_len: int
-    _rpc_lock: asyncio.Lock
+    _rpc_lock: anyio.Lock
 
     def __init__(
         self,
@@ -71,15 +73,20 @@ class RabbitBroker(BrokerUsecase):
         self._max_consumers = consumers
 
         self._channel = None
-        self._rpc_lock = asyncio.Lock()
+        self._rpc_lock = anyio.Lock()
 
         self.__max_queue_len = 4
         self.__max_exchange_len = 4
         self._queues = {}
         self._exchanges = {}
 
-    async def close(self) -> None:
-        await super().close()
+    async def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
+        await super().close(exc_type, exc_val, exec_tb)
         if self._channel is not None:
             await self._channel.close()
             self._channel = None
@@ -95,9 +102,7 @@ class RabbitBroker(BrokerUsecase):
         self,
         **kwargs: Any,
     ) -> aio_pika.RobustConnection:
-        connection = await aio_pika.connect_robust(
-            **kwargs, loop=asyncio.get_event_loop()
-        )
+        connection = await aio_pika.connect_robust(**kwargs)
 
         if self._channel is None:  # pragma: no branch
             max_consumers = self._max_consumers
@@ -222,12 +227,16 @@ class RabbitBroker(BrokerUsecase):
                 return r
 
             else:
-                try:
-                    msg = await asyncio.wait_for(response_queue.get(), callback_timeout)
-                except asyncio.TimeoutError as e:
-                    if raise_timeout is True:  # pragma: no branch
-                        raise e
+                if raise_timeout:
+                    scope = anyio.fail_after
                 else:
+                    scope = anyio.move_on_after
+
+                msg: Any = None
+                with scope(callback_timeout):
+                    msg = await response_queue.receive()
+
+                if msg:
                     return await self._decode_message(msg)
 
     async def _init_handler(
@@ -416,25 +425,33 @@ def _validate_queue(
 
 
 class RPCCallback:
-    def __init__(self, lock: asyncio.Lock, broker: RabbitBroker):
+    def __init__(self, lock: anyio.Lock, broker: RabbitBroker):
         self.lock = lock
         self.broker = broker
 
-    async def __aenter__(self) -> Tuple[str, asyncio.Queue]:
-        response_queue: asyncio.Queue[PropanMessage] = asyncio.Queue(1)
+    async def __aenter__(self) -> Tuple[str, MemoryObjectReceiveStream]:
+        (
+            send_response_stream,
+            receive_response_stream,
+        ) = anyio.create_memory_object_stream(max_buffer_size=1)
         await self.lock.acquire()
 
         self.queue = callback_queue = await self.broker._channel.get_queue(RABBIT_REPLY)
 
         async def handle_response(msg: RabbitMessage) -> None:
             propan_message = await self.broker._parse_message(msg)
-            await response_queue.put(propan_message)
+            await send_response_stream.send(propan_message)
 
         self.consumer_tag = await callback_queue.consume(handle_response, no_ack=True)
 
-        return callback_queue.name, response_queue
+        return callback_queue.name, receive_response_stream
 
-    async def __aexit__(self, *args, **kwargs):
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ):
         self.lock.release()
         await self.queue.cancel(self.consumer_tag)
 
