@@ -39,3 +39,13 @@
 Вы можете участвовать в обсуждениях на <a href="https://github.com/Lancetnik/Propan/discussions" class="external-link" target="_blank">GitHub</a>.
 
 Задайте свой вопрос, расскажите об опыте использования, предложите идею или помогите другим в решении их проблем - в любом случае, спасибо за ваше участие в жизни проекта.
+
+## Contributors
+
+Или вы можете присоединиться к этим потрясающим людям
+
+<a href="https://github.com/Lancetnik/Propan/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Lancetnik/Propan" />
+</a>
+
+Спасибо им за вклад в этот проект!
