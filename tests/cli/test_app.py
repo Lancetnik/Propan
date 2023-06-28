@@ -123,7 +123,7 @@ async def test_shutdown_lifespan_after_broker_stopped(mock, async_mock, app: Pro
 @needs_py38
 async def test_running(async_mock, app: PropanApp):
     app._init_async_cycle()
-    await app._stop_event.set()
+    app._stop_event.set()
 
     with patch.object(app.broker, "start", async_mock.broker_run):
         with patch.object(app.broker, "close", async_mock.broker_stopped):

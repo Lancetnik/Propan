@@ -90,6 +90,8 @@ Your support helps me to stay in touch with you and encourages us to
 continue developing and improving the library. Thank you for your
 support!
 
+Really, share information about this project with overs. The bigger community we have - the better project will be!
+
 ---
 
 ## Declarative?
@@ -375,3 +377,11 @@ app.include_router(router)
 ## Examples
 
 To see more framework usages go to [**examples/**](https://github.com/Lancetnik/Propan/tree/main/examples)
+
+## Contributors
+
+Thanks for all of these amazing peoples made the project better!
+
+<a href="https://github.com/Lancetnik/Propan/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Lancetnik/Propan"/>
+</a>
