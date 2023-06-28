@@ -9,6 +9,7 @@ from propan.cli import cli
 
 
 @pytest.mark.rabbit
+@pytest.mark.run
 def test_run_rabbit_correct(
     runner: CliRunner,
     rabbit_async_project: Path,
@@ -30,8 +31,8 @@ def test_run_rabbit_correct(
     mock.assert_called_once()
 
 
-@pytest.mark.xfail
 @pytest.mark.redis
+@pytest.mark.run
 def test_run_redis_correct(
     runner: CliRunner,
     redis_async_project: Path,
@@ -49,12 +50,12 @@ def test_run_redis_correct(
         m.setattr(PropanApp, "run", patched_run)
         r = runner.invoke(cli, ["run", app_path])
 
-        assert r.exit_code == 0
-        mock.assert_called_once()
+    assert r.exit_code == 0
+    mock.assert_called_once()
 
 
-@pytest.mark.xfail
 @pytest.mark.kafka
+@pytest.mark.run
 def test_run_kafka_correct(
     runner: CliRunner,
     kafka_async_project: Path,
@@ -76,8 +77,8 @@ def test_run_kafka_correct(
     mock.assert_called_once()
 
 
-@pytest.mark.skip(reason="Infinite block for some reason")
 @pytest.mark.nats
+@pytest.mark.run
 def test_run_nats_correct(
     runner: CliRunner,
     nats_async_project: Path,
@@ -99,8 +100,8 @@ def test_run_nats_correct(
     mock.assert_called_once()
 
 
-@pytest.mark.xfail
 @pytest.mark.sqs
+@pytest.mark.run
 def test_run_sqs_correct(
     runner: CliRunner,
     sqs_async_project: Path,
