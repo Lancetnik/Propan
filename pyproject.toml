@@ -169,8 +169,8 @@ features = [
 python = ["37", "38", "39", "310", "311"]
 
 [tool.hatch.envs.test.scripts]
-run = "pytest -q -m 'not slow'"
-run-all = "pytest -m 'all'"
+run = "pytest -q -m 'not slow and not run'"
+run-all = "pytest -m 'all and not run'"
 
 [tool.hatch.envs.test-last]
 python = "3.11"
@@ -184,8 +184,8 @@ features = [
 ]
 
 [tool.hatch.envs.test-last.scripts]
-run = "pytest -q -m 'not slow'"
-run-all = "pytest -v -m 'all'"
+run = "pytest -q -m 'not slow and not run'"
+run-all = "pytest -v -m 'all and not run'"
 cov = "bash ./scripts/test-cov.sh -v -m 'all'"
 
 [tool.mypy]
@@ -237,18 +237,19 @@ extend-immutable-calls = [
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-q -m 'not slow'"
+addopts = "-q -m 'not slow and not run'"
 testpaths = [
     "tests",
 ]
 markers = [
-    "slow",
     "rabbit",
     "nats",
     "redis",
     "kafka",
     "sqs",
+    "slow",
     "all",
+    "run",
 ]
 
 [tool.coverage.run]

@@ -1,8 +1,7 @@
 import logging
 from typing import Dict, List, Optional
 
-from anyio import create_memory_object_stream, create_task_group
-from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
+import anyio
 from typing_extensions import Protocol
 
 from propan.asyncapi.info import AsyncAPIContact, AsyncAPILicense
@@ -28,8 +27,7 @@ class PropanApp:
     _on_shutdown_calling: List[AsyncFunc]
     _after_shutdown_calling: List[AsyncFunc]
 
-    _stop_stream: Optional[MemoryObjectSendStream[bool]]
-    _receive_stream: Optional[MemoryObjectReceiveStream[bool]]
+    _stop_event: Optional[anyio.Event]
     license: Optional[AsyncAPILicense]
     contact: Optional[AsyncAPIContact]
 
@@ -62,6 +60,9 @@ class PropanApp:
         self.description = description
         self.license = license
         self.contact = contact
+        self._stop_event = None
+
+        set_exit(lambda *_: self.__exit())
 
     def set_broker(self, broker: Runnable) -> None:
         self.broker = broker
@@ -80,14 +81,14 @@ class PropanApp:
 
     async def run(self, log_level: int = logging.INFO) -> None:
         self._init_async_cycle()
-        async with create_task_group() as tg:
-            set_exit(lambda *_: tg.start_soon(self.__exit, True))
-            tg.start_soon(self._stop, log_level)
+        async with anyio.create_task_group() as tg:
             tg.start_soon(self._start, log_level)
+            await self._stop(log_level)
+            tg.cancel_scope.cancel()
 
     def _init_async_cycle(self) -> None:
-        if not self._stop_stream and not self._receive_stream:
-            self._stop_stream, self._receive_stream = create_memory_object_stream(1)
+        if self._stop_event is None:
+            self._stop_event = anyio.Event()
 
     async def _start(self, log_level: int = logging.INFO) -> None:
         self._log(log_level, "Propan app starting...")
@@ -95,8 +96,8 @@ class PropanApp:
         self._log(log_level, "Propan app started successfully! To exit press CTRL+C")
 
     async def _stop(self, log_level: int = logging.INFO) -> None:
-        assert self._receive_stream, "You should call `_init_async_cycle` first"
-        await self._receive_stream.receive()
+        assert self._stop_event, "You should call `_init_async_cycle` first"
+        await self._stop_event.wait()
         self._log(log_level, "Propan app shutting down...")
         await self._shutdown()
         self._log(log_level, "Propan app shut down gracefully.")
@@ -128,9 +129,9 @@ class PropanApp:
         for func in self._after_shutdown_calling:
             await func()
 
-    async def __exit(self, flag: bool) -> None:
-        if self._stop_stream is not None:  # pragma: no branch
-            await self._stop_stream.send(flag)
+    def __exit(self) -> None:
+        if self._stop_event is not None:  # pragma: no branch
+            self._stop_event.set()
 
 
 def _set_async_hook(hooks: List[AsyncFunc], func: AnyCallable) -> AnyCallable:
