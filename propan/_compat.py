@@ -4,34 +4,36 @@ import sys
 from typing import Any, Dict, List, Type
 
 from fast_depends._compat import PYDANTIC_V2, FieldInfo
-from fastapi import __version__ as FASTAPI_VERSION
 from pydantic import BaseModel
 from typing_extensions import Never
 
 from propan.types import AnyDict
-
-FASTAPI_V2 = FASTAPI_VERSION.startswith("0.10")
 
 
 def is_installed(package: str) -> bool:
     return importlib.util.find_spec(package)
 
 
-if FASTAPI_V2:
-    from fastapi._compat import _normalize_errors
-    from fastapi.exceptions import ResponseValidationError
+if is_installed("fastapi"):
+    from fastapi import __version__ as FASTAPI_VERSION
 
-    def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
-        raise ResponseValidationError(_normalize_errors(errors), body=body)
+    FASTAPI_V2 = FASTAPI_VERSION.startswith("0.10")
 
-else:
-    from pydantic import ValidationError as ResponseValidationError
-    from pydantic import create_model
+    if FASTAPI_V2:
+        from fastapi._compat import _normalize_errors
+        from fastapi.exceptions import ResponseValidationError
 
-    ROUTER_VALIDATION_ERROR_MODEL = create_model("PropanRoute")
+        def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
+            raise ResponseValidationError(_normalize_errors(errors), body=body)
 
-    def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
-        raise ResponseValidationError(errors, ROUTER_VALIDATION_ERROR_MODEL)
+    else:
+        from pydantic import ValidationError as ResponseValidationError
+        from pydantic import create_model
+
+        ROUTER_VALIDATION_ERROR_MODEL = create_model("PropanRoute")
+
+        def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
+            raise ResponseValidationError(errors, ROUTER_VALIDATION_ERROR_MODEL)
 
 
 if PYDANTIC_V2:
