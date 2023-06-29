@@ -4,12 +4,13 @@ import pytest
 from typer.testing import CliRunner
 
 from propan import PropanApp
-from propan.brokers.rabbit import RabbitBroker
 from propan.cli import cli
 
 
 @pytest.fixture()
 def broker():
+    # separate import from e2e tests
+    from propan.brokers.rabbit import RabbitBroker
     yield RabbitBroker()
 
 
