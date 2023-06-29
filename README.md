@@ -186,7 +186,6 @@ app = PropanApp(broker)
 
 @broker.handle("test")
 async def base_handler(body):
-    '''Handle all default exchange messages with `test` routing key'''
     print(body)
 ```
 

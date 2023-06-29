@@ -87,8 +87,38 @@ jobs:
           name: coverage
           path: coverage
 
+  test-e2e-nats:
+    runs-on: ubuntu-latest
+    services:
+      nats:
+        image: nats
+        ports:
+          - 4222:4222
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install -e .[testsuite,async-nats]
+      - run: mkdir coverage
+      - name: Test
+        run: coverage run -m pytest -m "run" -k test_run_nats_correct tests/cli/test_run.py
+        env:
+          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}
+          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}
+      - name: Store coverage files
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage
+
   coverage-combine:
-    needs: [test]
+    needs: [test,test-e2e-nats]
     runs-on: ubuntu-latest
 
     steps:
