@@ -191,7 +191,7 @@ async def base_handler(body):
 And just run it:
 
 ```shell
-propan run serve:app
+propan run serve:app --workers 3
 ```
 
 ---
@@ -202,7 +202,7 @@ Propan uses `pydantic` to cast incoming function arguments to types according to
 
 ```python
 from pydantic import BaseModel
-from propan import PropanApp, Context, RabbitBroker
+from propan import PropanApp, RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(broker)
@@ -228,18 +228,17 @@ Also, you can specify your own dependencies, call dependencies functions (like `
 and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 
 ```python
-import aio_pika
 from propan import PropanApp, RabbitBroker, Context, Depends
 
 rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 
 app = PropanApp(rabbit_broker)
 
-async def dependency(body: dict) -> bool:
+async def dependency(user_id: int) -> bool:
     return True
 
 @rabbit_broker.handle("test")
-async def base_handler(body: dict,
+async def base_handler(user_id: int,
                        dep: bool = Depends(dependency),
                        broker: RabbitBroker = Context()):
     assert dep is True
