@@ -116,14 +116,16 @@ async def base_handler(body):
 !!! note "Нужна ваша помощь"
     Фреймоворк сейчас активно развивается. У нас очень длинный список того, что еще предстоит реализовать и различные брокеры - только его часть. Если вы хотите реализовать что-то из этого списка или помочь любым другим способом - загляните [сюда](contributing/1_todo/)
 
-|                   | async                                                   | sync                 |
-|-------------------|:-------------------------------------------------------:|:--------------------:|
-| **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
-| **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
+|                   | async                                                   | sync                                        |
+|-------------------|:-------------------------------------------------------:|:-------------------------------------------:|
+| **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :hammer_and_wrench: WIP :hammer_and_wrench: |
+| **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag:                        |
+| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag:                        |
+| **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
+| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
+| **NatsJS**        | :hammer_and_wrench: **WIP** :hammer_and_wrench:         | :mag: planning :mag:                        |
+| **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **ActiveMQ**      | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **ZeroMQ**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |

@@ -113,14 +113,16 @@ This is the **Propan** declarative way to write the same code. That is so much e
 !!! note "Need your help"
     The framework is now in active development. We have a very long list of what has yet to be implemented and various brokers are only part of it. If you want to implement something from this list or help in any other way, take a look [here](contributing/1_todo/)
 
-|                   | async                                                   | sync                 |
-|-------------------|:-------------------------------------------------------:|:--------------------:|
-| **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
-| **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
+|                   | async                                                   | sync                                        |
+|-------------------|:-------------------------------------------------------:|:-------------------------------------------:|
+| **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :hammer_and_wrench: WIP :hammer_and_wrench: |
+| **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag:                        |
+| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag:                        |
+| **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
+| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
+| **NatsJS**        | :hammer_and_wrench: **WIP** :hammer_and_wrench:         | :mag: planning :mag:                        |
+| **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **ActiveMQ**      | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **ZeroMQ**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |

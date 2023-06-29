@@ -62,17 +62,19 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 ### Supported MQ brokers
 
-|                   | async                                                   | sync                 |
-|-------------------|:-------------------------------------------------------:|:--------------------:|
-| **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag: |
-| **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag: |
-| **NatsJS**        | :hammer_and_wrench: **in progress** :hammer_and_wrench: | :mag: planning :mag: |
-| **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag: |
-| **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag: |
+|                   | async                                                   | sync                                        |
+|-------------------|:-------------------------------------------------------:|:-------------------------------------------:|
+| **RabbitMQ**      | :heavy_check_mark: **stable** :heavy_check_mark:        | :hammer_and_wrench: WIP :hammer_and_wrench: |
+| **Redis**         | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag:                        |
+| **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag:                        |
+| **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
+| **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
+| **NatsJS**        | :hammer_and_wrench: **WIP** :hammer_and_wrench:         | :mag: planning :mag:                        |
+| **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **ActiveMQ**      | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **ZeroMQ**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 
 ---
 
