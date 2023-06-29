@@ -116,9 +116,140 @@ jobs:
         with:
           name: coverage
           path: coverage
+    
+  test-e2e-rabbit:
+    runs-on: ubuntu-latest
+    services:
+      rabbitmq:
+        image: rabbitmq:alpine
+        ports:
+          - 5672:5672
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install -e .[testsuite,async-rabbit]
+      - run: mkdir coverage
+      - name: Test
+        run: coverage run -m pytest -m "run" -k test_run_rabbit_correct tests/cli/test_run.py
+        env:
+          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}
+          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}
+      - name: Store coverage files
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage
+  
+  test-e2e-kafka:
+    runs-on: ubuntu-latest
+    services:
+      kafka:
+        image: bitnami/kafka
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_ENABLE_KRAFT: "true"
+          KAFKA_CFG_NODE_ID: "1"
+          KAFKA_CFG_PROCESS_ROLES: "broker,controller"
+          KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+          KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
+          KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+          KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://127.0.0.1:9092"
+          KAFKA_BROKER_ID: "1"
+          KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+          ALLOW_PLAINTEXT_LISTENER: "true"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install -e .[testsuite,async-kafka]
+      - run: mkdir coverage
+      - name: Test
+        run: coverage run -m pytest -m "run" -k test_run_kafka_correct tests/cli/test_run.py
+        env:
+          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}
+          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}
+      - name: Store coverage files
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage
+
+  test-e2e-sqs:
+    runs-on: ubuntu-latest
+    services:
+      sqs:
+        image: softwaremill/elasticmq-native
+        ports:
+          - 9324:9324
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install -e .[testsuite,async-sqs]
+      - run: mkdir coverage
+      - name: Test
+        run: coverage run -m pytest -m "run" -k test_run_sqs_correct tests/cli/test_run.py
+        env:
+          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}
+          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}
+      - name: Store coverage files
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage
+  
+  test-e2e-redis:
+    runs-on: ubuntu-latest
+    services:
+      sqs:
+        image: softwaremill/elasticmq-native
+        ports:
+          - 9324:9324
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install -e .[testsuite,async-redis]
+      - run: mkdir coverage
+      - name: Test
+        run: coverage run -m pytest -m "run" -k test_run_redis_correct tests/cli/test_run.py
+        env:
+          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}
+          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}
+      - name: Store coverage files
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage
 
   coverage-combine:
-    needs: [test,test-e2e-nats]
+    needs: [test,test-e2e-nats,test-e2e-rabbit,test-e2e-kafka,test-e2e-sqs,test-e2e-redis]
     runs-on: ubuntu-latest
 
     steps:
