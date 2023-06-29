@@ -221,10 +221,10 @@ jobs:
   test-e2e-redis:
     runs-on: ubuntu-latest
     services:
-      sqs:
-        image: softwaremill/elasticmq-native
+      redis:
+        image: redis:alpine
         ports:
-          - 9324:9324
+          - 6379:6379
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
