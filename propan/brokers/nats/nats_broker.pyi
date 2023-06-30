@@ -1,18 +1,7 @@
 import logging
 import ssl
 from types import TracebackType
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Type, Union
 
 from fast_depends.dependencies import Depends
 from nats.aio.client import (
@@ -33,20 +22,28 @@ from nats.aio.client import (
     SignatureCallback,
 )
 from nats.aio.msg import Msg
+from nats.aio.subscription import (
+    DEFAULT_SUB_PENDING_BYTES_LIMIT,
+    DEFAULT_SUB_PENDING_MSGS_LIMIT,
+)
 from typing_extensions import TypeAlias
 
-from propan.brokers._model import BrokerUsecase
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model import BrokerAsyncUsecase
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import DecodedMessage, HandlerWrapper, SendableMessage
+from propan.types import DecodedMessage, SendableMessage
 
-T = TypeVar("T")
 NatsMessage: TypeAlias = PropanMessage[Msg]
 
-class NatsBroker(BrokerUsecase[Msg, Client]):
+class NatsBroker(BrokerAsyncUsecase[Msg, Client]):
     logger: logging.Logger
     handlers: List[Handler]
 
@@ -84,13 +81,14 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
         inbox_prefix: Union[str, bytes] = DEFAULT_INBOX_PREFIX,
         pending_size: int = DEFAULT_PENDING_SIZE,
         flush_timeout: Optional[float] = None,
+        # broker kwargs
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[Msg] = None,
-        parse_message: CustomParser[Msg] = None,
+        decode_message: AsyncDecoder[Msg] = None,
+        parse_message: AsyncParser[Msg] = None,
         protocol: str = "nats",
     ) -> None: ...
     async def connect(
@@ -144,12 +142,18 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
         subject: str,
         queue: str = "",
         *,
+        pending_msgs_limit: int = DEFAULT_SUB_PENDING_MSGS_LIMIT,
+        pending_bytes_limit: int = DEFAULT_SUB_PENDING_BYTES_LIMIT,
+        # broker kwargs
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[Msg] = None,
-        parse_message: CustomParser[Msg] = None,
+        decode_message: AsyncDecoder[Msg] = None,
+        parse_message: AsyncParser[Msg] = None,
         description: str = "",
-    ) -> HandlerWrapper: ...
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[Msg, bool], Awaitable[T_HandlerReturn]],
+    ]: ...
     def _get_log_context(  # type: ignore[override]
         self,
         message: Optional[NatsMessage],
@@ -173,6 +177,6 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
     async def _parse_message(self, message: Msg) -> NatsMessage: ...
     def _process_message(
         self,
-        func: Callable[[NatsMessage], Awaitable[T]],
+        func: Callable[[NatsMessage], Awaitable[T_HandlerReturn]],
         watcher: Optional[BaseWatcher] = None,
-    ) -> Callable[[NatsMessage], Awaitable[T]]: ...
+    ) -> Callable[[NatsMessage], Awaitable[T_HandlerReturn]]: ...

@@ -26,11 +26,12 @@ from typing_extensions import TypeAlias
 from yarl import URL
 
 from propan._compat import model_to_dict
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers._model.schemas import PropanMessage
+from propan.brokers.exceptions import WRONG_PUBLISH_ARGS
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
-from propan.types import AnyDict, DecoratedCallable, HandlerWrapper, SendableMessage
+from propan.types import AnyDict, HandlerCallable, HandlerWrapper, SendableMessage
 from propan.utils import context
 
 TimeoutType = Optional[Union[int, float]]
@@ -41,7 +42,9 @@ T = TypeVar("T")
 RABBIT_REPLY = "amq.rabbitmq.reply-to"
 
 
-class RabbitBroker(BrokerUsecase):
+class RabbitBroker(
+    BrokerAsyncUsecase[aio_pika.message.IncomingMessage, aio_pika.RobustConnection]
+):
     handlers: List[Handler]
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
@@ -111,7 +114,7 @@ class RabbitBroker(BrokerUsecase):
             if max_consumers:
                 c = self._get_log_context(None, RabbitQueue(""), RabbitExchange(""))
                 self._log(f"Set max consumers to {max_consumers}", extra=c)
-                await self._channel.set_qos(prefetch_count=int(self._max_consumers))
+                await self._channel.set_qos(prefetch_count=int(max_consumers))
 
         return connection
 
@@ -130,7 +133,7 @@ class RabbitBroker(BrokerUsecase):
 
         self.__setup_log_context(queue, exchange)
 
-        def wrapper(func: DecoratedCallable) -> Any:
+        def wrapper(func: HandlerCallable) -> HandlerCallable:
             func, dependant = self._wrap_handler(
                 func,
                 queue=queue,
@@ -193,10 +196,7 @@ class RabbitBroker(BrokerUsecase):
 
         if callback is True:
             if reply_to is not None:
-                raise ValueError(
-                    "You should use `reply_to` to send response to long-living queue "
-                    "and `callback` to get response in sync mode."
-                )
+                raise WRONG_PUBLISH_ARGS
             else:
                 context = RPCCallback(self._rpc_lock, self)
         else:

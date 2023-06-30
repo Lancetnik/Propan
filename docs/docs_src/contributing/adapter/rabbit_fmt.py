@@ -1,4 +1,4 @@
-class RabbitBroker(BrokerUsecase):
+class RabbitBroker(BrokerAsyncUsecase):
     __max_exchange_len: int
     __max_queue_len: int
 

@@ -6,7 +6,7 @@ In this section, we will deal with the details of the implementation of brokers 
 
 ## Parent class
 
-All brokers **Propan** are inherited from the parent class `propan.brokers.model.BrokerUsecase`.
+All brokers **Propan** are inherited from the parent class `propan.brokers.model.BrokerAsyncUsecase`.
 
 In order to create a broker, it is necessary to inherit from this class and implement all its abstract methods.
 

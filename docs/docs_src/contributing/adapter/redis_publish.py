@@ -1,11 +1,11 @@
 from typing import Optional, Dict, Any
 
 from propan.types import SendableMessage
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers.redis.schemas import RedisMessage
 
 
-class RedisProcess(BrokerUsecase):
+class RedisProcess(BrokerAsyncUsecase):
     ...
     async def publish(
         self,

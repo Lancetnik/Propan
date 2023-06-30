@@ -19,18 +19,23 @@ from redis.asyncio.client import Redis
 from redis.asyncio.connection import BaseParser, Connection, DefaultParser, Encoder
 from typing_extensions import TypeAlias
 
-from propan.brokers._model import BrokerUsecase
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model import BrokerAsyncUsecase
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.redis.schemas import Handler
 from propan.log import access_logger
-from propan.types import AnyDict, DecodedMessage, HandlerWrapper, SendableMessage
+from propan.types import AnyDict, DecodedMessage, SendableMessage
 
 T = TypeVar("T")
 RedisMessage: TypeAlias = PropanMessage[AnyDict]
 
-class RedisBroker(BrokerUsecase[AnyDict, Redis[bytes]]):
+class RedisBroker(BrokerAsyncUsecase[AnyDict, Redis[bytes]]):
     handlers: List[Handler]
     __max_channel_len: int
 
@@ -66,8 +71,8 @@ class RedisBroker(BrokerUsecase[AnyDict, Redis[bytes]]):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         protocol: str = "redis",
     ) -> None:
         """Redis Pub/sub Propan broker
@@ -148,10 +153,13 @@ class RedisBroker(BrokerUsecase[AnyDict, Redis[bytes]]):
         *,
         pattern: bool = False,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         description: str = "",
-    ) -> HandlerWrapper:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]],
+    ]:
         """Register channel consumer method
 
         Args:

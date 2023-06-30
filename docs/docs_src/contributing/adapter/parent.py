@@ -1,6 +1,6 @@
 from typing import Any, Callable, Optional, TypeVar
 
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.types import HandlerWrapper, SendableMessage
@@ -9,7 +9,7 @@ from propan.types import HandlerWrapper, SendableMessage
 T = TypeVar("T")
 
 
-class MyBroker(BrokerUsecase):
+class MyBroker(BrokerAsyncUsecase):
     async def _connect(self, *args: Any, **kwargs: Any) -> Any:
         pass
 

@@ -3,9 +3,9 @@ from typing import Any, Optional
 
 
 import aio_pika
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 
-class RabbitBroker(BrokerUsecase):
+class RabbitBroker(BrokerAsyncUsecase):
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
 

@@ -27,23 +27,24 @@ from typing_extensions import Literal, TypeAlias, TypeVar
 
 from propan.__about__ import __version__
 from propan.brokers._model.broker_usecase import (
-    BrokerUsecase,
-    CustomDecoder,
-    CustomParser,
+    AsyncDecoder,
+    AsyncParser,
+    BrokerAsyncUsecase,
+    HandlerCallable,
+    T_HandlerReturn,
 )
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.kafka.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
-from propan.types import DecodedMessage, HandlerWrapper, SendableMessage
+from propan.types import DecodedMessage, SendableMessage
 
-T = TypeVar("T")
 Partition = TypeVar("Partition")
 CorrelationId: TypeAlias = str
 KafkaMessage: TypeAlias = PropanMessage[ConsumerRecord]
 
 class KafkaBroker(
-    BrokerUsecase[ConsumerRecord, Callable[[Tuple[str, ...]], AIOKafkaConsumer]]
+    BrokerAsyncUsecase[ConsumerRecord, Callable[[Tuple[str, ...]], AIOKafkaConsumer]]
 ):
     _publisher: Optional[AIOKafkaProducer]
     __max_topic_len: int
@@ -99,8 +100,8 @@ class KafkaBroker(
         loop: Optional[AbstractEventLoop] = None,
         # broker
         logger: Optional[logging.Logger] = access_logger,
-        decode_message: CustomDecoder[ConsumerRecord] = None,
-        parse_message: CustomParser[ConsumerRecord] = None,
+        decode_message: AsyncDecoder[ConsumerRecord] = None,
+        parse_message: AsyncParser[ConsumerRecord] = None,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
@@ -194,10 +195,13 @@ class KafkaBroker(
         ] = "read_uncommitted",
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[ConsumerRecord] = None,
-        parse_message: CustomParser[ConsumerRecord] = None,
+        decode_message: AsyncDecoder[ConsumerRecord] = None,
+        parse_message: AsyncParser[ConsumerRecord] = None,
         description: str = "",
-    ) -> HandlerWrapper: ...
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[ConsumerRecord, bool], Awaitable[T_HandlerReturn]],
+    ]: ...
     @staticmethod
     async def _parse_message(
         message: ConsumerRecord,
@@ -223,6 +227,6 @@ class KafkaBroker(
     ) -> Dict[str, Any]: ...
     def _process_message(
         self,
-        func: Callable[[KafkaMessage], Awaitable[T]],
+        func: Callable[[KafkaMessage], Awaitable[T_HandlerReturn]],
         watcher: Optional[BaseWatcher],
-    ) -> Callable[[KafkaMessage], Awaitable[T]]: ...
+    ) -> Callable[[KafkaMessage], Awaitable[T_HandlerReturn]]: ...

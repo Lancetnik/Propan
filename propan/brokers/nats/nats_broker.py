@@ -21,24 +21,35 @@ import nats
 from fast_depends.dependencies import Depends
 from nats.aio.client import Callback, Client, ErrorCallback
 from nats.aio.msg import Msg
+from nats.aio.subscription import (
+    DEFAULT_SUB_PENDING_BYTES_LIMIT,
+    DEFAULT_SUB_PENDING_MSGS_LIMIT,
+)
 from typing_extensions import TypeAlias
 
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers._model.schemas import PropanMessage
+from propan.brokers.exceptions import WRONG_PUBLISH_ARGS
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
-from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMessage
+from propan.types import (
+    AnyDict,
+    DecodedMessage,
+    HandlerCallable,
+    HandlerWrapper,
+    SendableMessage,
+)
 from propan.utils import context
 
 T = TypeVar("T")
 NatsMessage: TypeAlias = PropanMessage[Msg]
 
 
-class NatsBroker(BrokerUsecase[Msg, Client]):
+class NatsBroker(BrokerAsyncUsecase[Msg, Client]):
     handlers: List[Handler]
 
-    __max_queue_len: int
-    __max_subject_len: int
+    _max_queue_len: int
+    _max_subject_len: int
     __is_connected: bool
 
     def __init__(
@@ -55,8 +66,8 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
 
         self._connection = None
 
-        self.__max_queue_len = 0
-        self.__max_subject_len = 4
+        self._max_queue_len = 0
+        self._max_subject_len = 4
         self.__is_connected = True
 
     async def _connect(
@@ -81,15 +92,17 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
         queue: str = "",
         *,
         dependencies: Sequence[Depends] = (),
+        pending_msgs_limit: int = DEFAULT_SUB_PENDING_MSGS_LIMIT,
+        pending_bytes_limit: int = DEFAULT_SUB_PENDING_BYTES_LIMIT,
         description: str = "",
         **original_kwargs: AnyDict,
-    ) -> Callable[[DecoratedCallable], None]:
+    ) -> HandlerWrapper:
         super().handle()
 
-        self.__max_subject_len = max((self.__max_subject_len, len(subject)))
-        self.__max_queue_len = max((self.__max_queue_len, len(queue)))
+        self._max_subject_len = max((self._max_subject_len, len(subject)))
+        self._max_queue_len = max((self._max_queue_len, len(queue)))
 
-        def wrapper(func: DecoratedCallable) -> None:
+        def wrapper(func: HandlerCallable) -> HandlerCallable:
             func, dependant = self._wrap_handler(
                 func,
                 queue=queue,
@@ -103,6 +116,10 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
                 queue=queue,
                 _description=description,
                 dependant=dependant,
+                extra_args={
+                    "pending_msgs_limit": pending_msgs_limit,
+                    "pending_bytes_limit": pending_bytes_limit,
+                },
             )
             self.handlers.append(handler)
 
@@ -116,7 +133,7 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
             self._get_log_context(None, ""),
         )
 
-        await super().start()
+        await self._start()
 
         for handler in self.handlers:
             func = handler.callback
@@ -128,8 +145,12 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
                 subject=handler.subject,
                 queue=handler.queue,
                 cb=func,
+                **handler.extra_args,
             )
             handler.subscription = sub
+
+    async def _start(self):
+        await super().start()
 
     async def publish(
         self,
@@ -151,10 +172,7 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
 
         if callback is True:
             if reply_to:
-                raise ValueError(
-                    "You should use `reply_to` to send response to long-living queue "
-                    "and `callback` to get response in sync mode."
-                )
+                raise WRONG_PUBLISH_ARGS
 
             token = client._nuid.next()
             token.extend(token_hex(2).encode())
@@ -165,14 +183,19 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
             sub = await client.subscribe(reply_to, future=future, max_msgs=1)
             await sub.unsubscribe(limit=1)
 
-        await self._connection.publish(
+            kwargs = {"reply": reply_to}
+
+        else:
+            kwargs = {}
+
+        await client.publish(
             subject=subject,
             payload=msg,
-            reply=reply_to,
             headers={
                 **(headers or {}),
                 "content-type": content_type or "",
             },
+            **kwargs,
         )
 
         if reply_to:
@@ -227,17 +250,18 @@ class NatsBroker(BrokerUsecase[Msg, Client]):
     def fmt(self) -> str:
         return self._fmt or (
             "%(asctime)s %(levelname)s - "
-            f"%(subject)-{self.__max_subject_len}s | "
-            + (f"%(queue)-{self.__max_queue_len}s | " if self.__max_queue_len else "")
+            f"%(subject)-{self._max_subject_len}s | "
+            + (f"%(queue)-{self._max_queue_len}s | " if self._max_queue_len else "")
             + "%(message_id)-10s "
             "- %(message)s"
         )
 
     async def _parse_message(self, message: Msg) -> NatsMessage:
+        headers = message.header or {}
         return PropanMessage(
             body=message.data,
-            content_type=message.header.get("content-type", ""),
-            headers=message.header,
+            content_type=headers.get("content-type", ""),
+            headers=headers,
             reply_to=message.reply,
             raw_message=message,
         )

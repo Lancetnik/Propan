@@ -27,7 +27,7 @@ from starlette.routing import _DefaultLifespan
 from starlette.types import AppType, ASGIApp, Lifespan
 from typing_extensions import AsyncIterator, TypeVar
 
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers._model.schemas import Queue
 from propan.cli.docs.gen import (
     gen_app_schema_json,
@@ -41,7 +41,7 @@ from propan.fastapi.core.route import PropanRoute
 from propan.types import AnyDict, HandlerCallable
 from propan.utils.functions import to_async
 
-Broker = TypeVar("Broker", bound=BrokerUsecase[Any, Any])
+Broker = TypeVar("Broker", bound=BrokerAsyncUsecase[Any, Any])
 
 
 class PropanRouter(APIRouter, Generic[Broker]):

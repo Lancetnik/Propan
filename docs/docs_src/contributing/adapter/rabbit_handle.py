@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List, Union, Optional
 
 from propan.types import HandlerWrapper, HandlerCallable
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers._model.schemas import BaseHandler
 from propan.brokers.rabbit import RabbitExchange, RabbitQueue
 
@@ -13,7 +13,7 @@ class Handler(BaseHandler):
     exchange: Optional[RabbitExchange] = None
 
 
-class RabbitBroker(BrokerUsecase):
+class RabbitBroker(BrokerAsyncUsecase):
     handlers: List[Handler]
 
     def handle(

@@ -19,23 +19,26 @@ import aiormq
 from aio_pika.message import IncomingMessage
 from fast_depends.dependencies import Depends
 from pamqp.common import FieldTable
-from typing_extensions import ParamSpec, TypeAlias
+from typing_extensions import TypeAlias
 from yarl import URL
 
-from propan.brokers._model import BrokerUsecase
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model import BrokerAsyncUsecase
+from propan.brokers._model.broker_usecase import AsyncDecoder, AsyncParser
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.log import access_logger
 from propan.types import DecodedMessage, SendableMessage
 
-P = ParamSpec("P")
-T = TypeVar("T")
 PikaSendableMessage: TypeAlias = Union[aio_pika.message.Message, SendableMessage]
+T_HandlerReturn = TypeVar("T_HandlerReturn", bound=PikaSendableMessage)
+HandlerCallable: TypeAlias = Callable[
+    ..., Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]
+]
+
 RabbitMessage: TypeAlias = PropanMessage[IncomingMessage]
 
-class RabbitBroker(BrokerUsecase[IncomingMessage, aio_pika.RobustConnection]):
+class RabbitBroker(BrokerAsyncUsecase[IncomingMessage, aio_pika.RobustConnection]):
     handlers: List[Handler]
     _channel: Optional[aio_pika.RobustChannel]
 
@@ -63,8 +66,8 @@ class RabbitBroker(BrokerUsecase[IncomingMessage, aio_pika.RobustConnection]):
         apply_types: bool = True,
         consumers: Optional[int] = None,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[IncomingMessage] = None,
-        parse_message: CustomParser[IncomingMessage] = None,
+        decode_message: AsyncDecoder[IncomingMessage] = None,
+        parse_message: AsyncParser[IncomingMessage] = None,
         # AsyncAPI
         protocol: str = "amqp",
         protocol_version: str = "0.9.1",
@@ -211,18 +214,13 @@ class RabbitBroker(BrokerUsecase[IncomingMessage, aio_pika.RobustConnection]):
         *,
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[IncomingMessage] = None,
-        parse_message: CustomParser[IncomingMessage] = None,
+        decode_message: AsyncDecoder[IncomingMessage] = None,
+        parse_message: AsyncParser[IncomingMessage] = None,
         # AsyncAPI
         description: str = "",
     ) -> Callable[
-        [
-            Union[
-                Callable[P, PikaSendableMessage],
-                Callable[P, Awaitable[PikaSendableMessage]],
-            ]
-        ],
-        Callable[P, PikaSendableMessage],
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[IncomingMessage, bool], Awaitable[T_HandlerReturn]],
     ]:
         """Register queue consumer method
 
@@ -258,9 +256,9 @@ class RabbitBroker(BrokerUsecase[IncomingMessage, aio_pika.RobustConnection]):
         """Access to brokers' aio-pika channel object"""
     def _process_message(
         self,
-        func: Callable[[RabbitMessage], Awaitable[T]],
+        func: Callable[[RabbitMessage], Awaitable[T_HandlerReturn]],
         watcher: Optional[BaseWatcher],
-    ) -> Callable[[RabbitMessage], Awaitable[T]]: ...
+    ) -> Callable[[RabbitMessage], Awaitable[T_HandlerReturn]]: ...
     def _get_log_context(  # type: ignore[override]
         self,
         message: Optional[RabbitMessage],

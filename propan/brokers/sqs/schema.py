@@ -16,7 +16,7 @@ from propan.asyncapi.bindings import (
 from propan.asyncapi.channels import AsyncAPIChannel
 from propan.asyncapi.message import AsyncAPICorrelationId, AsyncAPIMessage
 from propan.asyncapi.subscription import AsyncAPISubscription
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers._model.schemas import BaseHandler, Queue
 from propan.types import AnyDict, DecoratedCallable, SendableMessage
 
@@ -271,7 +271,7 @@ class SQSMessage:
     message_system_attributes: AnyDict = DField(default_factory=dict)
 
     def to_params(self, **extra_headers: Any) -> AnyDict:
-        msg, content_type = BrokerUsecase._encode_message(self.message)
+        msg, content_type = BrokerAsyncUsecase._encode_message(self.message)
 
         headers = {**extra_headers, "content-type": content_type, **self.headers}
 

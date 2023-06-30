@@ -4,7 +4,7 @@ from typing import Any, List, NoReturn, Optional
 
 from redis.asyncio.client import PubSub, Redis
 
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers._model.schemas import BaseHandler
 
 
@@ -17,7 +17,7 @@ class Handler(BaseHandler):
     subscription: Optional[PubSub] = None
 
 
-class RedisBroker(BrokerUsecase):
+class RedisBroker(BrokerAsyncUsecase):
     handlers: List[Handler]
     _connection: Redis
 

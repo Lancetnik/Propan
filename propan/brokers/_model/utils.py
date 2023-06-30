@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 from functools import wraps
-from typing import Awaitable, Callable, Optional, Tuple, TypeVar, Union
+from typing import Awaitable, Callable, Optional, Tuple, TypeVar, Union, cast
 
 from typing_extensions import TypeAlias
 
@@ -13,9 +13,6 @@ from propan.brokers.push_back_watcher import (
 )
 from propan.types import SendableMessage
 from propan.utils import context
-
-T = TypeVar("T")
-P = TypeVar("P")
 
 ContentType: TypeAlias = str
 
@@ -67,27 +64,75 @@ def get_watcher(
     return watcher
 
 
+MsgType = TypeVar("MsgType")
+T_HandlerReturn = TypeVar("T_HandlerReturn")
+
+
 def suppress_decor(
-    func: Callable[[T], Awaitable[P]]
-) -> Callable[[T, bool], Awaitable[Optional[P]]]:
-    @wraps(func)
-    async def wrapper(message: T, reraise_exc: bool = False) -> Optional[P]:
-        try:
-            return await func(message)
-        except Exception as e:
-            if reraise_exc is True:
-                raise e
-            return None
+    func: Callable[
+        [MsgType],
+        Union[
+            T_HandlerReturn,
+            Awaitable[T_HandlerReturn],
+        ],
+    ],
+    _is_sync: bool = False,
+) -> Callable[[MsgType, bool], Union[T_HandlerReturn, Awaitable[T_HandlerReturn],]]:
+    if _is_sync:
+        func = cast(Callable[[MsgType], T_HandlerReturn], func)
+
+        @wraps(func)
+        def wrapper(
+            message: MsgType, reraise_exc: bool = False
+        ) -> Optional[T_HandlerReturn]:
+            try:
+                return func(message)
+            except Exception as e:
+                if reraise_exc is True:
+                    raise e
+                return None
+
+    else:
+        func = cast(Callable[[MsgType], Awaitable[T_HandlerReturn]], func)
+
+        @wraps(func)
+        async def wrapper(
+            message: MsgType, reraise_exc: bool = False
+        ) -> Optional[T_HandlerReturn]:
+            try:
+                return await func(message)
+            except Exception as e:
+                if reraise_exc is True:
+                    raise e
+                return None
 
     return wrapper
 
 
 def set_message_context(
-    func: Callable[[T], Awaitable[P]]
-) -> Callable[[T], Awaitable[P]]:
-    @wraps(func)
-    async def wrapper(message: T) -> P:
-        with context.scope("message", message):
-            return await func(message)
+    func: Callable[
+        [MsgType],
+        Union[
+            T_HandlerReturn,
+            Awaitable[T_HandlerReturn],
+        ],
+    ],
+    _is_sync: bool = False,
+) -> Callable[[MsgType], Union[T_HandlerReturn, Awaitable[T_HandlerReturn],]]:
+    if _is_sync:
+        func = cast(Callable[[MsgType], T_HandlerReturn], func)
+
+        @wraps(func)
+        def wrapper(message: MsgType) -> T_HandlerReturn:
+            with context.scope("message", message):
+                return func(message)
+
+    else:
+        func = cast(Callable[[MsgType], Awaitable[T_HandlerReturn]], func)
+
+        @wraps(func)
+        async def wrapper(message: MsgType) -> T_HandlerReturn:
+            with context.scope("message", message):
+                return await func(message)
 
     return wrapper

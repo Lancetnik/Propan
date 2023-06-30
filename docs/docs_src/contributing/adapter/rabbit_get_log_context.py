@@ -1,4 +1,4 @@
-class RabbitBroker(BrokerUsecase):
+class RabbitBroker(BrokerAsyncUsecase):
     def _get_log_context(
         self,
         message: Optional[PropanMessage],

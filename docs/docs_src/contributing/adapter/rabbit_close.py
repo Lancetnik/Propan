@@ -1,4 +1,4 @@
-class RabbitBroker(BrokerUsecase):
+class RabbitBroker(BrokerAsyncUsecase):
     ...
 
     async def close(self) -> None:
