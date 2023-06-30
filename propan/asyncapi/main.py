@@ -7,7 +7,7 @@ from propan.asyncapi.info import AsyncAPIInfo
 from propan.asyncapi.message import AsyncAPIMessage
 from propan.asyncapi.servers import AsyncAPIServer
 from propan.asyncapi.utils import AsyncAPIExternalDocs, AsyncAPITag
-from propan.brokers._model.utils import ContentTypes
+from propan.brokers.constants import ContentTypes
 from propan.types import AnyDict
 
 ASYNC_API_VERSION = "2.6.0"

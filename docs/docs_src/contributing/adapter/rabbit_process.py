@@ -20,7 +20,7 @@ class RabbitBroker(BrokerAsyncUsecase):
             else:
                 context = WatcherContext(
                     watcher,
-                    message.message_id,
+                    message,
                     on_success=pika_message.ack,
                     on_error=pika_message.nack,
                     on_max=pika_message.reject,

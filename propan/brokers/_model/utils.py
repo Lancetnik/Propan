@@ -1,11 +1,9 @@
 import logging
-from enum import Enum
 from functools import wraps
 from typing import Awaitable, Callable, Optional, Tuple, TypeVar, Union, cast
 
-from typing_extensions import TypeAlias
-
 from propan._compat import dump_json
+from propan.brokers.constants import ContentType, ContentTypes
 from propan.brokers.push_back_watcher import (
     BaseWatcher,
     FakePushBackWatcher,
@@ -13,13 +11,6 @@ from propan.brokers.push_back_watcher import (
 )
 from propan.types import SendableMessage
 from propan.utils import context
-
-ContentType: TypeAlias = str
-
-
-class ContentTypes(str, Enum):
-    text = "text/plain"
-    json = "application/json"
 
 
 def to_send(msg: SendableMessage) -> Tuple[bytes, Optional[ContentType]]:

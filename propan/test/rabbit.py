@@ -23,12 +23,8 @@ from propan.brokers.rabbit import (
     RabbitExchange,
     RabbitQueue,
 )
-from propan.brokers.rabbit.rabbit_broker import (  # type: ignore
-    PikaSendableMessage,
-    TimeoutType,
-    _validate_exchange,
-    _validate_queue,
-)
+from propan.brokers.rabbit.rabbit_broker import PikaSendableMessage, TimeoutType
+from propan.brokers.rabbit.utils import validate_exchange, validate_queue
 from propan.test.utils import call_handler
 
 __all__ = (
@@ -51,7 +47,7 @@ def build_message(
     routing_key: str = "",
     **message_kwargs: AnyDict,
 ) -> PatchedMessage:
-    que, exch = _validate_queue(queue), _validate_exchange(exchange)
+    que, exch = validate_queue(queue), validate_exchange(exchange)
     msg = RabbitBroker._validate_message(message, None, **message_kwargs)
 
     routing = routing_key or (que.name if que else "")
