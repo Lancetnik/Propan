@@ -12,16 +12,6 @@ NoneCallable: TypeAlias = Callable[..., None]
 
 DecoratedCallable: TypeAlias = AnyCallable
 DecoratedCallableNone: TypeAlias = NoneCallable
-DecoratedAsync: TypeAlias = AsyncFunc
-
-Wrapper: TypeAlias = Callable[
-    [AnyCallable],
-    DecoratedCallable,
-]
-AsyncWrapper: TypeAlias = Callable[
-    [AnyCallable],
-    DecoratedAsync,
-]
 
 JsonDecodable: TypeAlias = Union[
     float,
@@ -38,13 +28,4 @@ SendableMessage: TypeAlias = Union[
     DecodedMessage,
     BaseModel,
     None,
-]
-
-HandlerCallable: TypeAlias = Union[
-    Callable[..., Awaitable[SendableMessage]],
-    Callable[..., SendableMessage],
-]
-HandlerWrapper: TypeAlias = Callable[
-    [HandlerCallable],
-    HandlerCallable,
 ]
