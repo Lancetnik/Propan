@@ -26,12 +26,16 @@ from typing_extensions import TypeAlias
 from yarl import URL
 
 from propan._compat import model_to_dict
-from propan.brokers._model import BrokerAsyncUsecase
+from propan.brokers._model.broker_usecase import (
+    BrokerAsyncUsecase,
+    T_HandlerReturn,
+    HandlerCallable,
+)
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.exceptions import WRONG_PUBLISH_ARGS
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
-from propan.types import AnyDict, HandlerCallable, HandlerWrapper, SendableMessage
+from propan.types import AnyDict, SendableMessage
 from propan.utils import context
 
 TimeoutType = Optional[Union[int, float]]
@@ -126,14 +130,21 @@ class RabbitBroker(
         dependencies: Sequence[Depends] = (),
         description: str = "",
         **original_kwargs: AnyDict,
-    ) -> HandlerWrapper:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[aio_pika.message.IncomingMessage, bool], Awaitable[T_HandlerReturn]],
+    ]:
         super().handle()
 
         queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
 
         self.__setup_log_context(queue, exchange)
 
-        def wrapper(func: HandlerCallable) -> HandlerCallable:
+        def wrapper(
+            func: HandlerCallable[T_HandlerReturn],
+        ) -> Callable[
+            [aio_pika.message.IncomingMessage, bool], Awaitable[T_HandlerReturn]
+        ]:
             func, dependant = self._wrap_handler(
                 func,
                 queue=queue,
