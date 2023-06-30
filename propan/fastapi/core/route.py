@@ -16,7 +16,11 @@ from starlette.requests import Request
 from starlette.routing import BaseRoute
 
 from propan._compat import raise_fastapi_validation_error
-from propan.brokers._model import BrokerAsyncUsecase
+from propan.brokers._model.broker_usecase import (
+    BrokerAsyncUsecase,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.schemas import PropanMessage as NativeMessage
 from propan.brokers._model.schemas import Queue
 from propan.types import AnyDict
@@ -27,7 +31,7 @@ class PropanRoute(BaseRoute):
         self,
         path: Union[Queue, str],
         *extra: Union[Queue, str],
-        endpoint: Callable[..., Any],
+        endpoint: HandlerCallable[T_HandlerReturn],
         broker: BrokerAsyncUsecase[Any, Any],
         dependencies: Sequence[params.Depends] = (),
         dependency_overrides_provider: Optional[Any] = None,

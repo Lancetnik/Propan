@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Type, Union
 
 from aiobotocore.config import AioConfig
 from fastapi import params
@@ -12,11 +12,16 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from propan import SQSBroker
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers.sqs.schema import SQSQueue
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable, AnyDict, DecoratedCallable, HandlerCallable
+from propan.types import AnyDict
 
 class SQSRouter(PropanRouter[SQSBroker]):
     def __init__(
@@ -56,8 +61,8 @@ class SQSRouter(PropanRouter[SQSBroker]):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         protocol: str = "sqs",
     ) -> None:
         pass
@@ -72,12 +77,12 @@ class SQSRouter(PropanRouter[SQSBroker]):
         request_attempt_id: Optional[str] = None,
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
-        endpoint: AnyCallable,
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        endpoint: HandlerCallable[T_HandlerReturn],
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         description: str = "",
         dependencies: Optional[Sequence[params.Depends]] = None,
-    ) -> HandlerCallable:
+    ) -> Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]]:
         pass
     def event(  # type: ignore[override]
         self,
@@ -90,9 +95,12 @@ class SQSRouter(PropanRouter[SQSBroker]):
         request_attempt_id: Optional[str] = None,
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         description: str = "",
         dependencies: Optional[Sequence[params.Depends]] = None,
-    ) -> Callable[[DecoratedCallable], HandlerCallable]:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]],
+    ]:
         pass

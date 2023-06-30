@@ -2,7 +2,7 @@ import logging
 from asyncio import AbstractEventLoop
 from enum import Enum
 from ssl import SSLContext
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Type, Union
 
 from aiokafka.abc import AbstractTokenProvider
 from aiokafka.producer.producer import _missing
@@ -21,10 +21,14 @@ from typing_extensions import Literal, TypeVar
 
 from propan import KafkaBroker
 from propan.__about__ import __version__
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable, DecoratedCallable, HandlerCallable
 
 Partition = TypeVar("Partition")
 
@@ -99,15 +103,15 @@ class KafkaRouter(PropanRouter[KafkaBroker]):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
-        decode_message: CustomDecoder[ConsumerRecord] = None,
-        parse_message: CustomParser[ConsumerRecord] = None,
+        decode_message: AsyncDecoder[ConsumerRecord] = None,
+        parse_message: AsyncParser[ConsumerRecord] = None,
         protocol: str = "kafka",
     ) -> None:
         pass
     def add_api_mq_route(  # type: ignore[override]
         self,
         *topics: str,
-        endpoint: AnyCallable,
+        endpoint: HandlerCallable[T_HandlerReturn],
         group_id: Optional[str] = None,
         key_deserializer: Optional[Callable[[bytes], Any]] = None,
         value_deserializer: Optional[Callable[[bytes], Any]] = None,
@@ -139,11 +143,11 @@ class KafkaRouter(PropanRouter[KafkaBroker]):
         ] = "read_uncommitted",
         # broker kwargs
         retry: Union[bool, int] = False,
-        decode_message: CustomDecoder[ConsumerRecord] = None,
-        parse_message: CustomParser[ConsumerRecord] = None,
+        decode_message: AsyncDecoder[ConsumerRecord] = None,
+        parse_message: AsyncParser[ConsumerRecord] = None,
         description: str = "",
         dependencies: Optional[Sequence[params.Depends]] = None,
-    ) -> HandlerCallable:
+    ) -> Callable[[ConsumerRecord, bool], Awaitable[T_HandlerReturn]]:
         pass
     def event(  # type: ignore[override]
         self,
@@ -180,8 +184,10 @@ class KafkaRouter(PropanRouter[KafkaBroker]):
         # broker kwargs
         dependencies: Optional[Sequence[params.Depends]] = None,
         retry: Union[bool, int] = False,
-        decode_message: CustomDecoder[ConsumerRecord] = None,
-        parse_message: CustomParser[ConsumerRecord] = None,
+        decode_message: AsyncDecoder[ConsumerRecord] = None,
+        parse_message: AsyncParser[ConsumerRecord] = None,
         description: str = "",
-    ) -> Callable[[DecoratedCallable], HandlerCallable]:
-        pass
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[ConsumerRecord, bool], Awaitable[T_HandlerReturn]],
+    ]: ...

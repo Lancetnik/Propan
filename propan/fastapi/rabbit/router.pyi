@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 from ssl import SSLContext
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Type, Union
 
 import aio_pika
 from aio_pika.message import IncomingMessage
@@ -15,11 +15,15 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from propan import RabbitBroker
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers.rabbit import RabbitExchange, RabbitQueue
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable, DecoratedCallable, HandlerCallable
 
 class RabbitRouter(PropanRouter[RabbitBroker]):
     def __init__(
@@ -59,8 +63,8 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         consumers: Optional[int] = None,
-        decode_message: CustomDecoder[IncomingMessage] = None,
-        parse_message: CustomParser[IncomingMessage] = None,
+        decode_message: AsyncDecoder[IncomingMessage] = None,
+        parse_message: AsyncParser[IncomingMessage] = None,
         schema_url: str = "/asyncapi",
         protocol: str = "amqp",
         protocol_version: str = "0.9.1",
@@ -70,14 +74,14 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         self,
         queue: Union[str, RabbitQueue],
         *,
-        endpoint: AnyCallable,
+        endpoint: HandlerCallable[T_HandlerReturn],
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-        decode_message: CustomDecoder[IncomingMessage] = None,
-        parse_message: CustomParser[IncomingMessage] = None,
+        decode_message: AsyncDecoder[IncomingMessage] = None,
+        parse_message: AsyncParser[IncomingMessage] = None,
         description: str = "",
         dependencies: Optional[Sequence[params.Depends]] = None,
-    ) -> HandlerCallable:
+    ) -> Callable[[IncomingMessage, bool], Awaitable[T_HandlerReturn]]:
         pass
     def event(  # type: ignore[override]
         self,
@@ -85,9 +89,12 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         *,
         exchange: Union[str, RabbitExchange, None] = None,
         retry: Union[bool, int] = False,
-        decode_message: CustomDecoder[IncomingMessage] = None,
-        parse_message: CustomParser[IncomingMessage] = None,
+        decode_message: AsyncDecoder[IncomingMessage] = None,
+        parse_message: AsyncParser[IncomingMessage] = None,
         description: str = "",
         dependencies: Optional[Sequence[params.Depends]] = None,
-    ) -> Callable[[DecoratedCallable], HandlerCallable]:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[IncomingMessage, bool], Awaitable[T_HandlerReturn]],
+    ]:
         pass
