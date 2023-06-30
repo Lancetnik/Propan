@@ -6,12 +6,15 @@ import pytest
 from fastapi import APIRouter, Depends, FastAPI, Header
 from fastapi.testclient import TestClient
 
+from propan.types import AnyCallable
+
 Broker = TypeVar("Broker")
 
 
 class FastAPITestcase:
     router_class: Type[APIRouter]
     broker_test: Callable[[Broker], Broker]
+    build_message: AnyCallable
 
     @pytest.mark.asyncio
     async def test(self, mock: Mock):
@@ -56,16 +59,15 @@ class FastAPITestcase:
             )
             assert r == "2"
 
-            r = await router.broker.publish(
+            message = self.build_message(
                 {
                     "a": "hi",
                     "b": 1,
                     "c": "depends",
                 },
                 name3,
-                callback=True,
-                callback_timeout=0.5,
             )
+            r = await hello3(message, True)
             assert r == "3"
 
         mock.assert_called_with("hi, depends")

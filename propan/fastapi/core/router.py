@@ -19,7 +19,6 @@ from typing import (
 from fastapi import APIRouter, FastAPI, Request, params
 from fastapi.datastructures import Default
 from fastapi.routing import APIRoute
-from fastapi.types import DecoratedCallable
 from fastapi.utils import generate_unique_id
 from starlette import routing
 from starlette.responses import HTMLResponse, JSONResponse, Response
@@ -27,7 +26,11 @@ from starlette.routing import _DefaultLifespan
 from starlette.types import AppType, ASGIApp, Lifespan
 from typing_extensions import AsyncIterator, TypeVar
 
-from propan.brokers._model import BrokerAsyncUsecase
+from propan.brokers._model.broker_usecase import (
+    BrokerAsyncUsecase,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.schemas import Queue
 from propan.cli.docs.gen import (
     gen_app_schema_json,
@@ -38,13 +41,14 @@ from propan.cli.docs.gen import (
 )
 from propan.cli.docs.serving import get_asyncapi_html
 from propan.fastapi.core.route import PropanRoute
-from propan.types import AnyDict, HandlerCallable
+from propan.types import AnyDict
 from propan.utils.functions import to_async
 
 Broker = TypeVar("Broker", bound=BrokerAsyncUsecase[Any, Any])
+MsgType = TypeVar("MsgType")
 
 
-class PropanRouter(APIRouter, Generic[Broker]):
+class PropanRouter(APIRouter, Generic[Broker, MsgType]):
     broker_class: Type[Broker]
     broker: Broker
     docs_router: Optional[APIRouter]
@@ -128,10 +132,10 @@ class PropanRouter(APIRouter, Generic[Broker]):
         self,
         path: Union[Queue, str],
         *extra: Union[Queue, str],
-        endpoint: DecoratedCallable,
+        endpoint: HandlerCallable[T_HandlerReturn],
         dependencies: Sequence[params.Depends],
         **broker_kwargs: AnyDict,
-    ) -> HandlerCallable:
+    ) -> Callable[[Any, bool], Awaitable[T_HandlerReturn]]:
         route = PropanRoute(
             path,
             *extra,
@@ -150,12 +154,17 @@ class PropanRouter(APIRouter, Generic[Broker]):
         *extra: Union[Queue, str],
         dependencies: Optional[Sequence[params.Depends]] = None,
         **broker_kwargs: Dict[str, Any],
-    ) -> Callable[[DecoratedCallable], HandlerCallable]:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[MsgType, bool], Awaitable[T_HandlerReturn]],
+    ]:
         current_dependencies = self.dependencies.copy()
         if dependencies:
             current_dependencies.extend(dependencies)
 
-        def decorator(func: DecoratedCallable) -> HandlerCallable:
+        def decorator(
+            func: HandlerCallable[T_HandlerReturn],
+        ) -> Callable[[MsgType, bool], Awaitable[T_HandlerReturn]]:
             return self.add_api_mq_route(
                 path,
                 *extra,

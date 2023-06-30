@@ -1,7 +1,7 @@
 import logging
 import ssl
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Type, Union
 
 from fastapi import params
 from fastapi.datastructures import Default
@@ -29,10 +29,14 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from propan import NatsBroker
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable, DecoratedCallable, HandlerCallable
 
 class NatsRouter(PropanRouter[NatsBroker]):
     def __init__(
@@ -93,8 +97,8 @@ class NatsRouter(PropanRouter[NatsBroker]):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
-        decode_message: CustomDecoder[Msg] = None,
-        parse_message: CustomParser[Msg] = None,
+        decode_message: AsyncDecoder[Msg] = None,
+        parse_message: AsyncParser[Msg] = None,
         protocol: str = "nats",
     ) -> None:
         pass
@@ -103,13 +107,13 @@ class NatsRouter(PropanRouter[NatsBroker]):
         subject: str,
         *,
         queue: str = "",
-        endpoint: AnyCallable,
+        endpoint: HandlerCallable[T_HandlerReturn],
         retry: Union[bool, int] = False,
-        decode_message: CustomDecoder[Msg] = None,
-        parse_message: CustomParser[Msg] = None,
+        decode_message: AsyncDecoder[Msg] = None,
+        parse_message: AsyncParser[Msg] = None,
         description: str = "",
         dependencies: Optional[Sequence[params.Depends]] = None,
-    ) -> HandlerCallable:
+    ) -> Callable[[Msg, bool], Awaitable[T_HandlerReturn]]:
         pass
     def event(  # type: ignore[override]
         self,
@@ -117,9 +121,12 @@ class NatsRouter(PropanRouter[NatsBroker]):
         *,
         queue: str = "",
         retry: Union[bool, int] = False,
-        decode_message: CustomDecoder[Msg] = None,
-        parse_message: CustomParser[Msg] = None,
+        decode_message: AsyncDecoder[Msg] = None,
+        parse_message: AsyncParser[Msg] = None,
         description: str = "",
         dependencies: Optional[Sequence[params.Depends]] = None,
-    ) -> Callable[[DecoratedCallable], HandlerCallable]:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[Msg, bool], Awaitable[T_HandlerReturn]],
+    ]:
         pass

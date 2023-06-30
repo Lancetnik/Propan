@@ -1,6 +1,17 @@
 import logging
 from enum import Enum
-from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Type, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+)
 
 from fastapi import params
 from fastapi.datastructures import Default
@@ -12,10 +23,15 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from propan import RedisBroker
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
-from propan.types import AnyCallable, AnyDict, DecoratedCallable, HandlerCallable
+from propan.types import AnyDict
 
 class RedisRouter(PropanRouter[RedisBroker]):
     def __init__(
@@ -66,8 +82,8 @@ class RedisRouter(PropanRouter[RedisBroker]):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         protocol: str = "redis",
     ) -> None:
         pass
@@ -75,22 +91,25 @@ class RedisRouter(PropanRouter[RedisBroker]):
         self,
         channel: str,
         *,
-        endpoint: AnyCallable,
+        endpoint: HandlerCallable[T_HandlerReturn],
         pattern: bool = False,
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         description: str = "",
         dependencies: Optional[Sequence[params.Depends]] = None,
-    ) -> HandlerCallable:
+    ) -> Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]]:
         pass
     def event(  # type: ignore[override]
         self,
         channel: str,
         *,
         pattern: bool = False,
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         description: str = "",
         dependencies: Optional[Sequence[params.Depends]] = None,
-    ) -> Callable[[DecoratedCallable], HandlerCallable]:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]],
+    ]:
         pass

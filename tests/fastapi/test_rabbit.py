@@ -4,13 +4,14 @@ import pytest
 from fastapi import FastAPI
 
 from propan.fastapi import RabbitRouter
-from propan.test import TestRabbitBroker
+from propan.test.rabbit import TestRabbitBroker, build_message
 from tests.fastapi.case import FastAPITestcase
 
 
 class TestRabbitRouter(FastAPITestcase):
     router_class = RabbitRouter
     broker_test = staticmethod(TestRabbitBroker)
+    build_message = staticmethod(build_message)
 
     @pytest.mark.asyncio
     async def test_after_startup(self, mock: Mock):
