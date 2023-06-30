@@ -1,9 +1,9 @@
 from typing import Any, Optional
 
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 
 
-class RabbitBroker(BrokerUsecase):
+class RabbitBroker(BrokerAsyncUsecase):
     def __init__(
         self,
         *args: Any,

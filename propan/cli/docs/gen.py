@@ -13,7 +13,7 @@ from propan.asyncapi import (
     AsyncAPISchema,
     AsyncAPIServer,
 )
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.cli.app import PropanApp
 from propan.types import AnyDict
 
@@ -63,7 +63,7 @@ def schema_to_json(schema: AsyncAPISchema) -> AnyDict:
 
 
 def get_app_schema(app: PropanApp) -> AsyncAPISchema:
-    if not isinstance(app.broker, BrokerUsecase):
+    if not isinstance(app.broker, BrokerAsyncUsecase):
         raise typer.BadParameter("Your PropanApp broker is invalid")
 
     servers = _get_broker_servers(app.broker)
@@ -112,7 +112,9 @@ def _get_app_info(app: PropanApp) -> AsyncAPIInfo:
     )
 
 
-def _get_broker_servers(broker: BrokerUsecase[Any, Any]) -> Dict[str, AsyncAPIServer]:
+def _get_broker_servers(
+    broker: BrokerAsyncUsecase[Any, Any]
+) -> Dict[str, AsyncAPIServer]:
     if isinstance(broker.url, str):
         url = broker.url
     else:
@@ -127,7 +129,9 @@ def _get_broker_servers(broker: BrokerUsecase[Any, Any]) -> Dict[str, AsyncAPISe
     }
 
 
-def _get_broker_channels(broker: BrokerUsecase[Any, Any]) -> Dict[str, AsyncAPIChannel]:
+def _get_broker_channels(
+    broker: BrokerAsyncUsecase[Any, Any]
+) -> Dict[str, AsyncAPIChannel]:
     channels = {}
     for handler in broker.handlers:
         channels.update(handler.get_schema())

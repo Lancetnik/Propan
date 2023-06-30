@@ -3,6 +3,7 @@ import logging
 from types import TracebackType
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Dict,
     List,
@@ -19,19 +20,24 @@ from aiobotocore.config import AioConfig
 from fast_depends.dependencies import Depends
 from typing_extensions import TypeAlias
 
-from propan.brokers._model import BrokerUsecase
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model import BrokerAsyncUsecase
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.sqs.schema import Handler, SQSQueue
 from propan.log import access_logger
-from propan.types import AnyDict, DecodedMessage, HandlerWrapper, SendableMessage
+from propan.types import AnyDict, DecodedMessage, SendableMessage
 
 T = TypeVar("T")
 QueueUrl: TypeAlias = str
 SQSMessage: TypeAlias = PropanMessage[AnyDict]
 
-class SQSBroker(BrokerUsecase[AnyDict, AioBaseClient]):
+class SQSBroker(BrokerAsyncUsecase[AnyDict, AioBaseClient]):
     _queues: Dict[str, QueueUrl]
     response_queue: str
     response_callbacks: Dict[str, "asyncio.Future[DecodedMessage]"]
@@ -56,8 +62,8 @@ class SQSBroker(BrokerUsecase[AnyDict, AioBaseClient]):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         protocol: str = "sqs",
     ) -> None:
         """"""
@@ -111,10 +117,13 @@ class SQSBroker(BrokerUsecase[AnyDict, AioBaseClient]):
         visibility_timeout: int = 0,
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[AnyDict] = None,
-        parse_message: CustomParser[AnyDict] = None,
+        decode_message: AsyncDecoder[AnyDict] = None,
+        parse_message: AsyncParser[AnyDict] = None,
         description: str = "",
-    ) -> HandlerWrapper:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]],
+    ]:
         """"""
     async def start(self) -> None:
         """"""

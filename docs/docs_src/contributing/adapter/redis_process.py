@@ -1,13 +1,13 @@
 from functools import wraps
 from typing import Optional, TypeVar, Callable
 
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 
 T = TypeVar("T")
 
-class RedisProcess(BrokerUsecase):
+class RedisProcess(BrokerAsyncUsecase):
     ...
     def _process_message(
             self,

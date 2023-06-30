@@ -24,26 +24,23 @@ from redis.asyncio.connection import ConnectionPool, parse_url
 from typing_extensions import TypeAlias
 
 from propan._compat import model_parse, model_to_json
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.broker_usecase import (
+    BrokerAsyncUsecase,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.schemas import PropanMessage, RawDecoced
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.redis.schemas import Handler
 from propan.brokers.redis.schemas import RedisMessage as RM
-from propan.types import (
-    AnyCallable,
-    AnyDict,
-    DecodedMessage,
-    DecoratedCallable,
-    HandlerWrapper,
-    SendableMessage,
-)
+from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils import context
 
 T = TypeVar("T")
 RedisMessage: TypeAlias = PropanMessage[AnyDict]
 
 
-class RedisBroker(BrokerUsecase):
+class RedisBroker(BrokerAsyncUsecase):
     handlers: List[Handler]
     _connection: Redis
     __max_channel_len: int
@@ -124,12 +121,17 @@ class RedisBroker(BrokerUsecase):
         dependencies: Sequence[Depends] = (),
         description: str = "",
         **original_kwargs: AnyDict,
-    ) -> HandlerWrapper:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]],
+    ]:
         super().handle()
 
         self.__max_channel_len = max(self.__max_channel_len, len(channel))
 
-        def wrapper(func: AnyCallable) -> DecoratedCallable:
+        def wrapper(
+            func: HandlerCallable[T_HandlerReturn],
+        ) -> Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]]:
             func, dependant = self._wrap_handler(
                 func,
                 channel=channel,

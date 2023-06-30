@@ -1,4 +1,4 @@
-class RabbitBroker(BrokerUsecase):
+class RabbitBroker(BrokerAsyncUsecase):
     ...
     async def start(self) -> None:
         await super().start()

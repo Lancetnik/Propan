@@ -24,7 +24,11 @@ from fast_depends.dependencies import Depends
 from typing_extensions import TypeAlias
 
 from propan._compat import model_to_dict
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model.broker_usecase import (
+    BrokerAsyncUsecase,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.exceptions import SkipMessage
 from propan.brokers.push_back_watcher import (
@@ -35,14 +39,7 @@ from propan.brokers.push_back_watcher import (
 from propan.brokers.sqs.schema import Handler
 from propan.brokers.sqs.schema import SQSMessage as SM
 from propan.brokers.sqs.schema import SQSQueue
-from propan.types import (
-    AnyCallable,
-    AnyDict,
-    DecodedMessage,
-    DecoratedCallable,
-    HandlerWrapper,
-    SendableMessage,
-)
+from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils import context
 
 T = TypeVar("T")
@@ -51,7 +48,7 @@ CorrelationId: TypeAlias = str
 SQSMessage: TypeAlias = PropanMessage[AnyDict]
 
 
-class SQSBroker(BrokerUsecase):
+class SQSBroker(BrokerAsyncUsecase):
     _connection: AioBaseClient
     _queues: Dict[str, QueueUrl]
     __max_queue_len: int
@@ -169,7 +166,10 @@ class SQSBroker(BrokerUsecase):
         dependencies: Sequence[Depends] = (),
         description: str = "",
         **original_kwargs: AnyDict,
-    ) -> HandlerWrapper:
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[Any, bool], Awaitable[T_HandlerReturn]],
+    ]:
         super().handle()
 
         if isinstance(queue, str):
@@ -192,7 +192,7 @@ class SQSBroker(BrokerUsecase):
         if request_attempt_id is not None:
             params["ReceiveRequestAttemptId"] = request_attempt_id
 
-        def wrapper(func: AnyCallable) -> DecoratedCallable:
+        def wrapper(func: HandlerCallable) -> HandlerCallable:
             func, dependant = self._wrap_handler(
                 func,
                 queue=queue.name,

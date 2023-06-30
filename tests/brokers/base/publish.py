@@ -7,7 +7,7 @@ import pytest
 from pydantic import BaseModel
 
 from propan.annotations import Logger
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 
 
 class SimpleModel(BaseModel):
@@ -36,7 +36,7 @@ class BrokerPublishTestcase:
     )
     async def test_serialize(
         self,
-        full_broker: BrokerUsecase,
+        full_broker: BrokerAsyncUsecase,
         mock: Mock,
         queue: str,
         message,
@@ -61,7 +61,9 @@ class BrokerPublishTestcase:
         mock.assert_called_with(expected_message)
 
     @pytest.mark.asyncio
-    async def test_unwrap(self, mock: Mock, queue: str, full_broker: BrokerUsecase):
+    async def test_unwrap(
+        self, mock: Mock, queue: str, full_broker: BrokerAsyncUsecase
+    ):
         consume = Event()
         mock.side_effect = lambda *_: consume.set()
 

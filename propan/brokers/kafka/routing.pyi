@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, Sequence, Union
+from typing import Any, Awaitable, Callable, Optional, Sequence, Union
 
 from aiokafka.structs import ConsumerRecord
 from fast_depends.dependencies import Depends
@@ -6,11 +6,15 @@ from kafka.coordinator.assignors.abstract import AbstractPartitionAssignor
 from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from typing_extensions import Literal
 
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.routing import BrokerRouter
-from propan.types import HandlerWrapper
 
-class KafkaRouter(BrokerRouter):
+class KafkaRouter(BrokerRouter[ConsumerRecord]):
     def handle(  # type: ignore[override]
         self,
         *topics: str,
@@ -45,7 +49,10 @@ class KafkaRouter(BrokerRouter):
         ] = "read_uncommitted",
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[ConsumerRecord] = None,
-        parse_message: CustomParser[ConsumerRecord] = None,
+        decode_message: AsyncDecoder[ConsumerRecord] = None,
+        parse_message: AsyncParser[ConsumerRecord] = None,
         description: str = "",
-    ) -> HandlerWrapper: ...
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[ConsumerRecord, bool], Awaitable[T_HandlerReturn]],
+    ]: ...

@@ -1,13 +1,17 @@
-from typing import Sequence, Union
+from typing import Awaitable, Callable, Sequence, Union
 
 from fast_depends.dependencies import Depends
 from nats.aio.msg import Msg
 
-from propan.brokers._model.broker_usecase import CustomDecoder, CustomParser
+from propan.brokers._model.broker_usecase import (
+    AsyncDecoder,
+    AsyncParser,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.routing import BrokerRouter
-from propan.types import HandlerWrapper
 
-class NatsRouter(BrokerRouter):
+class NatsRouter(BrokerRouter[Msg]):
     def handle(  # type: ignore[override]
         self,
         subject: str,
@@ -15,7 +19,10 @@ class NatsRouter(BrokerRouter):
         *,
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[Msg] = None,
-        parse_message: CustomParser[Msg] = None,
+        decode_message: AsyncDecoder[Msg] = None,
+        parse_message: AsyncParser[Msg] = None,
         description: str = "",
-    ) -> HandlerWrapper: ...
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[Msg, bool], Awaitable[T_HandlerReturn]],
+    ]: ...

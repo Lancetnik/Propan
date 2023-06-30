@@ -11,6 +11,7 @@ from propan.cli import cli
 def broker():
     # separate import from e2e tests
     from propan.brokers.rabbit import RabbitBroker
+
     yield RabbitBroker()
 
 

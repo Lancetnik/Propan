@@ -26,18 +26,17 @@ from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from typing_extensions import Literal, TypeAlias, TypeVar
 
 from propan.__about__ import __version__
-from propan.brokers._model.broker_usecase import BrokerUsecase
+from propan.brokers._model.broker_usecase import BrokerAsyncUsecase
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.exceptions import SkipMessage
 from propan.brokers.kafka.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.types import (
-    AnyCallable,
     AnyDict,
     DecodedMessage,
-    DecoratedCallable,
+    HandlerCallable,
+    HandlerWrapper,
     SendableMessage,
-    Wrapper,
 )
 from propan.utils.context import context
 
@@ -47,7 +46,7 @@ KafkaMessage: TypeAlias = PropanMessage[ConsumerRecord]
 
 
 class KafkaBroker(
-    BrokerUsecase[ConsumerRecord, Callable[[Tuple[str, ...]], AIOKafkaConsumer]]
+    BrokerAsyncUsecase[ConsumerRecord, Callable[[Tuple[str, ...]], AIOKafkaConsumer]]
 ):
     _publisher: Optional[AIOKafkaProducer]
     __max_topic_len: int
@@ -174,10 +173,10 @@ class KafkaBroker(
         dependencies: Sequence[Depends] = (),
         description: str = "",
         **original_kwargs: AnyDict,
-    ) -> Wrapper:
+    ) -> HandlerWrapper:
         super().handle()
 
-        def wrapper(func: AnyCallable) -> DecoratedCallable:
+        def wrapper(func: HandlerCallable) -> HandlerCallable:
             for t in topics:
                 self.__max_topic_len = max((self.__max_topic_len, len(t)))
 

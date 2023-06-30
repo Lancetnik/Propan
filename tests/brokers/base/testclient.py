@@ -5,7 +5,7 @@ import anyio
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 from propan.types import AnyCallable
 
 
@@ -37,7 +37,7 @@ class BrokerTestclientTestcase:
     )
     async def test_serialize(
         self,
-        test_broker: BrokerUsecase,
+        test_broker: BrokerAsyncUsecase,
         queue: str,
         message,
         message_type,
@@ -55,7 +55,7 @@ class BrokerTestclientTestcase:
         assert r == expected_message
 
     @pytest.mark.asyncio
-    async def test_handler_calling(self, queue: str, test_broker: BrokerUsecase):
+    async def test_handler_calling(self, queue: str, test_broker: BrokerAsyncUsecase):
         @test_broker.handle(queue)
         async def handler(m: dict):
             return m
@@ -73,7 +73,9 @@ class BrokerTestclientTestcase:
             await handler(wrong_msg, reraise_exc=True)
 
     @pytest.mark.asyncio
-    async def test_rpc_timeout_raises(self, queue: str, test_broker: BrokerUsecase):
+    async def test_rpc_timeout_raises(
+        self, queue: str, test_broker: BrokerAsyncUsecase
+    ):
         @test_broker.handle(queue)
         async def m():  # pragma: no cover
             await anyio.sleep(1)
@@ -88,7 +90,7 @@ class BrokerTestclientTestcase:
             )
 
     @pytest.mark.asyncio
-    async def test_rpc_timeout(self, queue: str, test_broker: BrokerUsecase):
+    async def test_rpc_timeout(self, queue: str, test_broker: BrokerAsyncUsecase):
         @test_broker.handle(queue)
         async def m():  # pragma: no cover
             await anyio.sleep(1)

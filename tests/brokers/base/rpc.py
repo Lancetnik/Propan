@@ -4,12 +4,12 @@ from unittest.mock import Mock
 import anyio
 import pytest
 
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 
 
 class BrokerRPCTestcase:
     @pytest.mark.asyncio
-    async def test_rpc(self, queue: str, full_broker: BrokerUsecase):
+    async def test_rpc(self, queue: str, full_broker: BrokerAsyncUsecase):
         @full_broker.handle(queue)
         async def m():  # pragma: no cover
             return "1"
@@ -23,7 +23,9 @@ class BrokerRPCTestcase:
             assert r == "1"
 
     @pytest.mark.asyncio
-    async def test_rpc_timeout_raises(self, queue: str, full_broker: BrokerUsecase):
+    async def test_rpc_timeout_raises(
+        self, queue: str, full_broker: BrokerAsyncUsecase
+    ):
         @full_broker.handle(queue)
         async def m():  # pragma: no cover
             await anyio.sleep(1)
@@ -41,7 +43,7 @@ class BrokerRPCTestcase:
                 )
 
     @pytest.mark.asyncio
-    async def test_rpc_timeout_none(self, queue: str, full_broker: BrokerUsecase):
+    async def test_rpc_timeout_none(self, queue: str, full_broker: BrokerAsyncUsecase):
         @full_broker.handle(queue)
         async def m():  # pragma: no cover
             await anyio.sleep(1)
@@ -60,7 +62,7 @@ class BrokerRPCTestcase:
 
     @pytest.mark.asyncio
     async def test_rpc_with_reply(
-        self, queue: str, mock: Mock, full_broker: BrokerUsecase
+        self, queue: str, mock: Mock, full_broker: BrokerAsyncUsecase
     ):
         consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
@@ -85,7 +87,7 @@ class BrokerRPCTestcase:
 
 class ReplyAndConsumeForbidden:
     @pytest.mark.asyncio
-    async def test_rpc_with_reply_and_callback(self, full_broker: BrokerUsecase):
+    async def test_rpc_with_reply_and_callback(self, full_broker: BrokerAsyncUsecase):
         async with full_broker:
             with pytest.raises(ValueError):
                 await full_broker.publish(

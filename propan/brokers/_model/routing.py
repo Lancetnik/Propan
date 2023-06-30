@@ -1,12 +1,20 @@
-from typing import Any, List
+from typing import Any, Callable, Generic, List
 
-from propan.types import AnyDict, HandlerCallable, HandlerWrapper
+from typing_extensions import ParamSpec, TypeVar
+
+from propan.types import AnyDict, SendableMessage
+
+P_RouteCall = ParamSpec("P_RouteCall")
+T_RouteReturn = TypeVar("T_RouteReturn", bound=SendableMessage)
+MsgType = TypeVar("MsgType")
 
 
-class BrokerRoute:
+class BrokerRoute(Generic[MsgType, T_RouteReturn]):
+    call: Callable[P_RouteCall, T_RouteReturn]
+
     def __init__(
         self,
-        call: HandlerCallable,
+        call: Callable[P_RouteCall, T_RouteReturn],
         *,
         args: Any,
         kwargs: AnyDict,
@@ -15,10 +23,13 @@ class BrokerRoute:
         self.args = args
         self.kwargs = kwargs
 
+    def __call__(self, msg: MsgType, reraise_exc: bool = False) -> T_RouteReturn:
+        return self.call(msg, reraise_exc)
 
-class BrokerRouter:
+
+class BrokerRouter(Generic[MsgType]):
     prefix: str
-    handlers: List[BrokerRoute]
+    handlers: List[BrokerRoute[MsgType, Any]]
 
     def __init__(
         self,
@@ -32,14 +43,19 @@ class BrokerRouter:
         subj: str,
         *args: Any,
         **kwargs: AnyDict,
-    ) -> HandlerWrapper:
-        def router_hanle_wrapper(func: HandlerCallable) -> HandlerCallable:
+    ) -> Callable[
+        [Callable[P_RouteCall, T_RouteReturn]],
+        Callable[[MsgType, bool], T_RouteReturn],
+    ]:
+        def router_hanle_wrapper(
+            func: Callable[P_RouteCall, T_RouteReturn]
+        ) -> BrokerRoute[MsgType, T_RouteReturn]:
             router = BrokerRoute(
                 call=func,
                 args=(self.prefix + subj, *args),
                 kwargs=kwargs,
             )
             self.handlers.append(router)
-            return func
+            return router
 
         return router_hanle_wrapper

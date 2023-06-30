@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from propan.brokers._model import BrokerUsecase
+from propan.brokers._model import BrokerAsyncUsecase
 
 
 class BrokerConsumeTestcase:
@@ -12,7 +12,7 @@ class BrokerConsumeTestcase:
         self,
         mock: Mock,
         queue: str,
-        broker: BrokerUsecase,
+        broker: BrokerAsyncUsecase,
     ):
         consume = Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
@@ -30,7 +30,7 @@ class BrokerConsumeTestcase:
         self,
         mock: Mock,
         queue: str,
-        broker: BrokerUsecase,
+        broker: BrokerAsyncUsecase,
     ):
         consume = Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
@@ -53,7 +53,7 @@ class BrokerConsumeTestcase:
         self,
         mock: Mock,
         queue: str,
-        broker: BrokerUsecase,
+        broker: BrokerAsyncUsecase,
     ):
         first_consume = Event()
         second_consume = Event()
