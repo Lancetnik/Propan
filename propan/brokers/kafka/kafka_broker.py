@@ -28,18 +28,14 @@ from typing_extensions import Literal, TypeAlias, TypeVar
 from propan.__about__ import __version__
 from propan.brokers._model.broker_usecase import (
     BrokerAsyncUsecase,
-    T_HandlerReturn,
     HandlerCallable,
+    T_HandlerReturn,
 )
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.exceptions import SkipMessage
 from propan.brokers.kafka.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
-from propan.types import (
-    AnyDict,
-    DecodedMessage,
-    SendableMessage,
-)
+from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils.context import context
 
 T = TypeVar("T")

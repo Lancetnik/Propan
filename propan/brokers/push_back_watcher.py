@@ -2,12 +2,17 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from logging import Logger
 from types import TracebackType
-from typing import Callable, Optional, Type
+from typing import Awaitable, Callable, Optional, Type, Union
 
 from typing_extensions import Counter as CounterType
+from typing_extensions import TypeVar
 
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.exceptions import SkipMessage
+from propan.types import AnyDict
 from propan.utils.functions import call_or_await
+
+Msg = TypeVar("Msg")
 
 
 class BaseWatcher(ABC):
@@ -88,19 +93,27 @@ class WatcherContext:
     def __init__(
         self,
         watcher: BaseWatcher,
-        message_id: str,
-        on_success: Callable[[], None] = lambda: None,
-        on_max: Callable[[], None] = lambda: None,
-        on_error: Callable[[], None] = lambda: None,
+        message: PropanMessage[Msg],
+        on_success: Callable[
+            [PropanMessage[Msg]], Union[None, Awaitable[None]]
+        ] = lambda msg: None,
+        on_max: Callable[
+            [PropanMessage[Msg]], Union[None, Awaitable[None]]
+        ] = lambda msg: None,
+        on_error: Callable[
+            [PropanMessage[Msg]], Union[None, Awaitable[None]]
+        ] = lambda msg: None,
+        **extra_args: AnyDict,
     ):
         self.watcher = watcher
         self.on_success = on_success
         self.on_max = on_max
         self.on_error = on_error
-        self._message_id = message_id
+        self.message = message
+        self.extra_args = extra_args or {}
 
     async def __aenter__(self) -> None:
-        self.watcher.add(self._message_id)
+        self.watcher.add(self.message.message_id)
 
     async def __aexit__(
         self,
@@ -109,15 +122,15 @@ class WatcherContext:
         exc_tb: Optional[TracebackType],
     ) -> None:
         if not exc_type:
-            await call_or_await(self.on_success)
-            self.watcher.remove(self._message_id)
+            await call_or_await(self.on_success, self.message, **self.extra_args)
+            self.watcher.remove(self.message.message_id)
 
         elif isinstance(exc_val, SkipMessage):
-            self.watcher.remove(self._message_id)
+            self.watcher.remove(self.message.message_id)
 
-        elif self.watcher.is_max(self._message_id):
-            await call_or_await(self.on_max)
-            self.watcher.remove(self._message_id)
+        elif self.watcher.is_max(self.message.message_id):
+            await call_or_await(self.on_max, self.message, **self.extra_args)
+            self.watcher.remove(self.message.message_id)
 
         else:
-            await call_or_await(self.on_error)
+            await call_or_await(self.on_error, self.message, **self.extra_args)

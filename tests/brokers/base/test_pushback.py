@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import pytest
 
 from propan.brokers.exceptions import SkipMessage
@@ -9,19 +11,23 @@ from propan.brokers.push_back_watcher import (
 from tests.tools.marks import needs_py38
 
 
+@pytest.fixture
+def message():
+    return MagicMock(message_id=1)
+
+
 @pytest.mark.asyncio
 @needs_py38
-async def test_push_back_correct(async_mock):
-    async def call_success():
+async def test_push_back_correct(async_mock, message):
+    async def call_success(m):
+        assert m.message_id == 1
         await async_mock.on_success()
-
-    message_id = 1
 
     watcher = PushBackWatcher(3)
 
     context = WatcherContext(
         watcher,
-        message_id,
+        message,
         on_success=call_success,
         on_error=async_mock.on_error,
         on_max=async_mock.on_max,
@@ -31,22 +37,21 @@ async def test_push_back_correct(async_mock):
         await async_mock()
 
     async_mock.on_success.assert_awaited_once()
-    assert not watcher.memory.get(message_id)
+    assert not watcher.memory.get(message.message_id)
 
 
 @pytest.mark.asyncio
 @needs_py38
-async def test_push_back_endless_correct(async_mock):
-    async def call_success():
+async def test_push_back_endless_correct(async_mock, message):
+    async def call_success(m):
+        assert m.message_id == 1
         await async_mock.on_success()
-
-    message_id = 1
 
     watcher = FakePushBackWatcher()
 
     context = WatcherContext(
         watcher,
-        message_id,
+        message,
         on_success=call_success,
         on_error=async_mock.on_error,
         on_max=async_mock.on_max,
@@ -60,18 +65,20 @@ async def test_push_back_endless_correct(async_mock):
 
 @pytest.mark.asyncio
 @needs_py38
-async def test_push_back_watcher(async_mock):
-    async def call_error():
+async def test_push_back_watcher(async_mock, message):
+    async def call_error(m):
+        assert m.message_id == 1
         await async_mock.on_error()
 
-    async def call_max():
+    async def call_max(m):
+        assert m.message_id == 1
         await async_mock.on_max()
 
     watcher = PushBackWatcher(3)
 
     context = WatcherContext(
         watcher,
-        1,
+        message,
         on_success=async_mock.on_success,
         on_error=call_error,
         on_max=call_max,
@@ -91,15 +98,16 @@ async def test_push_back_watcher(async_mock):
 
 @pytest.mark.asyncio
 @needs_py38
-async def test_push_endless_back_watcher(async_mock):
-    async def call_error():
+async def test_push_endless_back_watcher(async_mock, message):
+    async def call_error(m):
+        assert m.message_id == 1
         await async_mock.on_error()
 
     watcher = FakePushBackWatcher()
 
     context = WatcherContext(
         watcher,
-        1,
+        message,
         on_success=async_mock.on_success,
         on_error=call_error,
         on_max=async_mock.on_max,
@@ -119,12 +127,12 @@ async def test_push_endless_back_watcher(async_mock):
 
 @pytest.mark.asyncio
 @needs_py38
-async def test_ignore_skip(async_mock):
+async def test_ignore_skip(async_mock, message):
     watcher = PushBackWatcher(3)
 
     context = WatcherContext(
         watcher,
-        1,
+        message,
         on_success=async_mock.on_success,
         on_error=async_mock.on_error,
         on_max=async_mock.on_max,

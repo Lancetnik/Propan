@@ -28,13 +28,15 @@ from yarl import URL
 from propan._compat import model_to_dict
 from propan.brokers._model.broker_usecase import (
     BrokerAsyncUsecase,
-    T_HandlerReturn,
     HandlerCallable,
+    T_HandlerReturn,
 )
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.exceptions import WRONG_PUBLISH_ARGS
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
+from propan.brokers.rabbit.logging import RabbitLoggingMixin
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
+from propan.brokers.rabbit.utils import validate_exchange, validate_queue
 from propan.types import AnyDict, SendableMessage
 from propan.utils import context
 
@@ -47,16 +49,14 @@ RABBIT_REPLY = "amq.rabbitmq.reply-to"
 
 
 class RabbitBroker(
-    BrokerAsyncUsecase[aio_pika.message.IncomingMessage, aio_pika.RobustConnection]
+    RabbitLoggingMixin,
+    BrokerAsyncUsecase[aio_pika.message.IncomingMessage, aio_pika.RobustConnection],
 ):
     handlers: List[Handler]
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
     _queues: Dict[RabbitQueue, aio_pika.RobustQueue]
     _exchanges: Dict[RabbitExchange, aio_pika.RobustExchange]
-
-    __max_queue_len: int
-    __max_exchange_len: int
     _rpc_lock: anyio.Lock
 
     def __init__(
@@ -82,8 +82,8 @@ class RabbitBroker(
         self._channel = None
         self._rpc_lock = anyio.Lock()
 
-        self.__max_queue_len = 4
-        self.__max_exchange_len = 4
+        self._max_queue_len = 4
+        self._max_exchange_len = 4
         self._queues = {}
         self._exchanges = {}
 
@@ -136,9 +136,9 @@ class RabbitBroker(
     ]:
         super().handle()
 
-        queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
+        queue, exchange = validate_queue(queue), validate_exchange(exchange)
 
-        self.__setup_log_context(queue, exchange)
+        self._setup_log_context(queue, exchange)
 
         def wrapper(
             func: HandlerCallable[T_HandlerReturn],
@@ -203,7 +203,7 @@ class RabbitBroker(
         if self._channel is None:
             raise ValueError("RabbitBroker channel not started yet")
 
-        queue, exchange = _validate_queue(queue), _validate_exchange(exchange)
+        queue, exchange = validate_queue(queue), validate_exchange(exchange)
 
         if callback is True:
             if reply_to is not None:
@@ -296,29 +296,6 @@ class RabbitBroker(
 
         return exch
 
-    def _get_log_context(
-        self,
-        message: Optional[RabbitMessage],
-        queue: RabbitQueue,
-        exchange: Optional[RabbitExchange] = None,
-    ) -> Dict[str, Any]:
-        context = {
-            "queue": queue.name,
-            "exchange": exchange.name if exchange else "default",
-            **super()._get_log_context(message),
-        }
-        return context
-
-    @property
-    def fmt(self) -> str:
-        return super().fmt or (
-            "%(asctime)s %(levelname)s - "
-            f"%(exchange)-{self.__max_exchange_len}s | "
-            f"%(queue)-{self.__max_queue_len}s | "
-            f"%(message_id)-10s "
-            "- %(message)s"
-        )
-
     @staticmethod
     async def _parse_message(
         message: aio_pika.message.IncomingMessage,
@@ -345,10 +322,10 @@ class RabbitBroker(
             else:
                 context = WatcherContext(
                     watcher,
-                    message.message_id,
-                    on_success=pika_message.ack,
-                    on_error=pika_message.nack,
-                    on_max=pika_message.reject,
+                    message,
+                    on_success=ack,
+                    on_error=nack,
+                    on_max=reject,
                 )
 
             async with context:
@@ -393,46 +370,9 @@ class RabbitBroker(
 
         return message
 
-    def __setup_log_context(
-        self,
-        queue: Optional[RabbitQueue] = None,
-        exchange: Optional[RabbitExchange] = None,
-    ) -> None:
-        if exchange is not None:
-            self.__max_exchange_len = max(self.__max_exchange_len, len(exchange.name))
-
-        if queue is not None:  # pragma: no branch
-            self.__max_queue_len = max(self.__max_queue_len, len(queue.name))
-
     @property
     def channel(self) -> aio_pika.RobustChannel:
         return self._channel
-
-
-def _validate_exchange(
-    exchange: Union[str, RabbitExchange, None] = None,
-) -> Optional[RabbitExchange]:
-    if exchange is not None:  # pragma: no branch
-        if isinstance(exchange, str):
-            exchange = RabbitExchange(name=exchange)
-        elif not isinstance(exchange, RabbitExchange):
-            raise ValueError(
-                f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance"
-            )
-    return exchange
-
-
-def _validate_queue(
-    queue: Union[str, RabbitQueue, None] = None
-) -> Optional[RabbitQueue]:
-    if queue is not None:  # pragma: no branch
-        if isinstance(queue, str):
-            queue = RabbitQueue(name=queue)
-        elif not isinstance(queue, RabbitQueue):
-            raise ValueError(
-                f"Queue '{queue}' should be 'str' | 'RabbitQueue' instance"
-            )
-    return queue
 
 
 class RPCCallback:
@@ -470,3 +410,33 @@ class RPCCallback:
 @asynccontextmanager
 async def fake_context(reply_to: str) -> Tuple[str, None]:
     yield reply_to, None
+
+
+async def ack(message: RabbitMessage) -> None:
+    pika_message = message.raw_message
+    if (
+        pika_message._IncomingMessage__processed
+        or pika_message._IncomingMessage__no_ack
+    ):
+        return
+    await pika_message.ack()
+
+
+async def nack(message: RabbitMessage) -> None:
+    pika_message = message.raw_message
+    if (
+        pika_message._IncomingMessage__processed
+        or pika_message._IncomingMessage__no_ack
+    ):
+        return
+    await pika_message.nack()
+
+
+async def reject(message: RabbitMessage) -> None:
+    pika_message = message.raw_message
+    if (
+        pika_message._IncomingMessage__processed
+        or pika_message._IncomingMessage__no_ack
+    ):
+        return
+    await pika_message.reject()

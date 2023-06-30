@@ -48,7 +48,7 @@ CorrelationId: TypeAlias = str
 SQSMessage: TypeAlias = PropanMessage[AnyDict]
 
 
-class SQSBroker(BrokerAsyncUsecase):
+class SQSBroker(BrokerAsyncUsecase[AnyDict, AioBaseClient]):
     _connection: AioBaseClient
     _queues: Dict[str, QueueUrl]
     __max_queue_len: int
@@ -132,9 +132,10 @@ class SQSBroker(BrokerAsyncUsecase):
         async def process_wrapper(message: SQSMessage) -> T:
             context = WatcherContext(
                 watcher,
-                message.message_id,
-                on_success=self.delete_message,
-                on_max=self.delete_message,
+                message,
+                on_success=delete_message,
+                on_max=delete_message,
+                connection=self._connection,
             )
 
             async with context:
@@ -334,13 +335,6 @@ class SQSBroker(BrokerAsyncUsecase):
             self._queues[queue] = url
         return url
 
-    async def delete_message(self) -> None:
-        message = context.get_local("message")
-        await self._connection.delete_message(
-            QueueUrl=context.get_local("queue_url"),
-            ReceiptHandle=message.get("ReceiptHandle", ""),
-        )
-
     async def _consume(self, queue_url: str, handler: Handler) -> NoReturn:
         c = self._get_log_context(None, handler.queue.name)
 
@@ -410,3 +404,13 @@ class SQSBroker(BrokerAsyncUsecase):
             **super()._get_log_context(message),
         }
         return context
+
+
+async def delete_message(
+    message: SQSMessage, connection: Optional[AioBaseClient]
+) -> None:
+    if connection:
+        await connection.delete_message(
+            QueueUrl=context.get_local("queue_url"),
+            ReceiptHandle=message.raw_message.get("ReceiptHandle", ""),
+        )

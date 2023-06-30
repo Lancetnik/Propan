@@ -29,14 +29,13 @@ from typing_extensions import Self, TypeAlias, TypeVar
 from propan.brokers._model.routing import BrokerRouter
 from propan.brokers._model.schemas import BaseHandler, PropanMessage
 from propan.brokers._model.utils import (
-    ContentType,
-    ContentTypes,
     change_logger_handlers,
     get_watcher,
     set_message_context,
     suppress_decor,
     to_send,
 )
+from propan.brokers.constants import ContentType, ContentTypes
 from propan.brokers.exceptions import SkipMessage
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger

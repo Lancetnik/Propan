@@ -27,16 +27,16 @@ from nats.aio.subscription import (
 )
 from typing_extensions import TypeAlias
 
-from propan.brokers._model.broker_usecase import BrokerAsyncUsecase, HandlerCallable, T_HandlerReturn
+from propan.brokers._model.broker_usecase import (
+    BrokerAsyncUsecase,
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.exceptions import WRONG_PUBLISH_ARGS
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
-from propan.types import (
-    AnyDict,
-    DecodedMessage,
-    SendableMessage,
-)
+from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils import context
 
 T = TypeVar("T")
@@ -103,7 +103,9 @@ class NatsBroker(BrokerAsyncUsecase[Msg, Client]):
         self._max_subject_len = max((self._max_subject_len, len(subject)))
         self._max_queue_len = max((self._max_queue_len, len(queue)))
 
-        def wrapper(func: HandlerCallable[T_HandlerReturn]) -> Callable[[Msg, bool], Awaitable[T_HandlerReturn]]:
+        def wrapper(
+            func: HandlerCallable[T_HandlerReturn],
+        ) -> Callable[[Msg, bool], Awaitable[T_HandlerReturn]]:
             func, dependant = self._wrap_handler(
                 func,
                 queue=queue,
