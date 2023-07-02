@@ -11,9 +11,9 @@ except ImportError:
     RabbitBroker = RabbitRouter = about.INSTALL_RABBIT  # type: ignore
 
 try:
-    from propan.brokers.nats import NatsBroker, NatsRouter
+    from propan.brokers.nats import NatsBroker, NatsJSBroker, NatsRouter
 except ImportError:
-    NatsBroker = NatsRouter = about.INSTALL_NATS  # type: ignore
+    NatsJSBroker = NatsBroker = NatsRouter = about.INSTALL_NATS  # type: ignore
 
 try:
     from propan.brokers.redis import RedisBroker, RedisRouter
@@ -52,6 +52,7 @@ __all__ = (  # noqa: F405
     "PropanMessage",
     ## nats
     "NatsBroker",
+    "NatsJSBroker",
     "NatsRouter",
     ## rabbit
     "RabbitBroker",

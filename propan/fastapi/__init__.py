@@ -16,9 +16,9 @@ except ImportError:
     KafkaRouter = about.INSTALL_KAFKA  # type: ignore
 
 try:
-    from propan.fastapi.nats import NatsRouter
+    from propan.fastapi.nats import NatsJSRouter, NatsRouter
 except ImportError:
-    NatsRouter = about.INSTALL_NATS  # type: ignore
+    NatsRouter = NatsJSRouter = about.INSTALL_NATS  # type: ignore
 
 try:
     from propan.fastapi.sqs import SQSRouter
@@ -29,4 +29,11 @@ assert any(
     (RabbitRouter, RedisRouter, KafkaRouter, NatsRouter, SQSRouter)
 ), about.INSTALL_MESSAGE
 
-__all__ = ("RabbitRouter", "RedisRouter", "KafkaRouter", "NatsRouter", "SQSRouter")
+__all__ = (
+    "RabbitRouter",
+    "RedisRouter",
+    "KafkaRouter",
+    "NatsRouter",
+    "SQSRouter",
+    "NatsJSRouter",
+)

@@ -1,6 +1,6 @@
 from aio_pika.message import IncomingMessage
 
-from propan import RabbitBroker
+from propan.brokers.rabbit import RabbitBroker
 from propan.fastapi.core.router import PropanRouter
 
 
