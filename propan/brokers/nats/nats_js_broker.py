@@ -17,8 +17,8 @@ from nats.js.client import (
     JetStreamContext,
 )
 
-from propan.brokers._model.schemas import PropanMessage
 from propan.brokers._model.broker_usecase import HandlerCallable, T_HandlerReturn
+from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.exceptions import WRONG_PUBLISH_ARGS
 from propan.brokers.nats import consts as api
 from propan.brokers.nats.nats_broker import NatsBroker, NatsMessage

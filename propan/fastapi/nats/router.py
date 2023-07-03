@@ -1,4 +1,5 @@
 from nats.aio.msg import Msg
+
 from propan.brokers.nats import NatsBroker, NatsJSBroker
 from propan.fastapi.core.router import PropanRouter
 

@@ -1,7 +1,7 @@
 import logging
 import ssl
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Union, Awaitable
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Type, Union
 
 from fastapi import params
 from fastapi.datastructures import Default
@@ -36,13 +36,12 @@ from propan import NatsBroker, NatsJSBroker
 from propan.brokers._model.broker_usecase import (
     AsyncDecoder,
     AsyncParser,
-    T_HandlerReturn,
     HandlerCallable,
+    T_HandlerReturn,
 )
 from propan.brokers.nats import consts as api
 from propan.fastapi.core.router import PropanRouter
 from propan.log import access_logger
-
 
 class NatsRouter(PropanRouter[NatsBroker]):
     def __init__(

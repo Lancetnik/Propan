@@ -30,8 +30,8 @@ except ImportError:
 
 
 try:
-    from nats.aio.msg import Msg
     from nats.aio.client import Client
+    from nats.aio.msg import Msg
     from nats.js.client import JetStreamContext
 
     from propan.brokers.nats import NatsBroker as NB
@@ -43,7 +43,9 @@ try:
     NatsConnection = Annotated[Client, ContextField("broker._connection")]
     NatsJS = Annotated[JetStreamContext, ContextField("broker._connection")]
 except ImportError:
-    NatsBroker = NatsMessage = NatsJSBroker = NatsJS = NatsConnection = about.INSTALL_NATS
+    NatsBroker = (
+        NatsMessage
+    ) = NatsJSBroker = NatsJS = NatsConnection = about.INSTALL_NATS
 
 
 try:
