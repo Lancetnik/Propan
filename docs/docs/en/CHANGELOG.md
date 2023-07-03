@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2023-07-03 **0.1.5.0** NastJS
+
+This update adds **NATS JetStream**(a persistent layer of **NATS**) supporting.
+
+Now you can work with this great broker without fear of losing messages, using the acknowledgment confirmation mechanism and the built-in `key-value` and `object` storages.
+
+Also, some internal classes were changed to further create synchronous interfaces based on them.
+
 ## 2023-06-26 **0.1.4.0** PydanticV2
 
 The main change in this update is the support for the **PydanticV2** beta version.

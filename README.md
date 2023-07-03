@@ -69,7 +69,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 | **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag:                        |
 | **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
 | **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
-| **NatsJS**        | :hammer_and_wrench: **WIP** :hammer_and_wrench:         | :mag: planning :mag:                        |
+| **NatsJS**        | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
 | **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
@@ -232,7 +232,6 @@ and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 from propan import PropanApp, RabbitBroker, Context, Depends
 
 rabbit_broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
 app = PropanApp(rabbit_broker)
 
 async def dependency(user_id: int) -> bool:
@@ -244,6 +243,27 @@ async def base_handler(user_id: int,
                        broker: RabbitBroker = Context()):
     assert dep is True
     assert broker is rabbit_broker
+```
+
+---
+
+## RPC over MQ
+
+Also, **Propan** allows you to use **RPC** requests over your broker with a simple way:
+
+```python
+from propan import PropanApp, RabbitBroker
+
+broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
+app = PropanApp(rabbit_broker)
+
+@rabbit_broker.handle("ping")
+async def base_handler():
+    return "pong"
+
+@app.after_startup
+async def self_ping():
+    assert (await broker.publish("", "ping")) == "pong"
 ```
 
 ---

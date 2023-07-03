@@ -123,7 +123,7 @@ async def base_handler(body):
 | **Nats**          | :heavy_check_mark: **stable** :heavy_check_mark:        | :mag: planning :mag:                        |
 | **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
 | **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
-| **NatsJS**        | :hammer_and_wrench: **WIP** :hammer_and_wrench:         | :mag: planning :mag:                        |
+| **NatsJS**        | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
 | **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
