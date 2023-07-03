@@ -11,14 +11,22 @@ from propan.cli.startproject.utils import touch_dir, write_file
 
 
 def create_nats(dir: Path) -> Path:
-    project_dir = _create_project_dir(dir)
-    app_dir = _create_app_dir(project_dir / "app")
+    project_dir = _create_project_dir(dir, js=False)
+    app_dir = _create_app_dir(project_dir / "app", js=False)
     _create_config_dir(app_dir / "config")
     _create_apps_dir(app_dir / "apps")
     return project_dir
 
 
-def _create_project_dir(dirname: Path) -> Path:
+def create_nats_js(dir: Path) -> Path:
+    project_dir = _create_project_dir(dir, js=True)
+    app_dir = _create_app_dir(project_dir / "app", js=True)
+    _create_config_dir(app_dir / "config")
+    _create_apps_dir(app_dir / "apps")
+    return project_dir
+
+
+def _create_project_dir(dirname: Path, js: bool) -> Path:
     project_dir = create_project_dir(dirname, "propan[async-nats]")
 
     write_file(
@@ -31,6 +39,7 @@ def _create_project_dir(dirname: Path) -> Path:
         "    ports:",
         "      - 4222:4222",
         "      - 8222:8222  # management",
+        "    command: -js" if js else "",
         "",
         "  app:",
         "    build: .",
@@ -45,9 +54,9 @@ def _create_project_dir(dirname: Path) -> Path:
     return project_dir
 
 
-def _create_app_dir(app: Path) -> Path:
+def _create_app_dir(app: Path, js: bool) -> Path:
     app_dir = touch_dir(app)
-    create_app_file(app_dir, "NatsBroker")
+    create_app_file(app_dir, "NatsJSBroker" if js else "NatsBroker")
     return app_dir
 
 

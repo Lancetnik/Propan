@@ -59,6 +59,13 @@ def nats_async_project(runner: CliRunner) -> Path:
 
 
 @pytest.fixture(scope="session")
+def nats_js_async_project(runner: CliRunner) -> Path:
+    project_name = "nats_js"
+    runner.invoke(cli, ["create", "async", "nats-js", project_name])
+    yield Path.cwd() / Path(project_name)
+
+
+@pytest.fixture(scope="session")
 def kafka_async_project(runner: CliRunner) -> Path:
     project_name = "kafka"
     runner.invoke(cli, ["create", "async", "kafka", project_name])

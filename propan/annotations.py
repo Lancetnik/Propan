@@ -30,14 +30,22 @@ except ImportError:
 
 
 try:
+    from nats.aio.client import Client
     from nats.aio.msg import Msg
+    from nats.js.client import JetStreamContext
 
     from propan.brokers.nats import NatsBroker as NB
+    from propan.brokers.nats import NatsJSBroker as NJB
 
     NatsBroker = Annotated[NB, ContextField("broker")]
+    NatsJSBroker = Annotated[NJB, ContextField("broker")]
     NatsMessage = Annotated[Msg, ContextField("message")]
+    NatsConnection = Annotated[Client, ContextField("broker._connection")]
+    NatsJS = Annotated[JetStreamContext, ContextField("broker._connection")]
 except ImportError:
-    NatsBroker = NatsMessage = about.INSTALL_NATS
+    NatsBroker = (
+        NatsMessage
+    ) = NatsJSBroker = NatsJS = NatsConnection = about.INSTALL_NATS
 
 
 try:
@@ -79,7 +87,7 @@ except ImportError:
 assert any(
     (
         all((RabbitBroker, RabbitMessage, Channel)),
-        all((NatsBroker, NatsMessage)),
+        all((NatsBroker, NatsJSBroker, NatsJS, NatsMessage)),
         all((RedisBroker, Redis)),
         all((KafkaBroker, KafkaMessage, Producer)),
         all((SQSBroker, client, queue_url)),

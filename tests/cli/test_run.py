@@ -100,6 +100,29 @@ def test_run_nats_correct(
     mock.assert_called_once()
 
 
+@pytest.mark.nats
+@pytest.mark.run
+def test_run_nats_js_correct(
+    runner: CliRunner,
+    nats_js_async_project: Path,
+    monkeypatch,
+    mock: Mock,
+):
+    app_path = f"{nats_js_async_project.name}.app.serve:app"
+
+    async def patched_run(self: PropanApp, *args, **kwargs):
+        await self._startup()
+        await self._shutdown()
+        mock()
+
+    with monkeypatch.context() as m:
+        m.setattr(PropanApp, "run", patched_run)
+        r = runner.invoke(cli, ["run", app_path])
+
+    assert r.exit_code == 0
+    mock.assert_called_once()
+
+
 @pytest.mark.sqs
 @pytest.mark.run
 def test_run_sqs_correct(

@@ -159,6 +159,7 @@ nav:
     - Examples:
       - Direct: nats/3_examples/1_direct.md
       - Pattern: nats/3_examples/2_pattern.md
+    - NatsJS: nats/4_nats-js.md
   - Integrations: integrations/1_integrations-index.md
   - FastAPI Plugin: integrations/2_fastapi-plugin.md  
   - Contributing:

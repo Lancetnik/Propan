@@ -1,8 +1,9 @@
 import logging
-from typing import Dict, List, Optional
+from abc import ABC
+from typing import Awaitable, Callable, Dict, List, Optional
 
 import anyio
-from typing_extensions import Protocol
+from typing_extensions import ParamSpec, Protocol, TypeVar
 
 from propan.asyncapi.info import AsyncAPIContact, AsyncAPILicense
 from propan.cli.supervisors.utils import set_exit
@@ -21,13 +22,16 @@ class Runnable(Protocol):
         ...
 
 
-class PropanApp:
-    _on_startup_calling: List[AsyncFunc]
-    _after_startup_calling: List[AsyncFunc]
-    _on_shutdown_calling: List[AsyncFunc]
-    _after_shutdown_calling: List[AsyncFunc]
+P_HookParams = ParamSpec("P_HookParams")
+T_HookReturn = TypeVar("T_HookReturn")
 
-    _stop_event: Optional[anyio.Event]
+
+class ABCApp(ABC):
+    _on_startup_calling: List[AnyCallable]
+    _after_startup_calling: List[AnyCallable]
+    _on_shutdown_calling: List[AnyCallable]
+    _after_shutdown_calling: List[AnyCallable]
+
     license: Optional[AsyncAPILicense]
     contact: Optional[AsyncAPIContact]
 
@@ -51,8 +55,6 @@ class PropanApp:
         self._after_startup_calling = []
         self._on_shutdown_calling = []
         self._after_shutdown_calling = []
-        self._stop_stream = None
-        self._receive_stream = None
         self._command_line_options: Dict[str, SettingField] = {}
 
         self.title = title
@@ -60,24 +62,91 @@ class PropanApp:
         self.description = description
         self.license = license
         self.contact = contact
-        self._stop_event = None
-
-        set_exit(lambda *_: self.__exit())
 
     def set_broker(self, broker: Runnable) -> None:
         self.broker = broker
 
-    def on_startup(self, func: AnyCallable) -> AnyCallable:
-        return _set_async_hook(self._on_startup_calling, func)
+    def on_startup(
+        self, func: Callable[P_HookParams, T_HookReturn]
+    ) -> Callable[P_HookParams, T_HookReturn]:
+        self._on_startup_calling.append(apply_types(func))
+        return func
 
-    def on_shutdown(self, func: AnyCallable) -> AnyCallable:
-        return _set_async_hook(self._on_shutdown_calling, func)
+    def on_shutdown(
+        self, func: Callable[P_HookParams, T_HookReturn]
+    ) -> Callable[P_HookParams, T_HookReturn]:
+        self._on_shutdown_calling.append(apply_types(func))
+        return func
 
-    def after_startup(self, func: AnyCallable) -> AnyCallable:
-        return _set_async_hook(self._after_startup_calling, func)
+    def after_startup(
+        self, func: Callable[P_HookParams, T_HookReturn]
+    ) -> Callable[P_HookParams, T_HookReturn]:
+        self._after_startup_calling.append(apply_types(func))
+        return func
 
-    def after_shutdown(self, func: AnyCallable) -> AnyCallable:
-        return _set_async_hook(self._after_shutdown_calling, func)
+    def after_shutdown(
+        self, func: Callable[P_HookParams, T_HookReturn]
+    ) -> Callable[P_HookParams, T_HookReturn]:
+        self._after_shutdown_calling.append(apply_types(func))
+        return func
+
+    def _log(self, level: int, message: str) -> None:
+        if self.logger is not None:
+            self.logger.log(level, message)
+
+
+class PropanApp(ABCApp):
+    _on_startup_calling: List[AsyncFunc]
+    _after_startup_calling: List[AsyncFunc]
+    _on_shutdown_calling: List[AsyncFunc]
+    _after_shutdown_calling: List[AsyncFunc]
+
+    _stop_event: Optional[anyio.Event]
+
+    def __init__(
+        self,
+        broker: Optional[Runnable] = None,
+        logger: Optional[logging.Logger] = logger,
+        # AsyncAPI args,
+        title: str = "Propan",
+        version: str = "0.1.0",
+        description: str = "",
+        license: Optional[AsyncAPILicense] = None,
+        contact: Optional[AsyncAPIContact] = None,
+    ):
+        super().__init__(
+            broker=broker,
+            logger=logger,
+            title=title,
+            version=version,
+            description=description,
+            license=license,
+            contact=contact,
+        )
+
+        self._stop_event = None
+
+        set_exit(lambda *_: self.__exit())
+
+    def on_startup(
+        self, func: Callable[P_HookParams, T_HookReturn]
+    ) -> Callable[P_HookParams, Awaitable[T_HookReturn]]:
+        return super().on_startup(to_async(func))
+
+    def on_shutdown(
+        self, func: Callable[P_HookParams, Awaitable[T_HookReturn]]
+    ) -> AsyncFunc:
+        return super().on_shutdown(to_async(func))
+
+    def after_startup(
+        self, func: Callable[P_HookParams, Awaitable[T_HookReturn]]
+    ) -> AsyncFunc:
+        return super().after_startup(to_async(func))
+
+    def after_shutdown(
+        self, func: Callable[P_HookParams, Awaitable[T_HookReturn]]
+    ) -> AsyncFunc:
+        return super().after_shutdown(to_async(func))
 
     async def run(self, log_level: int = logging.INFO) -> None:
         self._init_async_cycle()
@@ -101,10 +170,6 @@ class PropanApp:
         self._log(log_level, "Propan app shutting down...")
         await self._shutdown()
         self._log(log_level, "Propan app shut down gracefully.")
-
-    def _log(self, level: int, message: str) -> None:
-        if self.logger is not None:
-            self.logger.log(level, message)
 
     async def _startup(self) -> None:
         for func in self._on_startup_calling:
@@ -132,9 +197,3 @@ class PropanApp:
     def __exit(self) -> None:
         if self._stop_event is not None:  # pragma: no branch
             self._stop_event.set()
-
-
-def _set_async_hook(hooks: List[AsyncFunc], func: AnyCallable) -> AnyCallable:
-    f: AsyncFunc = apply_types(to_async(func))
-    hooks.append(f)
-    return func

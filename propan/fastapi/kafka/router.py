@@ -1,6 +1,6 @@
 from aiokafka.structs import ConsumerRecord
 
-from propan import KafkaBroker
+from propan.brokers.kafka import KafkaBroker
 from propan.fastapi.core.router import PropanRouter
 
 
