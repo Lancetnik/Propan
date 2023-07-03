@@ -293,18 +293,19 @@ class NatsJSBroker(NatsBroker):
         else:
             scope = anyio.move_on_after
 
-        with scope(callback_timeout):
-            await self._connection.publish(
-                subject=subject,
-                payload=payload,
-                headers={
-                    **(headers or {}),
-                    "reply_to": reply_to,
-                    "content-type": content_type or "",
-                },
-                timeout=callback_timeout,
-                stream=self._stream_config.name,
-            )
+        with suppress(nats.errors.TimeoutError):  # py37 compatibility
+            with scope(callback_timeout):
+                await self._connection.publish(
+                    subject=subject,
+                    payload=payload,
+                    headers={
+                        **(headers or {}),
+                        "reply_to": reply_to,
+                        "content-type": content_type or "",
+                    },
+                    timeout=callback_timeout,
+                    stream=self._stream_config.name,
+                )
 
         if reply_to:
             msg: Any = None
