@@ -44,8 +44,7 @@ jobs:
           - 9324:9324
 
       nats:
-        image: nats
-        options: --command -js
+        image: noxecane/nats-js-image
         ports:
           - 4222:4222
 
