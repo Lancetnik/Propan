@@ -1,3 +1,6 @@
-from propan.fastapi.nats.router import NatsRouter
+from propan.fastapi.nats.router import NatsJSRouter, NatsRouter
 
-__all__ = ("NatsRouter",)
+__all__ = (
+    "NatsRouter",
+    "NatsJSRouter",
+)

@@ -1,6 +1,7 @@
 import sys
 from types import MethodType
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
+from uuid import uuid4
 
 from nats.aio.msg import Msg
 
@@ -19,18 +20,35 @@ __all__ = (
 )
 
 
+class PatchedMessage(Msg):
+    async def ack(self) -> None:
+        pass
+
+    async def ack_sync(self, timeout: float = 1) -> None:
+        pass
+
+    async def nak(self, delay: Union[int, float, None] = None) -> None:
+        pass
+
+    async def term(self) -> None:
+        pass
+
+    async def in_progress(self) -> None:
+        pass
+
+
 def build_message(
     message: SendableMessage,
     subject: str,
     *,
     reply_to: str = "",
     headers: Optional[Dict[str, Any]] = None,
-) -> Msg:
+) -> PatchedMessage:
     msg, content_type = NatsBroker._encode_message(message)
-    return Msg(
+    return PatchedMessage(
         _client=None,  # type: ignore
         subject=subject,
-        reply=reply_to,
+        reply=reply_to or str(uuid4()),
         data=msg,
         headers={
             **(headers or {}),
@@ -69,5 +87,6 @@ async def publish(
 def TestNatsBroker(broker: NatsBroker) -> NatsBroker:
     broker.connect = AsyncMock()  # type: ignore
     broker.start = AsyncMock()  # type: ignore
+    broker._raw_connection = AsyncMock()  # type: ignore
     broker.publish = MethodType(publish, broker)  # type: ignore
     return broker
