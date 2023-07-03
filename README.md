@@ -257,7 +257,7 @@ from propan import PropanApp, RabbitBroker
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(rabbit_broker)
 
-@rabbit_broker.handle("ping")
+@broker.handle("ping")
 async def base_handler():
     return "pong"
 
