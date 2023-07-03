@@ -1,6 +1,6 @@
 import sys
 from types import MethodType
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from uuid import uuid4
 
 from nats.aio.msg import Msg
@@ -27,7 +27,7 @@ class PatchedMessage(Msg):
     async def ack_sync(self, timeout: float = 1) -> None:
         pass
 
-    async def nak(self, delay: int | float | None = None) -> None:
+    async def nak(self, delay: Union[int, float, None] = None) -> None:
         pass
 
     async def term(self) -> None:
