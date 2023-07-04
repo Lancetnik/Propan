@@ -1,6 +1,4 @@
-from typing import Optional
-
-import aio_pika
+from typing import Any, Optional
 
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.rabbit.schemas import RabbitExchange, RabbitQueue
@@ -13,7 +11,7 @@ class RabbitLoggingMixin:
 
     def _get_log_context(
         self,
-        message: Optional[PropanMessage[aio_pika.message.IncomingMessage]],
+        message: Optional[PropanMessage[Any]],
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
     ) -> AnyDict:

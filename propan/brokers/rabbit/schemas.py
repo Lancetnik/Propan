@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from enum import Enum, unique
+from typing import Any, Dict, Optional, Union
 
-from aio_pika.abc import ExchangeType, TimeoutType
 from fast_depends.core import CallModel
 from pydantic import Field
+from typing_extensions import TypeAlias
 
 from propan.asyncapi.bindings import (
     AsyncAPIChannelBinding,
@@ -16,12 +17,19 @@ from propan.asyncapi.subscription import AsyncAPISubscription
 from propan.brokers._model.schemas import BaseHandler, NameRequired, Queue
 from propan.types import DecoratedCallable
 
-__all__ = (
-    "RabbitQueue",
-    "RabbitExchange",
-    "Handler",
-    "ExchangeType",
-)
+
+@unique
+class ExchangeType(str, Enum):
+    FANOUT = "fanout"
+    DIRECT = "direct"
+    TOPIC = "topic"
+    HEADERS = "headers"
+    X_DELAYED_MESSAGE = "x-delayed-message"
+    X_CONSISTENT_HASH = "x-consistent-hash"
+    X_MODULUS_HASH = "x-modulus-hash"
+
+
+TimeoutType: TypeAlias = Optional[Union[int, float]]
 
 
 class RabbitQueue(Queue):
@@ -79,7 +87,7 @@ class RabbitQueue(Queue):
 
 
 class RabbitExchange(NameRequired):
-    type: ExchangeType = ExchangeType.DIRECT
+    type: str = ExchangeType.DIRECT.value
     durable: bool = False
     auto_delete: bool = False
     internal: bool = False
@@ -96,7 +104,7 @@ class RabbitExchange(NameRequired):
         return sum(
             (
                 hash(self.name),
-                hash(self.type.value),
+                hash(self.type),
                 int(self.durable),
                 int(self.auto_delete),
             )
@@ -119,7 +127,7 @@ class RabbitExchange(NameRequired):
     ):
         super().__init__(
             name=name,
-            type=type,
+            type=type.value,
             durable=durable,
             auto_delete=auto_delete,
             routing_key=routing_key,
@@ -165,7 +173,10 @@ class Handler(BaseHandler):
                             if (
                                 self.exchange
                                 and self.exchange.type
-                                in (ExchangeType.FANOUT, ExchangeType.HEADERS)
+                                in (
+                                    ExchangeType.FANOUT.value,
+                                    ExchangeType.HEADERS.value,
+                                )
                             )
                             else self.queue.name,
                             replyTo=reply_to,
@@ -187,7 +198,10 @@ class Handler(BaseHandler):
                             if (
                                 self.exchange
                                 and self.exchange.type
-                                in (ExchangeType.FANOUT, ExchangeType.HEADERS)
+                                in (
+                                    ExchangeType.FANOUT.value,
+                                    ExchangeType.HEADERS.value,
+                                )
                             )
                             else amqp.AsyncAPIAmqpQueue(
                                 name=self.queue.name,
@@ -199,7 +213,7 @@ class Handler(BaseHandler):
                                 amqp.AsyncAPIAmqpExchange(type="default")
                                 if self.exchange is None
                                 else amqp.AsyncAPIAmqpExchange(
-                                    type=self.exchange.type.value,  # type: ignore
+                                    type=self.exchange.type,  # type: ignore
                                     name=self.exchange.name,
                                     durable=self.exchange.durable,
                                     autoDelete=self.exchange.auto_delete,
