@@ -124,8 +124,8 @@ async def base_handler(body):
 | **Kafka**         | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
 | **SQS**           | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
 | **NatsJS**        | :warning: **beta** :warning:                            | :mag: planning :mag:                        |
+| **ZeroMQ**        | :hammer_and_wrench: WIP :hammer_and_wrench:             | :mag: planning :mag:                        |
 | **MQTT**          | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **ActiveMQ**      | :mag: planning :mag:                                    | :mag: planning :mag:                        |
-| **ZeroMQ**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
