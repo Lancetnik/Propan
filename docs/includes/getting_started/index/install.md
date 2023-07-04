@@ -71,5 +71,5 @@
     !!! tip
         {{ run_docker }}
         ```bash
-        docker run -d --rm -p 4222:4222 --name test-mq nats
+        docker run -d --rm -p 4222:4222 --name test-mq nats -js
         ```

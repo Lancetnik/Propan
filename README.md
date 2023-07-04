@@ -136,7 +136,6 @@ It is not a bad way, but it can be much easier.
 from propan import PropanApp, RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
 app = PropanApp(broker)
 
 @broker.handle("test_queue")
