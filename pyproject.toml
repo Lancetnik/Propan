@@ -65,6 +65,10 @@ async-rabbit = [
     "aio-pika>=9",
 ]
 
+sync-rabbit = [
+    "aio-pika>=1.3.2",
+]
+
 async-nats = [
     "nats-py>=2,!=2.3.0",
 ]
@@ -103,6 +107,7 @@ testsuite = [
 test = [
     "propan[doc]",
     "propan[async-rabbit]",
+    "propan[sync-rabbit]",
     "propan[async-nats]",
     "propan[async-redis]",
     "propan[async-kafka]",

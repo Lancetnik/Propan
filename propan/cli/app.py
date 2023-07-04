@@ -197,3 +197,45 @@ class PropanApp(ABCApp):
     def __exit(self) -> None:
         if self._stop_event is not None:  # pragma: no branch
             self._stop_event.set()
+
+
+class PropanSyncApp(ABCApp):
+    def run(self, log_level: int = logging.INFO) -> None:
+        set_exit(lambda *_: self._stop(log_level))
+        try:
+            self._start(log_level)
+        finally:
+            self._stop(log_level)
+
+    def _start(self, log_level: int = logging.INFO) -> None:
+        self._log(log_level, "Propan app starting...")
+        self._startup()
+        self._log(log_level, "Propan app started successfully! To exit press CTRL+C")
+
+    def _stop(self, log_level: int = logging.INFO) -> None:
+        self._log(log_level, "Propan app shutting down...")
+        self._shutdown()
+        self._log(log_level, "Propan app shut down gracefully.")
+
+    def _startup(self) -> None:
+        for func in self._on_startup_calling:
+            func(**self._command_line_options)
+
+        if self.broker is not None:
+            self.broker.start()
+
+        for func in self._after_startup_calling:
+            func()
+
+    def _shutdown(self) -> None:
+        for func in self._on_shutdown_calling:
+            func()
+
+        if (
+            self.broker is not None
+            and getattr(self.broker, "_connection", False) is not False
+        ):
+            self.broker.close()
+
+        for func in self._after_shutdown_calling:
+            func()
