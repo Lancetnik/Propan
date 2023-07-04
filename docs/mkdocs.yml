@@ -96,6 +96,9 @@ markdown_extensions:  # do not reorder
   - md_in_html
 
 extra:
+  analytics:
+    provider: google
+    property: G-5WCRLZHPSD
   urls:
     fastapi: https://fastapi.tiangolo.com/ru/
     redis: https://redis.readthedocs.io/en/stable/index.html
