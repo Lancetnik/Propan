@@ -614,6 +614,229 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         return log_wrapper
 
 
+class BrokerSyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
+    _global_parser: SyncParser[MsgType]
+    _global_decoder: SyncDecoder[MsgType]
+
+    @abstractmethod
+    def start(self) -> None:
+        super().start()
+        self.connect()
+
+    @abstractmethod
+    def _connect(self, **kwargs: AnyDict) -> Any:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def close(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
+        super().close()
+
+    @abstractmethod
+    def _process_message(  # type: ignore[override]
+        self,
+        func: Callable[[PropanMessage[MsgType]], T_HandlerReturn],
+        watcher: Optional[BaseWatcher],
+    ) -> Callable[[PropanMessage[MsgType]], T_HandlerReturn]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _parse_message(self, message: MsgType) -> PropanMessage[MsgType]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def publish(
+        self,
+        message: SendableMessage,
+        *args: Any,
+        reply_to: str = "",
+        callback: bool = False,
+        callback_timeout: Optional[float] = None,
+        raise_timeout: bool = False,
+        **kwargs: AnyDict,
+    ) -> Optional[DecodedMessage]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def handle(  # type: ignore[override,return]
+        self,
+        *broker_args: Any,
+        retry: Union[bool, int] = False,
+        dependencies: Sequence[Depends] = (),
+        decode_message: SyncDecoder[MsgType] = None,
+        parse_message: SyncParser[MsgType] = None,
+        description: str = "",
+        _raw: bool = False,
+        _get_dependant: Callable[
+            [Callable[..., T_HandlerReturn]], CallModel
+        ] = build_call_model,
+        **broker_kwargs: AnyDict,
+    ) -> Callable[
+        [Callable[..., T_HandlerReturn]], Callable[[MsgType, bool], T_HandlerReturn]
+    ]:
+        super().handle(
+            *broker_args,
+            retry=retry,
+            dependencies=dependencies,
+            decode_message=decode_message,
+            parse_message=parse_message,
+            description=description,
+            _raw=_raw,
+            _get_dependant=_get_dependant,
+            **broker_kwargs,
+        )
+
+    def __init__(
+        self,
+        *args: Any,
+        apply_types: bool = True,
+        logger: Optional[logging.Logger] = access_logger,
+        log_level: int = logging.INFO,
+        log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
+        dependencies: Sequence[Depends] = (),
+        decode_message: SyncDecoder[MsgType] = None,
+        parse_message: SyncParser[MsgType] = None,
+        # AsyncAPI
+        protocol: str = "",
+        protocol_version: Optional[str] = None,
+        url_: Union[str, List[str]] = "",
+        **kwargs: AnyDict,
+    ) -> None:
+        super().__init__(
+            *args,
+            apply_types=apply_types,
+            logger=logger,
+            log_level=log_level,
+            log_fmt=log_fmt,
+            dependencies=dependencies,
+            decode_message=decode_message,
+            parse_message=parse_message,
+            protocol=protocol,
+            protocol_version=protocol_version,
+            url_=url_,
+            **kwargs,
+        )
+
+    def connect(self, *args: Any, **kwargs: AnyDict) -> ConnectionType:
+        if self._connection is None:
+            _kwargs = self._resolve_connection_kwargs(*args, **kwargs)
+            self._connection = self._connect(**_kwargs)
+        return self._connection
+
+    def __enter__(self) -> Self:
+        self.connect()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exec_tb: Optional[TracebackType],
+    ) -> None:
+        self.close(exc_type, exc_val, exec_tb)
+
+    def _wrap_parse_message(  # type: ignore[override]
+        self,
+        func: Callable[[PropanMessage[MsgType]], T_HandlerReturn],
+        parser: SyncParser[MsgType],
+    ) -> Callable[[MsgType], T_HandlerReturn]:
+        @wraps(func)
+        def parse_wrapper(message: MsgType) -> T_HandlerReturn:
+            if parser is not None:
+                m = parser(message, self._parse_message)
+            else:
+                m = self._parse_message(message)
+            return func(m)
+
+        return parse_wrapper
+
+    def _wrap_decode_message(  # type: ignore[override]
+        self,
+        func: Callable[..., T_HandlerReturn],
+        decoder: SyncDecoder[MsgType],
+        params: Sequence[Any] = (),
+        _raw: bool = False,
+    ) -> Callable[[PropanMessage[MsgType]], T_HandlerReturn]:
+        is_unwrap = len(params) > 1
+
+        @wraps(func)
+        def wrapper(message: PropanMessage[MsgType]) -> T_HandlerReturn:
+            if decoder is not None:
+                msg = decoder(message, self._decode_message)
+            else:
+                msg = self._decode_message(message)
+
+            message.decoded_body = msg
+            if _raw is True:
+                return func(message)
+
+            elif is_unwrap is True and isinstance(msg, Mapping):
+                return func(**msg)
+
+            else:
+                return func(msg)
+
+        return wrapper
+
+    @classmethod
+    def _decode_message(cls, message: PropanMessage[MsgType]) -> DecodedMessage:
+        return super()._decode_message(message)
+
+    def _wrap_handler(  # type: ignore[override]
+        self,
+        func: Callable[..., T_HandlerReturn],
+        *,
+        retry: Union[bool, int] = False,
+        extra_dependencies: Sequence[Depends] = (),
+        decode_message: AsyncDecoder[MsgType] = None,
+        parse_message: AsyncParser[MsgType] = None,
+        _raw: bool = False,
+        _get_dependant: Callable[[Callable[..., Any]], CallModel] = build_call_model,
+        **broker_log_context_kwargs: Any,
+    ) -> Tuple[Callable[[MsgType, bool], Optional[T_HandlerReturn],], CallModel,]:
+        return super()._wrap_handler(  # type: ignore[return-value]
+            func,
+            retry=retry,
+            extra_dependencies=extra_dependencies,
+            decode_message=decode_message,
+            parse_message=parse_message,
+            _raw=_raw,
+            _get_dependant=_get_dependant,
+            _is_sync=True,
+            **broker_log_context_kwargs,
+        )
+
+    def _log_execution(  # type: ignore[override]
+        self,
+        func: Callable[[PropanMessage[MsgType]], T_HandlerReturn],
+        **broker_args: AnyDict,
+    ) -> Callable[[PropanMessage[MsgType]], T_HandlerReturn]:
+        @wraps(func)
+        def log_wrapper(message: PropanMessage[MsgType]) -> T_HandlerReturn:
+            log_context = self._get_log_context(message=message, **broker_args)
+
+            with context.scope("log_context", log_context):
+                self._log("Received", extra=log_context)
+
+                try:
+                    r = func(message)
+                except SkipMessage as e:
+                    self._log("Skipped", extra=log_context)
+                    raise e
+                except Exception as e:
+                    self._log(repr(e), logging.ERROR)
+                    raise e
+                else:
+                    self._log("Processed", extra=log_context)
+                    return r
+
+        return log_wrapper
+
+
 def extend_dependencies(extra: Sequence[CallModel]) -> Callable[[CallModel], CallModel]:
     def dependant_wrapper(dependant: CallModel) -> CallModel:
         if isinstance(dependant, CallModel):

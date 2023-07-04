@@ -2,6 +2,8 @@ from typing import Optional, Union
 
 from propan.brokers.rabbit.schemas import RabbitExchange, RabbitQueue
 
+RABBIT_REPLY = "amq.rabbitmq.reply-to"
+
 
 def validate_exchange(
     exchange: Union[str, RabbitExchange, None] = None,

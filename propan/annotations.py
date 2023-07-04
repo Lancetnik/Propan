@@ -7,6 +7,7 @@ from propan.cli.app import PropanApp
 from propan.utils.context import Context as ContextField
 from propan.utils.context import ContextRepo as CR
 from propan.utils.no_cast import NoCast as NC
+from propan._compat import is_installed
 
 Logger = Annotated[logging.Logger, ContextField("logger")]
 App = Annotated[PropanApp, ContextField("app")]
@@ -15,7 +16,7 @@ ContextRepo = Annotated[CR, ContextField("context")]
 NoCastType = TypeVar("NoCastType")
 NoCast = Annotated[NoCastType, NC()]
 
-try:
+if is_installed("aio_pika"):
     import aio_pika
 
     from propan.brokers.rabbit import RabbitBroker as RB
@@ -25,11 +26,27 @@ try:
     Channel = Annotated[
         aio_pika.robust_channel.RobustChannel, ContextField("broker.channel")
     ]
-except ImportError:
+else:
     RabbitBroker = RabbitMessage = Channel = about.INSTALL_RABBIT
 
 
-try:
+if is_installed("pika"):
+    from pika.adapters import blocking_connection
+    from propan.brokers.rabbit.rabbit_broker_sync import (
+        RabbitSyncBroker as RSB,
+        PIKA_RAW_MESSAGE,
+    )
+
+    RabbitSyncBroker = Annotated[RSB, ContextField("broker")]
+    RabbitMessage = Annotated[PIKA_RAW_MESSAGE, ContextField("message")]
+    SyncChannel = Annotated[
+        blocking_connection.BlockingChannel, ContextField("broker.channel")
+    ]
+else:
+    RabbitSyncBroker = RabbitMessage = SyncChannel = about.INSTALL_RABBIT_SYNC
+
+
+if is_installed("nats"):
     from nats.aio.client import Client
     from nats.aio.msg import Msg
     from nats.js.client import JetStreamContext
@@ -42,24 +59,24 @@ try:
     NatsMessage = Annotated[Msg, ContextField("message")]
     NatsConnection = Annotated[Client, ContextField("broker._connection")]
     NatsJS = Annotated[JetStreamContext, ContextField("broker._connection")]
-except ImportError:
+else:
     NatsBroker = (
         NatsMessage
     ) = NatsJSBroker = NatsJS = NatsConnection = about.INSTALL_NATS
 
 
-try:
+if is_installed("redis"):
     from redis.asyncio.client import Redis as R
 
     from propan.brokers.redis import RedisBroker as RedB
 
     RedisBroker = Annotated[RedB, ContextField("broker")]
     Redis = Annotated[R, ContextField("broker._connection")]
-except ImportError:
+else:
     RedisBroker = Redis = about.INSTALL_REDIS
 
 
-try:
+if is_installed("aiokafka"):
     from aiokafka import AIOKafkaProducer
     from aiokafka.structs import ConsumerRecord
 
@@ -68,11 +85,11 @@ try:
     KafkaBroker = Annotated[KB, ContextField("broker")]
     KafkaMessage = Annotated[ConsumerRecord, ContextField("message")]
     Producer = Annotated[AIOKafkaProducer, ContextField("producer")]
-except ImportError:
+else:
     KafkaBroker = KafkaMessage = Producer = about.INSTALL_KAFKA
 
 
-try:
+if is_installed("aiobotocore"):
     from aiobotocore.client import AioBaseClient
 
     from propan.brokers.sqs import SQSBroker as SB
@@ -80,13 +97,14 @@ try:
     SQSBroker = Annotated[SB, ContextField("broker")]
     client = Annotated[AioBaseClient, ContextField("client")]
     queue_url = Annotated[str, ContextField("queue_url")]
-except ImportError:
+else:
     SQSBroker = client = queue_url = about.INSTALL_SQS
 
 
 assert any(
     (
         all((RabbitBroker, RabbitMessage, Channel)),
+        all((RabbitSyncBroker, RabbitMessage, SyncChannel)),
         all((NatsBroker, NatsJSBroker, NatsJS, NatsMessage)),
         all((RedisBroker, Redis)),
         all((KafkaBroker, KafkaMessage, Producer)),

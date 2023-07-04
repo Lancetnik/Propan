@@ -36,7 +36,7 @@ from propan.brokers.exceptions import WRONG_PUBLISH_ARGS
 from propan.brokers.push_back_watcher import BaseWatcher, WatcherContext
 from propan.brokers.rabbit.logging import RabbitLoggingMixin
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
-from propan.brokers.rabbit.utils import validate_exchange, validate_queue
+from propan.brokers.rabbit.utils import validate_exchange, validate_queue, RABBIT_REPLY
 from propan.types import AnyDict, SendableMessage
 from propan.utils import context
 
@@ -45,7 +45,6 @@ PikaSendableMessage: TypeAlias = Union[aio_pika.message.Message, SendableMessage
 RabbitMessage: TypeAlias = PropanMessage[aio_pika.message.IncomingMessage]
 T = TypeVar("T")
 
-RABBIT_REPLY = "amq.rabbitmq.reply-to"
 
 
 class RabbitBroker(

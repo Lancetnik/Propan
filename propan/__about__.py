@@ -9,10 +9,11 @@ INSTALL_MESSAGE = (
     "You should specify using broker!\n"
     "Install it using one of the following commands:\n"
     'pip install "propan[async-rabbit]"\n'
+    'pip install "propan[sync-rabbit]"\n',
     'pip install "propan[async-nats]"\n'
     'pip install "propan[async-redis]"\n'
     'pip install "propan[async-kafka]"\n'
-    'pip install "propan[async-sqs]"'
+    'pip install "propan[async-sqs]"',
 )
 
 
@@ -25,6 +26,10 @@ INSTALL_RABBIT = import_error(
         "\nYou should install RabbitMQ dependencies"
         '\npip install "propan[async-rabbit]"'
     )
+)
+
+INSTALL_RABBIT_SYNC = import_error(
+    ("\nYou should install RabbitMQ dependencies" '\npip install "propan[sync-rabbit]"')
 )
 
 INSTALL_KAFKA = import_error(

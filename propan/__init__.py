@@ -1,42 +1,51 @@
 # Imports to use at __all__
 from propan import __about__ as about
 from propan.brokers import PropanMessage
-from propan.cli.app import *  # noqa: F403
-from propan.log import *  # noqa: F403
-from propan.utils import *  # noqa: F403
+from propan.cli.app import PropanApp, PropanSyncApp
+from propan.log import logger, access_logger
+from propan.utils import apply_types, context, Context, ContextRepo, Depends
+from propan._compat import is_installed
 
-try:
-    from propan.brokers.rabbit import RabbitBroker, RabbitRouter
-except ImportError:
+if is_installed("aio_pika"):
+    from propan.brokers.rabbit.routing import RabbitRouter
+    from propan.brokers.rabbit.rabbit_broker import RabbitBroker
+else:
     RabbitBroker = RabbitRouter = about.INSTALL_RABBIT  # type: ignore
 
-try:
+if is_installed("pika"):
+    from propan.brokers.rabbit.routing import RabbitRouter
+    from propan.brokers.rabbit.rabbit_broker_sync import RabbitSyncBroker
+else:
+    RabbitSyncBroker = RabbitRouter = about.INSTALL_RABBIT_SYNC  # type: ignore
+
+if is_installed("nats"):
     from propan.brokers.nats import NatsBroker, NatsJSBroker, NatsRouter
-except ImportError:
+else:
     NatsJSBroker = NatsBroker = NatsRouter = about.INSTALL_NATS  # type: ignore
 
-try:
+if is_installed("redis"):
     from propan.brokers.redis import RedisBroker, RedisRouter
-except ImportError:
+else:
     RedisBroker = RedisRouter = about.INSTALL_REDIS  # type: ignore
 
-try:
+if is_installed("aiokafka"):
     from propan.brokers.kafka import KafkaBroker, KafkaRouter
-except ImportError:
+else:
     KafkaBroker = KafkaRouter = about.INSTALL_KAFKA  # type: ignore
 
-try:
+if is_installed("aiobotocore"):
     from propan.brokers.sqs import SQSBroker, SQSRouter
-except ImportError:
+else:
     SQSBroker = SQSRouter = about.INSTALL_SQS  # type: ignore
 
 assert any(
-    (RabbitBroker, NatsBroker, RedisBroker, SQSBroker, KafkaBroker)
+    (RabbitSyncBroker, RabbitBroker, NatsBroker, RedisBroker, SQSBroker, KafkaBroker)
 ), about.INSTALL_MESSAGE
 
 __all__ = (  # noqa: F405
     # app
     "PropanApp",
+    "PropanSyncApp",
     # log
     "logger",
     "access_logger",
@@ -57,6 +66,8 @@ __all__ = (  # noqa: F405
     ## rabbit
     "RabbitBroker",
     "RabbitRouter",
+    ### sync
+    "RabbitSyncBroker",
     ## redis
     "RedisBroker",
     "RedisRouter",
