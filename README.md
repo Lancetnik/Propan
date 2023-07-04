@@ -92,7 +92,7 @@ Your support helps me to stay in touch with you and encourages to
 continue developing and improving the library. Thank you for your
 support!
 
-Really, share information about this project with overs. The bigger community we have - the better project will be!
+Really, share information about this project with others. The bigger community we have - the better project will be!
 
 ---
 
