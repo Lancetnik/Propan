@@ -379,18 +379,17 @@ from pydantic import BaseModel
 from propan.fastapi import RabbitRouter
 
 router = RabbitRouter("amqp://guest:guest@localhost:5672")
-
 app = FastAPI(lifespan=router.lifespan_context)
 
 class Incoming(BaseModel):
-    m: dict
+    username: str
 
 def call():
     return True
 
 @router.event("test")
-async def hello(m: Incoming, d = Depends(call)) -> dict:
-    return { "response": "Hello, Propan!" }
+async def hello(m: Incoming, d = Depends(call)):
+    return { "response": f"Hello, {m.username}!" }
 
 app.include_router(router)
 ```
