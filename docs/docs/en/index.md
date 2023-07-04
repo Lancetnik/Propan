@@ -26,11 +26,11 @@
 
 # Propan
 
-**Propan** - just *<s>another one HTTP</s>* a **declarative Python MQ framework**. It it inspired by [*fastapi*]({{ urls.fastapi }}){target="_blank"}, aims to simplify writing code that works with Message Brokers and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *<s>another one HTTP</s>* a **declarative Python Messaging framework**. It is inspired by [*FastAPI*]({{ urls.fastapi }}){target="_blank"}, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around [Messaging](https://microservices.io/patterns/communication-style/messaging.html){target="_blank"}.
 
-It is a modern, high-level framework on top of popular Python libraries for various message brokers, based on [*pydantic*]({{ urls.pydantic }}){target="_blank"} and [*fastapi*]({{ urls.fastapi }}){target="_blank"}, [*pytest*]({{ urls.pytest }}){target="_blank"} concepts.
+It is a modern, high-level framework on top of popular specific Python brokers libraries, based on [*pydantic*]({{ urls.pydantic }}){target="_blank"} and [*FastAPI*]({{ urls.fastapi }}){target="_blank"}, [*pytest*]({{ urls.pytest }}){target="_blank"} concepts.
 
 ---
 
