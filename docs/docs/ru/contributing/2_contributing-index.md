@@ -68,6 +68,9 @@ bash ./scripts/test-cov.sh
 * **slow**
 * **rabbit**
 * **nats**
+* **sqs**
+* **kafka**
+* **redis**
 * **all**
 
 !!! tip ""
@@ -111,6 +114,7 @@ services:
 
   nats:
     image: nats
+    command: -js
     ports:
       - 4222:4222
       - 8222:8222  # management

@@ -68,6 +68,9 @@ There are some *pytest marks* at project:
 * **slow**
 * **rabbit**
 * **nats**
+* **sqs**
+* **kafka**
+* **redis**
 * **all**
 
 Default *pytest* calling runs "not slow" tests.
@@ -102,6 +105,7 @@ services:
 
   nats:
     image: nats
+    command: -js
     ports:
       - 4222:4222
       - 8222:8222  # management
