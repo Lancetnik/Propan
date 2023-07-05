@@ -57,7 +57,8 @@ theme:
 plugins:
   - search
   - glightbox
-  - social
+  - social:
+      enabled: !ENV [CI, false]
   - macros:
       include_dir: includes
   - i18n:

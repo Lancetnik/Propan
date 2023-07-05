@@ -8,6 +8,9 @@ on:
       - docs/**
       - .github/workflows/documentation.yml
 
+env:
+  CI: true
+
 permissions:
   contents: write
 
