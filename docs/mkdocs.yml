@@ -124,7 +124,7 @@ extra:
       link: https://twitter.com/PropanFramework
 
 nav:
-  - Welcome: index.md
+  - Propan: index.md
   - Getting Started:
     - Hello, Propan!: getting_started/1_quick-start.md
     - CLI Tool: getting_started/2_cli.md
