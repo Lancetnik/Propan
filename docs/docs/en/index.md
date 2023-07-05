@@ -190,3 +190,4 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **ActiveMQ**      | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **AzureSB**       | :mag: planning :mag:                                    | :mag: planning :mag:                        |

@@ -75,6 +75,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **ActiveMQ**      | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **AzureSB**       | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 
 ---
 
