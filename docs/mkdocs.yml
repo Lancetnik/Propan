@@ -5,7 +5,7 @@ dev_addr: 0.0.0.0:8000
 
 repo_name: lancetnik/propan
 repo_url: https://github.com/lancetnik/propan
-edit_uri: https://github.com/lancetnik/propan
+edit_uri: https://github.com/Lancetnik/Propan/tree/main/docs/docs
 
 copyright: Copyright &copy; 2019 - 2023 Pastukhov Nikita
 
@@ -41,6 +41,7 @@ theme:
   features:
     - search.suggest
     - search.highlight
+    - content.action.edit
     - content.tabs.link
     - content.code.copy
     - content.code.annotate
@@ -51,6 +52,7 @@ theme:
     next: 'Next'
   icon:
     repo: fontawesome/brands/github
+    edit: material/pencil-circle-outline
   logo: assets/img/logo-white.png
   favicon: assets/img/favicon.png
 
