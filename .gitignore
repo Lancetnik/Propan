@@ -20,3 +20,4 @@ site
 Dockerfile
 t
 asyncapi.yaml
+.cache

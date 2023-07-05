@@ -21,6 +21,8 @@ extra_javascript:
 
 theme:
   name: material
+  font:
+    text: Roboto
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -55,6 +57,7 @@ theme:
 plugins:
   - search
   - glightbox
+  - social
   - macros:
       include_dir: includes
   - i18n:
@@ -115,6 +118,10 @@ extra:
       link: https://github.com/lancetnik/propan
     - icon: simple/telegram
       link: https://t.me/propan_python
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/ChhMXJpvz7
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/PropanFramework
 
 nav:
   - Welcome: index.md
