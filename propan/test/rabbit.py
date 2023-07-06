@@ -1,8 +1,8 @@
+import re
 import sys
 from contextlib import asynccontextmanager
 from types import MethodType
 from typing import Any, Optional, Union
-import re
 
 from propan.types import AnyDict
 
@@ -105,17 +105,16 @@ async def publish(
             call = False
 
             if exch is None or handler.exchange.type == ExchangeType.DIRECT:
-                call = (handler.queue.name == incoming.routing_key)
+                call = handler.queue.name == incoming.routing_key
 
             elif handler.exchange.type == ExchangeType.FANOUT:
                 call = True
 
             elif handler.exchange.type == ExchangeType.TOPIC:
-                if re.match(
+                call = re.match(
                     handler.queue.name.replace(".", r"\.").replace("*", ".*"),
                     incoming.routing_key,
-                ):
-                    call = True
+                )
 
             elif handler.exchange.type == ExchangeType.HEADERS:
                 queue_headers = handler.queue.bind_arguments
@@ -136,12 +135,9 @@ async def publish(
                             none = False
 
                     if not none:
-                        if matcher == "any":
-                            call = True
-                        else:
-                            call = full
+                        call = matcher == "any" or full
 
-            if call is True:
+            if call:
                 r = await call_handler(
                     handler,
                     incoming,

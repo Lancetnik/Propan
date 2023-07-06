@@ -2,13 +2,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from propan.test.rabbit import build_message
 from propan.brokers.rabbit import (
+    ExchangeType,
     RabbitBroker,
     RabbitExchange,
-    ExchangeType,
     RabbitQueue,
 )
+from propan.test.rabbit import build_message
 from tests.brokers.base.testclient import BrokerTestclientTestcase
 
 
@@ -105,6 +105,12 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
         async def handler():
             return 1
 
-        assert 2 == await test_broker.publish(exchange=exch, callback=True, headers={"key": 2, "key2": 2})
-        assert 1 == await test_broker.publish(exchange=exch, callback=True, headers={"key": 2})
-        assert None is await test_broker.publish(exchange=exch, callback=True, headers={})
+        assert 2 == await test_broker.publish(
+            exchange=exch, callback=True, headers={"key": 2, "key2": 2}
+        )
+        assert 1 == await test_broker.publish(
+            exchange=exch, callback=True, headers={"key": 2}
+        )
+        assert None is await test_broker.publish(
+            exchange=exch, callback=True, headers={}
+        )
