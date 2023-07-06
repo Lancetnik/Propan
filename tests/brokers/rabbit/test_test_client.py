@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import Mock
 
 import pytest
@@ -9,6 +10,7 @@ from propan.brokers.rabbit import (
     RabbitQueue,
 )
 from propan.test.rabbit import build_message
+from propan.annotations import RabbitMessage
 from tests.brokers.base.testclient import BrokerTestclientTestcase
 
 
@@ -115,3 +117,59 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
             exchange=exch, callback=True, headers={"key": 2}
         )
         assert 3 == await test_broker.publish(exchange=exch, callback=True, headers={})
+
+    @pytest.mark.asyncio
+    async def test_consume_manual_ack(
+        self,
+        queue: str,
+        exchange: RabbitExchange,
+        test_broker: RabbitBroker,
+    ):
+        consume = asyncio.Event()
+        consume2 = asyncio.Event()
+        consume3 = asyncio.Event()
+
+        @test_broker.handle(queue=queue, exchange=exchange, retry=1)
+        async def handler(msg: RabbitMessage):
+            await msg.ack()
+            consume.set()
+
+        @test_broker.handle(queue=queue + "1", exchange=exchange, retry=1)
+        async def handler2(msg: RabbitMessage):
+            await msg.nack()
+            consume2.set()
+            raise ValueError()
+
+        @test_broker.handle(queue=queue + "2", exchange=exchange, retry=1)
+        async def handler3(msg: RabbitMessage):
+            await msg.reject()
+            consume3.set()
+            raise ValueError()
+
+        async with test_broker:
+            await test_broker.start()
+            await asyncio.wait(
+                (
+                    asyncio.create_task(
+                        test_broker.publish("hello", queue=queue, exchange=exchange)
+                    ),
+                    asyncio.create_task(
+                        test_broker.publish(
+                            "hello", queue=queue + "1", exchange=exchange
+                        )
+                    ),
+                    asyncio.create_task(
+                        test_broker.publish(
+                            "hello", queue=queue + "2", exchange=exchange
+                        )
+                    ),
+                    asyncio.create_task(consume.wait()),
+                    asyncio.create_task(consume2.wait()),
+                    asyncio.create_task(consume3.wait()),
+                ),
+                timeout=3,
+            )
+
+        assert consume.is_set()
+        assert consume2.is_set()
+        assert consume3.is_set()
