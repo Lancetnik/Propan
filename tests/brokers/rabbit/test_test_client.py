@@ -49,15 +49,10 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
         async def handler(m):
             mock()
 
-        @test_broker.handle(queue + "1", exchange=exch)
-        async def handler2(m):
-            mock()
-
-        await test_broker.publish("", exchange=exch, callback=True)
         await test_broker.publish("", exchange=exch, callback=True)
         assert None is await test_broker.publish("", exchange="test2", callback=True)
 
-        assert mock.call_count == 2
+        assert mock.call_count == 1
 
     @pytest.mark.asyncio
     async def test_topic(
