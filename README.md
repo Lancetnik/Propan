@@ -28,7 +28,7 @@
 
 # Propan
 
-**Propan** - just *~~an another one HTTP~~* a **declarative Python Messaging Framework**. It's inspired by <a href="https://FastAPI.tiangolo.com/ru/" target="_blank">*FastAPI*</a>, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *~~an another one HTTP~~* a **declarative Python Messaging Framework**. It's inspired by <a href="https://FastAPI.tiangolo.com/ru/" target="_blank">*FastAPI*</a> and <a href="https://docs.celeryq.dev/projects/kombu/en/stable/" target="_blank">*Kombu*</a>, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
@@ -221,12 +221,12 @@ async def second_handler(body: SimpleMessage):
 
 ## Dependencies
 
-**Propan** a has dependencies management policy close to `pytest fixtures`.
+**Propan** a has dependencies management policy close to `pytest fixtures` and `FastAPI Depends` at the same time.
 You can specify in functions arguments which dependencies
 you would to use. Framework passes them from the global Context object.
 
-Also, you can specify your own dependencies, call dependencies functions (like `FastAPI Depends`)
-and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
+Also, you can specify your own dependencies, call dependencies functions and
+[more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 
 ```python
 from propan import PropanApp, RabbitBroker, Context, Depends

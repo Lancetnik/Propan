@@ -26,7 +26,7 @@
 
 # Propan
 
-**Propan** - just *<s>another one HTTP</s>* a **declarative Python Messaging framework**. It is inspired by [*FastAPI*]({{ urls.fastapi }}){target="_blank"}, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *<s>another one HTTP</s>* a **declarative Python Messaging framework**. It is inspired by [*FastAPI*]({{ urls.fastapi }}){target="_blank"} and [*Kombu*]({{ urls.kombu }}){target="_blank"}, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around [Messaging](https://microservices.io/patterns/communication-style/messaging.html){target="_blank"}.
 
@@ -120,14 +120,13 @@ Propan uses `pydantic` to cast incoming function arguments to types according to
 
 ## Dependencies
 
-**Propan** has a dependencies management policy close to `pytest fixtures`.
+**Propan** has a dependencies management policy close to `pytest fixtures` and `FastAPI Depends` at the same time.
 Function arguments declare which dependencies you want are needed, and a special decorator delivers them from the global Context object.
 
 Already declared context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
 If you call a non-existent field, raises *pydantic.error_wrappers.ValidationError* value.
 
-But you can specify your own dependencies, call dependencies functions (like `FastAPI Depends`)
-and [more](../5_dependency/1_di-index).
+But you can specify your own dependencies, call dependencies functions and [more](../5_dependency/1_di-index).
 
 ```python linenums="1" hl_lines="11-12"
 {!> docs_src/index/03_dependencies.py!}
