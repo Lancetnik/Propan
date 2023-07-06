@@ -39,6 +39,15 @@ class PatchedMessage(IncomingMessage):
     async def process(self):  # type: ignore
         yield
 
+    async def ack(self, multiple: bool = False) -> None:
+        pass
+
+    async def nack(self, multiple: bool = False, requeue: bool = True) -> None:
+        pass
+
+    async def reject(self, requeue: bool = False) -> None:
+        pass
+
 
 def build_message(
     message: PikaSendableMessage = "",
