@@ -98,9 +98,6 @@ async def publish(
     )
 
     for handler in self.handlers:  # pragma: no branch
-        if handler.exchange and handler.exchange != exch:
-            continue
-
         if handler.exchange == exch:
             call = False
 
