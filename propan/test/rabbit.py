@@ -104,15 +104,11 @@ async def publish(
         if handler.exchange == exch:
             call = False
 
-            if exch is None:
-                call = True
+            if exch is None or handler.exchange.type == ExchangeType.DIRECT:
+                call = (handler.queue.name == incoming.routing_key)
 
             elif handler.exchange.type == ExchangeType.FANOUT:
                 call = True
-
-            elif handler.exchange.type == ExchangeType.DIRECT:
-                if handler.queue.name == incoming.routing_key:
-                    call = True
 
             elif handler.exchange.type == ExchangeType.TOPIC:
                 if re.match(
