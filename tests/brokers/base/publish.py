@@ -1,4 +1,4 @@
-from asyncio import Event, wait_for
+import asyncio
 from datetime import datetime
 from typing import Dict, List
 from unittest.mock import Mock
@@ -43,7 +43,7 @@ class BrokerPublishTestcase:
         message_type,
         expected_message,
     ):
-        consume = Event()
+        consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
         @full_broker.handle(queue)
@@ -52,8 +52,14 @@ class BrokerPublishTestcase:
 
         async with full_broker:
             await full_broker.start()
-            await full_broker.publish(message, queue)
-            await wait_for(consume.wait(), 3)
+
+            await asyncio.wait(
+                (
+                    asyncio.create_task(full_broker.publish(message, queue)),
+                    asyncio.create_task(consume.wait()),
+                ),
+                timeout=3,
+            )
 
         if expected_message is None:
             expected_message = message
@@ -64,7 +70,7 @@ class BrokerPublishTestcase:
     async def test_unwrap(
         self, mock: Mock, queue: str, full_broker: BrokerAsyncUsecase
     ):
-        consume = Event()
+        consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()
 
         @full_broker.handle(queue)
@@ -73,8 +79,13 @@ class BrokerPublishTestcase:
 
         async with full_broker:
             await full_broker.start()
-            await full_broker.publish({"a": 1, "b": 1.0}, queue)
-            await wait_for(consume.wait(), 3)
+            await asyncio.wait(
+                (
+                    asyncio.create_task(full_broker.publish({"a": 1, "b": 1.0}, queue)),
+                    asyncio.create_task(consume.wait()),
+                ),
+                timeout=3,
+            )
 
         mock.assert_called_with(
             {
