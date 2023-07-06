@@ -1,4 +1,4 @@
-from asyncio import Event, wait_for
+import asyncio
 from unittest.mock import Mock
 
 import pytest
@@ -14,14 +14,20 @@ class BrokerConsumeTestcase:
         queue: str,
         broker: BrokerAsyncUsecase,
     ):
-        consume = Event()
+        consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
+        broker.handle(queue)(mock)
+
         async with broker:
-            broker.handle(queue)(mock)
             await broker.start()
-            await broker.publish("hello", queue)
-            await wait_for(consume.wait(), 3)
+            await asyncio.wait(
+                (
+                    asyncio.create_task(broker.publish("hello", queue)),
+                    asyncio.create_task(consume.wait()),
+                ),
+                timeout=3,
+            )
 
         mock.assert_called_once()
 
@@ -32,19 +38,29 @@ class BrokerConsumeTestcase:
         queue: str,
         broker: BrokerAsyncUsecase,
     ):
-        consume = Event()
-        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+        consume = asyncio.Event()
+        consume2 = asyncio.Event()
+
+        @broker.handle(queue)
+        async def handler(m):
+            if not consume.is_set():
+                consume.set()
+            else:
+                consume2.set()
+            mock()
 
         async with broker:
-            broker.handle(queue)(mock)
             await broker.start()
 
-            await broker.publish("hello", queue)
-            await wait_for(consume.wait(), 3)
-
-            consume.clear()
-            await broker.publish("hello", queue)
-            await wait_for(consume.wait(), 3)
+            await asyncio.wait(
+                (
+                    asyncio.create_task(broker.publish("hello", queue)),
+                    asyncio.create_task(broker.publish("hello", queue)),
+                    asyncio.create_task(consume.wait()),
+                    asyncio.create_task(consume2.wait()),
+                ),
+                timeout=3,
+            )
 
         assert mock.call_count == 2
 
@@ -55,23 +71,28 @@ class BrokerConsumeTestcase:
         queue: str,
         broker: BrokerAsyncUsecase,
     ):
-        first_consume = Event()
-        second_consume = Event()
+        first_consume = asyncio.Event()
+        second_consume = asyncio.Event()
 
         mock.method.side_effect = lambda *_: first_consume.set()  # pragma: no branch
         mock.method2.side_effect = lambda *_: second_consume.set()  # pragma: no branch
 
         another_topic = queue + "1"
+        broker.handle(queue)(mock.method)
+        broker.handle(another_topic)(mock.method2)
+
         async with broker:
-            broker.handle(queue)(mock.method)
-            broker.handle(another_topic)(mock.method2)
             await broker.start()
 
-            await broker.publish("hello", queue)
-            await broker.publish("hello", another_topic)
-
-            await wait_for(first_consume.wait(), 3)
-            await wait_for(second_consume.wait(), 3)
+            await asyncio.wait(
+                (
+                    asyncio.create_task(broker.publish("hello", queue)),
+                    asyncio.create_task(broker.publish("hello", another_topic)),
+                    asyncio.create_task(first_consume.wait()),
+                    asyncio.create_task(second_consume.wait()),
+                ),
+                timeout=3,
+            )
 
         mock.method.assert_called_once()
         mock.method2.assert_called_once()

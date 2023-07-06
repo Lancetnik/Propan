@@ -74,8 +74,10 @@ class MiddlewareTestCase:
 
         async with broker:
             await broker.start()
-            await broker.publish("test", queue)
-            await asyncio.wait_for(consume.wait(), 3)
+            await asyncio.wait((
+                asyncio.create_task(broker.publish("test", queue)),
+                asyncio.create_task(consume.wait()),
+            ), timeout=3)
 
         mock.assert_called_with("test")
         mock.enter.assert_called_once()
