@@ -116,6 +116,7 @@ extra:
     pydantic: https://docs.pydantic.dev/
     pytest: https://docs.pytest.org/en/latest/
     asyncapi: https://www.asyncapi.com/
+    kombu: https://docs.celeryq.dev/projects/kombu/en/stable/
   social:
     - icon: fontawesome/brands/github-alt
       link: https://github.com/lancetnik/propan
