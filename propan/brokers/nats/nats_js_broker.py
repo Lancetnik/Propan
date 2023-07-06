@@ -133,7 +133,7 @@ class NatsJSBroker(NatsBroker):
 
     async def _start(self):
         await super()._start()
-        try:
+        try:  # pragma: no branch
             await self._connection.add_stream(
                 config=self._stream_config,
                 subjects=[h.subject for h in self.handlers],
@@ -148,7 +148,7 @@ class NatsJSBroker(NatsBroker):
                     config=self._stream_config,
                     subjects=[h.subject for h in self.handlers],
                 )
-            else:
+            else:  # pragma: no cover
                 self._log(e, logging.ERROR)
 
     def _process_message(
