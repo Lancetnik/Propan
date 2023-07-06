@@ -90,6 +90,10 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
             "test-queue-3",
             bind_arguments={"key": 2, "key2": 2, "x-match": "all"},
         )
+        q3 = RabbitQueue(
+            "test-queue-3",
+            bind_arguments={},
+        )
         exch = RabbitExchange("exchange", type=ExchangeType.HEADERS)
 
         @test_broker.handle(q2, exch)
@@ -100,12 +104,14 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
         async def handler():
             return 1
 
+        @test_broker.handle(q3, exch)
+        async def handler3():
+            return 3
+
         assert 2 == await test_broker.publish(
             exchange=exch, callback=True, headers={"key": 2, "key2": 2}
         )
         assert 1 == await test_broker.publish(
             exchange=exch, callback=True, headers={"key": 2}
         )
-        assert None is await test_broker.publish(
-            exchange=exch, callback=True, headers={}
-        )
+        assert 3 == await test_broker.publish(exchange=exch, callback=True, headers={})
