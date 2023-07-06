@@ -2,6 +2,7 @@ import sys
 from contextlib import asynccontextmanager
 from types import MethodType
 from typing import Any, Optional, Union
+import re
 
 from propan.types import AnyDict
 
@@ -86,33 +87,65 @@ async def publish(
     raise_timeout: bool = False,
     **message_kwargs: AnyDict,
 ) -> Any:
+    exch = validate_exchange(exchange)
+
     incoming = build_message(
         message=message,
         queue=queue,
-        exchange=exchange,
+        exchange=exch,
         routing_key=routing_key,
         **message_kwargs,
     )
 
     for handler in self.handlers:  # pragma: no branch
-        if not handler.exchange:
-            if not exchange:  # pragma: no branch
-                if handler.queue.name == incoming.routing_key:
-                    r = await call_handler(
-                        handler,
-                        incoming,
-                        callback,
-                        callback_timeout,
-                        raise_timeout,
-                    )
-                    if callback:  # pragma: no branch
-                        return r
+        if handler.exchange and handler.exchange != exch:
+            continue
 
-        elif (  # pragma: no branch
-            handler.exchange.type == ExchangeType.DIRECT
-            or handler.exchange.type == ExchangeType.TOPIC
-        ):
-            if handler.queue.name == incoming.routing_key:
+        if handler.exchange == exch:
+            call = False
+
+            if exch is None:
+                call = True
+
+            elif handler.exchange.type == ExchangeType.FANOUT:
+                call = True
+
+            elif handler.exchange.type == ExchangeType.DIRECT:
+                if handler.queue.name == incoming.routing_key:
+                    call = True
+
+            elif handler.exchange.type == ExchangeType.TOPIC:
+                if re.match(
+                    handler.queue.name.replace(".", r"\.").replace("*", ".*"),
+                    incoming.routing_key,
+                ):
+                    call = True
+
+            elif handler.exchange.type == ExchangeType.HEADERS:
+                queue_headers = handler.queue.bind_arguments
+                msg_headers = incoming.headers
+
+                if not queue_headers and not msg_headers:
+                    call = True
+
+                else:
+                    matcher = queue_headers.pop("x-match", "all")
+
+                    full = True
+                    none = True
+                    for k, v in queue_headers.items():
+                        if msg_headers.get(k) != v:
+                            full = False
+                        else:
+                            none = False
+
+                    if not none:
+                        if matcher == "any":
+                            call = True
+                        else:
+                            call = full
+
+            if call is True:
                 r = await call_handler(
                     handler,
                     incoming,
@@ -120,19 +153,8 @@ async def publish(
                     callback_timeout,
                     raise_timeout,
                 )
-                if callback:
+                if callback:  # pragma: no branch
                     return r
-
-        elif handler.exchange.type == ExchangeType.FANOUT:
-            r = await call_handler(
-                handler,
-                incoming,
-                callback,
-                callback_timeout,
-                raise_timeout,
-            )
-            if callback:
-                return r
 
 
 def TestRabbitBroker(broker: RabbitBroker) -> RabbitBroker:
