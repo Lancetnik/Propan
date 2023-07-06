@@ -143,6 +143,9 @@ class BaseHandler:
 class NameRequired(BaseModel):
     name: Optional[str] = Field(...)
 
+    def __eq__(self, __value: Optional["NameRequired"]) -> bool:
+        return __value and self.name == __value.name
+
     def __init__(self, name: str, **kwargs: Any):
         super().__init__(name=name, **kwargs)
 
