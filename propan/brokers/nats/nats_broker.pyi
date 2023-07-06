@@ -36,6 +36,7 @@ from propan.brokers._model.broker_usecase import (
     T_HandlerReturn,
 )
 from propan.brokers._model.schemas import PropanMessage
+from propan.brokers.middlewares import BaseMiddleware
 from propan.brokers.nats.schemas import Handler
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
@@ -45,6 +46,7 @@ NatsMessage: TypeAlias = PropanMessage[Msg]
 
 class NatsBroker(BrokerAsyncUsecase[Msg, Client]):
     logger: logging.Logger
+    middlewares: Sequence[Type[BaseMiddleware[Msg]]]
     handlers: List[Handler]
 
     def __init__(
@@ -87,6 +89,7 @@ class NatsBroker(BrokerAsyncUsecase[Msg, Client]):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         dependencies: Sequence[Depends] = (),
+        middlewares: Sequence[Type[BaseMiddleware[Msg]]] = (),
         decode_message: AsyncDecoder[Msg] = None,
         parse_message: AsyncParser[Msg] = None,
         protocol: str = "nats",

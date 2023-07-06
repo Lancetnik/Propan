@@ -27,6 +27,7 @@ from propan.brokers._model.broker_usecase import (
     T_HandlerReturn,
 )
 from propan.brokers._model.schemas import PropanMessage
+from propan.brokers.middlewares import BaseMiddleware
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.redis.schemas import Handler
 from propan.log import access_logger
@@ -37,6 +38,7 @@ RedisMessage: TypeAlias = PropanMessage[AnyDict]
 
 class RedisBroker(BrokerAsyncUsecase[AnyDict, Redis[bytes]]):
     handlers: List[Handler]
+    middlewares: Sequence[Type[BaseMiddleware[AnyDict]]]
     __max_channel_len: int
 
     def __init__(
@@ -71,6 +73,7 @@ class RedisBroker(BrokerAsyncUsecase[AnyDict, Redis[bytes]]):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         dependencies: Sequence[Depends] = (),
+        middlewares: Sequence[Type[BaseMiddleware[AnyDict]]] = (),
         decode_message: AsyncDecoder[AnyDict] = None,
         parse_message: AsyncParser[AnyDict] = None,
         protocol: str = "redis",

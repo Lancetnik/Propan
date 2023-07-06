@@ -35,6 +35,7 @@ from propan.brokers._model.broker_usecase import (
 )
 from propan.brokers._model.schemas import PropanMessage
 from propan.brokers.kafka.schemas import Handler
+from propan.brokers.middlewares import BaseMiddleware
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
 from propan.types import DecodedMessage, SendableMessage
@@ -51,6 +52,7 @@ class KafkaBroker(
     response_topic: str
     response_callbacks: Dict[CorrelationId, "Future[DecodedMessage]"]
     handlers: List[Handler]
+    middlewares: Sequence[Type[BaseMiddleware[ConsumerRecord]]]
 
     def __init__(
         self,
@@ -106,6 +108,7 @@ class KafkaBroker(
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         dependencies: Sequence[Depends] = (),
+        middlewares: Sequence[Type[BaseMiddleware[ConsumerRecord]]] = (),
         protocol: str = "kafka",
     ) -> None: ...
     async def connect(
