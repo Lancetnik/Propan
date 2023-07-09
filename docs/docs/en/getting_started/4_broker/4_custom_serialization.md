@@ -1,6 +1,6 @@
 # Custom Serialization
 
-By default, **Propan** uses the *JSON* format to send and receive messages. However, if you need to process messages in other formats or with additional steps for serialization (*gzip*, *Avro*, *Protobuf*, etc.), you can modify the serialization logic.
+By default, **Propan** uses the *JSON* format to send and receive messages. However, if you need to handle messages in other formats or with extra serialization steps such as *gzip*, *Avro*, *Protobuf*, and the like, you can modify the serialization logic.
 
 ## Serialization Steps
 
