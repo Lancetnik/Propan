@@ -2,7 +2,7 @@
 
 ## General behavior
 
-To declare a broker message handler function, use the decorator `@broker.handle`
+To declare a broker message handler function, use the decorator `@broker.handle`:
 
 ```python
 @broker.handle("test")
