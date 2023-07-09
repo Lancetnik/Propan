@@ -1,6 +1,6 @@
 # Type casting
 
-The first argument of the function decorated by `@broker.hanle` is the decrypted body of the incoming message.
+The first argument of the function decorated by `@broker.handle` is the decrypted body of the incoming message.
 
 Incoming message body can be of three types:
 
