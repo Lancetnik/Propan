@@ -223,6 +223,14 @@ class KafkaBroker(
         callback_timeout: Optional[float] = None,
         raise_timeout: bool = False,
     ) -> Optional[DecodedMessage]: ...
+    async def publish_batch(
+        self,
+        *msgs: SendableMessage,
+        topic: str,
+        partition: Optional[int] = None,
+        timestamp_ms: Optional[int] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> None: ...
     def _get_log_context(  # type: ignore[override]
         self,
         message: Optional[KafkaMessage],
