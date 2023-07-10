@@ -8,6 +8,9 @@ on:
       - docs/**
       - .github/workflows/documentation.yml
 
+env:
+  CI: true
+
 permissions:
   contents: write
 
@@ -23,6 +26,6 @@ jobs:
         with:
           key: ${{ github.ref }}
           path: .cache
-      - run: pip install mkdocs-material mkdocs-static-i18n mdx-include mkdocs-macros-plugin mkdocs-glightbox
+      - run: pip install mkdocs-material mkdocs-static-i18n mdx-include mkdocs-macros-plugin mkdocs-glightbox pillow cairosvg
       - working-directory: ./docs
         run: mkdocs gh-deploy --force

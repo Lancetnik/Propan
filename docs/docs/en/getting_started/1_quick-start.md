@@ -29,43 +29,6 @@ $ propan run serve:app
 
 ---
 
-## Type casting
-
-Propan uses `pydantic` to cast incoming function arguments to types according to their annotation.
-
-```python linenums="1" hl_lines="5 9"
-{!> docs_src/index/02_type_casting.py!}
-```
-
----
-
-## Dependencies
-
-**Propan** has a dependencies management policy close to `pytest fixtures`.
-Function arguments declare which dependencies you want are needed, and a special decorator delivers them from the global Context object.
-
-Already declared context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
-If you call a non-existent field, raises *pydantic.error_wrappers.ValidationError* value.
-
-But you can specify your own dependencies, call dependencies functions (like `FastAPI Depends`)
-and [more](../5_dependency/1_di-index).
-
-```python linenums="1" hl_lines="11-12"
-{!> docs_src/index/03_dependencies.py!}
-```
-
----
-
-## Project Documentation
-
-**Propan** automatically generates documentation for your project according to the [**AsyncAPI**]({{ urls.asyncapi }}){ target="_blank"} specification. You can work with both generated artifacts and place a Web view of your documentation on resources available to related teams.
-
-The availability of such documentation significantly simplifies the integration of services: you can immediately see what channels and message format the application works with. And most importantly, it doesn't cost you anything - **Propan** has already done everything for you!
-
-![HTML-page](../../assets/img/docs-html-short.png)
-
----
-
 ## Project template
 
 Also, **Propan CLI** is able to generate a production-ready application template:
@@ -98,33 +61,6 @@ $ propan run [projectname].app.serve:app --env=.env --reload
 </div>
 
 Now you can enjoy a new development experience!
-
----
-
-## HTTP Frameworks integrations
-
-### Any Framework
-
-You can use **Propan** `MQBrokers` without `PropanApp`.
-Just *start* and *stop* them according to your application lifespan.
-
-{! includes/getting_started/index/04_http_example.md !}
-
-### **FastAPI** Plugin
-
-Also, **Propan** can be used as part of **FastAPI**.
-
-Just import a **PropanRouter** you need and declare the message handler
-using the `@event` decorator. This decorator is similar to the decorator `@handle` for the corresponding brokers.
-
-!!! tip
-    When used this way, **Propan** does not utilize its own dependency system, but integrates into **FastAPI**.
-    That is, you can use `Depends`, `Background Tasks` and other tools **Facet API** as if it were a regular HTTP endpoint.
-
-{! includes/getting_started/index/05_native_fastapi.md !}
-
-!!! note
-    More integration examples you can find [here](../../integrations/1_integrations-index/)
 
 ??? tip "Don't forget to stop test broker container"
     ```bash

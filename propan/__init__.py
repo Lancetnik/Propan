@@ -1,20 +1,20 @@
 # Imports to use at __all__
 from propan import __about__ as about
-from propan.brokers import PropanMessage
-from propan.cli.app import PropanApp, PropanSyncApp
-from propan.log import logger, access_logger
-from propan.utils import apply_types, context, Context, ContextRepo, Depends
 from propan._compat import is_installed
+from propan.brokers import PropanMessage, BaseMiddleware
+from propan.cli.app import PropanApp, PropanSyncApp
+from propan.log import access_logger, logger
+from propan.utils import Context, ContextRepo, Depends, apply_types, context
 
 if is_installed("aio_pika"):
-    from propan.brokers.rabbit.routing import RabbitRouter
     from propan.brokers.rabbit.rabbit_broker import RabbitBroker
+    from propan.brokers.rabbit.routing import RabbitRouter
 else:
     RabbitBroker = RabbitRouter = about.INSTALL_RABBIT  # type: ignore
 
 if is_installed("pika"):
-    from propan.brokers.rabbit.routing import RabbitRouter
     from propan.brokers.rabbit.rabbit_broker_sync import RabbitSyncBroker
+    from propan.brokers.rabbit.routing import RabbitRouter
 else:
     RabbitSyncBroker = RabbitRouter = about.INSTALL_RABBIT_SYNC  # type: ignore
 
@@ -59,6 +59,7 @@ __all__ = (  # noqa: F405
     "Depends",
     # brokers
     "PropanMessage",
+    "BaseMiddleware",
     ## nats
     "NatsBroker",
     "NatsJSBroker",

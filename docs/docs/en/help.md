@@ -10,7 +10,19 @@ There are several ways you can do it.
 
 Now the project is in active development on the bare enthusiasm of its author. If you want to help, but are not ready to spend time writing code/documentation, you can just give your feedback. This is the fuel that fires :fire: enthusiasm.
 
-### Star on GitHub
+### Tweet about **Propan**
+
+<a href="https://twitter.com/compose/tweet?text=I'm like @PropanFramework because... https://github.com/Lancetnik/Propan" class="external-link" target="_blank">Tweet about **Propan**</a> and let me and others know why you like it. 🎉
+
+It's very impotant for now to let others know about the project: the bigger community we have - the better project will be!
+
+### Follow **Propan** on Twitter
+
+<a href="https://twitter.com/PropanFramework" class="external-link" target="_blank">Follow @PropanFramework on **Twitter**</a> to get the latest news about **Propan**. 🐦
+
+Here I publish all backstages and news about **Propan** development!
+
+### Star **Propan** in GitHub
 
 You can show your interest by putting a "star" **Propan** on GitHub(clicking the star button at the top right):
 
@@ -18,7 +30,7 @@ You can show your interest by putting a "star" **Propan** on GitHub(clicking the
 
 The more stars are there, the easier for other users it is to find the project and to see that is it already useful for many others.
 
-### Watch changes on GitHub
+### Watch the GitHub repository for releases
 
 You can "watch" Propan on GitHub  (clicking the "watch" button at the top right):
 
@@ -32,7 +44,9 @@ You can directly contact <a href="mailto:diementros@yandex.ru " class="external-
 
 I will be very grateful if you tell your opinion about the project or its usage experience.
 
-You can also subscribe to <a href="https://github.com/Lancetnik /" target="_blank">me</a> on GitHub to receive notifications about my other open-source projects.
+You can also subscribe to <a href="https://github.com/Lancetnik/" target="_blank">me</a> on GitHub to receive notifications about my other open-source projects.
+
+<a href="https://twitter.com/diementros" class="external-link" target="_blank">Follow me on **Twitter**</a> to hear when I make announcements or release new tools.
 
 ## Participate in discussions
 

@@ -26,11 +26,11 @@
 
 # Propan
 
-**Propan** - just *<s>another one HTTP</s>* a **declarative Python MQ framework**. It it inspired by [*fastapi*]({{ urls.fastapi }}){target="_blank"}, aims to simplify writing code that works with Message Brokers and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *<s>another one HTTP</s>* a **declarative Python Messaging framework**. It is inspired by [*FastAPI*]({{ urls.fastapi }}){target="_blank"} and [*Kombu*]({{ urls.kombu }}){target="_blank"}, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around [Messaging](https://microservices.io/patterns/communication-style/messaging.html){target="_blank"}.
 
-It is a modern, high-level framework on top of popular Python libraries for various message brokers, based on [*pydantic*]({{ urls.pydantic }}){target="_blank"} and [*fastapi*]({{ urls.fastapi }}){target="_blank"}, [*pytest*]({{ urls.pytest }}){target="_blank"} concepts.
+It is a modern, high-level framework on top of popular specific Python brokers libraries, based on [*pydantic*]({{ urls.pydantic }}){target="_blank"} and [*FastAPI*]({{ urls.fastapi }}){target="_blank"}, [*pytest*]({{ urls.pytest }}){target="_blank"} concepts.
 
 ---
 
@@ -108,6 +108,69 @@ This is the **Propan** declarative way to write the same code. That is so much e
 
 ---
 
+## Type casting
+
+Propan uses `pydantic` to cast incoming function arguments to types according to their annotation.
+
+```python linenums="1" hl_lines="5 9"
+{!> docs_src/index/02_type_casting.py!}
+```
+
+---
+
+## Dependencies
+
+**Propan** has a dependencies management policy close to `pytest fixtures` and `FastAPI Depends` at the same time.
+Function arguments declare which dependencies you want are needed, and a special decorator delivers them from the global Context object.
+
+Already declared context fields are: *app*, *broker*, *context* (itself), *logger* and *message*.
+If you call a non-existent field, raises *pydantic.error_wrappers.ValidationError* value.
+
+But you can specify your own dependencies, call dependencies functions and [more](../5_dependency/1_di-index).
+
+```python linenums="1" hl_lines="11-12"
+{!> docs_src/index/03_dependencies.py!}
+```
+
+---
+
+## Project Documentation
+
+**Propan** automatically generates documentation for your project according to the [**AsyncAPI**]({{ urls.asyncapi }}){ target="_blank"} specification. You can work with both generated artifacts and place a Web view of your documentation on resources available to related teams.
+
+The availability of such documentation significantly simplifies the integration of services: you can immediately see what channels and message format the application works with. And most importantly, it doesn't cost you anything - **Propan** has already done everything for you!
+
+![HTML-page](../../assets/img/docs-html-short.png)
+
+---
+
+## HTTP Frameworks integrations
+
+### Any Framework
+
+You can use **Propan** `MQBrokers` without `PropanApp`.
+Just *start* and *stop* them according to your application lifespan.
+
+{! includes/getting_started/index/04_http_example.md !}
+
+### **FastAPI** Plugin
+
+Also, **Propan** can be used as part of **FastAPI**.
+
+Just import a **PropanRouter** you need and declare the message handler
+using the `@event` decorator. This decorator is similar to the decorator `@handle` for the corresponding brokers.
+
+!!! tip
+    When used this way, **Propan** does not utilize its own dependency system, but integrates into **FastAPI**.
+    That is, you can use `Depends`, `Background Tasks` and other tools **Facet API** as if it were a regular HTTP endpoint.
+
+{! includes/getting_started/index/05_native_fastapi.md !}
+
+!!! note
+    More integration examples you can find [here](integrations/1_integrations-index/)
+
+---
+
 ## Supported MQ brokers
 
 !!! note "Need your help"
@@ -126,3 +189,4 @@ This is the **Propan** declarative way to write the same code. That is so much e
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **ActiveMQ**      | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **AzureSB**       | :mag: planning :mag:                                    | :mag: planning :mag:                        |
