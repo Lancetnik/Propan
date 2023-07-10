@@ -25,6 +25,7 @@ from yarl import URL
 from propan.brokers._model import BrokerAsyncUsecase
 from propan.brokers._model.broker_usecase import AsyncDecoder, AsyncParser
 from propan.brokers._model.schemas import PropanMessage
+from propan.brokers.middlewares import BaseMiddleware
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.log import access_logger
@@ -40,6 +41,7 @@ RabbitMessage: TypeAlias = PropanMessage[IncomingMessage]
 
 class RabbitBroker(BrokerAsyncUsecase[IncomingMessage, aio_pika.RobustConnection]):
     handlers: List[Handler]
+    middlewares: Sequence[Type[BaseMiddleware[IncomingMessage]]]
     _channel: Optional[aio_pika.RobustChannel]
 
     __max_queue_len: int
@@ -66,6 +68,7 @@ class RabbitBroker(BrokerAsyncUsecase[IncomingMessage, aio_pika.RobustConnection
         apply_types: bool = True,
         consumers: Optional[int] = None,
         dependencies: Sequence[Depends] = (),
+        middlewares: Sequence[Type[BaseMiddleware[IncomingMessage]]] = (),
         decode_message: AsyncDecoder[IncomingMessage] = None,
         parse_message: AsyncParser[IncomingMessage] = None,
         # AsyncAPI

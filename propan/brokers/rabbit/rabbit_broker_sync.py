@@ -1,14 +1,14 @@
 from functools import wraps
 from threading import Event
 from types import TracebackType
-from typing import Any, Callable, List, Optional, Sequence, Type, Union, Tuple
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, Union
 from uuid import uuid4
 
-from fast_depends.dependencies import Depends
-from typing_extensions import TypeAlias
 import pika
+from fast_depends.dependencies import Depends
 from pika import spec
 from pika.adapters import blocking_connection
+from typing_extensions import TypeAlias
 
 from propan._compat import model_to_dict
 from propan.brokers._model.broker_usecase import (
@@ -24,11 +24,10 @@ from propan.brokers.push_back_watcher import (
     WatcherContext,
 )
 from propan.brokers.rabbit.logging import RabbitLoggingMixin
-from propan.brokers.rabbit.utils import validate_exchange, validate_queue, RABBIT_REPLY
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
+from propan.brokers.rabbit.utils import RABBIT_REPLY, validate_exchange, validate_queue
 from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils import context
-
 
 PIKA_RAW_MESSAGE: TypeAlias = Tuple[
     blocking_connection.BlockingChannel,

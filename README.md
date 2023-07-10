@@ -28,7 +28,7 @@
 
 # Propan
 
-**Propan** - just *~~an another one HTTP~~* a **declarative Python MQ framework**. It's following by <a href="https://FastAPI.tiangolo.com/ru/" target="_blank">*FastAPI*</a>, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *~~an another one HTTP~~* a **declarative Python Messaging Framework**. It's inspired by <a href="https://FastAPI.tiangolo.com/ru/" target="_blank">*FastAPI*</a> and <a href="https://docs.celeryq.dev/projects/kombu/en/stable/" target="_blank">*Kombu*</a>, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around <a href="https://microservices.io/patterns/communication-style/messaging.html" target="_blank">Messaging Architecture</a>.
 
@@ -75,6 +75,7 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 | **Redis Streams** | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **Pulsar**        | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 | **ActiveMQ**      | :mag: planning :mag:                                    | :mag: planning :mag:                        |
+| **AzureSB**       | :mag: planning :mag:                                    | :mag: planning :mag:                        |
 
 ---
 
@@ -84,15 +85,15 @@ If you are interested in this project, please give me feedback by:
 
 - giving the [repository](https://github.com/Lancetnik/Propan) a star
 
-- tweet about <a href="https://twitter.com/PropanFramework" target="_blank">**Propan**</a> and let me and others know why you use it.
+- tweet about <a href="https://twitter.com/compose/tweet?text=I'm like @PropanFramework because... https://github.com/Lancetnik/Propan" class="external-link" target="_blank">**Propan**</a> and let me and others know why you use it
 
-- joining <a href="https://discord.gg/ChhMXJpvz7" target="_blank">Discord server</a>.
+- joining <a href="https://discord.gg/ChhMXJpvz7" target="_blank">Discord server</a>
 
-Your support helps me to stay in touch with you and encourages us to
+Your support helps me to stay in touch with you and encourages to
 continue developing and improving the library. Thank you for your
 support!
 
-Really, share information about this project with overs. The bigger community we have - the better project will be!
+Really, share information about this project with others. The bigger community we have - the better project will be!
 
 ---
 
@@ -136,7 +137,6 @@ It is not a bad way, but it can be much easier.
 from propan import PropanApp, RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
-
 app = PropanApp(broker)
 
 @broker.handle("test_queue")
@@ -221,12 +221,12 @@ async def second_handler(body: SimpleMessage):
 
 ## Dependencies
 
-**Propan** a has dependencies management policy close to `pytest fixtures`.
+**Propan** a has dependencies management policy close to `pytest fixtures` and `FastAPI Depends` at the same time.
 You can specify in functions arguments which dependencies
 you would to use. Framework passes them from the global Context object.
 
-Also, you can specify your own dependencies, call dependencies functions (like `FastAPI Depends`)
-and [more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
+Also, you can specify your own dependencies, call dependencies functions and
+[more](https://github.com/Lancetnik/Propan/tree/main/examples/dependencies).
 
 ```python
 from propan import PropanApp, RabbitBroker, Context, Depends
@@ -380,18 +380,17 @@ from pydantic import BaseModel
 from propan.fastapi import RabbitRouter
 
 router = RabbitRouter("amqp://guest:guest@localhost:5672")
-
 app = FastAPI(lifespan=router.lifespan_context)
 
 class Incoming(BaseModel):
-    m: dict
+    username: str
 
 def call():
     return True
 
 @router.event("test")
-async def hello(m: Incoming, d = Depends(call)) -> dict:
-    return { "response": "Hello, Propan!" }
+async def hello(m: Incoming, d = Depends(call)):
+    return { "response": f"Hello, {m.username}!" }
 
 app.include_router(router)
 ```

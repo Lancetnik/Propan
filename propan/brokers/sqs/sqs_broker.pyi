@@ -28,6 +28,7 @@ from propan.brokers._model.broker_usecase import (
     T_HandlerReturn,
 )
 from propan.brokers._model.schemas import PropanMessage
+from propan.brokers.middlewares import BaseMiddleware
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.sqs.schema import Handler, SQSQueue
 from propan.log import access_logger
@@ -40,6 +41,7 @@ SQSMessage: TypeAlias = PropanMessage[AnyDict]
 class SQSBroker(BrokerAsyncUsecase[AnyDict, AioBaseClient]):
     _queues: Dict[str, QueueUrl]
     response_queue: str
+    middlewares: Sequence[Type[BaseMiddleware[AnyDict]]]
     response_callbacks: Dict[str, "asyncio.Future[DecodedMessage]"]
     handlers: List[Handler]
 
@@ -62,6 +64,7 @@ class SQSBroker(BrokerAsyncUsecase[AnyDict, AioBaseClient]):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         dependencies: Sequence[Depends] = (),
+        middlewares: Sequence[Type[BaseMiddleware[AnyDict]]] = (),
         decode_message: AsyncDecoder[AnyDict] = None,
         parse_message: AsyncParser[AnyDict] = None,
         protocol: str = "sqs",

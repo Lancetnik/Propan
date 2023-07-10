@@ -5,7 +5,7 @@ dev_addr: 0.0.0.0:8000
 
 repo_name: lancetnik/propan
 repo_url: https://github.com/lancetnik/propan
-edit_uri: https://github.com/lancetnik/propan
+edit_uri: https://github.com/Lancetnik/Propan/tree/main/docs/docs
 
 copyright: Copyright &copy; 2019 - 2023 Pastukhov Nikita
 
@@ -21,6 +21,8 @@ extra_javascript:
 
 theme:
   name: material
+  font:
+    text: Roboto
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -39,6 +41,7 @@ theme:
   features:
     - search.suggest
     - search.highlight
+    - content.action.edit
     - content.tabs.link
     - content.code.copy
     - content.code.annotate
@@ -49,12 +52,15 @@ theme:
     next: 'Next'
   icon:
     repo: fontawesome/brands/github
+    edit: material/pencil-circle-outline
   logo: assets/img/logo-white.png
   favicon: assets/img/favicon.png
 
 plugins:
   - search
   - glightbox
+  - social:
+      enabled: !ENV [CI, false]
   - macros:
       include_dir: includes
   - i18n:
@@ -96,6 +102,9 @@ markdown_extensions:  # do not reorder
   - md_in_html
 
 extra:
+  analytics:
+    provider: google
+    property: G-5WCRLZHPSD
   urls:
     fastapi: https://fastapi.tiangolo.com/ru/
     redis: https://redis.readthedocs.io/en/stable/index.html
@@ -107,14 +116,19 @@ extra:
     pydantic: https://docs.pydantic.dev/
     pytest: https://docs.pytest.org/en/latest/
     asyncapi: https://www.asyncapi.com/
+    kombu: https://docs.celeryq.dev/projects/kombu/en/stable/
   social:
     - icon: fontawesome/brands/github-alt
       link: https://github.com/lancetnik/propan
     - icon: simple/telegram
       link: https://t.me/propan_python
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/ChhMXJpvz7
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/PropanFramework
 
 nav:
-  - Welcome: index.md
+  - Propan: index.md
   - Getting Started:
     - Hello, Propan!: getting_started/1_quick-start.md
     - CLI Tool: getting_started/2_cli.md

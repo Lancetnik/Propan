@@ -7,13 +7,13 @@ connect: In the `connect` method
 
 ## Separation of dependencies
 
-**Propan** supports various message brokers using special classes
+**Propan** supports various message brokers using special classes:
 
 {! includes/getting_started/broker/index/imports.md !}
 
-Be careful! Different brokers require different dependencies. If you have not install these dependencies, the imported broker will have the `None` value.
+Be careful! Different brokers require different dependencies. If you have not installed these dependencies, the imported broker will have the `None` value.
 
-To install **Propan** with the necessary dependencies for your broker, select one of the installation options
+To install **Propan** with the necessary dependencies for your broker, select one of the installation options:
 
 {! includes/getting_started/broker/index/install.md !}
 
@@ -26,10 +26,10 @@ Data for connecting **Propan Broker** to your message broker can be transmitted 
 
 In the simplest cases, the first method of data transmission for connection is enough for you - through the constructor.
 
-However, in more complex scenarios: for example, when configuring a project via [environment variables](../../2_cli/#environment-management), you may need the second option. The full example is described [here](../../6_lifespans/#lifespan)
+However, in more complex scenarios: for example, when configuring a project via [environment variables](../../2_cli/#environment-management), you may need the second option. The full example is described [here](../../6_lifespans/#lifespan).
 
 !!! note
-    The parameters passed to `connect` overrides the parameters passed to the constructor. Be careful with this.
+    The parameters passed to `connect` override the parameters passed to the constructor. Be careful with this.
 
-    In addition, calling `connect` again has no effect. Therefore, you may not worry that `broker.start()` call
+    In addition, calling `connect` again will have no effect. Therefore, you do not have to worry that `broker.start()` call
     (used inside `PropanApp` to run the broker) will cause any errors.

@@ -350,6 +350,33 @@ class KafkaBroker(
             if msg:
                 return await self._decode_message(msg)
 
+    async def publish_batch(
+        self,
+        *msgs: SendableMessage,
+        topic: str,
+        partition: Optional[int] = None,
+        timestamp_ms: Optional[int] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> None:
+        batch = self._publisher.create_batch()
+
+        for msg in msgs:
+            message, content_type = super()._encode_message(msg)
+
+            headers_to_send = {
+                "content-type": content_type or "",
+                **(headers or {}),
+            }
+
+            batch.append(
+                key=None,
+                value=message,
+                timestamp=timestamp_ms,
+                headers=[(i, j.encode()) for i, j in headers_to_send.items()],
+            )
+
+        await self._publisher.send_batch(batch, topic, partition=partition)
+
     @property
     def fmt(self) -> str:
         return self._fmt or (

@@ -3,11 +3,11 @@ import logging
 from typing_extensions import Annotated, TypeVar
 
 from propan import __about__ as about
+from propan._compat import is_installed
 from propan.cli.app import PropanApp
 from propan.utils.context import Context as ContextField
 from propan.utils.context import ContextRepo as CR
 from propan.utils.no_cast import NoCast as NC
-from propan._compat import is_installed
 
 Logger = Annotated[logging.Logger, ContextField("logger")]
 App = Annotated[PropanApp, ContextField("app")]
@@ -32,10 +32,9 @@ else:
 
 if is_installed("pika"):
     from pika.adapters import blocking_connection
-    from propan.brokers.rabbit.rabbit_broker_sync import (
-        RabbitSyncBroker as RSB,
-        PIKA_RAW_MESSAGE,
-    )
+
+    from propan.brokers.rabbit.rabbit_broker_sync import PIKA_RAW_MESSAGE
+    from propan.brokers.rabbit.rabbit_broker_sync import RabbitSyncBroker as RSB
 
     RabbitSyncBroker = Annotated[RSB, ContextField("broker")]
     RabbitMessage = Annotated[PIKA_RAW_MESSAGE, ContextField("message")]

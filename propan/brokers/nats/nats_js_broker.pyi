@@ -44,6 +44,7 @@ from propan.brokers._model.broker_usecase import (
     HandlerCallable,
     T_HandlerReturn,
 )
+from propan.brokers.middlewares import BaseMiddleware
 from propan.brokers.nats import consts as api
 from propan.brokers.nats.nats_broker import NatsBroker, NatsMessage
 from propan.brokers.push_back_watcher import BaseWatcher
@@ -53,6 +54,7 @@ from propan.types import DecodedMessage, SendableMessage
 T = TypeVar("T")
 
 class NatsJSBroker(NatsBroker):
+    middlewares: Sequence[Type[BaseMiddleware[Msg]]]
     _raw_connection: Optional[Client]
     _connection: Optional[JetStreamContext]
     _stream_config: api.StreamConfig
@@ -127,6 +129,7 @@ class NatsJSBroker(NatsBroker):
         log_fmt: Optional[str] = None,
         apply_types: bool = True,
         dependencies: Sequence[Depends] = (),
+        middlewares: Sequence[Type[BaseMiddleware[Msg]]] = (),
         decode_message: AsyncDecoder[Msg] = None,
         parse_message: AsyncParser[Msg] = None,
         protocol: str = "nats",

@@ -2,6 +2,7 @@ import json
 import logging
 import warnings
 from abc import ABC, abstractmethod
+from contextlib import AsyncExitStack
 from functools import wraps
 from itertools import chain
 from types import TracebackType
@@ -37,6 +38,7 @@ from propan.brokers._model.utils import (
 )
 from propan.brokers.constants import ContentType, ContentTypes
 from propan.brokers.exceptions import SkipMessage
+from propan.brokers.middlewares import BaseMiddleware
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.log import access_logger
 from propan.types import AnyDict, DecodedMessage, SendableMessage
@@ -98,6 +100,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
     log_level: int
     handlers: Sequence[BaseHandler]
     dependencies: Sequence[Depends]
+    middlewares: Sequence[Type[BaseMiddleware[MsgType]]]
     started: bool
     _global_parser: CustomParser[MsgType]
     _global_decoder: CustomDecoder[MsgType]
@@ -114,6 +117,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         dependencies: Sequence[Depends] = (),
         decode_message: CustomDecoder[MsgType] = None,
         parse_message: CustomParser[MsgType] = None,
+        middlewares: Sequence[Type[BaseMiddleware[MsgType]]] = (),
         # AsyncAPI
         protocol: str = "",
         protocol_version: Optional[str] = None,
@@ -128,6 +132,7 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         self._is_apply_types = apply_types
         self.handlers = []
         self.dependencies = dependencies
+        self.middlewares = middlewares
 
         self._connection_args = args
         self._connection_kwargs = kwargs
@@ -171,6 +176,9 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
     def include_router(self, router: BrokerRouter[MsgType]) -> None:
         for r in router.handlers:
             r.call = self.handle(*r.args, **r.kwargs)(r.call)
+
+    def include_middleware(self, middleware: Type[BaseMiddleware[MsgType]]) -> None:
+        self.middlewares = (*self.middlewares, middleware)
 
     def _wrap_handler(
         self,
@@ -243,6 +251,8 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
 
         if self.logger is not None:
             f = self._log_execution(f, **broker_log_context_kwargs)
+
+        f = self._wrap_middleware(f)
 
         f = self._process_message(
             func=f,
@@ -377,6 +387,13 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
             Awaitable[T_HandlerReturn],
         ],
     ]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _wrap_middleware(
+        self,
+        func: Callable[[MsgType], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]],
+    ) -> Callable[[MsgType], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]]:
         raise NotImplementedError()
 
 
@@ -612,6 +629,19 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
                     return r
 
         return log_wrapper
+
+    def _wrap_middleware(
+        self,
+        func: Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]],
+    ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
+        @wraps(func)
+        async def middleware_wrapper(msg: PropanMessage[MsgType]) -> T_HandlerReturn:
+            async with AsyncExitStack() as stack:
+                for m in self.middlewares:
+                    await stack.enter_async_context(m(msg))
+                return await func(msg)
+
+        return middleware_wrapper
 
 
 class BrokerSyncUsecase(BrokerUsecase[MsgType, ConnectionType]):

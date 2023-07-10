@@ -68,7 +68,7 @@ def suppress_decor(
         ],
     ],
     _is_sync: bool = False,
-) -> Callable[[MsgType, bool], Union[T_HandlerReturn, Awaitable[T_HandlerReturn],]]:
+) -> Callable[[MsgType, bool], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]]:
     if _is_sync:
         func = cast(Callable[[MsgType], T_HandlerReturn], func)
 

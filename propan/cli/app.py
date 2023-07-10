@@ -64,29 +64,36 @@ class ABCApp(ABC):
         self.contact = contact
 
     def set_broker(self, broker: Runnable) -> None:
+        """Set already existed App object broker
+        Usefull then you create/init broker in `on_startup` hook"""
         self.broker = broker
 
     def on_startup(
         self, func: Callable[P_HookParams, T_HookReturn]
     ) -> Callable[P_HookParams, T_HookReturn]:
+        """Add hook running BEFORE broker connected
+        This hook also takes an extra CLI options as a kwargs"""
         self._on_startup_calling.append(apply_types(func))
         return func
 
     def on_shutdown(
         self, func: Callable[P_HookParams, T_HookReturn]
     ) -> Callable[P_HookParams, T_HookReturn]:
+        """Add hook running BEFORE broker disconnected"""
         self._on_shutdown_calling.append(apply_types(func))
         return func
 
     def after_startup(
         self, func: Callable[P_HookParams, T_HookReturn]
     ) -> Callable[P_HookParams, T_HookReturn]:
+        """Add hook running AFTER broker connected"""
         self._after_startup_calling.append(apply_types(func))
         return func
 
     def after_shutdown(
         self, func: Callable[P_HookParams, T_HookReturn]
     ) -> Callable[P_HookParams, T_HookReturn]:
+        """Add hook running AFTER broker disconnected"""
         self._after_shutdown_calling.append(apply_types(func))
         return func
 
@@ -114,6 +121,21 @@ class PropanApp(ABCApp):
         license: Optional[AsyncAPILicense] = None,
         contact: Optional[AsyncAPIContact] = None,
     ):
+        """Asyncronous Propan Application class
+
+        stores and run broker, control hooks
+
+        Args:
+            broker: async broker to run (may be `None`, then specify by `set_broker`)
+            logger: logger object to log startup/shutdown messages (`None` to disable)
+
+        AsyncAPI Args:
+            title: application title
+            version: application version
+            description: application description
+            license: application license
+            contact: application contact
+        """
         super().__init__(
             broker=broker,
             logger=logger,
@@ -131,24 +153,66 @@ class PropanApp(ABCApp):
     def on_startup(
         self, func: Callable[P_HookParams, T_HookReturn]
     ) -> Callable[P_HookParams, Awaitable[T_HookReturn]]:
+        """Add hook running BEFORE broker connected
+
+        This hook also takes an extra CLI options as a kwargs
+
+        Args:
+            func: async or sync func to call as a hook
+
+        Returns:
+            Async version of the func argument
+        """
         return super().on_startup(to_async(func))
 
     def on_shutdown(
         self, func: Callable[P_HookParams, Awaitable[T_HookReturn]]
     ) -> AsyncFunc:
+        """Add hook running BEFORE broker disconnected
+
+        Args:
+            func: async or sync func to call as a hook
+
+        Returns:
+            Async version of the func argument
+        """
         return super().on_shutdown(to_async(func))
 
     def after_startup(
         self, func: Callable[P_HookParams, Awaitable[T_HookReturn]]
     ) -> AsyncFunc:
+        """Add hook running AFTER broker connected
+
+        Args:
+            func: async or sync func to call as a hook
+
+        Returns:
+            Async version of the func argument
+        """
         return super().after_startup(to_async(func))
 
     def after_shutdown(
         self, func: Callable[P_HookParams, Awaitable[T_HookReturn]]
     ) -> AsyncFunc:
+        """Add hook running AFTER broker disconnected
+
+        Args:
+            func: async or sync func to call as a hook
+
+        Returns:
+            Async version of the func argument
+        """
         return super().after_shutdown(to_async(func))
 
     async def run(self, log_level: int = logging.INFO) -> None:
+        """Run Propan Application
+
+        Args:
+            log_level: force application log level
+
+        Returns:
+            Block an event loop until stopped
+        """
         self._init_async_cycle()
         async with anyio.create_task_group() as tg:
             tg.start_soon(self._start, log_level)
