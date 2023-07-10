@@ -2,7 +2,7 @@
 
 ## General behavior
 
-To declare a broker message handler function, use the decorator `@broker.handle`
+To declare a broker message handler function, use the decorator `@broker.handle`:
 
 ```python
 @broker.handle("test")
@@ -35,9 +35,9 @@ In this case, the router prefix will be added to the name of the queue of your h
 
 ## Error handling
 
-However, all brokers supporting acknowledgement have the `retry` flag in the `@broker.hanle` method, which is responsible for error handling logic.
+However, all brokers that support acknowledgement have the `retry` flag in the `@broker.handle` method, which is responsible for error handling logic.
 
-By default, this flag has the value `False`, which indicates that if an error occurred during message processing, it will still be retrieved from the queue.
+By default, this flag has the value `False`, which indicates that if an error has occurred during message processing, it can still be retrieved from the queue:
 
 ```python
 @broker.handle("test", retry=False) # don't handle exceptions
@@ -45,7 +45,7 @@ async def base_handler(body: str):
     ...
 ```
 
-If this flag is set to `True`, the message will be placed back in the queue indefinitely when an error occurs. In this case, the message can be processed both by another consumer (if there are several of them) and by the same one.
+If this flag is set to `True`, the message will be placed back in the queue every time an error occurs. In this case, the message can be processed both by another consumer (if there are several of them) and by the same one:
 
 ```python
 @broker.handle("test", retry=True)  # try again indefinitely
@@ -53,7 +53,7 @@ async def base_handler(body: str):
     ...
 ```
 
-When setting the value `int` as the flag, the number of retries will be limited to this number.
+If the `retry` flag is set to `int`, the message will be placed back in the queue and the number of retries will be limited to this number:
 
 ```python
 @broker.handle("test", retry=3)     # make up to 3 attempts

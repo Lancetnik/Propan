@@ -29,7 +29,7 @@ Commands:
 
 ## Project generation
 
-To start a new project not from scratch, you can use the standard template **Propan**
+To start a new project not from scratch, you can use the standard template **Propan**:
 
 <div class="termy">
 ```console
