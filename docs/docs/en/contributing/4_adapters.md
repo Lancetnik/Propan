@@ -1,8 +1,8 @@
 # Create Custom **Propan** Broker
 
-If you want to help me with the development of the project and develop **PropanBroker** for a not yet supported message broker from the [plan](../../#supported-mq-brokers) or you just want to expand the functionality of **Propan** for internal usage, this instruction can be very helphfull for you.
+If you want to help me with the development of the project and develop a new **PropanBroker** for a not yet supported message broker from the [plan](../../#supported-mq-brokers) or you just want to expand the functionality of **Propan** for internal usage, this instruction can be very helpful to you.
 
-In this section, we will deal with the details of the implementation of brokers using examples already existing in **Propan**.
+In this section, we will go through the details of the implementation of brokers using examples from **Propan**.
 
 ## Parent class
 
@@ -14,27 +14,27 @@ In order to create a broker, it is necessary to inherit from this class and impl
 {!> docs_src/contributing/adapter/parent.py !}
 ```
 
-Let's deal with everything in order.
+Let's tackle each method one by one.
 
 ## Connecting to a message broker
 
-There are two key methods are responsible for your broker connection lifespan: `_connect` and `close`. After their implementation, the application with your adapter should start correctly and connect to a message broker (but not process messages).
+Two key methods, `_connect` and `close`, are responsible for the lifespan of your broker connection. Once these are implemented, the application with your adapter should initialize correctly and establish a connection with the message broker, (but will not process messages just yet).
 
 ### _connect
 
-The `_connect` method initializes the connection to your message broker and returns the object of this connection, which will later be available as `self._connection`.
+The `_connect` method initializes the connection to your message broker and returns the connection object, which will afterwards be available as `self._connection`.
 
 !!! tip
-    If your broker requires additional objects initialization, you should also initialize them here.
+    If your broker requires the initialization of additional objects, they should be instantiated within this method as well.
 
 ```python linenums='1' hl_lines="8 17-19 24"
 {!> docs_src/contributing/adapter/rabbit_connect.py !}
 ```
 
 !!! note
-    `args` and `kwargs` will be passed to your method from the  `__init__` or `connect` methods arguments. The logic of resolving these arguments is implemented in the parent class and you don't need to worry about.
+    `args` and `kwargs` will be passed to your method from either the  `__init__` or `connect` methods' arguments. The logic to resolve these arguments is implemented in the parent class, so you don't have to worry about it.
 
-Pay attention to the following lines: this place we initialize the `_channel` object specific to **RabbitBroker**.
+Pay attention to the following lines: here, we initialize the `_channel` object, which is specific to the **RabbitBroker**.
 
 ```python linenums='8' hl_lines="3 14-15"
 {!> docs_src/contributing/adapter/rabbit_connect.py [ln:7-24]!}
@@ -42,16 +42,16 @@ Pay attention to the following lines: this place we initialize the `_channel` ob
 
 ### close
 
-Now we need to shut down our broker correctly. To do this, we implement the `close` method.
+Now, to shut down our broker properly, we implement the `close` method.
 
 ```python linenums='8' hl_lines="6-7 10-11"
 {!> docs_src/contributing/adapter/rabbit_close.py !}
 ```
 
 !!! note
-    In the parent `connect` method, the implementation of the `_connect` method is called under the condition `self._connection is not None`, so it is important to set it to `None` after connection stopping.
+    In the parent's `connect` method, the `_connect` method is invoked under the condition `self._connection is not None`. Therefore, it is important to set `self._connection` to `None` after terminating the connection.
 
-After implementing these methods, an application with your broker should be runnable.
+Once these methods are implemented, an application with your broker should be able to run successfully.
 
 ## Register handlers
 
@@ -65,9 +65,9 @@ Also, your broker must store information about all registered handlers, so you w
 {!> docs_src/contributing/adapter/rabbit_handle.py !}
 ```
 
-In the selected fragments, we store information about registered handlers inside our broker.
+In the highlighted fragments, we store information about registered handlers inside our broker.
 
-Also, a very important point is to call the parent method `_wrap_handler` - it sets all decorators in right order that turns an original function into a **Propan** handler.
+Additionally, it's crucial to call the parent method `_wrap_handler`. This arranges all decorators in the correct order, transforming the original function into a **Propan** handler.
 
 ```python linenums='27' hl_lines="2"
 {!> docs_src/contributing/adapter/rabbit_handle.py [ln:27-32] !}
@@ -85,16 +85,16 @@ Here is a somewhat simplified code for registering the `handlers`, however, it d
 
 There are two possible options here:
 
-* the library we use to work with the broker supports the `callbacks` mechanism (like *aio-pika* used for *RabbitMQ*)
+* the library we use to work with the broker supports the `callbacks` mechanism (like *aio-pika* does for *RabbitMQ*)
 * the library supports message iteration only
 
-In the second case, we were less lucky and we need to convert a loop into a `callback`. This can be done, for example, using `asyncio.Task`, as in the *Redis* example. However, in this case, you should not forget to correctly cancel these tasks in the `close` method.
+In the second case, we were less lucky, so we need to convert the loop into a `callback`. This can be done, for example, using `asyncio.Task`, as in the *Redis* example. However, in this case, do not forget to correctly cancel these tasks in the `close` method.
 
 ```python linenums='1' hl_lines="16 26-27 45 55"
 {!> docs_src/contributing/adapter/redis_start.py !}
 ```
 
-After that, your broker should send a received messages to the functions decorated with `handle`. However, while these functions will fall with an error.
+After that, your broker should send a received message to the functions decorated with `handle`. However, these functions will fail with an error.
 
 ## Processing incoming messages
 
@@ -126,7 +126,7 @@ And without processing:
 {!> docs_src/contributing/adapter/redis_process.py !}
 ```
 
-P.S: the following code is correct too, but without state processing and **RPC** supporting
+P.S: the following code is correct too, but without state processing and **RPC** support.
 
 ```python
 def _process_message(
