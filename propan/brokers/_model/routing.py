@@ -5,7 +5,6 @@ from typing_extensions import ParamSpec, TypeVar
 
 from propan.types import AnyDict, SendableMessage
 
-
 P_RouteCall = ParamSpec("P_RouteCall")
 T_RouteReturn = TypeVar("T_RouteReturn", bound=SendableMessage)
 MsgType = TypeVar("MsgType")

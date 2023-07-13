@@ -166,8 +166,8 @@ Msg = TypeVar("Msg")
 
 @pydantic_dataclass
 class PropanMessage(Generic[Msg]):
-    body: Union[bytes, Any]
     raw_message: Msg
+    body: Union[bytes, Any]
     content_type: Optional[str] = None
     reply_to: str = ""
     headers: AnyDict = Field(default_factory=dict)

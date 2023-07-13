@@ -1,11 +1,9 @@
 from typing import Any, Awaitable, Callable
+
 from nats.aio.msg import Msg
 
+from propan.brokers._model.broker_usecase import HandlerCallable, T_HandlerReturn
 from propan.brokers._model.routing import BrokerRouter
-from propan.brokers._model.broker_usecase import (
-    HandlerCallable,
-    T_HandlerReturn,
-)
 from propan.types import AnyDict
 
 

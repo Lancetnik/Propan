@@ -1,12 +1,9 @@
-from typing import Callable, Awaitable
+from typing import Awaitable, Callable
 
 from aiokafka.structs import ConsumerRecord
 
+from propan.brokers._model.broker_usecase import HandlerCallable, T_HandlerReturn
 from propan.brokers._model.routing import BrokerRouter
-from propan.brokers._model.broker_usecase import (
-    HandlerCallable,
-    T_HandlerReturn,
-)
 from propan.types import AnyDict
 
 

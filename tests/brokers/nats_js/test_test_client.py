@@ -2,9 +2,9 @@ import asyncio
 
 import pytest
 
-from propan.test.nats import build_message
 from propan.annotations import NatsMessage
 from propan.brokers.nats.nats_js_broker import NatsJSBroker
+from propan.test.nats import build_message
 from tests.brokers.base.testclient import BrokerTestclientTestcase
 
 

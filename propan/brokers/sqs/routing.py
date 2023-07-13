@@ -1,9 +1,6 @@
 from typing import Awaitable, Callable, Union
 
-from propan.brokers._model.broker_usecase import (
-    HandlerCallable,
-    T_HandlerReturn,
-)
+from propan.brokers._model.broker_usecase import HandlerCallable, T_HandlerReturn
 from propan.brokers._model.routing import BrokerRouter
 from propan.brokers.sqs.schema import SQSQueue
 from propan.types import AnyDict
