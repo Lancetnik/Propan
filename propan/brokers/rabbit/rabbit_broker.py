@@ -127,6 +127,7 @@ class RabbitBroker(
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         *,
+        consume_arguments: Optional[AnyDict] = None,
         dependencies: Sequence[Depends] = (),
         description: str = "",
         **original_kwargs: AnyDict,
@@ -157,6 +158,7 @@ class RabbitBroker(
                 queue=queue,
                 exchange=exchange,
                 _description=description,
+                consume_arguments=consume_arguments,
                 dependant=dependant,
             )
             self.handlers.append(handler)
@@ -181,7 +183,7 @@ class RabbitBroker(
             c = self._get_log_context(None, handler.queue, handler.exchange)
             self._log(f"`{func.__name__}` waiting for messages", extra=c)
 
-            await queue.consume(func)
+            await queue.consume(func, arguments=handler.consume_arguments)
 
     async def publish(
         self,

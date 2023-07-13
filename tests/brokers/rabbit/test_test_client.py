@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from propan.annotations import RabbitMessage
 from propan.brokers.rabbit import (
     ExchangeType,
     RabbitBroker,
@@ -10,7 +11,6 @@ from propan.brokers.rabbit import (
     RabbitQueue,
 )
 from propan.test.rabbit import build_message
-from propan.annotations import RabbitMessage
 from tests.brokers.base.testclient import BrokerTestclientTestcase
 
 

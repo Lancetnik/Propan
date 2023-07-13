@@ -15,7 +15,7 @@ from propan.asyncapi.channels import AsyncAPIChannel
 from propan.asyncapi.message import AsyncAPICorrelationId, AsyncAPIMessage
 from propan.asyncapi.subscription import AsyncAPISubscription
 from propan.brokers._model.schemas import BaseHandler, NameRequired, Queue
-from propan.types import DecoratedCallable
+from propan.types import AnyDict, DecoratedCallable
 
 
 @unique
@@ -145,6 +145,7 @@ class RabbitExchange(NameRequired):
 class Handler(BaseHandler):
     queue: RabbitQueue
     exchange: Optional[RabbitExchange] = field(default=None)
+    consume_arguments: AnyDict = field(default_factory=dict)
 
     def __init__(
         self,
@@ -152,6 +153,7 @@ class Handler(BaseHandler):
         dependant: CallModel,
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
+        consume_arguments: Optional[AnyDict] = None,
         _description: str = "",
     ):
         self.callback = callback
@@ -159,6 +161,7 @@ class Handler(BaseHandler):
         self.queue = queue
         self.exchange = exchange
         self._description = _description
+        self.consume_arguments = consume_arguments or {}
 
     def get_schema(self) -> Dict[str, AsyncAPIChannel]:
         message_title, body, reply_to = self.get_message_object()

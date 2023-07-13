@@ -29,7 +29,7 @@ from propan.brokers.middlewares import BaseMiddleware
 from propan.brokers.push_back_watcher import BaseWatcher
 from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.log import access_logger
-from propan.types import DecodedMessage, SendableMessage
+from propan.types import AnyDict, DecodedMessage, SendableMessage
 
 PikaSendableMessage: TypeAlias = Union[aio_pika.message.Message, SendableMessage]
 T_HandlerReturn = TypeVar("T_HandlerReturn", bound=PikaSendableMessage)
@@ -215,6 +215,7 @@ class RabbitBroker(BrokerAsyncUsecase[IncomingMessage, aio_pika.RobustConnection
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         *,
+        consume_arguments: Optional[AnyDict] = None,
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
         decode_message: AsyncDecoder[IncomingMessage] = None,

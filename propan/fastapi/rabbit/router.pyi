@@ -24,6 +24,7 @@ from propan.brokers._model.broker_usecase import (
 from propan.brokers.rabbit import RabbitExchange, RabbitQueue
 from propan.fastapi.core import PropanRouter
 from propan.log import access_logger
+from propan.types import AnyDict
 
 class RabbitRouter(PropanRouter[RabbitBroker]):
     def __init__(
@@ -88,6 +89,7 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         queue: Union[str, RabbitQueue],
         *,
         exchange: Union[str, RabbitExchange, None] = None,
+        consume_arguments: Optional[AnyDict] = None,
         retry: Union[bool, int] = False,
         decode_message: AsyncDecoder[IncomingMessage] = None,
         parse_message: AsyncParser[IncomingMessage] = None,

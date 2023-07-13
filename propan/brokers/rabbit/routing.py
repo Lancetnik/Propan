@@ -1,14 +1,11 @@
-from typing import Any, Callable, Union, Awaitable
+from typing import Any, Awaitable, Callable, Union
+
 from aio_pika.message import IncomingMessage
 
+from propan.brokers._model.broker_usecase import HandlerCallable, T_HandlerReturn
 from propan.brokers._model.routing import BrokerRouter
-from propan.brokers._model.broker_usecase import (
-    HandlerCallable,
-    T_HandlerReturn,
-)
 from propan.brokers.rabbit.schemas import RabbitQueue
 from propan.brokers.rabbit.utils import validate_queue
-
 from propan.types import AnyDict
 
 
