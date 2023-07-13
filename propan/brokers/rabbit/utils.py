@@ -1,6 +1,20 @@
-from typing import Optional, Union
+from typing import Optional, Union, overload
 
 from propan.brokers.rabbit.schemas import RabbitExchange, RabbitQueue
+
+
+@overload
+def validate_exchange(
+    exchange: None = None,
+) -> None:
+    ...
+
+
+@overload
+def validate_exchange(
+    exchange: Union[str, RabbitExchange],
+) -> RabbitExchange:
+    ...
 
 
 def validate_exchange(
@@ -14,6 +28,20 @@ def validate_exchange(
                 f"Exchange '{exchange}' should be 'str' | 'RabbitExchange' instance"
             )
     return exchange
+
+
+@overload
+def validate_queue(
+    queue: None = None,
+) -> None:
+    ...
+
+
+@overload
+def validate_queue(
+    queue: Union[str, RabbitQueue],
+) -> RabbitQueue:
+    ...
 
 
 def validate_queue(
