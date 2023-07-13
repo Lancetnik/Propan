@@ -41,4 +41,4 @@ class RabbitLoggingMixin:
             self._max_exchange_len = max(self._max_exchange_len, len(exchange.name))
 
         if queue is not None:  # pragma: no branch
-            self._max_exchange_len = max(self._max_queue_len, len(queue.name))
+            self._max_queue_len = max(self._max_queue_len, len(queue.name))
