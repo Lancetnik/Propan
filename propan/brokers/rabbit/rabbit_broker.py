@@ -280,19 +280,17 @@ class RabbitBroker(
             exch = await self._channel.declare_exchange(**model_to_dict(exchange))
             self._exchanges[exchange] = exch
 
-            current = exchange
-            current_exch = exch
-            while current.bind_to is not None:
-                parent_exch = await self._channel.declare_exchange(
-                    **model_to_dict(current.bind_to)
-                )
-                await current_exch.bind(
-                    exchange=parent_exch,
-                    routing_key=current.routing_key,
-                    arguments=current.bind_arguments,
-                )
-                current = current.bind_to
-                current_exch = parent_exch
+        current = exchange
+        current_exch = exch
+        while current.bind_to is not None:
+            parent_exch = await self.declare_exchange(current.bind_to)
+            await current_exch.bind(
+                exchange=parent_exch,
+                routing_key=current.routing_key,
+                arguments=current.bind_arguments,
+            )
+            current = current.bind_to
+            current_exch = parent_exch
 
         return exch
 
