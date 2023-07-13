@@ -1,6 +1,25 @@
+from typing import Awaitable, Callable, Union
+
+from propan.brokers._model.broker_usecase import (
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.routing import BrokerRouter
+from propan.brokers.sqs.schema import SQSQueue
 from propan.types import AnyDict
 
 
 class SQSRouter(BrokerRouter[AnyDict]):
-    pass
+    def handle(  # type: ignore[override]
+        self,
+        queue: Union[str, SQSQueue],
+        **kwargs: AnyDict,
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]],
+    ]:
+        if isinstance(queue, str):
+            queue = SQSQueue(queue)
+
+        queue.name = self.prefix + queue.name
+        return super().handle(queue, **kwargs)

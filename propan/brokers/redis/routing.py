@@ -1,6 +1,20 @@
+from typing import Awaitable, Callable
+
+from propan.brokers._model.broker_usecase import (
+    HandlerCallable,
+    T_HandlerReturn,
+)
 from propan.brokers._model.routing import BrokerRouter
 from propan.types import AnyDict
 
 
 class RedisRouter(BrokerRouter[AnyDict]):
-    pass
+    def handle(  # type: ignore[override]
+        self,
+        channel: str,
+        **kwargs: AnyDict,
+    ) -> Callable[
+        [HandlerCallable[T_HandlerReturn]],
+        Callable[[AnyDict, bool], Awaitable[T_HandlerReturn]],
+    ]:
+        return super().handle(self.prefix + channel, **kwargs)

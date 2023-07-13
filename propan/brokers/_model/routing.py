@@ -1,8 +1,10 @@
+from abc import abstractmethod
 from typing import Any, Callable, Generic, List
 
 from typing_extensions import ParamSpec, TypeVar
 
 from propan.types import AnyDict, SendableMessage
+
 
 P_RouteCall = ParamSpec("P_RouteCall")
 T_RouteReturn = TypeVar("T_RouteReturn", bound=SendableMessage)
@@ -38,9 +40,9 @@ class BrokerRouter(Generic[MsgType]):
         self.prefix = prefix
         self.handlers = []
 
+    @abstractmethod
     def handle(
         self,
-        subj: str,
         *args: Any,
         **kwargs: AnyDict,
     ) -> Callable[
@@ -52,7 +54,7 @@ class BrokerRouter(Generic[MsgType]):
         ) -> BrokerRoute[MsgType, T_RouteReturn]:
             router = BrokerRoute(
                 call=func,
-                args=(self.prefix + subj, *args),
+                args=args,
                 kwargs=kwargs,
             )
             self.handlers.append(router)
