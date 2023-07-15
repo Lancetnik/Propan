@@ -26,11 +26,13 @@
 
 # Propan
 
-**Propan** - just *<s>another one HTTP</s>* a **declarative Python Messaging framework**. It is inspired by [*FastAPI*]({{ urls.fastapi }}){target="_blank"} and [*Kombu*]({{ urls.kombu }}){target="_blank"}, simplify Message Brokers around code writing and provides a helpful development toolkit, which existed only in HTTP-frameworks world until now.
+**Propan** - just *<s>another HTTP</s>* a **declarative Python Messaging framework**.
+
+Inspired by [*FastAPI*]({{ urls.fastapi }}){target="_blank"} and [*Kombu*]({{ urls.kombu }}){target="_blank"}, **Propan** was created to simplify Message Brokers' code writing and to provide a helpful development toolkit, which existed only in HTTP-frameworks world until now.
 
 It's designed to create reactive microservices around [Messaging](https://microservices.io/patterns/communication-style/messaging.html){target="_blank"}.
 
-It is a modern, high-level framework on top of popular specific Python brokers libraries, based on [*pydantic*]({{ urls.pydantic }}){target="_blank"} and [*FastAPI*]({{ urls.fastapi }}){target="_blank"}, [*pytest*]({{ urls.pytest }}){target="_blank"} concepts.
+It is a modern, high-level framework on top of popular specific Python brokers libraries, based on [*pydantic*]({{ urls.pydantic }}){target="_blank"}, [*FastAPI*]({{ urls.fastapi }}){target="_blank"}, and [*pytest*]({{ urls.pytest }}){target="_blank"} concepts.
 
 ---
 
@@ -138,7 +140,7 @@ But you can specify your own dependencies, call dependencies functions and [more
 
 **Propan** automatically generates documentation for your project according to the [**AsyncAPI**]({{ urls.asyncapi }}){ target="_blank"} specification. You can work with both generated artifacts and place a Web view of your documentation on resources available to related teams.
 
-The availability of such documentation significantly simplifies the integration of services: you can immediately see what channels and message format the application works with. And most importantly, it doesn't cost you anything - **Propan** has already done everything for you!
+The availability of such documentation significantly simplifies the integration of services: you can immediately see what channels and message format the application works with. And most importantly, it won't cost anything - **Propan** has already created the docs for you!
 
 ![HTML-page](../../assets/img/docs-html-short.png)
 
@@ -167,7 +169,7 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
 {! includes/getting_started/index/05_native_fastapi.md !}
 
 !!! note
-    More integration examples you can find [here](integrations/1_integrations-index/)
+    More integration examples can be found [here](integrations/1_integrations-index/)
 
 ---
 
