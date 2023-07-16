@@ -17,6 +17,7 @@ def create_app_file(
         "import logging",
         "from typing import Optional",
         "",
+        "import anyio",
         *imports,
         f"from propan import PropanApp, {broker_class}",
         f"from propan.annotations import {broker_class} as Broker, ContextRepo",
@@ -44,7 +45,7 @@ def create_app_file(
         "",
         "",
         'if __name__ == "__main__":',
-        "    app.run()",
+        "    anyio.run(app.run)",
     )
 
 
