@@ -36,6 +36,8 @@ def get_function_positional_arguments(func: Callable[P, T]) -> List[str]:
         inspect.Parameter.POSITIONAL_OR_KEYWORD,
     )
 
-    return [
+    args = [
         param.name for param in signature.parameters.values() if param.kind in arg_kinds
     ]
+
+    return args
