@@ -3,8 +3,9 @@ from itertools import zip_longest
 
 import pytest
 
-from propan import PropanApp, RabbitBroker
+from propan import PropanApp
 from propan.cli.utils.logs import LogLevels, get_log_level, set_log_level
+from propan.rabbit import RabbitBroker
 
 
 @pytest.mark.parametrize(

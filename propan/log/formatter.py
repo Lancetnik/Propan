@@ -92,7 +92,17 @@ def make_record_with_extra(
         extra = context.get_local("log_context")
 
     record = original_makeRecord(
-        self, name, level, fn, lno, msg, args, exc_info, func, extra, sinfo
+        self,
+        name,
+        level,
+        fn,
+        lno,
+        msg,
+        args,
+        exc_info,
+        func,
+        extra,
+        sinfo,
     )
 
     return record

@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from uuid import uuid4
 
 import pytest
 import pytest_asyncio
 
-from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitRouter
-from propan.test import TestRabbitBroker
+from propan.rabbit import RabbitBroker, RabbitExchange, RabbitRouter
+from propan.rabbit.test import TestRabbitBroker
 
 
 @dataclass
@@ -21,20 +20,8 @@ class Settings:
 
 
 @pytest.fixture
-def queue():
-    name = str(uuid4())
-    return name
-
-
-@pytest.fixture
-def router():
-    return RabbitRouter()
-
-
-@pytest.fixture
-def exchange():
-    name = str(uuid4())
-    return RabbitExchange(name=name)
+def exchange(queue):
+    return RabbitExchange(name=queue)
 
 
 @pytest.fixture(scope="session")
@@ -42,24 +29,29 @@ def settings():
     return Settings()
 
 
+@pytest.fixture
+def router():
+    return RabbitRouter()
+
+
 @pytest_asyncio.fixture
 @pytest.mark.rabbit
 async def broker(settings):
     broker = RabbitBroker(settings.url, apply_types=False)
-    yield broker
-    await broker.close()
+    async with broker:
+        yield broker
 
 
 @pytest_asyncio.fixture
 @pytest.mark.rabbit
 async def full_broker(settings):
     broker = RabbitBroker(settings.url)
-    yield broker
-    await broker.close()
+    async with broker:
+        yield broker
 
 
 @pytest_asyncio.fixture
 async def test_broker():
     broker = RabbitBroker()
-    yield TestRabbitBroker(broker)
-    await broker.close()
+    async with TestRabbitBroker(broker) as br:
+        yield br

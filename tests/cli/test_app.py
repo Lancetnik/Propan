@@ -7,8 +7,8 @@ import anyio
 import pytest
 
 from propan import PropanApp
-from propan.brokers.rabbit import RabbitBroker
 from propan.log import logger
+from propan.rabbit import RabbitBroker
 from propan.utils import Context
 from tests.tools.marks import needs_py38
 

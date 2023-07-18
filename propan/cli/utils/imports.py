@@ -1,10 +1,10 @@
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Tuple
 
 import typer
 
-from propan.cli.app import PropanApp
+from propan.app import PropanApp
 
 
 def try_import_propan(module: Path, app: str) -> PropanApp:
@@ -21,7 +21,7 @@ def try_import_propan(module: Path, app: str) -> PropanApp:
         return propan_app  # type: ignore
 
 
-def import_object(module: Path, app: str) -> Any:
+def import_object(module: Path, app: str) -> object:
     spec = spec_from_file_location(
         "mode",
         f"{module}.py",

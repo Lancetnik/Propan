@@ -5,7 +5,6 @@ __pycache__
 .pypirc
 venv
 serve.py
-test.py
 poetry.lock
 docker-compose.yaml
 .pytest_cache

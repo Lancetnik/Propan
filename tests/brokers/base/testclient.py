@@ -3,9 +3,9 @@ from typing import Dict, List
 
 import anyio
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
-from propan.brokers._model import BrokerAsyncUsecase
+from propan.broker.core.abc import BrokerUsecase
 from propan.types import AnyCallable
 
 
@@ -37,17 +37,17 @@ class BrokerTestclientTestcase:
     )
     async def test_serialize(
         self,
-        test_broker: BrokerAsyncUsecase,
+        test_broker: BrokerUsecase,
         queue: str,
         message,
         message_type,
         expected_message,
     ):
-        @test_broker.handle(queue)
+        @test_broker.subscriber(queue)
         async def handler(m: message_type):
             return m
 
-        r = await test_broker.publish(message, queue, callback=True)
+        r = await test_broker.publish(message, queue, rpc=True)
 
         if expected_message is None:
             expected_message = message
@@ -55,28 +55,8 @@ class BrokerTestclientTestcase:
         assert r == expected_message
 
     @pytest.mark.asyncio
-    async def test_handler_calling(self, queue: str, test_broker: BrokerAsyncUsecase):
-        @test_broker.handle(queue)
-        async def handler(m: dict):
-            return m
-
-        raw_msg = {"msg": "hello!"}
-        message = self.build_message(raw_msg, queue)
-
-        wrong_msg = self.build_message("Hi!", queue)
-
-        assert raw_msg == await handler(message)
-
-        await handler(wrong_msg)
-
-        with pytest.raises(ValidationError):
-            await handler(wrong_msg, reraise_exc=True)
-
-    @pytest.mark.asyncio
-    async def test_rpc_timeout_raises(
-        self, queue: str, test_broker: BrokerAsyncUsecase
-    ):
-        @test_broker.handle(queue)
+    async def test_rpc_timeout_raises(self, queue: str, test_broker: BrokerUsecase):
+        @test_broker.subscriber(queue)
         async def m():  # pragma: no cover
             await anyio.sleep(1)
 
@@ -84,22 +64,22 @@ class BrokerTestclientTestcase:
             await test_broker.publish(
                 "hello",
                 queue,
-                callback=True,
+                rpc=True,
                 raise_timeout=True,
-                callback_timeout=0,
+                rpc_timeout=0,
             )
 
     @pytest.mark.asyncio
-    async def test_rpc_timeout(self, queue: str, test_broker: BrokerAsyncUsecase):
-        @test_broker.handle(queue)
+    async def test_rpc_timeout(self, queue: str, test_broker: BrokerUsecase):
+        @test_broker.subscriber(queue)
         async def m():  # pragma: no cover
             await anyio.sleep(1)
 
         r = await test_broker.publish(
             "hello",
             queue,
-            callback=True,
-            callback_timeout=0,
+            rpc=True,
+            rpc_timeout=0,
         )
 
         assert r is None

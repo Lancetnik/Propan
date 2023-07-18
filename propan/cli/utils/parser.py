@@ -1,9 +1,7 @@
 from functools import reduce
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
-from typing_extensions import TypeAlias
-
-SettingField: TypeAlias = Union[bool, str, List[str]]
+from propan.types import SettingField
 
 
 def parse_cli_args(*args: str) -> Tuple[str, Dict[str, SettingField]]:
@@ -14,7 +12,13 @@ def parse_cli_args(*args: str) -> Tuple[str, Dict[str, SettingField]]:
 
     field_args: List[str] = []
     app = ""
-    for item in reduce(lambda acc, x: acc + x.split("="), args, []) + ["-"]:  # type: ignore
+    for item in reduce(
+        lambda acc, x: acc + x.split("="),
+        args,
+        [],
+    ) + [
+        "-"
+    ]:  # type: ignore
         if ":" in item:
             app = item
 
