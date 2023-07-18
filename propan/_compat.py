@@ -1,39 +1,15 @@
 import importlib.util
 import json
-import sys
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, Type
 
 from fast_depends._compat import PYDANTIC_V2, FieldInfo
 from pydantic import BaseModel
-from typing_extensions import Never
 
 from propan.types import AnyDict
 
 
 def is_installed(package: str) -> bool:
     return importlib.util.find_spec(package)
-
-
-if is_installed("fastapi"):
-    from fastapi import __version__ as FASTAPI_VERSION
-
-    FASTAPI_V2 = FASTAPI_VERSION.startswith("0.10")
-
-    if FASTAPI_V2:
-        from fastapi._compat import _normalize_errors
-        from fastapi.exceptions import ResponseValidationError
-
-        def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
-            raise ResponseValidationError(_normalize_errors(errors), body=body)
-
-    else:
-        from pydantic import ValidationError as ResponseValidationError
-        from pydantic import create_model
-
-        ROUTER_VALIDATION_ERROR_MODEL = create_model("PropanRoute")
-
-        def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
-            raise ResponseValidationError(errors, ROUTER_VALIDATION_ERROR_MODEL)
 
 
 if PYDANTIC_V2:
@@ -59,19 +35,6 @@ if PYDANTIC_V2:
 
     def model_schema(model: Type[BaseModel], **kwargs: AnyDict) -> AnyDict:
         return model.model_json_schema(**kwargs)
-
-    def update_model_example(model: Type[BaseModel]) -> Type[BaseModel]:
-        config = model.model_config
-        schema_extra = config.get("json_schema_extra", {})
-        if schema_extra.get("example") is None and sys.version_info >= (3, 8):
-            from polyfactory.factories.pydantic_factory import ModelFactory
-
-            factory: BaseModel = type(
-                f"{model.__name__}_factory", (ModelFactory,), {"__model__": model}
-            ).build()
-            schema_extra["example"] = model_to_jsonable(factory)
-            config["json_schema_extra"] = schema_extra
-        return model
 
 else:
     from pydantic.config import BaseConfig
@@ -105,24 +68,3 @@ else:
 
     def model_to_jsonable(model: BaseModel, **kwargs: AnyDict) -> AnyDict:
         return json.loads(model.json(**kwargs))
-
-    def update_model_example(model: Type[BaseModel]) -> Type[BaseModel]:
-        schema_extra = model.Config.schema_extra.copy()
-        if schema_extra.get("example") is None and sys.version_info >= (3, 8):
-            from polyfactory.factories.pydantic_factory import ModelFactory
-
-            factory: BaseModel = type(
-                f"{model.__name__}_factory", (ModelFactory,), {"__model__": model}
-            ).build()
-            schema_extra["example"] = model_to_jsonable(factory)
-            return type(
-                model.__name__,
-                (model,),
-                {
-                    "Config": type(
-                        "Config", (model.Config,), {"schema_extra": schema_extra}
-                    )
-                },
-            )
-        else:
-            return model

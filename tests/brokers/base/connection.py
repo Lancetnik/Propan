@@ -2,11 +2,11 @@ from typing import Type
 
 import pytest
 
-from propan.brokers._model import BrokerAsyncUsecase
+from propan.broker.core.abc import BrokerUsecase
 
 
 class BrokerConnectionTestcase:
-    broker: Type[BrokerAsyncUsecase]
+    broker: Type[BrokerUsecase]
 
     def get_broker_args(self, settings):
         return (settings.url,), {}
@@ -15,12 +15,12 @@ class BrokerConnectionTestcase:
         return True
 
     @pytest.mark.asyncio
-    async def test_warning(self, broker: BrokerAsyncUsecase):
+    async def test_warning(self, broker: BrokerUsecase):
         async with broker:
             await broker.start()
             assert broker.started
             with pytest.warns(RuntimeWarning):
-                broker.handle("test")
+                broker.subscriber("test")
         assert not broker.started
 
     @pytest.mark.asyncio

@@ -3,19 +3,26 @@ from unittest.mock import Mock
 
 import pytest
 
-from propan.annotations import RabbitMessage
-from propan.brokers.rabbit import (
-    ExchangeType,
-    RabbitBroker,
-    RabbitExchange,
-    RabbitQueue,
-)
-from propan.test.rabbit import build_message
+from propan.rabbit import ExchangeType, RabbitBroker, RabbitExchange, RabbitQueue
+from propan.rabbit.annotations import RabbitMessage
 from tests.brokers.base.testclient import BrokerTestclientTestcase
 
 
 class TestRabbitTestclient(BrokerTestclientTestcase):
-    build_message = staticmethod(build_message)
+    @pytest.mark.asyncio
+    async def test_raw(
+        self,
+        test_broker: RabbitBroker,
+        queue: str,
+    ):
+        @test_broker.subscriber(queue)
+        async def handler(m):
+            raise ValueError()
+
+        await test_broker.start()
+
+        with pytest.raises(ValueError):
+            await test_broker.publish("", queue)
 
     @pytest.mark.asyncio
     async def test_direct(
@@ -23,19 +30,19 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
         test_broker: RabbitBroker,
         queue: str,
     ):
-        @test_broker.handle(queue)
+        @test_broker.subscriber(queue)
         async def handler(m):
             return 1
 
-        @test_broker.handle(queue + "1", exchange="test")
+        @test_broker.subscriber(queue + "1", exchange="test")
         async def handler2(m):
             return 2
 
-        assert 1 == await test_broker.publish("", queue, callback=True)
+        assert 1 == await test_broker.publish("", queue, rpc=True)
         assert 2 == await test_broker.publish(
-            "", queue + "1", exchange="test", callback=True
+            "", queue + "1", exchange="test", rpc=True
         )
-        assert None is await test_broker.publish("", exchange="test2", callback=True)
+        assert None is await test_broker.publish("", exchange="test2", rpc=True)
 
     @pytest.mark.asyncio
     async def test_fanout(
@@ -47,12 +54,12 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
 
         exch = RabbitExchange("test", type=ExchangeType.FANOUT)
 
-        @test_broker.handle(queue, exchange=exch)
+        @test_broker.subscriber(queue, exchange=exch)
         async def handler(m):
             mock()
 
-        await test_broker.publish("", exchange=exch, callback=True)
-        assert None is await test_broker.publish("", exchange="test2", callback=True)
+        await test_broker.publish("", exchange=exch, rpc=True)
+        assert None is await test_broker.publish("", exchange="test2", rpc=True)
 
         assert mock.call_count == 1
 
@@ -63,21 +70,17 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
     ):
         exch = RabbitExchange("test", type=ExchangeType.TOPIC)
 
-        @test_broker.handle("*.info", exchange=exch)
+        @test_broker.subscriber("*.info", exchange=exch)
         async def handler(m):
             return 1
 
-        @test_broker.handle("*.error", exchange=exch)
+        @test_broker.subscriber("*.error", exchange=exch)
         async def handler2(m):
             return 2
 
-        assert 1 == await test_broker.publish(
-            "", "logs.info", exchange=exch, callback=True
-        )
-        assert 2 == await test_broker.publish(
-            "", "logs.error", exchange=exch, callback=True
-        )
-        assert None is await test_broker.publish("", "logs.error", callback=True)
+        assert 1 == await test_broker.publish("", "logs.info", exchange=exch, rpc=True)
+        assert 2 == await test_broker.publish("", "logs.error", exchange=exch, rpc=True)
+        assert None is await test_broker.publish("", "logs.error", rpc=True)
 
     @pytest.mark.asyncio
     async def test_header(
@@ -93,30 +96,30 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
             bind_arguments={"key": 2, "key2": 2, "x-match": "all"},
         )
         q3 = RabbitQueue(
-            "test-queue-3",
+            "test-queue-4",
             bind_arguments={},
         )
         exch = RabbitExchange("exchange", type=ExchangeType.HEADERS)
 
-        @test_broker.handle(q2, exch)
+        @test_broker.subscriber(q2, exch)
         async def handler2():
             return 2
 
-        @test_broker.handle(q1, exch)
+        @test_broker.subscriber(q1, exch)
         async def handler():
             return 1
 
-        @test_broker.handle(q3, exch)
+        @test_broker.subscriber(q3, exch)
         async def handler3():
             return 3
 
         assert 2 == await test_broker.publish(
-            exchange=exch, callback=True, headers={"key": 2, "key2": 2}
+            exchange=exch, rpc=True, headers={"key": 2, "key2": 2}
         )
         assert 1 == await test_broker.publish(
-            exchange=exch, callback=True, headers={"key": 2}
+            exchange=exch, rpc=True, headers={"key": 2}
         )
-        assert 3 == await test_broker.publish(exchange=exch, callback=True, headers={})
+        assert 3 == await test_broker.publish(exchange=exch, rpc=True, headers={})
 
     @pytest.mark.asyncio
     async def test_consume_manual_ack(
@@ -129,20 +132,20 @@ class TestRabbitTestclient(BrokerTestclientTestcase):
         consume2 = asyncio.Event()
         consume3 = asyncio.Event()
 
-        @test_broker.handle(queue=queue, exchange=exchange, retry=1)
+        @test_broker.subscriber(queue=queue, exchange=exchange, retry=1)
         async def handler(msg: RabbitMessage):
-            await msg.ack()
+            await msg.raw_message.ack()
             consume.set()
 
-        @test_broker.handle(queue=queue + "1", exchange=exchange, retry=1)
+        @test_broker.subscriber(queue=queue + "1", exchange=exchange, retry=1)
         async def handler2(msg: RabbitMessage):
-            await msg.nack()
+            await msg.raw_message.nack()
             consume2.set()
             raise ValueError()
 
-        @test_broker.handle(queue=queue + "2", exchange=exchange, retry=1)
+        @test_broker.subscriber(queue=queue + "2", exchange=exchange, retry=1)
         async def handler3(msg: RabbitMessage):
-            await msg.reject()
+            await msg.raw_message.reject()
             consume3.set()
             raise ValueError()
 

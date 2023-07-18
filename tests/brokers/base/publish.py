@@ -7,7 +7,7 @@ import pytest
 from pydantic import BaseModel
 
 from propan.annotations import Logger
-from propan.brokers._model import BrokerAsyncUsecase
+from propan.broker.core.abc import BrokerUsecase
 
 
 class SimpleModel(BaseModel):
@@ -36,7 +36,7 @@ class BrokerPublishTestcase:
     )
     async def test_serialize(
         self,
-        full_broker: BrokerAsyncUsecase,
+        full_broker: BrokerUsecase,
         mock: Mock,
         queue: str,
         message,
@@ -46,7 +46,7 @@ class BrokerPublishTestcase:
         consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
-        @full_broker.handle(queue)
+        @full_broker.subscriber(queue)
         async def handler(m: message_type, logger: Logger):
             mock(m)
 
@@ -68,12 +68,12 @@ class BrokerPublishTestcase:
 
     @pytest.mark.asyncio
     async def test_unwrap_dict(
-        self, mock: Mock, queue: str, full_broker: BrokerAsyncUsecase
+        self, mock: Mock, queue: str, full_broker: BrokerUsecase
     ):
         consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()
 
-        @full_broker.handle(queue)
+        @full_broker.subscriber(queue)
         async def m(a: int, b: int, logger: Logger):
             mock({"a": a, "b": b})
 
@@ -96,12 +96,12 @@ class BrokerPublishTestcase:
 
     @pytest.mark.asyncio
     async def test_unwrap_list(
-        self, mock: Mock, queue: str, full_broker: BrokerAsyncUsecase
+        self, mock: Mock, queue: str, full_broker: BrokerUsecase
     ):
         consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()
 
-        @full_broker.handle(queue)
+        @full_broker.subscriber(queue)
         async def m(a: int, b: int, *args: Tuple[int, ...], logger: Logger):
             mock({"a": a, "b": b, "args": args})
 
@@ -115,10 +115,4 @@ class BrokerPublishTestcase:
                 timeout=3,
             )
 
-        mock.assert_called_with(
-            {
-                "a": 1,
-                "b": 1,
-                "args": (2, 3)
-            }
-        )
+        mock.assert_called_with({"a": 1, "b": 1, "args": (2, 3)})

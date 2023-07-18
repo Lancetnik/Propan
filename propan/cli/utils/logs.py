@@ -3,7 +3,7 @@ from collections import defaultdict
 from enum import Enum
 from typing import DefaultDict, Optional, Union
 
-from propan.cli.app import PropanApp
+from propan.app import PropanApp
 
 
 class LogLevels(str, Enum):

@@ -1,6 +1,12 @@
-from propan.test.rabbit import build_message
-from tests.brokers.base.router import RouterTestcase
+import pytest
+
+from tests.brokers.base.router import RouterLocalTestcase, RouterTestcase
 
 
+@pytest.mark.rabbit
 class TestRabbitRouter(RouterTestcase):
-    build_message = staticmethod(build_message)
+    pass
+
+
+class TestRabbitRouterLocal(RouterLocalTestcase):
+    pass

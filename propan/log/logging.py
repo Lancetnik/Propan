@@ -4,10 +4,11 @@ from functools import partial
 from typing import Any, Dict, Type
 
 from propan.log.formatter import ColourizedFormatter
+from propan.types import AnyDict
 
 
 def configure_formatter(
-    formatter: Type[logging.Formatter], *args: Any, **kwargs: Any
+    formatter: Type[logging.Formatter], *args: Any, **kwargs: AnyDict
 ) -> logging.Formatter:
     return formatter(*args, **kwargs)
 

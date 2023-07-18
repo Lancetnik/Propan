@@ -1,34 +1,33 @@
 import inspect
 from functools import wraps
-from typing import Awaitable, Callable, List, TypeVar, Union, cast
+from typing import Awaitable, Callable, List, Union, cast
 
 from fast_depends.utils import run_async as call_or_await
-from typing_extensions import ParamSpec
+
+from propan.types import AnyCallable, F_Return, F_Spec
 
 __all__ = (
     "call_or_await",
+    "get_function_positional_arguments",
     "to_async",
 )
-
-T = TypeVar("T")
-P = ParamSpec("P")
 
 
 def to_async(
     func: Union[
-        Callable[P, T],
-        Callable[P, Awaitable[T]],
+        Callable[F_Spec, F_Return],
+        Callable[F_Spec, Awaitable[F_Return]],
     ]
-) -> Callable[P, Awaitable[T]]:
+) -> Callable[F_Spec, Awaitable[F_Return]]:
     @wraps(func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+    async def to_async_wrapper(*args: F_Spec.args, **kwargs: F_Spec.kwargs) -> F_Return:
         r = await call_or_await(func, *args, **kwargs)
-        return cast(T, r)
+        return cast(F_Return, r)
 
-    return wrapper
+    return to_async_wrapper
 
 
-def get_function_positional_arguments(func: Callable[P, T]) -> List[str]:
+def get_function_positional_arguments(func: AnyCallable) -> List[str]:
     signature = inspect.signature(func)
 
     arg_kinds = (
@@ -36,8 +35,6 @@ def get_function_positional_arguments(func: Callable[P, T]) -> List[str]:
         inspect.Parameter.POSITIONAL_OR_KEYWORD,
     )
 
-    args = [
+    return [
         param.name for param in signature.parameters.values() if param.kind in arg_kinds
     ]
-
-    return args

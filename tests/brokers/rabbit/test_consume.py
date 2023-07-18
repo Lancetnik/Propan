@@ -4,8 +4,8 @@ from unittest.mock import Mock
 import pytest
 from aio_pika import Message
 
-from propan.annotations import RabbitMessage
-from propan.brokers.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
+from propan.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
+from propan.rabbit.annotations import RabbitMessage
 from tests.brokers.base.consume import BrokerConsumeTestcase
 
 
@@ -21,19 +21,18 @@ class TestRabbitConsume(BrokerConsumeTestcase):
     ):
         consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
-        broker.handle(queue=queue, exchange=exchange, retry=1)(mock)
+        broker.subscriber(queue=queue, exchange=exchange, retry=1)(mock)
 
-        async with broker:
-            await broker.start()
-            await asyncio.wait(
-                (
-                    asyncio.create_task(
-                        broker.publish("hello", queue=queue, exchange=exchange)
-                    ),
-                    asyncio.create_task(consume.wait()),
+        await broker.start()
+        await asyncio.wait(
+            (
+                asyncio.create_task(
+                    broker.publish("hello", queue=queue, exchange=exchange)
                 ),
-                timeout=3,
-            )
+                asyncio.create_task(consume.wait()),
+            ),
+            timeout=3,
+        )
 
         mock.assert_called_once()
 
@@ -48,29 +47,27 @@ class TestRabbitConsume(BrokerConsumeTestcase):
         consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
-        await broker.connect()
         await broker.declare_queue(RabbitQueue(queue))
         await broker.declare_exchange(exchange)
 
-        broker.handle(
+        broker.subscriber(
             queue=RabbitQueue(name=queue, passive=True),
             exchange=RabbitExchange(name=exchange.name, passive=True),
             retry=True,
         )(mock)
 
-        async with broker:
-            await broker.start()
-            await asyncio.wait(
-                (
-                    asyncio.create_task(
-                        broker.publish(
-                            Message(b"hello"), queue=queue, exchange=exchange.name
-                        )
-                    ),
-                    asyncio.create_task(consume.wait()),
+        await broker.start()
+        await asyncio.wait(
+            (
+                asyncio.create_task(
+                    broker.publish(
+                        Message(b"hello"), queue=queue, exchange=exchange.name
+                    )
                 ),
-                timeout=3,
-            )
+                asyncio.create_task(consume.wait()),
+            ),
+            timeout=3,
+        )
 
         mock.assert_called_once()
 
@@ -85,43 +82,38 @@ class TestRabbitConsume(BrokerConsumeTestcase):
         consume2 = asyncio.Event()
         consume3 = asyncio.Event()
 
-        @full_broker.handle(queue=queue, exchange=exchange, retry=1)
+        @full_broker.subscriber(queue=queue, exchange=exchange, retry=1)
         async def handler(msg: RabbitMessage):
             consume.set()
 
-        @full_broker.handle(queue=queue + "1", exchange=exchange, retry=1)
+        @full_broker.subscriber(queue=queue + "1", exchange=exchange, retry=1)
         async def handler2(msg: RabbitMessage):
             consume2.set()
             raise ValueError()
 
-        @full_broker.handle(queue=queue + "2", exchange=exchange, retry=1)
+        @full_broker.subscriber(queue=queue + "2", exchange=exchange, retry=1)
         async def handler3(msg: RabbitMessage):
             consume3.set()
             raise ValueError()
 
-        async with full_broker:
-            await full_broker.start()
-            await asyncio.wait(
-                (
-                    asyncio.create_task(
-                        full_broker.publish("hello", queue=queue, exchange=exchange)
-                    ),
-                    asyncio.create_task(
-                        full_broker.publish(
-                            "hello", queue=queue + "1", exchange=exchange
-                        )
-                    ),
-                    asyncio.create_task(
-                        full_broker.publish(
-                            "hello", queue=queue + "2", exchange=exchange
-                        )
-                    ),
-                    asyncio.create_task(consume.wait()),
-                    asyncio.create_task(consume2.wait()),
-                    asyncio.create_task(consume3.wait()),
+        await full_broker.start()
+        await asyncio.wait(
+            (
+                asyncio.create_task(
+                    full_broker.publish("hello", queue=queue, exchange=exchange)
                 ),
-                timeout=3,
-            )
+                asyncio.create_task(
+                    full_broker.publish("hello", queue=queue + "1", exchange=exchange)
+                ),
+                asyncio.create_task(
+                    full_broker.publish("hello", queue=queue + "2", exchange=exchange)
+                ),
+                asyncio.create_task(consume.wait()),
+                asyncio.create_task(consume2.wait()),
+                asyncio.create_task(consume3.wait()),
+            ),
+            timeout=3,
+        )
 
         assert consume.is_set()
         assert consume2.is_set()
@@ -138,46 +130,41 @@ class TestRabbitConsume(BrokerConsumeTestcase):
         consume2 = asyncio.Event()
         consume3 = asyncio.Event()
 
-        @full_broker.handle(queue=queue, exchange=exchange, retry=1)
+        @full_broker.subscriber(queue=queue, exchange=exchange, retry=1)
         async def handler(msg: RabbitMessage):
-            await msg.ack()
+            await msg.raw_message.ack()
             consume.set()
 
-        @full_broker.handle(queue=queue + "1", exchange=exchange, retry=1)
+        @full_broker.subscriber(queue=queue + "1", exchange=exchange, retry=1)
         async def handler2(msg: RabbitMessage):
-            await msg.nack()
+            await msg.raw_message.nack()
             consume2.set()
             raise ValueError()
 
-        @full_broker.handle(queue=queue + "2", exchange=exchange, retry=1)
+        @full_broker.subscriber(queue=queue + "2", exchange=exchange, retry=1)
         async def handler3(msg: RabbitMessage):
-            await msg.reject()
+            await msg.raw_message.reject()
             consume3.set()
             raise ValueError()
 
-        async with full_broker:
-            await full_broker.start()
-            await asyncio.wait(
-                (
-                    asyncio.create_task(
-                        full_broker.publish("hello", queue=queue, exchange=exchange)
-                    ),
-                    asyncio.create_task(
-                        full_broker.publish(
-                            "hello", queue=queue + "1", exchange=exchange
-                        )
-                    ),
-                    asyncio.create_task(
-                        full_broker.publish(
-                            "hello", queue=queue + "2", exchange=exchange
-                        )
-                    ),
-                    asyncio.create_task(consume.wait()),
-                    asyncio.create_task(consume2.wait()),
-                    asyncio.create_task(consume3.wait()),
+        await full_broker.start()
+        await asyncio.wait(
+            (
+                asyncio.create_task(
+                    full_broker.publish("hello", queue=queue, exchange=exchange)
                 ),
-                timeout=3,
-            )
+                asyncio.create_task(
+                    full_broker.publish("hello", queue=queue + "1", exchange=exchange)
+                ),
+                asyncio.create_task(
+                    full_broker.publish("hello", queue=queue + "2", exchange=exchange)
+                ),
+                asyncio.create_task(consume.wait()),
+                asyncio.create_task(consume2.wait()),
+                asyncio.create_task(consume3.wait()),
+            ),
+            timeout=3,
+        )
 
         assert consume.is_set()
         assert consume2.is_set()
