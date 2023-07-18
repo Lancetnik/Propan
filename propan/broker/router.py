@@ -3,7 +3,7 @@ from typing import Any, Callable, Generic, List
 
 from typing_extensions import ParamSpec, TypeVar
 
-from propan.broker.types import MsgType
+from propan.broker.types import MsgType, P_HandlerParams, T_HandlerReturn
 from propan.types import AnyDict, SendableMessage
 
 P_RouteCall = ParamSpec("P_RouteCall")
@@ -35,6 +35,7 @@ class BrokerRoute(Generic[MsgType, T_RouteReturn]):
 class BrokerRouter(Generic[MsgType]):
     prefix: str
     handlers: List[BrokerRoute[MsgType, Any]]
+    publishers: List[BrokerRoute[MsgType, Any]]
 
     def __init__(
         self,
@@ -42,6 +43,7 @@ class BrokerRouter(Generic[MsgType]):
     ):
         self.prefix = prefix
         self.handlers = []
+        self.publishers = []
 
     @abstractmethod
     def subscriber(
@@ -61,15 +63,34 @@ class BrokerRouter(Generic[MsgType]):
         [Callable[P_RouteCall, T_RouteReturn]],
         Callable[[MsgType, bool], T_RouteReturn],
     ]:
-        def router_hanle_wrapper(
+        def router_subscriber_wrapper(
             func: Callable[P_RouteCall, T_RouteReturn]
         ) -> BrokerRoute[MsgType, T_RouteReturn]:
-            router = BrokerRoute(
+            route = BrokerRoute(
                 call=func,
                 args=args,
                 kwargs=kwargs,
             )
-            self.handlers.append(router)
+            self.handlers.append(route)
             return func
 
-        return router_hanle_wrapper
+        return router_subscriber_wrapper
+
+    def _wrap_publisher(
+        self, *args: Any, **kwargs: AnyDict
+    ) -> Callable[
+        [Callable[P_HandlerParams, T_HandlerReturn]],
+        Callable[P_HandlerParams, T_HandlerReturn],
+    ]:
+        def router_publisher_wrapper(
+            func: Callable[P_RouteCall, T_RouteReturn]
+        ) -> BrokerRoute[MsgType, T_RouteReturn]:
+            route = BrokerRoute(
+                call=func,
+                args=args,
+                kwargs=kwargs,
+            )
+            self.publishers.append(route)
+            return func
+
+        return router_publisher_wrapper

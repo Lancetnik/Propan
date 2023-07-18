@@ -1,4 +1,3 @@
-import logging
 from functools import wraps
 from types import TracebackType
 from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, Type, Union
@@ -36,7 +35,7 @@ from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routin
 from propan.rabbit.types import AioPikaSendableMessage, TimeoutType
 from propan.types import AnyDict
 from propan.utils import context
-from propan.utils.functions import to_async, call_or_await
+from propan.utils.functions import to_async
 
 
 class RabbitBroker(
@@ -147,6 +146,7 @@ class RabbitBroker(
             handler = self.handlers.get(
                 key,
                 Handler(
+                    call=func,
                     queue=r_queue,
                     exchange=r_exchange,
                     consume_args=consume_args,
@@ -189,61 +189,29 @@ class RabbitBroker(
         **message_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        Callable[P_HandlerParams, T_HandlerReturn],
+        Publisher[P_HandlerParams, T_HandlerReturn],
     ]:
         def publisher_decorator(
             func: Callable[P_HandlerParams, T_HandlerReturn],
-        ) -> Callable[P_HandlerParams, T_HandlerReturn]:
-            r_queue, r_exchange = RabbitQueue.validate(queue), RabbitExchange.validate(
-                exchange
-            )
+        ) -> Publisher[P_HandlerParams, T_HandlerReturn]:
+            r_queue, r_exchange = RabbitQueue.validate(queue), RabbitExchange.validate(exchange)
 
             key = get_routing_hash(r_queue, r_exchange)
-            publisher = self.publishers.get(key)
-            if publisher is None:
-                publisher = self.publishers[key] = Publisher(
-                    call=func,
-                    queue=queue,
-                    exchange=exchange or "default",
-                    routing_key=routing_key,
-                    mandatory=mandatory,
-                    immediate=immediate,
-                    persist=persist,
-                    reply_to=reply_to,
-                )
+            publisher = self.publishers[key] = Publisher(
+                call=func,
+                queue=queue,
+                exchange=exchange or "default",
+                routing_key=routing_key,
+                mandatory=mandatory,
+                immediate=immediate,
+                timeout=timeout,
+                persist=persist,
+                reply_to=reply_to,
+                publish=self.publish,
+                **message_kwargs,
+            )
 
-            @wraps(func)
-            async def publisher_wrapper(
-                *args: P_HandlerParams.args,
-                **kwargs: P_HandlerParams.kwargs,
-            ) -> T_HandlerReturn:
-                result = await call_or_await(publisher.call, *args, **kwargs)
-
-                try:
-                    await self.publish(
-                        message=result,
-                        queue=r_queue,
-                        exchange=r_exchange,
-                        routing_key=routing_key,
-                        mandatory=mandatory,
-                        immediate=immediate,
-                        timeout=timeout,
-                        persist=persist,
-                        reply_to=reply_to,
-                        **message_kwargs,
-                    )
-                except Exception as e:
-                    self._log(
-                        f"Publish exception: {e}",
-                        logging.ERROR,
-                        self._get_log_context(
-                            context.get_local("message"), r_queue, r_exchange
-                        ),
-                    )
-
-                return result
-
-            return publisher_wrapper
+            return publisher
 
         return publisher_decorator
 
