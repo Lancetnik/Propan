@@ -2,6 +2,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Generic, List, Optional, Tuple, Union
 
+from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.message import PropanMessage
 from propan.broker.types import (
     AsyncDecoder,
@@ -15,7 +16,10 @@ from propan.types import F_Return, F_Spec
 
 
 @dataclass
-class BaseHandler(Generic[MsgType]):
+class BaseHandler(
+    Generic[F_Spec, F_Return, MsgType],
+    HandlerCallWrapper[F_Spec, F_Return],
+):
     calls: List[
         Tuple[
             Callable[F_Spec, F_Return],
@@ -29,9 +33,11 @@ class BaseHandler(Generic[MsgType]):
 
     def __init__(
         self,
+        call: Callable[F_Spec, F_Return],
         custom_parser: Optional[CustomParser[MsgType]] = None,
         custom_decoder: Optional[CustomDecoder[MsgType]] = None,
     ):
+        super().__init__(call)
         self.calls = []
         self.custom_parser = custom_parser
         self.custom_decoder = custom_decoder
@@ -80,7 +86,10 @@ class BaseHandler(Generic[MsgType]):
 
 
 @dataclass
-class AsyncHandler(BaseHandler, Generic[MsgType]):
+class AsyncHandler(
+    Generic[F_Spec, F_Return, MsgType],
+    BaseHandler[F_Spec, F_Return, MsgType],
+):
     calls: List[
         Tuple[
             Callable[F_Spec, Union[F_Return, Awaitable[F_Return]]],
@@ -94,10 +103,12 @@ class AsyncHandler(BaseHandler, Generic[MsgType]):
 
     def __init__(
         self,
+        call: Callable[F_Spec, F_Return],
         custom_parser: Optional[AsyncParser[MsgType]] = None,
         custom_decoder: Optional[AsyncDecoder[MsgType]] = None,
     ):
         super().__init__(
+            call=call,
             custom_parser=custom_parser,
             custom_decoder=custom_decoder,
         )

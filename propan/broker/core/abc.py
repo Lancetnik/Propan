@@ -22,7 +22,7 @@ from fast_depends.dependencies import Depends
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.handler import BaseHandler
 from propan.broker.message import PropanMessage
-from propan.broker.publisher import BasePublisher
+from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.router import BrokerRouter
 from propan.broker.types import (
@@ -32,8 +32,9 @@ from propan.broker.types import (
     HandlerCallable,
     HandlerWrapper,
     MsgType,
-    T_HandlerReturn,
     WrappedHandlerCall,
+    P_HandlerParams,
+    T_HandlerReturn,
 )
 from propan.broker.utils import (
     change_logger_handlers,
@@ -55,7 +56,7 @@ class BrokerUsecase(
     logger: Optional[logging.Logger]
     log_level: int
     handlers: Dict[int, BaseHandler]
-    publishers: Dict[int, BasePublisher]
+    publishers: Dict[int, HandlerWrapper]
     dependencies: Sequence[Depends]
     started: bool
     _global_parser: CustomParser[MsgType]
@@ -98,6 +99,9 @@ class BrokerUsecase(
         for r in router.handlers:
             self.subscriber(*r.args, **r.kwargs)(r.call)
 
+        for r in router.publishers:
+            self.publisher(*r.args, **r.kwargs)(r.call)
+
     def _resolve_connection_kwargs(self, *args: Any, **kwargs: AnyDict) -> AnyDict:
         arguments = get_function_positional_arguments(self.__init__)  # type: ignore
         init_kwargs = {
@@ -113,7 +117,10 @@ class BrokerUsecase(
 
     def _wrap_handler(
         self,
-        func: HandlerCallable[T_HandlerReturn],
+        func: Union[
+            HandlerCallable[T_HandlerReturn],
+            HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]
+        ],
         *,
         retry: Union[bool, int] = False,
         extra_dependencies: Sequence[Depends] = (),
@@ -122,6 +129,9 @@ class BrokerUsecase(
         _is_sync: bool = False,
         **broker_log_context_kwargs: AnyDict,
     ) -> WrappedHandlerCall[MsgType, T_HandlerReturn]:
+        if isinstance(func, HandlerCallWrapper):
+            func = func.original_call
+
         dependant = _get_dependant(func)
 
         extra = [
@@ -225,7 +235,10 @@ class BrokerUsecase(
         _raw: bool = False,
         _get_dependant: Callable[[Callable[..., Any]], CallModel] = build_call_model,
         **broker_kwargs: AnyDict,
-    ) -> HandlerWrapper[T_HandlerReturn]:
+    ) -> Callable[
+        [Callable[P_HandlerParams, T_HandlerReturn]],
+        BaseHandler[P_HandlerParams, T_HandlerReturn, MsgType]
+    ]:
         if self.started:
             warnings.warn(
                 "You are trying to register `handler` with already running broker\n"  # noqa: E501
@@ -233,6 +246,15 @@ class BrokerUsecase(
                 category=RuntimeWarning,
                 stacklevel=1,
             )
+
+    @abstractmethod
+    def publisher(
+        self,
+    ) -> Callable[
+        [Callable[P_HandlerParams, T_HandlerReturn]],
+        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+    ]:
+        raise NotImplementedError()
 
     @abstractmethod
     def _wrap_decode_message(
