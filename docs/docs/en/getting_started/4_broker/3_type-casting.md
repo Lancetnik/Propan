@@ -48,8 +48,7 @@ async def base_handler(body: bytes):
 
 ### Pydantic
 
-Also, if you use the `pydantic` object as a type annotation, **Propan** will also result in an incoming message
-to this kind, if possible.
+Also, if you use a `pydantic` object as the type annotation, **Propan** will also result in an incoming message of this kind, if possible:
 
 ```python
 from pydantic import BaseModel
@@ -79,7 +78,7 @@ class Message(BaseModel):
 
 @broker.handle("test")
 async def base_handler(a: int, b: float):
-# async def base_handler(body: Message): - the same
+# async def base_handler(body: Message): - equivalent to using separate parameters
     '''
     We are expecting an application/json message
     Type { a: 1, b: 1.0 }
