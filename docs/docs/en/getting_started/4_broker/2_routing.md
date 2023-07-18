@@ -10,7 +10,7 @@ async def base_handler(body: str):
     ...
 ```
 
-This behavior is similar for all brokers, however, the parameters passed to `@broker.handle` are specific for each broker.
+This behavior is the same for all brokers, but the parameters passed to `@broker.handle` are specific for each broker.
 
 To learn more about the behavior of specialized brokers, go to the following sections:
 

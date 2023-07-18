@@ -24,9 +24,9 @@ Data for connecting **Propan Broker** to your message broker can be transmitted 
 {% import 'getting_started/broker/index/initialization.md' as includes with context %}
 {{ includes }}
 
-In the simplest cases, the first method of data transmission for connection is enough for you - through the constructor.
+In the simplest case, initializing through the constructor is enough for most use cases.
 
-However, in more complex scenarios: for example, when configuring a project via [environment variables](../../2_cli/#environment-management), you may need the second option. The full example is described [here](../../6_lifespans/#lifespan).
+However, if you need more granularity in a complex scenario, for example, when configuring a project via [environment variables](../../2_cli/#environment-management), you may need the second option. The full example is described [here](../../6_lifespans/#lifespan).
 
 !!! note
     The parameters passed to `connect` override the parameters passed to the constructor. Be careful with this.
