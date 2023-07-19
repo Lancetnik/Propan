@@ -108,7 +108,6 @@ class SQSQueue(Queue):
     )
     tags: Dict[str, str] = Field(
         default_factory=dict,
-        exclude=True,
     )
 
     def __init__(

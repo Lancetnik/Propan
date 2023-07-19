@@ -310,7 +310,7 @@ class SQSBroker(BrokerAsyncUsecase[AnyDict, AioBaseClient]):
                         i: str(j)
                         for i, j in model_to_dict(
                             queue,
-                            exclude={"name"},
+                            exclude={"name", "tags"},
                             by_alias=True,
                             exclude_defaults=True,
                             exclude_unset=True,
