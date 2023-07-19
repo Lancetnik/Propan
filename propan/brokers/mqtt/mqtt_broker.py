@@ -26,9 +26,7 @@ class MqttBroker(BrokerAsyncUsecase):
         super().__init__(url, log_fmt=log_fmt, url_=url, protocol=protocol, **kwargs)
         self._polling_interval = polling_interval
 
-    async def _connect(
-        self, url: str, **kwargs: Any
-    ) -> Client:
+    async def _connect(self, url: str, **kwargs: Any) -> Client:
         client = Client()
         client.connect(url, 1883, 60)
         return client
@@ -40,11 +38,19 @@ class MqttBroker(BrokerAsyncUsecase):
         self.client.disconnect()
         self.client = None
 
-    def handle(self, *args: Any, **kwargs: Any) -> HandlerWrapper:
-        pass
+    def handle(self, topic: str) -> HandlerWrapper:
+        def wrapper(
+            func: Callable[[PropanMessage], Any]
+        ) -> Callable[[PropanMessage], Any]:
+            self.client.subscribe(topic)
+            self.client.message_callback_add(topic, func)
+            return func
+
+        return wrapper
+
 
     async def start(self) -> None:
-        pass
+        self.client.loop_start()
 
     async def _parse_message(self, message: Any) -> PropanMessage:
         pass
