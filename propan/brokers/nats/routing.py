@@ -17,5 +17,4 @@ class NatsRouter(BrokerRouter[Msg]):
         [HandlerCallable[T_HandlerReturn]],
         Callable[[Msg, bool], Awaitable[T_HandlerReturn]],
     ]:
-        subject = self.prefix + subject
-        return super().handle(subject, *args, **kwargs)
+        return super().handle(self.prefix + subject, *args, **kwargs)

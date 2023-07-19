@@ -2,6 +2,7 @@ from typing import Any, Awaitable, Callable, Union
 
 from aio_pika.message import IncomingMessage
 
+from propan._compat import model_copy
 from propan.brokers._model.broker_usecase import HandlerCallable, T_HandlerReturn
 from propan.brokers._model.routing import BrokerRouter
 from propan.brokers.rabbit.schemas import RabbitQueue
@@ -19,6 +20,7 @@ class RabbitRouter(BrokerRouter[IncomingMessage]):
         [HandlerCallable[T_HandlerReturn]],
         Callable[[IncomingMessage, bool], Awaitable[T_HandlerReturn]],
     ]:
-        queue = validate_queue(queue)
-        queue.name = self.prefix + queue.name
-        return super().handle(queue, *args, **kwargs)
+        q = validate_queue(queue)
+        return super().handle(model_copy(queue, update={
+            "name": self.prefix + q.name
+        }), *args, **kwargs)
