@@ -1,21 +1,17 @@
 from dataclasses import dataclass, field
-from typing import Optional, Callable
+from typing import Optional
 
 import aio_pika
 
 from propan.broker.handler import AsyncHandler
-from propan.broker.types import AsyncDecoder, AsyncParser, P_HandlerParams, T_HandlerReturn
+from propan.broker.types import AsyncDecoder, AsyncParser
 from propan.rabbit.helpers import AioPikaParser, RabbitDeclarer
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue
 from propan.types import AnyDict
 
 
 @dataclass
-class Handler(AsyncHandler[
-    P_HandlerParams,
-    T_HandlerReturn,
-    aio_pika.IncomingMessage,
-]):
+class Handler(AsyncHandler[aio_pika.IncomingMessage]):
     queue: RabbitQueue
     exchange: Optional[RabbitExchange] = field(default=None)
     consume_args: AnyDict = field(default_factory=dict)
@@ -25,7 +21,6 @@ class Handler(AsyncHandler[
 
     def __init__(
         self,
-        call: Callable[P_HandlerParams, T_HandlerReturn],
         queue: RabbitQueue,
         exchange: Optional[RabbitExchange] = None,
         consume_args: Optional[AnyDict] = None,
@@ -33,7 +28,6 @@ class Handler(AsyncHandler[
         custom_decoder: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
     ):
         super().__init__(
-            call=call,
             custom_parser=custom_parser,
             custom_decoder=custom_decoder,
         )

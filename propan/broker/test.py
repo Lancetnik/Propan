@@ -1,5 +1,5 @@
 from functools import partial, wraps
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 from unittest.mock import MagicMock
 
 import anyio
@@ -7,24 +7,31 @@ import anyio
 from propan.broker.core.abc import BrokerUsecase
 from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
+from propan.broker.schemas import HandlerCallWrapper
 
 
-def patch_broker_calls(broker: BrokerUsecase) -> None:
+def patch_broker_calls(
+    broker: BrokerUsecase,
+    patch_publishers: Callable[[BrokerUsecase, HandlerCallWrapper], None] = None,
+) -> None:
     mocks = {}
 
-    for k, handler in broker.handlers.items():
+    original_handlers = tuple(broker.handlers.values())
+    for handler in original_handlers:
         calls = []
-        for f, wrapped_f, filter_f in handler.calls:
+        for wrapper, wrapped_f, filter_f in handler.calls:
             mock = MagicMock()
             calls.append(
                 (
-                    f,
+                    wrapper,
                     _wrap_handler_mock(mock, partial(wrapped_f, reraise_exc=True)),
                     filter_f,
                 )
             )
-            mocks[f] = mock
-        broker.handlers[k].calls = calls
+            mocks[wrapper] = mock
+
+            patch_publishers(broker, wrapper)
+        handler.calls = calls
 
     broker.subscriber_mocks = mocks
 

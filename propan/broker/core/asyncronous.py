@@ -10,6 +10,7 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
+    Tuple,
     Type,
     Union,
 )
@@ -21,17 +22,18 @@ from typing_extensions import Self
 from propan.broker.core.abc import BrokerUsecase
 from propan.broker.message import PropanMessage
 from propan.broker.push_back_watcher import BaseWatcher
+from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
     AsyncDecoder,
     AsyncParser,
     AsyncWrappedHandlerCall,
     ConnectionType,
     HandlerCallable,
-    HandlerWrapper,
     MsgType,
+    P_HandlerParams,
     T_HandlerReturn,
 )
-from propan.exceptions import SkipMessage
+from propan.exceptions import AckMessage, NackMessage, RejectMessage, SkipMessage
 from propan.log import access_logger
 from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils import context
@@ -66,6 +68,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     def _process_message(  # type: ignore[override]
         self,
         func: Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]],
+        call_wrapper: HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
         watcher: Optional[BaseWatcher],
     ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
         raise NotImplementedError()
@@ -94,7 +97,10 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         _raw: bool = False,
         _get_dependant: Callable[[Callable[..., Any]], CallModel] = build_call_model,
         **broker_kwargs: AnyDict,
-    ) -> HandlerWrapper[T_HandlerReturn]:
+    ) -> Callable[
+        [Callable[P_HandlerParams, T_HandlerReturn]],
+        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+    ]:
         super().subscriber(
             *broker_args,
             retry=retry,
@@ -192,7 +198,10 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         _raw: bool = False,
         _get_dependant: Callable[[Callable[..., Any]], CallModel] = build_call_model,
         **broker_log_context_kwargs: AnyDict,
-    ) -> AsyncWrappedHandlerCall[MsgType, T_HandlerReturn]:
+    ) -> Tuple[
+        AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],
+        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+    ]:
         return super()._wrap_handler(  # type: ignore[return-value]
             func,
             retry=retry,
@@ -202,6 +211,23 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             _is_sync=False,
             **broker_log_context_kwargs,
         )
+
+    async def _execute_handler(
+        self,
+        func: Callable[[PropanMessage], Awaitable[T_HandlerReturn]],
+        message: PropanMessage[Any],
+    ) -> T_HandlerReturn:
+        try:
+            return await func(message)
+        except AckMessage as e:
+            await message.ack()
+            raise e
+        except NackMessage as e:
+            await message.nack()
+            raise e
+        except RejectMessage as e:
+            await message.reject()
+            raise e
 
     def _log_execution(  # type: ignore[override]
         self,

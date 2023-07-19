@@ -1,11 +1,10 @@
+from typing import Any, Callable, Dict, Generic, List, Optional, Type, Union, overload
 from unittest.mock import MagicMock
-from typing import Any, Optional, Type, Union, overload, Generic, Callable, Dict
 
 from pydantic import BaseModel, Field, Json
 from typing_extensions import TypeVar
 
 from propan.broker.types import P_HandlerParams, T_HandlerReturn
-
 
 Cls = TypeVar("Cls")
 
@@ -38,25 +37,27 @@ class NameRequired(BaseModel):
 
 
 class HandlerCallWrapper(Generic[P_HandlerParams, T_HandlerReturn]):
-    original_call: Callable[P_HandlerParams, T_HandlerReturn]
     mock: MagicMock
-    responses: Dict[str, Any]
+    response_mocks: Dict[str, MagicMock]
 
-    def __init__(self, call: Union[
-        Callable[P_HandlerParams, T_HandlerReturn],
-        "HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]"
-    ]):
+    _original_call: Callable[P_HandlerParams, T_HandlerReturn]
+    _publishers: List[Any]
+
+    def __init__(self, call: Callable[P_HandlerParams, T_HandlerReturn]):
         if isinstance(call, HandlerCallWrapper):
-            self.original_call = call.original_call
-            self.responses = call.responses
+            self._original_call = call._original_call
+            self._publishers = call._publishers
+            self.response_mocks = call.response_mocks
+            self.mock = call.mock
         else:
-            self.original_call = call
-            self.responses = {}
-        self.__name__ = getattr(self.original_call, "__name__", "undefined")
-        self.mock = MagicMock()
+            self._original_call = call
+            self._publishers = []
+            self.mock = MagicMock()
+            self.response_mocks = {}
+        self.__name__ = getattr(self._original_call, "__name__", "undefined")
 
     def __hash__(self) -> int:
-        return hash(self.original_call)
+        return hash(self._original_call)
 
     def __call__(
         self,
@@ -64,7 +65,7 @@ class HandlerCallWrapper(Generic[P_HandlerParams, T_HandlerReturn]):
         **kwargs: P_HandlerParams.kwargs,
     ) -> T_HandlerReturn:
         self.mock(*args, **kwargs)
-        return self.original_call(*args, **kwargs)
+        return self._original_call(*args, **kwargs)
 
 
 class RawDecoced(BaseModel):

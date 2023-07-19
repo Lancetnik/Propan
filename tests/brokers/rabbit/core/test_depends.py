@@ -20,7 +20,8 @@ async def test_broker_depends(
 
     check_message = None
 
-    async def subscriber(
+    @full_broker.subscriber(queue)
+    async def h(
         message: RabbitMessage,
         k1=Depends(sync_depends),
         k2=Depends(async_depends),
@@ -32,7 +33,6 @@ async def test_broker_depends(
             and (message is k2)
         )
 
-    full_broker.subscriber(queue)(subscriber)
     await full_broker.start()
 
     await full_broker.publish(queue=queue, rpc=True)
@@ -47,18 +47,17 @@ async def test_different_consumers_has_different_messages(
 ):
     message1 = None
 
+    @full_broker.subscriber("test_different_consume_1")
     async def consumer1(message: RabbitMessage):
         nonlocal message1
         message1 = message
 
     message2 = None
 
+    @full_broker.subscriber("test_different_consume_2")
     async def consumer2(message: RabbitMessage):
         nonlocal message2
         message2 = message
-
-    full_broker.subscriber("test_different_consume_1")(consumer1)
-    full_broker.subscriber("test_different_consume_2")(consumer2)
 
     await full_broker.start()
 

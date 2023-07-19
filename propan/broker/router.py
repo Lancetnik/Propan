@@ -3,6 +3,7 @@ from typing import Any, Callable, Generic, List
 
 from typing_extensions import ParamSpec, TypeVar
 
+from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import MsgType, P_HandlerParams, T_HandlerReturn
 from propan.types import AnyDict, SendableMessage
 
@@ -66,6 +67,7 @@ class BrokerRouter(Generic[MsgType]):
         def router_subscriber_wrapper(
             func: Callable[P_RouteCall, T_RouteReturn]
         ) -> BrokerRoute[MsgType, T_RouteReturn]:
+            func = HandlerCallWrapper(func)
             route = BrokerRoute(
                 call=func,
                 args=args,
@@ -85,6 +87,7 @@ class BrokerRouter(Generic[MsgType]):
         def router_publisher_wrapper(
             func: Callable[P_RouteCall, T_RouteReturn]
         ) -> BrokerRoute[MsgType, T_RouteReturn]:
+            func = HandlerCallWrapper(func)
             route = BrokerRoute(
                 call=func,
                 args=args,

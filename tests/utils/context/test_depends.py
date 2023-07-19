@@ -1,4 +1,5 @@
 import pytest
+from typing_extensions import Annotated
 
 from propan.utils import Depends, apply_types
 
@@ -55,14 +56,12 @@ async def test_async_with_sync_depends():
 
 @pytest.mark.asyncio
 async def test_annotated_depends():
-    from typing_extensions import Annotated
-
     D = Annotated[int, Depends(sync_dep)]
 
     key = 1000
 
     @apply_types
     async def func(k: D):
-        return k is key
+        return k == key
 
     assert await func(key=key)

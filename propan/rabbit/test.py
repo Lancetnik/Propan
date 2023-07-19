@@ -26,7 +26,9 @@ from propan.rabbit.broker import RabbitBroker
 from propan.rabbit.helpers import AioPikaParser
 from propan.rabbit.shared.constants import ExchangeType
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue
-from propan.rabbit.types import AioPikaSendableMessage, TimeoutType
+from propan.rabbit.shared.types import TimeoutType
+from propan.rabbit.shared.wrapper import AMQPHandlerCallWrapper
+from propan.rabbit.types import AioPikaSendableMessage
 from propan.types import AnyCallable
 
 __all__ = (
@@ -163,11 +165,28 @@ class TestableRabbitBroker(RabbitBroker):
     subscriber_mocks: Dict[AnyCallable, MagicMock]
 
 
+def patch_publishers(broker: RabbitBroker, wrapper: AMQPHandlerCallWrapper) -> None:
+    for publisher in wrapper._publishers:
+
+        @broker.subscriber(
+            queue=publisher.queue,
+            exchange=publisher.exchange,
+            _raw=True,
+        )
+        def f(msg):
+            pass
+
+        exc_name = publisher.exchange.name if publisher.exchange else "default"
+        exc_responses = wrapper.response_mocks.get(exc_name, {})
+        exc_responses[publisher.queue.name] = f.mock
+        wrapper.response_mocks[exc_name] = exc_responses
+
+
 def TestRabbitBroker(broker: RabbitBroker) -> TestableRabbitBroker:
     broker._channel = AsyncMock()
     broker.declarer = AsyncMock()
-    patch_broker_calls(broker)
+    patch_broker_calls(broker, patch_publishers)
     broker.connect = AsyncMock()  # type: ignore
-    broker.start = AsyncMock(side_effect=partial(patch_broker_calls, broker))  # type: ignore
+    broker.start = AsyncMock(side_effect=partial(patch_broker_calls, broker, patch_publishers))  # type: ignore
     broker.publish = MethodType(publish, broker)  # type: ignore
     return broker

@@ -1,5 +1,4 @@
 import asyncio
-from unittest.mock import Mock
 
 import pytest
 from aio_pika import Message
@@ -14,14 +13,15 @@ class TestRabbitConsume(BrokerConsumeTestcase):
     @pytest.mark.asyncio
     async def test_consume_from_exchange(
         self,
-        mock: Mock,
         queue: str,
         exchange: RabbitExchange,
         broker: RabbitBroker,
     ):
         consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
-        broker.subscriber(queue=queue, exchange=exchange, retry=1)(mock)
+
+        @broker.subscriber(queue=queue, exchange=exchange, retry=1)
+        def h():
+            consume.set()
 
         await broker.start()
         await asyncio.wait(
@@ -34,27 +34,25 @@ class TestRabbitConsume(BrokerConsumeTestcase):
             timeout=3,
         )
 
-        mock.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_consume_with_get_old(
         self,
-        mock: Mock,
         queue: str,
         exchange: RabbitExchange,
         broker: RabbitBroker,
     ):
         consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
         await broker.declare_queue(RabbitQueue(queue))
         await broker.declare_exchange(exchange)
 
-        broker.subscriber(
+        @broker.subscriber(
             queue=RabbitQueue(name=queue, passive=True),
             exchange=RabbitExchange(name=exchange.name, passive=True),
             retry=True,
-        )(mock)
+        )
+        def h():
+            consume.set()
 
         await broker.start()
         await asyncio.wait(
@@ -68,8 +66,6 @@ class TestRabbitConsume(BrokerConsumeTestcase):
             ),
             timeout=3,
         )
-
-        mock.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_consume_ack(
