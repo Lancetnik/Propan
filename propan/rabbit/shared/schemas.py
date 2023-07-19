@@ -4,7 +4,7 @@ from pydantic import Field
 
 from propan.broker.schemas import NameRequired
 from propan.rabbit.shared.constants import ExchangeType
-from propan.rabbit.types import TimeoutType
+from propan.rabbit.shared.types import TimeoutType
 
 
 class RabbitQueue(NameRequired):

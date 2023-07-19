@@ -1,3 +1,4 @@
+import logging
 from functools import wraps
 from types import TracebackType
 from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, Type, Union
@@ -9,17 +10,14 @@ from fast_depends.dependencies import Depends
 from yarl import URL
 
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
-from propan.broker.parsers import decode_message as gl_decoder
 from propan.broker.push_back_watcher import BaseWatcher, OneTryWatcher, WatcherContext
 from propan.broker.types import (
     AsyncDecoder,
     AsyncParser,
-    HandlerCallable,
-    HandlerWrapper,
     P_HandlerParams,
     T_HandlerReturn,
 )
-from propan.exceptions import WRONG_PUBLISH_ARGS
+from propan.exceptions import WRONG_PUBLISH_ARGS, RuntimeException
 from propan.rabbit.handler import Handler
 from propan.rabbit.helpers import (
     AioPikaParser,
@@ -32,7 +30,9 @@ from propan.rabbit.shared.constants import RABBIT_REPLY
 from propan.rabbit.shared.logging import RabbitLoggingMixin
 from propan.rabbit.shared.publisher import Publisher
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
-from propan.rabbit.types import AioPikaSendableMessage, TimeoutType
+from propan.rabbit.shared.types import TimeoutType
+from propan.rabbit.shared.wrapper import AMQPHandlerCallWrapper
+from propan.rabbit.types import AioPikaSendableMessage
 from propan.types import AnyDict
 from propan.utils import context
 from propan.utils.functions import to_async
@@ -43,7 +43,6 @@ class RabbitBroker(
     BrokerAsyncUsecase[aio_pika.IncomingMessage, aio_pika.RobustConnection],
 ):
     handlers: Dict[int, Handler]
-    publishers: Dict[int, Publisher]
     declarer: Optional[RabbitDeclarer]
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
@@ -109,58 +108,6 @@ class RabbitBroker(
 
         return connection
 
-    def subscriber(
-        self,
-        queue: Union[str, RabbitQueue],
-        exchange: Union[str, RabbitExchange, None] = None,
-        *,
-        dependencies: Sequence[Depends] = (),
-        consume_args: Optional[AnyDict] = None,
-        parse_message: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
-        decode_message: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
-        filter: Callable[
-            [RabbitMessage], Union[bool, Awaitable[bool]]
-        ] = lambda m: True,
-        **original_kwargs: AnyDict,
-    ) -> HandlerWrapper[T_HandlerReturn]:
-        super().subscriber()
-
-        r_queue, r_exchange = RabbitQueue.validate(queue), RabbitExchange.validate(
-            exchange
-        )
-
-        self._setup_log_context(r_queue, r_exchange)
-
-        def consumer_wrapper(
-            func: HandlerCallable[T_HandlerReturn],
-        ) -> HandlerCallable[T_HandlerReturn]:
-            wrapped_func = self._wrap_handler(
-                func,
-                extra_dependencies=dependencies,
-                **original_kwargs,
-                queue=r_queue,
-                exchange=r_exchange,
-            )
-
-            key = get_routing_hash(r_queue, r_exchange)
-            handler = self.handlers.get(
-                key,
-                Handler(
-                    call=func,
-                    queue=r_queue,
-                    exchange=r_exchange,
-                    consume_args=consume_args,
-                    custom_parser=parse_message or self._global_parser,
-                    custom_decoder=decode_message or self._global_decoder,
-                ),
-            )
-            handler.add_call(func, wrapped_func, to_async(filter))
-            self.handlers[key] = handler
-
-            return func
-
-        return consumer_wrapper
-
     async def start(self) -> None:
         context.set_local(
             "log_context",
@@ -174,6 +121,61 @@ class RabbitBroker(
             c = self._get_log_context(None, handler.queue, handler.exchange)
             self._log(f"`{handler.name}` waiting for messages", extra=c)
             await handler.start(self.declarer)
+
+    def subscriber(
+        self,
+        queue: Union[str, RabbitQueue],
+        exchange: Union[str, RabbitExchange, None] = None,
+        *,
+        dependencies: Sequence[Depends] = (),
+        consume_args: Optional[AnyDict] = None,
+        parse_message: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
+        decode_message: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
+        filter: Callable[
+            [RabbitMessage], Union[bool, Awaitable[bool]]
+        ] = lambda m: not m.processed,
+        **original_kwargs: AnyDict,
+    ) -> Callable[
+        [Callable[P_HandlerParams, T_HandlerReturn]],
+        AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+    ]:
+        super().subscriber()
+
+        r_queue, r_exchange = RabbitQueue.validate(queue), RabbitExchange.validate(
+            exchange
+        )
+
+        self._setup_log_context(r_queue, r_exchange)
+
+        def consumer_wrapper(
+            func: Callable[P_HandlerParams, T_HandlerReturn],
+        ) -> AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
+            handler_call: AMQPHandlerCallWrapper
+            wrapped_func, handler_call = self._wrap_handler(
+                func,
+                extra_dependencies=dependencies,
+                **original_kwargs,
+                queue=r_queue,
+                exchange=r_exchange,
+            )
+
+            key = get_routing_hash(r_queue, r_exchange)
+            handler = self.handlers.get(
+                key,
+                Handler(
+                    queue=r_queue,
+                    exchange=r_exchange,
+                    consume_args=consume_args,
+                    custom_parser=parse_message or self._global_parser,
+                    custom_decoder=decode_message or self._global_decoder,
+                ),
+            )
+            handler.add_call(handler_call, wrapped_func, to_async(filter))
+            self.handlers[key] = handler
+
+            return handler_call
+
+        return consumer_wrapper
 
     def publisher(
         self,
@@ -189,29 +191,27 @@ class RabbitBroker(
         **message_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        Publisher[P_HandlerParams, T_HandlerReturn],
+        AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
     ]:
         def publisher_decorator(
             func: Callable[P_HandlerParams, T_HandlerReturn],
-        ) -> Publisher[P_HandlerParams, T_HandlerReturn]:
-            r_queue, r_exchange = RabbitQueue.validate(queue), RabbitExchange.validate(exchange)
-
-            key = get_routing_hash(r_queue, r_exchange)
-            publisher = self.publishers[key] = Publisher(
-                call=func,
-                queue=queue,
-                exchange=exchange or "default",
+        ) -> AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
+            publisher = Publisher(
+                queue=RabbitQueue.validate(queue),
+                exchange=RabbitExchange.validate(exchange),
                 routing_key=routing_key,
                 mandatory=mandatory,
                 immediate=immediate,
                 timeout=timeout,
                 persist=persist,
                 reply_to=reply_to,
-                publish=self.publish,
-                **message_kwargs,
+                message_kwargs=message_kwargs,
             )
 
-            return publisher
+            handler_call = AMQPHandlerCallWrapper(func)
+            handler_call._publishers.append(publisher)
+
+            return handler_call
 
         return publisher_decorator
 
@@ -284,12 +284,17 @@ class RabbitBroker(
                     msg = await response_queue.receive()
 
                 if msg:
-                    msg = await AioPikaParser.parse_message(msg)
-                    return gl_decoder(msg)
+                    msg = await (self._global_parser or AioPikaParser.parse_message)(
+                        msg
+                    )
+                    return await (self._global_decoder or AioPikaParser.decode_message)(
+                        msg
+                    )
 
     def _process_message(
         self,
         func: Callable[[RabbitMessage], Awaitable[T_HandlerReturn]],
+        call_wrapper: AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
         watcher: Optional[BaseWatcher],
     ) -> Callable[[RabbitMessage], Awaitable[T_HandlerReturn]]:
         if watcher is None:
@@ -298,15 +303,47 @@ class RabbitBroker(
         @wraps(func)
         async def process_wrapper(message: RabbitMessage) -> T_HandlerReturn:
             async with WatcherContext(watcher, message):
-                r = await func(message)
-                if message.reply_to:
-                    await self.publish(
-                        message=r,
-                        routing_key=message.reply_to,
-                        correlation_id=message.correlation_id,
-                    )
+                try:
+                    r = await self._execute_handler(func, message)
 
-                return r
+                except RuntimeException:
+                    pass
+
+                else:
+                    if message.reply_to:
+                        await self.publish(
+                            message=r,
+                            routing_key=message.reply_to,
+                            correlation_id=message.correlation_id,
+                        )
+
+                    for publisher in call_wrapper._publishers:
+                        try:
+                            await self.publish(
+                                message=r,
+                                queue=publisher.queue,
+                                exchange=publisher.exchange,
+                                routing_key=publisher.routing_key,
+                                mandatory=publisher.mandatory,
+                                immediate=publisher.immediate,
+                                timeout=publisher.timeout,
+                                persist=publisher.persist,
+                                reply_to=publisher.reply_to,
+                                correlation_id=message.correlation_id,
+                                **publisher.message_kwargs,
+                            )
+                        except Exception as e:
+                            self._log(
+                                f"Publish exception: {e}",
+                                logging.ERROR,
+                                self._get_log_context(
+                                    context.get_local("message"),
+                                    publisher.queue,
+                                    publisher.exchange,
+                                ),
+                            )
+
+                    return r
 
         return process_wrapper
 

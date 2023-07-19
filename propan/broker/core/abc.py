@@ -11,6 +11,7 @@ from typing import (
     Generic,
     Optional,
     Sequence,
+    Tuple,
     Type,
     Union,
 )
@@ -22,19 +23,18 @@ from fast_depends.dependencies import Depends
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.handler import BaseHandler
 from propan.broker.message import PropanMessage
-from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.router import BrokerRouter
+from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
     ConnectionType,
     CustomDecoder,
     CustomParser,
     HandlerCallable,
-    HandlerWrapper,
     MsgType,
-    WrappedHandlerCall,
     P_HandlerParams,
     T_HandlerReturn,
+    WrappedHandlerCall,
 )
 from propan.broker.utils import (
     change_logger_handlers,
@@ -56,7 +56,6 @@ class BrokerUsecase(
     logger: Optional[logging.Logger]
     log_level: int
     handlers: Dict[int, BaseHandler]
-    publishers: Dict[int, HandlerWrapper]
     dependencies: Sequence[Depends]
     started: bool
     _global_parser: CustomParser[MsgType]
@@ -81,7 +80,6 @@ class BrokerUsecase(
         self._connection = None
         self._is_apply_types = apply_types
         self.handlers = {}
-        self.publishers = {}
         self.dependencies = dependencies
 
         self._connection_args = args
@@ -117,10 +115,7 @@ class BrokerUsecase(
 
     def _wrap_handler(
         self,
-        func: Union[
-            HandlerCallable[T_HandlerReturn],
-            HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]
-        ],
+        func: HandlerCallable[T_HandlerReturn],
         *,
         retry: Union[bool, int] = False,
         extra_dependencies: Sequence[Depends] = (),
@@ -128,9 +123,15 @@ class BrokerUsecase(
         _get_dependant: Callable[[Callable[..., Any]], CallModel] = build_call_model,
         _is_sync: bool = False,
         **broker_log_context_kwargs: AnyDict,
-    ) -> WrappedHandlerCall[MsgType, T_HandlerReturn]:
+    ) -> Tuple[
+        WrappedHandlerCall[MsgType, T_HandlerReturn],
+        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+    ]:
         if isinstance(func, HandlerCallWrapper):
-            func = func.original_call
+            handler_call, func = func, func._original_call
+
+        else:
+            handler_call = HandlerCallWrapper(func)
 
         dependant = _get_dependant(func)
 
@@ -180,6 +181,7 @@ class BrokerUsecase(
 
         f = self._process_message(
             func=f,
+            call_wrapper=handler_call,
             watcher=get_watcher(self.logger, retry),
         )
 
@@ -188,7 +190,7 @@ class BrokerUsecase(
 
         f = set_message_context(f)
 
-        return suppress_decor(f)
+        return suppress_decor(f), handler_call
 
     # Final Broker Impl
     @abstractmethod
@@ -213,6 +215,7 @@ class BrokerUsecase(
         func: Callable[
             [PropanMessage[MsgType]], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]
         ],
+        call_wrapper: HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
         watcher: Optional[BaseWatcher],
     ) -> Callable[
         [PropanMessage[MsgType]], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]
@@ -222,6 +225,14 @@ class BrokerUsecase(
     # Async and Sync Inherits Impl
     @abstractmethod
     def connect(self, *args: Any, **kwargs: AnyDict) -> ConnectionType:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _execute_handler(
+        self,
+        func: Callable[[PropanMessage], T_HandlerReturn],
+        message: PropanMessage[Any],
+    ) -> T_HandlerReturn:
         raise NotImplementedError()
 
     @abstractmethod
@@ -237,7 +248,7 @@ class BrokerUsecase(
         **broker_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        BaseHandler[P_HandlerParams, T_HandlerReturn, MsgType]
+        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
     ]:
         if self.started:
             warnings.warn(

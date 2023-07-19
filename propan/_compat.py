@@ -36,6 +36,9 @@ if PYDANTIC_V2:
     def model_schema(model: Type[BaseModel], **kwargs: AnyDict) -> AnyDict:
         return model.model_json_schema(**kwargs)
 
+    def model_copy(model: Type[BaseModel], **kwargs: AnyDict) -> AnyDict:
+        return model.model_copy(**kwargs)
+
 else:
     from pydantic.config import BaseConfig
     from pydantic.config import ConfigDict as CD
@@ -68,3 +71,6 @@ else:
 
     def model_to_jsonable(model: BaseModel, **kwargs: AnyDict) -> AnyDict:
         return json.loads(model.json(**kwargs))
+
+    def model_copy(model: Type[BaseModel], **kwargs: AnyDict) -> AnyDict:
+        return model.copy(**kwargs)

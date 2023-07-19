@@ -37,7 +37,7 @@ def get_watcher(
 
 def suppress_decor(
     func: Callable[
-        [MsgType],
+        [PropanMessage[MsgType]],
         Union[
             T_HandlerReturn,
             Awaitable[T_HandlerReturn],
@@ -46,7 +46,8 @@ def suppress_decor(
 ) -> AsyncWrappedHandlerCall:
     @wraps(func)
     async def suppress_wrapper(
-        message: MsgType, reraise_exc: bool = False
+        message: PropanMessage[MsgType],
+        reraise_exc: bool = False,
     ) -> Optional[T_HandlerReturn]:
         try:
             return await func(message)
