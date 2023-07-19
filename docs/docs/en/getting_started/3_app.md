@@ -8,7 +8,7 @@ app = PropanApp()
 ```
 
 !!! tip
-    At initializing, `PropanApp` writes itself to `ContextRepo` with the name `"app"`, so you can always access it from [context](../5_dependency/2_context).
+    When initializing, `PropanApp` writes itself to `ContextRepo` with the name `"app"`, so you can always access it from [context](../5_dependency/2_context).
 
 ## Using Brokers
 
@@ -27,7 +27,7 @@ But, sometimes you may need to initialize the broker elsewhere. In this case, yo
 If the broker is not passed to `PropanApp`, the following functions will still work:
 
 * Life Cycle Hooks
-* Hotreload code
+* Hot-reload code
 * Multiprocessing of execution
 
 In fact, as a broker, you can pass an instance of any class that will have asynchronous methods `start` and `close`:

@@ -29,7 +29,7 @@ Commands:
 
 ## Project generation
 
-To start a new project not from scratch, you can use the standard template **Propan**:
+To start a new project template, you can use the standard template **Propan**:
 
 <div class="termy">
 ```console
@@ -41,9 +41,9 @@ Create Rabbit Propan project template at: ./app
 
 The template includes:
 
-* simple, but working *Dockerfile*
+* a simple yet working *Dockerfile*
 * *docker-compose.yml* configured for development
-* a project configured to use *pydantic* as an environment manager
+* a project configured to use *pydantic* as the environment manager
 
 ## Reloading the project
 
@@ -84,7 +84,7 @@ $ propan run serve:app --env=.env.dev
 !!! note
     Note that the `env` parameter was passed to the `setup` function directly from the command line
 
-All passed values can be of type `bool`, `str` or `list[str]'.
+All passed values can be of type `bool`, `str` or `list[str]`.
 
 In this case, the flags will be interpreted as follows:
 

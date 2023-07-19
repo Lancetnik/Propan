@@ -1,5 +1,5 @@
 ---
-run_docker: To working with project start a test broker container
+run_docker: To start a new project we need a test broker container
 ---
 
 # QUICK START
@@ -11,11 +11,11 @@ Install using `pip`:
 
 ## Basic usage
 
-Create an application with the following code at `serve.py`:
+To create a basic application, add the following code to a new file (e.g. `serve.py`):
 
 {! includes/getting_started/index/01_base.md !}
 
-And just run it:
+And just run this command:
 
 <div class="termy">
 ```console
@@ -31,7 +31,7 @@ $ propan run serve:app
 
 ## Project template
 
-Also, **Propan CLI** is able to generate a production-ready application template:
+**Propan CLI** is able to generate a production-ready application template:
 
 <div class="termy">
 ```console
@@ -60,7 +60,7 @@ $ propan run [projectname].app.serve:app --env=.env --reload
 ```
 </div>
 
-Now you can enjoy a new development experience!
+Enjoy your new development experience!
 
 ??? tip "Don't forget to stop test broker container"
     ```bash
