@@ -1,5 +1,6 @@
 from typing import Awaitable, Callable, Union
 
+from propan._compat import model_copy
 from propan.brokers._model.broker_usecase import HandlerCallable, T_HandlerReturn
 from propan.brokers._model.routing import BrokerRouter
 from propan.brokers.sqs.schema import SQSQueue
@@ -18,5 +19,6 @@ class SQSRouter(BrokerRouter[AnyDict]):
         if isinstance(queue, str):
             queue = SQSQueue(queue)
 
-        queue.name = self.prefix + queue.name
-        return super().handle(queue, **kwargs)
+        return super().handle(model_copy(queue, update={
+            "name": self.prefix + queue.name
+        }), **kwargs)

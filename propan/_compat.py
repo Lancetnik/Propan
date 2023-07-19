@@ -73,6 +73,9 @@ if PYDANTIC_V2:
             config["json_schema_extra"] = schema_extra
         return model
 
+    def model_copy(model: BaseModel, **kwargs: AnyDict) -> AnyDict:
+        return model.model_copy(**kwargs)
+
 else:
     from pydantic.config import BaseConfig
     from pydantic.config import ConfigDict as CD
@@ -126,3 +129,6 @@ else:
             )
         else:
             return model
+
+    def model_copy(model: BaseModel, **kwargs: AnyDict) -> AnyDict:
+        return model.copy(**kwargs)
