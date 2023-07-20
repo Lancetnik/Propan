@@ -1,15 +1,15 @@
 from propan import PropanApp, RabbitBroker
 from propan.annotations import ContextRepo
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
+broker = RabbitBroker()
 app = PropanApp(broker)
 
 class Settings(BaseSettings):
-    rabbit_url: str
+    host: str = "amqp://guest:guest@localhost:5672/"
 
 @app.on_startup
 async def setup(context: ContextRepo, env: str = ".env"):
     settings = Settings(_env_file=env)
     context.set_global("settings", settings)
-    await broker.connect(settings.rabbit_url)
+    await broker.connect(settings.host)
