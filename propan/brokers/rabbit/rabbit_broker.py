@@ -330,6 +330,7 @@ class RabbitBroker(
 
             async with context:
                 r = await func(message)
+
                 if message.reply_to:
                     await self.publish(
                         message=r,

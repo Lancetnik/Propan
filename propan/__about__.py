@@ -42,3 +42,7 @@ INSTALL_SQS = import_error(
 INSTALL_REDIS = import_error(
     ("\nYou should install RabbitMQ dependencies" '\npip install "propan[async-redis]"')
 )
+
+INSTALL_MQTT = import_error(
+    ("\nYou should install MQTT dependencies" '\npip install "propan[async-mqtt]"')
+)

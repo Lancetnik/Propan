@@ -33,8 +33,9 @@ except ImportError:
 
 try:
     from propan.brokers.mqtt import MqttBroker
-except ImportError:
-    MqttBroker = about.INSTALL_SQS  # type: ignore
+except ImportError as e:
+    print(e)
+    MqttBroker = about.INSTALL_MQTT  # type: ignore
 
 assert any(
     (RabbitBroker, NatsBroker, RedisBroker, SQSBroker, KafkaBroker, MqttBroker)
