@@ -17,7 +17,7 @@ class RabbitLoggingMixin(LoggingMixin):
         *args: Any,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
-        log_fmt: str | None = None,
+        log_fmt: Optional[str] = None,
         **kwargs: AnyDict,
     ) -> None:
         super().__init__(

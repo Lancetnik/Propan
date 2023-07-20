@@ -17,6 +17,7 @@ def smth_processing(body):
         raise AckMessage()
     ...
 
+
 @app.after_startup
 async def test_publishing():
     await broker.publish("Hello!", "test-queue")

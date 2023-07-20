@@ -57,7 +57,7 @@ class Handler(AsyncHandler[aio_pika.IncomingMessage]):
     async def start(self, declarer: RabbitDeclarer) -> None:
         self._queue_obj = queue = await declarer.declare_queue(self.queue)
 
-        if self.exchange is not None and self.exchange.name != "default":
+        if self.exchange is not None:
             exchange = await declarer.declare_exchange(self.exchange)
             await queue.bind(
                 exchange,

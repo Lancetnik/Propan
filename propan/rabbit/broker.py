@@ -1,11 +1,10 @@
 import logging
 from functools import wraps
 from types import TracebackType
-from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, Type, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Type, Union
 
 import aio_pika
 import aiormq
-import anyio
 from fast_depends.dependencies import Depends
 from yarl import URL
 
@@ -17,23 +16,18 @@ from propan.broker.types import (
     P_HandlerParams,
     T_HandlerReturn,
 )
-from propan.exceptions import WRONG_PUBLISH_ARGS, RuntimeException
+from propan.exceptions import RuntimeException
 from propan.rabbit.handler import Handler
-from propan.rabbit.helpers import (
-    AioPikaParser,
-    RabbitDeclarer,
-    RPCCallback,
-    fake_context,
-)
+from propan.rabbit.helpers import AioPikaPublisher, RabbitDeclarer
 from propan.rabbit.message import RabbitMessage
+from propan.rabbit.publisher import Publisher
 from propan.rabbit.shared.constants import RABBIT_REPLY
 from propan.rabbit.shared.logging import RabbitLoggingMixin
-from propan.rabbit.shared.publisher import Publisher
+from propan.rabbit.shared.publisher import AMQPHandlerCallWrapper
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
 from propan.rabbit.shared.types import TimeoutType
-from propan.rabbit.shared.wrapper import AMQPHandlerCallWrapper
 from propan.rabbit.types import AioPikaSendableMessage
-from propan.types import AnyDict
+from propan.types import AnyDict, DecodedMessage
 from propan.utils import context
 from propan.utils.functions import to_async
 
@@ -44,9 +38,11 @@ class RabbitBroker(
 ):
     handlers: Dict[int, Handler]
     declarer: Optional[RabbitDeclarer]
+    _publisher: Optional[AioPikaPublisher]
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
-    _rpc_lock: anyio.Lock
+
+    _publishers: List[Publisher]
 
     def __init__(
         self,
@@ -64,7 +60,7 @@ class RabbitBroker(
 
         self._channel = None
         self.declarer = None
-        self._rpc_lock = anyio.Lock()
+        self._publisher = None
 
     async def close(
         self,
@@ -85,6 +81,15 @@ class RabbitBroker(
         if self.declarer is not None:
             self.declarer = None
 
+        if self._publisher is not None:
+            self._publisher = None
+
+    async def connect(self, *args: Any, **kwargs: AnyDict) -> aio_pika.RobustConnection:
+        connection = await super().connect(*args, **kwargs)
+        for p in self._publishers:
+            p._publisher = self._publisher
+        return connection
+
     async def _connect(
         self,
         **kwargs: Any,
@@ -95,10 +100,17 @@ class RabbitBroker(
             max_consumers = self._max_consumers
             channel = self._channel = await connection.channel()
 
-            self.declarer = RabbitDeclarer(channel)
+            declarer = self.declarer = RabbitDeclarer(channel)
             self.declarer.queues[RABBIT_REPLY] = await channel.get_queue(
                 RABBIT_REPLY,
                 ensure=False,
+            )
+
+            self._publisher = AioPikaPublisher(
+                channel,
+                declarer,
+                global_decoder=self._global_decoder,
+                global_parser=self._global_parser,
             )
 
             if max_consumers:
@@ -141,9 +153,8 @@ class RabbitBroker(
     ]:
         super().subscriber()
 
-        r_queue, r_exchange = RabbitQueue.validate(queue), RabbitExchange.validate(
-            exchange
-        )
+        r_queue = RabbitQueue.validate(queue)
+        r_exchange = RabbitExchange.validate(exchange)
 
         self._setup_log_context(r_queue, r_exchange)
 
@@ -189,31 +200,20 @@ class RabbitBroker(
         persist: bool = False,
         reply_to: Optional[str] = None,
         **message_kwargs: AnyDict,
-    ) -> Callable[
-        [Callable[P_HandlerParams, T_HandlerReturn]],
-        AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
-    ]:
-        def publisher_decorator(
-            func: Callable[P_HandlerParams, T_HandlerReturn],
-        ) -> AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
-            publisher = Publisher(
-                queue=RabbitQueue.validate(queue),
-                exchange=RabbitExchange.validate(exchange),
-                routing_key=routing_key,
-                mandatory=mandatory,
-                immediate=immediate,
-                timeout=timeout,
-                persist=persist,
-                reply_to=reply_to,
-                message_kwargs=message_kwargs,
-            )
-
-            handler_call = AMQPHandlerCallWrapper(func)
-            handler_call._publishers.append(publisher)
-
-            return handler_call
-
-        return publisher_decorator
+    ) -> Publisher:
+        publisher = Publisher(
+            queue=RabbitQueue.validate(queue),
+            exchange=RabbitExchange.validate(exchange),
+            routing_key=routing_key,
+            mandatory=mandatory,
+            immediate=immediate,
+            timeout=timeout,
+            persist=persist,
+            reply_to=reply_to,
+            message_kwargs=message_kwargs,
+            _publisher=self._publisher,
+        )
+        return super().publisher(publisher)
 
     async def publish(
         self,
@@ -231,65 +231,24 @@ class RabbitBroker(
         persist: bool = False,
         reply_to: Optional[str] = None,
         **message_kwargs: AnyDict,
-    ) -> Union[aiormq.abc.ConfirmationFrameType, Dict, str, bytes, None]:
+    ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
         if self._channel is None:
             raise ValueError("RabbitBroker channel not started yet")
-
-        p_queue, p_exchange = RabbitQueue.validate(queue), RabbitExchange.validate(
-            exchange
+        return await self._publisher.publish(
+            message=message,
+            queue=queue,
+            exchange=exchange,
+            routing_key=routing_key,
+            mandatory=mandatory,
+            immediate=immediate,
+            timeout=timeout,
+            rpc=rpc,
+            rpc_timeout=rpc_timeout,
+            raise_timeout=raise_timeout,
+            persist=persist,
+            reply_to=reply_to,
+            **message_kwargs,
         )
-
-        if rpc is True:
-            if reply_to is not None:
-                raise WRONG_PUBLISH_ARGS
-            else:
-                context = RPCCallback(
-                    self._rpc_lock, self.declarer.queues[RABBIT_REPLY]
-                )
-        else:
-            context = fake_context()
-
-        if p_exchange is None:
-            exchange_obj = self._channel.default_exchange
-        else:
-            exchange_obj = await self.declarer.declare_exchange(p_exchange)
-
-        async with context as response_queue:
-            message = AioPikaParser.encode_message(
-                message=message,
-                persist=persist,
-                reply_to=RABBIT_REPLY if response_queue else reply_to,
-                **message_kwargs,
-            )
-
-            r = await exchange_obj.publish(
-                message=message,
-                routing_key=routing_key or p_queue.routing or "",
-                mandatory=mandatory,
-                immediate=immediate,
-                timeout=timeout,
-            )
-
-            if response_queue is None:
-                return r
-
-            else:
-                if raise_timeout:
-                    scope = anyio.fail_after
-                else:
-                    scope = anyio.move_on_after
-
-                msg: Any = None
-                with scope(rpc_timeout):
-                    msg = await response_queue.receive()
-
-                if msg:
-                    msg = await (self._global_parser or AioPikaParser.parse_message)(
-                        msg
-                    )
-                    return await (self._global_decoder or AioPikaParser.decode_message)(
-                        msg
-                    )
 
     def _process_message(
         self,
@@ -319,11 +278,11 @@ class RabbitBroker(
 
                     for publisher in call_wrapper._publishers:
                         try:
-                            await self.publish(
+                            await self._publisher._publish(
                                 message=r,
-                                queue=publisher.queue,
                                 exchange=publisher.exchange,
-                                routing_key=publisher.routing_key,
+                                routing_key=publisher.queue.name
+                                or publisher.routing_key,
                                 mandatory=publisher.mandatory,
                                 immediate=publisher.immediate,
                                 timeout=publisher.timeout,
