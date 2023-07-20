@@ -99,46 +99,7 @@ docker compose up -d
 со следующим содержанием
 
 ```yaml
-version: "3"
-
-services:
-  rabbit:
-    image: rabbitmq
-    ports:
-      - 5672:5672
-
-  redis:
-    image: redis
-    ports:
-      - 6379:6379
-
-  nats:
-    image: nats
-    command: -js
-    ports:
-      - 4222:4222
-      - 8222:8222  # management
-
-  kafka:
-    image: bitnami/kafka
-    ports:
-      - 9092:9092
-    environment:
-      - KAFKA_ENABLE_KRAFT=yes
-      - KAFKA_CFG_NODE_ID=1
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
-      - KAFKA_BROKER_ID=1
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
-      - ALLOW_PLAINTEXT_LISTENER=yes
-  
-  sqs:
-    image: softwaremill/elasticmq-native
-    ports:
-      - 9324:9324
+{! includes/docker-compose.yml !}
 ```
 
 #### Hatch
