@@ -6,7 +6,10 @@ broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(broker)
 
 
-@broker.subscriber("test-queue", filter=lambda m: m.content_type == "application/json")
+@broker.subscriber(
+    "test-queue",
+    filter=lambda m: m.content_type == "application/json"
+)
 async def handle_json(msg, logger: Logger):
     logger.info(f"JSON message: {msg}")
 
