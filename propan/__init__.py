@@ -31,8 +31,14 @@ try:
 except ImportError:
     SQSBroker = SQSRouter = about.INSTALL_SQS  # type: ignore
 
+try:
+    from propan.brokers.mqtt import MqttBroker
+except ImportError as e:
+    print(e)
+    MqttBroker = about.INSTALL_MQTT  # type: ignore
+
 assert any(
-    (RabbitBroker, NatsBroker, RedisBroker, SQSBroker, KafkaBroker)
+    (RabbitBroker, NatsBroker, RedisBroker, SQSBroker, KafkaBroker, MqttBroker)
 ), about.INSTALL_MESSAGE
 
 __all__ = (  # noqa: F405
@@ -68,4 +74,6 @@ __all__ = (  # noqa: F405
     ## sqs
     "SQSBroker",
     "SQSRouter",
+    ## mqtt
+    "MqttBroker",
 )

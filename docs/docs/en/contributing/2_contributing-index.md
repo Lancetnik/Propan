@@ -131,6 +131,12 @@ services:
     image: softwaremill/elasticmq-native
     ports:
       - 9324:9324
+  
+  mqtt:
+    image: eclipse-mosquitto
+    ports:
+      - 1883:1883
+      - 9001:9001
 ```
 
 ```bash

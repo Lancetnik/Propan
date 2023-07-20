@@ -77,6 +77,14 @@ async-kafka = [
     "aiokafka>=0.8",
 ]
 
+async-sqs = [
+    "aiobotocore",
+]
+
+async-mqtt = [
+    "paho-mqtt>=1.6.1",
+]
+
 doc = [
     "PyYAML",
     "email-validator>=2.0.0",
@@ -84,10 +92,6 @@ doc = [
     "jsonref",
     "fastapi",
     "uvicorn",
-]
-
-async-sqs = [
-    "aiobotocore",
 ]
 
 testsuite = [
@@ -107,6 +111,7 @@ test = [
     "propan[async-redis]",
     "propan[async-kafka]",
     "propan[async-sqs]",
+    "propan[async-mqtt]",
     "propan[testsuite]",
 
     "fastapi>=0.100.0b2",
@@ -168,6 +173,7 @@ features = [
   "async-nats",
   "async-rabbit",
   "async-redis",
+  "async-mqtt",
 ]
 
 [[tool.hatch.envs.test.matrix]]
@@ -186,6 +192,7 @@ features = [
   "async-nats",
   "async-rabbit",
   "async-redis",
+  "async-mqtt",
 ]
 
 [tool.hatch.envs.test-last.scripts]
@@ -252,6 +259,7 @@ markers = [
     "redis",
     "kafka",
     "sqs",
+    "mqtt",
     "slow",
     "all",
     "run",
