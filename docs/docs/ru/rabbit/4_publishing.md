@@ -9,7 +9,7 @@ from propan import RabbitBroker
 
 async def pub():
     async with RabbitBroker() as broker:
-        await broker.publish("Hi!", queue="test", exhcange="test")
+        await broker.publish("Hi!", queue="test", exchange="test")
 
 asyncio.run(pub())
 ```
