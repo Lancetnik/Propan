@@ -1,6 +1,6 @@
 from propan import PropanApp
-from propan.rabbit import RabbitBroker
 from propan.annotations import Logger
+from propan.rabbit import RabbitBroker
 
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(broker)

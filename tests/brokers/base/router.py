@@ -12,11 +12,15 @@ from propan.types import AnyCallable
 class RouterTestcase:
     build_message: AnyCallable
 
+    @pytest.fixture
+    def pub_broker(self, broker):
+        return broker
+
     async def test_empty_prefix(
         self,
         mock: Mock,
         router: BrokerRouter,
-        broker: BrokerAsyncUsecase,
+        pub_broker: BrokerAsyncUsecase,
         queue: str,
     ):
         consume = asyncio.Event()
@@ -26,13 +30,13 @@ class RouterTestcase:
         def subscriber():
             mock()
 
-        broker.include_router(router)
+        pub_broker.include_router(router)
 
-        await broker.start()
+        await pub_broker.start()
 
         await asyncio.wait(
             (
-                asyncio.create_task(broker.publish("hello", queue)),
+                asyncio.create_task(pub_broker.publish("hello", queue)),
                 asyncio.create_task(consume.wait()),
             ),
             timeout=3,
@@ -44,10 +48,10 @@ class RouterTestcase:
         self,
         mock: Mock,
         router: BrokerRouter,
-        broker: BrokerAsyncUsecase,
+        pub_broker: BrokerAsyncUsecase,
         queue: str,
     ):
-        router.prefix = "test/"
+        router.prefix = "test_"
 
         consume = asyncio.Event()
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
@@ -56,13 +60,117 @@ class RouterTestcase:
         def subscriber():
             mock()
 
-        broker.include_router(router)
+        pub_broker.include_router(router)
 
-        await broker.start()
+        await pub_broker.start()
 
         await asyncio.wait(
             (
-                asyncio.create_task(broker.publish("hello", f"test/{queue}")),
+                asyncio.create_task(pub_broker.publish("hello", f"test_{queue}")),
+                asyncio.create_task(consume.wait()),
+            ),
+            timeout=3,
+        )
+
+        mock.assert_called_once()
+
+    async def test_empty_prefix_publisher(
+        self,
+        mock: Mock,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+    ):
+        consume = asyncio.Event()
+        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+
+        @router.subscriber(queue)
+        @router.publisher(queue + "resp")
+        def subscriber():
+            return "hi"
+
+        @router.subscriber(queue + "resp")
+        def response():
+            mock()
+
+        pub_broker.include_router(router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(pub_broker.publish("hello", queue)),
+                asyncio.create_task(consume.wait()),
+            ),
+            timeout=3,
+        )
+
+        mock.assert_called_once()
+
+    async def test_not_empty_prefix_publisher(
+        self,
+        mock: Mock,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+    ):
+        router.prefix = "test_"
+
+        consume = asyncio.Event()
+        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+
+        @router.subscriber(queue)
+        @router.publisher(queue + "resp")
+        def subscriber():
+            return "hi"
+
+        @router.subscriber(queue + "resp")
+        def response():
+            mock()
+
+        pub_broker.include_router(router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(pub_broker.publish("hello", f"test_{queue}")),
+                asyncio.create_task(consume.wait()),
+            ),
+            timeout=3,
+        )
+
+        mock.assert_called_once()
+
+    async def test_manual_publisher(
+        self,
+        mock: Mock,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+    ):
+        router.prefix = "test_"
+
+        consume = asyncio.Event()
+        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+
+        p = router.publisher(queue + "resp")
+
+        @router.subscriber(queue)
+        async def subscriber():
+            await p.publish("resp")
+
+        @router.subscriber(queue + "resp")
+        def response():
+            mock()
+
+        pub_broker.include_router(router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(pub_broker.publish("hello", f"test_{queue}")),
                 asyncio.create_task(consume.wait()),
             ),
             timeout=3,
@@ -72,33 +180,77 @@ class RouterTestcase:
 
 
 @pytest.mark.asyncio
-class RouterLocalTestcase:
-    async def test_test_client(
+class RouterLocalTestcase(RouterTestcase):
+    @pytest.fixture
+    def pub_broker(self, test_broker):
+        return test_broker
+
+    async def test_publisher_mock(
         self,
-        mock: Mock,
         router: BrokerRouter,
-        test_broker: BrokerAsyncUsecase,
+        pub_broker: BrokerAsyncUsecase,
         queue: str,
     ):
-        router.prefix = "test/"
-
         consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
+
+        pub = router.publisher(queue + "resp")
 
         @router.subscriber(queue)
+        @pub
         def subscriber():
-            mock()
+            consume.set()
+            return "hi"
 
-        test_broker.include_router(router)
+        pub_broker.include_router(router)
 
-        await test_broker.start()
+        await pub_broker.start()
 
         await asyncio.wait(
             (
-                asyncio.create_task(test_broker.publish("hello", f"test/{queue}")),
+                asyncio.create_task(pub_broker.publish("hello", queue)),
                 asyncio.create_task(consume.wait()),
             ),
             timeout=3,
         )
 
-        mock.assert_called_once()
+        pub.mock.assert_called_with("hi")
+
+    async def test_subscriber_mock(
+        self,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+    ):
+        consume = asyncio.Event()
+
+        @router.subscriber(queue)
+        def subscriber():
+            consume.set()
+            return "hi"
+
+        pub_broker.include_router(router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(pub_broker.publish("hello", queue)),
+                asyncio.create_task(consume.wait()),
+            ),
+            timeout=3,
+        )
+
+        subscriber.mock.assert_called_with("hello")
+
+    async def test_manual_publisher_mock(
+        self, queue: str, pub_broker: BrokerAsyncUsecase
+    ):
+        publisher = pub_broker.publisher(queue + "resp")
+
+        @pub_broker.subscriber(queue)
+        async def m():
+            await publisher.publish("response")
+
+        await pub_broker.start()
+        await pub_broker.publish("hello", queue)
+        publisher.mock.assert_called_with("response")

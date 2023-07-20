@@ -21,8 +21,10 @@ class PropanMessage(Generic[Msg]):
     content_type: Optional[str] = None
     reply_to: str = ""
     headers: AnyDict = Field(default_factory=dict)
-    message_id: str = Field(default_factory=lambda: str(uuid4()))
-    correlation_id: str = Field(default_factory=lambda: str(uuid4()))
+    message_id: str = Field(default_factory=lambda: str(uuid4()))  # pragma: no cover
+    correlation_id: str = Field(
+        default_factory=lambda: str(uuid4())
+    )  # pragma: no cover
 
     processed: bool = False
 

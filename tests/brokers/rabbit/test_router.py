@@ -9,7 +9,7 @@ from tests.brokers.base.router import RouterLocalTestcase, RouterTestcase
 
 @pytest.mark.rabbit
 class TestRabbitRouter(RouterTestcase):
-    async def test_not_empty_prefix(
+    async def test_queue_obj(
         self,
         mock: Mock,
         router: RabbitRouter,

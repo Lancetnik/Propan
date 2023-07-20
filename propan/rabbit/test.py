@@ -1,10 +1,8 @@
 import re
 import sys
-from contextlib import asynccontextmanager
 from functools import partial
 from types import MethodType
-from typing import Any, Dict, Optional, Union
-from unittest.mock import MagicMock
+from typing import Any, Optional, Union
 
 from propan.types import AnyDict
 
@@ -27,21 +25,21 @@ from propan.rabbit.helpers import AioPikaParser
 from propan.rabbit.shared.constants import ExchangeType
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue
 from propan.rabbit.shared.types import TimeoutType
-from propan.rabbit.shared.wrapper import AMQPHandlerCallWrapper
 from propan.rabbit.types import AioPikaSendableMessage
-from propan.types import AnyCallable
 
-__all__ = (
-    "build_message",
-    "TestRabbitBroker",
-)
+__all__ = ("TestRabbitBroker",)
+
+
+def TestRabbitBroker(broker: RabbitBroker) -> RabbitBroker:
+    broker._channel = AsyncMock()
+    broker.declarer = AsyncMock()
+    _fake_start(broker)
+    broker.start = AsyncMock(wraps=partial(_fake_start, broker))
+    broker._connect = MethodType(_fake_connect, broker)
+    return broker
 
 
 class PatchedMessage(IncomingMessage):
-    @asynccontextmanager
-    async def process(self):  # type: ignore
-        yield
-
     async def ack(self, multiple: bool = False) -> None:
         pass
 
@@ -58,6 +56,7 @@ def build_message(
     exchange: Union[RabbitExchange, str, None] = None,
     *,
     routing_key: str = "",
+    reply_to: Optional[str] = None,
     **message_kwargs: AnyDict,
 ) -> PatchedMessage:
     que, exch = RabbitQueue.validate(queue), RabbitExchange.validate(exchange)
@@ -76,6 +75,7 @@ def build_message(
                     content_type=msg.content_type,
                     message_id=str(uuid4()),
                     headers=msg.headers,
+                    reply_to=reply_to,
                 )
             ),
             body=msg.body,
@@ -84,91 +84,127 @@ def build_message(
     )
 
 
-async def publish(
-    self: RabbitBroker,
-    message: AioPikaSendableMessage = "",
-    queue: Union[RabbitQueue, str] = "",
-    exchange: Union[RabbitExchange, str, None] = None,
-    *,
-    routing_key: str = "",
-    mandatory: bool = True,
-    immediate: bool = False,
-    timeout: TimeoutType = None,
-    rpc: bool = False,
-    rpc_timeout: Optional[float] = 30.0,
-    raise_timeout: bool = False,
-    **message_kwargs: AnyDict,
-) -> Any:
-    exch = RabbitExchange.validate(exchange)
+class FakePublisher:
+    def __init__(self, broker: RabbitBroker):
+        self.broker = broker
 
-    incoming = build_message(
-        message=message,
-        queue=queue,
-        exchange=exch,
-        routing_key=routing_key,
-        **message_kwargs,
-    )
+    async def _publish(
+        self,
+        message: AioPikaSendableMessage = "",
+        exchange: Union[RabbitExchange, str, None] = None,
+        *,
+        routing_key: str = "",
+        mandatory: bool = True,
+        immediate: bool = False,
+        timeout: TimeoutType = None,
+        persist: bool = False,
+        reply_to: Optional[str] = None,
+        **message_kwargs: AnyDict,
+    ) -> Any:
+        return await self.publish(
+            message=message,
+            exchange=exchange,
+            routing_key=routing_key,
+            mandatory=mandatory,
+            immediate=immediate,
+            timeout=timeout,
+            persist=persist,
+            reply_to=reply_to,
+            **message_kwargs,
+        )
 
-    for handler in self.handlers.values():  # pragma: no branch
-        if handler.exchange == exch:
-            call = False
+    async def publish(
+        self,
+        message: AioPikaSendableMessage = "",
+        queue: Union[RabbitQueue, str] = "",
+        exchange: Union[RabbitExchange, str, None] = None,
+        *,
+        routing_key: str = "",
+        mandatory: bool = True,
+        immediate: bool = False,
+        timeout: TimeoutType = None,
+        rpc: bool = False,
+        rpc_timeout: Optional[float] = 30.0,
+        raise_timeout: bool = False,
+        persist: bool = False,
+        reply_to: Optional[str] = None,
+        **message_kwargs: AnyDict,
+    ) -> Any:
+        exch = RabbitExchange.validate(exchange)
 
-            if exch is None or handler.exchange.type == ExchangeType.DIRECT:
-                call = handler.queue.name == incoming.routing_key
+        incoming = build_message(
+            message=message,
+            queue=queue,
+            exchange=exch,
+            routing_key=routing_key,
+            reply_to=reply_to,
+            **message_kwargs,
+        )
 
-            elif handler.exchange.type == ExchangeType.FANOUT:
-                call = True
+        for handler in self.broker.handlers.values():  # pragma: no branch
+            if handler.exchange == exch:
+                call = False
 
-            elif handler.exchange.type == ExchangeType.TOPIC:
-                call = re.match(
-                    handler.queue.name.replace(".", r"\.").replace("*", ".*"),
-                    incoming.routing_key,
-                )
+                if exch is None or handler.exchange.type == ExchangeType.DIRECT:
+                    call = handler.queue.name == incoming.routing_key
 
-            elif handler.exchange.type == ExchangeType.HEADERS:  # pramga: no branch
-                queue_headers = handler.queue.bind_arguments
-                msg_headers = incoming.headers
-
-                if not queue_headers and not msg_headers:
+                elif handler.exchange.type == ExchangeType.FANOUT:
                     call = True
 
-                else:
-                    matcher = queue_headers.pop("x-match", "all")
+                elif handler.exchange.type == ExchangeType.TOPIC:
+                    call = re.match(
+                        handler.queue.name.replace(".", r"\.").replace("*", ".*"),
+                        incoming.routing_key,
+                    )
 
-                    full = True
-                    none = True
-                    for k, v in queue_headers.items():
-                        if msg_headers.get(k) != v:
-                            full = False
-                        else:
-                            none = False
+                elif handler.exchange.type == ExchangeType.HEADERS:  # pramga: no branch
+                    queue_headers = handler.queue.bind_arguments
+                    msg_headers = incoming.headers
 
-                    if not none:
-                        call = matcher == "any" or full
+                    if not queue_headers and not msg_headers:
+                        call = True
 
-            else:  # pragma: no cover
-                assert_never(handler.exchange.type)
+                    else:
+                        matcher = queue_headers.pop("x-match", "all")
 
-            if call:
-                r = await call_handler(
-                    handler=handler,
-                    message=incoming,
-                    rpc=rpc,
-                    rpc_timeout=rpc_timeout,
-                    raise_timeout=raise_timeout,
-                )
-                if rpc:  # pragma: no branch
-                    return r
+                        full = True
+                        none = True
+                        for k, v in queue_headers.items():
+                            if msg_headers.get(k) != v:
+                                full = False
+                            else:
+                                none = False
+
+                        if not none:
+                            call = matcher == "any" or full
+
+                else:  # pragma: no cover
+                    assert_never(handler.exchange.type)
+
+                if call:
+                    r = await call_handler(
+                        handler=handler,
+                        message=incoming,
+                        rpc=rpc,
+                        rpc_timeout=rpc_timeout,
+                        raise_timeout=raise_timeout,
+                    )
+
+                    if rpc:  # pragma: no branch
+                        return r
 
 
-class TestableRabbitBroker(RabbitBroker):
-    subscriber_mocks: Dict[AnyCallable, MagicMock]
+async def _fake_connect(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> None:
+    self._publisher = FakePublisher(self)
 
 
-def patch_publishers(broker: RabbitBroker, wrapper: AMQPHandlerCallWrapper) -> None:
-    for publisher in wrapper._publishers:
+def _fake_start(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> None:
+    for p in self._publishers:
+        p._publisher = self._publisher
 
-        @broker.subscriber(
+    for publisher in self._publishers:
+
+        @self.subscriber(
             queue=publisher.queue,
             exchange=publisher.exchange,
             _raw=True,
@@ -176,17 +212,6 @@ def patch_publishers(broker: RabbitBroker, wrapper: AMQPHandlerCallWrapper) -> N
         def f(msg):
             pass
 
-        exc_name = publisher.exchange.name if publisher.exchange else "default"
-        exc_responses = wrapper.response_mocks.get(exc_name, {})
-        exc_responses[publisher.queue.name] = f.mock
-        wrapper.response_mocks[exc_name] = exc_responses
+        publisher.mock = f.mock
 
-
-def TestRabbitBroker(broker: RabbitBroker) -> TestableRabbitBroker:
-    broker._channel = AsyncMock()
-    broker.declarer = AsyncMock()
-    patch_broker_calls(broker, patch_publishers)
-    broker.connect = AsyncMock()  # type: ignore
-    broker.start = AsyncMock(side_effect=partial(patch_broker_calls, broker, patch_publishers))  # type: ignore
-    broker.publish = MethodType(publish, broker)  # type: ignore
-    return broker
+    patch_broker_calls(self)

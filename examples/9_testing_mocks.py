@@ -7,9 +7,12 @@ broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(broker)
 
 
+publisher1 = broker.publisher("test-resp")
+publisher2 = broker.publisher("test-resp2")
+
+@publisher1
+@publisher2
 @broker.subscriber("test")
-@broker.publisher("test-resp")
-@broker.publisher("test-resp2")
 async def handle():
     return "response"
 
@@ -23,5 +26,5 @@ async def test_handle():
         handle.mock.assert_called_with({"msg": "test"})
 
         # check the publishers responses
-        handle.response_mocks["default"]["test-resp"].assert_called_once_with("response")
-        handle.response_mocks["default"]["test-resp2"].assert_called_once_with("response")
+        publisher1.mock.assert_called_once_with("response")
+        publisher2.mock.assert_called_once_with("response")

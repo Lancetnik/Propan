@@ -41,14 +41,16 @@ class BaseHandler(Generic[MsgType]):
         self,
         handler: HandlerCallWrapper[F_Spec, F_Return],
         wrapped_call: Callable[[MsgType, bool], F_Return],
-        filter: Callable[[PropanMessage[MsgType]], bool] = lambda m: not m.processed,
+        filter: Callable[
+            [PropanMessage[MsgType]], bool
+        ] = lambda m: not m.processed,  # pragma: no cover
     ) -> None:
         self.calls.append((handler, wrapped_call, filter))
 
     @property
     def name(self) -> str:
         if not self.calls:
-            return "Unknown"
+            return "undefined"
 
         caller = self.calls[0][0]
         name = getattr(caller, "__name__", str(caller))

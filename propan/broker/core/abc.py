@@ -9,6 +9,7 @@ from typing import (
     Callable,
     Dict,
     Generic,
+    List,
     Optional,
     Sequence,
     Tuple,
@@ -25,7 +26,7 @@ from propan.broker.handler import BaseHandler
 from propan.broker.message import PropanMessage
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.router import BrokerRouter
-from propan.broker.schemas import HandlerCallWrapper
+from propan.broker.schemas import HandlerCallWrapper, Publisher
 from propan.broker.types import (
     ConnectionType,
     CustomDecoder,
@@ -58,6 +59,7 @@ class BrokerUsecase(
     handlers: Dict[int, BaseHandler]
     dependencies: Sequence[Depends]
     started: bool
+    _publishers: List[Publisher]
     _global_parser: CustomParser[MsgType]
     _global_decoder: CustomDecoder[MsgType]
     _connection: Optional[ConnectionType]
@@ -80,6 +82,7 @@ class BrokerUsecase(
         self._connection = None
         self._is_apply_types = apply_types
         self.handlers = {}
+        self._publishers = []
         self.dependencies = dependencies
 
         self._connection_args = args
@@ -94,11 +97,11 @@ class BrokerUsecase(
         self.started = False
 
     def include_router(self, router: BrokerRouter[MsgType]) -> None:
-        for r in router.handlers:
+        for r in router._handlers:
             self.subscriber(*r.args, **r.kwargs)(r.call)
 
-        for r in router.publishers:
-            self.publisher(*r.args, **r.kwargs)(r.call)
+        for r in router._publishers:
+            self._publishers.append(r)
 
     def _resolve_connection_kwargs(self, *args: Any, **kwargs: AnyDict) -> AnyDict:
         arguments = get_function_positional_arguments(self.__init__)  # type: ignore
@@ -129,18 +132,25 @@ class BrokerUsecase(
     ]:
         if isinstance(func, HandlerCallWrapper):
             handler_call, func = func, func._original_call
-
         else:
             handler_call = HandlerCallWrapper(func)
 
-        dependant = _get_dependant(func)
+        if handler_call._wrapped_call is not None:
+            return handler_call._wrapped_call, handler_call
+
+        if _is_sync:
+            f = func
+        else:
+            f = to_async(func)
+
+        dependant = _get_dependant(f)
 
         extra = [
             _get_dependant(d.dependency)
             for d in chain(extra_dependencies, self.dependencies)
         ]
 
-        extend_dependencies(extra)(dependant)
+        extend_dependencies(extra, dependant)
 
         if getattr(dependant, "flat_params", None) is None:  # handle FastAPI Dependant
             params = dependant.query_params + dependant.body_params
@@ -161,17 +171,8 @@ class BrokerUsecase(
 
             dependant.flat_params = params_unique
 
-        # f: Any
-        if _is_sync:
-            f = func
-        else:
-            f = to_async(func)
-
         if self._is_apply_types is True:
-            f = apply_types(
-                func=f,
-                wrap_model=extend_dependencies(extra),
-            )
+            f = apply_types()(f, dependant)
 
         f = self._wrap_decode_message(
             func=f,
@@ -189,8 +190,10 @@ class BrokerUsecase(
             f = self._log_execution(f, **broker_log_context_kwargs)
 
         f = set_message_context(f)
+        f = suppress_decor(f)
 
-        return suppress_decor(f), handler_call
+        handler_call._wrapped_call = f
+        return f, handler_call
 
     # Final Broker Impl
     @abstractmethod
@@ -261,11 +264,10 @@ class BrokerUsecase(
     @abstractmethod
     def publisher(
         self,
-    ) -> Callable[
-        [Callable[P_HandlerParams, T_HandlerReturn]],
-        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
-    ]:
-        raise NotImplementedError()
+        publisher: Publisher,
+    ) -> Publisher:
+        self._publishers.append(publisher)
+        return publisher
 
     @abstractmethod
     def _wrap_decode_message(
@@ -299,12 +301,9 @@ class BrokerUsecase(
         raise NotImplementedError()
 
 
-def extend_dependencies(extra: Sequence[CallModel]) -> Callable[[CallModel], CallModel]:
-    def dependant_wrapper(dependant: CallModel) -> CallModel:
-        if isinstance(dependant, CallModel):
-            dependant.extra_dependencies.extend(extra)
-        else:  # FastAPI dependencies
-            dependant.dependencies.extend(extra)
-        return dependant
-
-    return dependant_wrapper
+def extend_dependencies(extra: Sequence[CallModel], dependant: CallModel) -> CallModel:
+    if isinstance(dependant, CallModel):
+        dependant.extra_dependencies.extend(extra)
+    else:  # FastAPI dependencies
+        dependant.dependencies.extend(extra)
+    return dependant

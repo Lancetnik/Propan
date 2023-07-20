@@ -5,10 +5,17 @@ from propan.rabbit import RabbitBroker
 broker = RabbitBroker("amqp://guest:guest@localhost:5672/")
 app = PropanApp(broker)
 
+publisher = broker.publisher("response-queue")
 
 @broker.subscriber("test-queue")
 async def handle(msg, logger: Logger):
+    await publisher.publish("response")
     logger.info(msg)
+
+
+@broker.subscriber("response-queue")
+async def process_response(msg, logger: Logger):
+    logger.info(f"Process response: {msg}")
 
 
 @app.after_startup
