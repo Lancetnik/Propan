@@ -10,9 +10,11 @@ from propan.types import AnyDict
 class LoggingMixin:
     def __init__(
         self,
+        *args: Any,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
+        **kwargs: AnyDict,
     ) -> None:
         self.logger = logger
         self.log_level = log_level
@@ -36,8 +38,12 @@ class LoggingMixin:
         message: str,
         log_level: Optional[int] = None,
         extra: Optional[AnyDict] = None,
+        **kwargs: AnyDict,
     ) -> None:
         if self.logger is not None:
             self.logger.log(
-                level=(log_level or self.log_level), msg=message, extra=extra
+                level=(log_level or self.log_level),
+                msg=message,
+                extra=extra,
+                **kwargs,
             )

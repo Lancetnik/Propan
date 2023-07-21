@@ -17,8 +17,8 @@ class RabbitQueue(NameRequired):
     timeout: TimeoutType = None
     robust: bool = True
 
+    routing_key: str = Field(default="")
     bind_arguments: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
-    routing_key: str = Field(default="", exclude=True)
 
     def __hash__(self) -> int:
         return sum(

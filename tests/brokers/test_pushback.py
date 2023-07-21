@@ -8,8 +8,8 @@ else:
 import pytest
 
 from propan.broker.push_back_watcher import (
+    CounterWatcher,
     EndlessWatcher,
-    PushBackWatcher,
     WatcherContext,
 )
 from propan.exceptions import SkipMessage
@@ -25,7 +25,7 @@ def message():
 @pytest.mark.asyncio
 @needs_py38
 async def test_push_back_correct(async_mock: AsyncMock, message):
-    watcher = PushBackWatcher(3)
+    watcher = CounterWatcher(3)
 
     context = WatcherContext(
         watcher,
@@ -60,7 +60,7 @@ async def test_push_back_endless_correct(async_mock: AsyncMock, message):
 @pytest.mark.asyncio
 @needs_py38
 async def test_push_back_watcher(async_mock: AsyncMock, message):
-    watcher = PushBackWatcher(3)
+    watcher = CounterWatcher(3)
 
     context = WatcherContext(
         watcher,
@@ -104,7 +104,7 @@ async def test_push_endless_back_watcher(async_mock: AsyncMock, message):
 @pytest.mark.asyncio
 @needs_py38
 async def test_ignore_skip(async_mock: AsyncMock, message):
-    watcher = PushBackWatcher(3)
+    watcher = CounterWatcher(3)
 
     context = WatcherContext(
         watcher,

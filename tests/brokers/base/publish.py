@@ -224,7 +224,7 @@ class BrokerPublishTestcase:
             mock()
 
         @pub_broker.subscriber(queue + "resp2")
-        async def resp():
+        async def resp2():
             mock2()
 
         async with pub_broker:
@@ -246,7 +246,6 @@ class BrokerPublishTestcase:
         mock = Mock()
         consume = asyncio.Event()
         consume2 = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()
 
         pub = pub_broker.publisher(queue + "resp")
 
@@ -257,15 +256,15 @@ class BrokerPublishTestcase:
 
         @pub
         @pub_broker.subscriber(queue + "2")
-        async def m():
+        async def m2():
             return ""
 
         @pub_broker.subscriber(queue + "resp")
         async def resp():
-            if consume.is_set:
-                consume2.set()
-            else:
+            if not consume.is_set():
                 consume.set()
+            else:
+                consume2.set()
             mock()
 
         async with pub_broker:
@@ -280,6 +279,6 @@ class BrokerPublishTestcase:
                 timeout=3,
             )
 
-        assert consume2.is_set
-        assert consume.is_set
+        assert consume2.is_set()
+        assert consume.is_set()
         assert mock.call_count == 2

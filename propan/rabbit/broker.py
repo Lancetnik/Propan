@@ -1,7 +1,18 @@
 import logging
 from functools import wraps
 from types import TracebackType
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Type, Union
+from typing import (
+    Any,
+    AsyncContextManager,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+)
 
 import aio_pika
 import aiormq
@@ -141,8 +152,16 @@ class RabbitBroker(
         *,
         dependencies: Sequence[Depends] = (),
         consume_args: Optional[AnyDict] = None,
-        parse_message: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
-        decode_message: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
+        parser: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
+        decoder: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
+        middlewares: Optional[
+            List[
+                Callable[
+                    [RabbitMessage],
+                    AsyncContextManager[None],
+                ]
+            ]
+        ] = None,
         filter: Callable[
             [RabbitMessage], Union[bool, Awaitable[bool]]
         ] = lambda m: not m.processed,
@@ -177,11 +196,18 @@ class RabbitBroker(
                     queue=r_queue,
                     exchange=r_exchange,
                     consume_args=consume_args,
-                    custom_parser=parse_message or self._global_parser,
-                    custom_decoder=decode_message or self._global_decoder,
                 ),
             )
-            handler.add_call(handler_call, wrapped_func, to_async(filter))
+
+            handler.add_call(
+                handler=handler_call,
+                wrapped_call=wrapped_func,
+                filter=to_async(filter),
+                middlewares=middlewares,
+                parser=parser or self._global_parser,
+                decoder=decoder or self._global_decoder,
+            )
+
             self.handlers[key] = handler
 
             return handler_call

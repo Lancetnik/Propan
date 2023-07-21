@@ -19,7 +19,7 @@ async def test_bind_to(queue: RabbitQueue, broker: RabbitBroker):
         @broker.subscriber(
             queue, exchange=RabbitExchange("nested", bind_to=parent_exch)
         )
-        async def handler():
+        async def handler(m):
             consume.set()
 
         await broker.start()

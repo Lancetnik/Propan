@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import os
 from typing import Any, Dict, Type
 
 from fast_depends._compat import PYDANTIC_V2, FieldInfo
@@ -11,6 +12,8 @@ from propan.types import AnyDict
 def is_installed(package: str) -> bool:
     return importlib.util.find_spec(package)
 
+
+IS_OPTIMIZED = os.getenv("PYTHONOPTIMIZE", False)
 
 if PYDANTIC_V2:
     from pydantic import ConfigDict

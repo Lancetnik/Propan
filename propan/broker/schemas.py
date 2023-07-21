@@ -47,13 +47,22 @@ class HandlerCallWrapper(Generic[P_HandlerParams, T_HandlerReturn]):
     _original_call: Callable[P_HandlerParams, T_HandlerReturn]
     _publishers: List["Publisher"]
 
-    def __new__(cls, call: Callable[P_HandlerParams, T_HandlerReturn]):
+    def __new__(
+        cls,
+        call: Callable[P_HandlerParams, T_HandlerReturn],
+    ):
         if isinstance(call, HandlerCallWrapper):
             return call
         else:
             return super().__new__(cls)
 
-    def __init__(self, call: Callable[P_HandlerParams, T_HandlerReturn]):
+    def __hash__(self) -> int:
+        return hash(self._original_call)
+
+    def __init__(
+        self,
+        call: Callable[P_HandlerParams, T_HandlerReturn],
+    ):
         if not isinstance(call, HandlerCallWrapper):
             self._original_call = call
             self._wrapped_call = None

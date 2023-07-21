@@ -15,7 +15,7 @@ class BrokerRPCTestcase:
     @pytest.mark.asyncio
     async def test_rpc(self, queue: str, rpc_broker: BrokerUsecase):
         @rpc_broker.subscriber(queue)
-        async def m():  # pragma: no cover
+        async def m(m):  # pragma: no cover
             return "1"
 
         await rpc_broker.start()
@@ -26,7 +26,7 @@ class BrokerRPCTestcase:
     @pytest.mark.asyncio
     async def test_rpc_timeout_raises(self, queue: str, rpc_broker: BrokerUsecase):
         @rpc_broker.subscriber(queue)
-        async def m():  # pragma: no cover
+        async def m(m):  # pragma: no cover
             await anyio.sleep(1)
 
         await rpc_broker.start()
@@ -43,7 +43,7 @@ class BrokerRPCTestcase:
     @pytest.mark.asyncio
     async def test_rpc_timeout_none(self, queue: str, rpc_broker: BrokerUsecase):
         @rpc_broker.subscriber(queue)
-        async def m():  # pragma: no cover
+        async def m(m):  # pragma: no cover
             await anyio.sleep(1)
 
         await rpc_broker.start()
@@ -70,7 +70,7 @@ class BrokerRPCTestcase:
             mock(m)
 
         @rpc_broker.subscriber(queue)
-        async def m():  # pragma: no cover
+        async def m(m):  # pragma: no cover
             return "1"
 
         await rpc_broker.start()

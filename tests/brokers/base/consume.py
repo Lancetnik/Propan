@@ -22,7 +22,7 @@ class BrokerConsumeTestcase:
         mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
         @consume_broker.subscriber(queue)
-        def subscriber():
+        def subscriber(m):
             mock()
 
         await consume_broker.start()
@@ -48,7 +48,7 @@ class BrokerConsumeTestcase:
 
         @consume_broker.subscriber(queue)
         @consume_broker.subscriber(queue + "1")
-        def subscriber():
+        def subscriber(m):
             if not consume.is_set():
                 consume.set()
             else:
@@ -66,8 +66,8 @@ class BrokerConsumeTestcase:
             timeout=3,
         )
 
-        assert consume2.is_set
-        assert consume.is_set
+        assert consume2.is_set()
+        assert consume.is_set()
         assert mock.call_count == 2
 
     @pytest.mark.asyncio
@@ -100,8 +100,8 @@ class BrokerConsumeTestcase:
             timeout=3,
         )
 
-        assert consume2.is_set
-        assert consume.is_set
+        assert consume2.is_set()
+        assert consume.is_set()
         assert mock.call_count == 2
 
     @pytest.mark.asyncio
@@ -114,17 +114,16 @@ class BrokerConsumeTestcase:
         first_consume = asyncio.Event()
         second_consume = asyncio.Event()
 
-        mock.method.side_effect = lambda *_: first_consume.set()  # pragma: no branch
-        mock.method2.side_effect = lambda *_: second_consume.set()  # pragma: no branch
-
         @consume_broker.subscriber(queue)
-        def handler():
+        def handler(m):
+            first_consume.set()
             mock.method()
 
         another_topic = queue + "1"
 
         @consume_broker.subscriber(another_topic)
-        def handler2():
+        def handler2(m):
+            second_consume.set()
             mock.method2()
 
         await consume_broker.start()
@@ -139,8 +138,8 @@ class BrokerConsumeTestcase:
             timeout=3,
         )
 
-        assert first_consume.is_set
-        assert second_consume.is_set
+        assert first_consume.is_set()
+        assert second_consume.is_set()
         mock.method.assert_called_once()
         mock.method2.assert_called_once()
 
@@ -178,7 +177,7 @@ class BrokerConsumeTestcase:
             timeout=3,
         )
 
-        assert consume2.is_set
-        assert consume.is_set
+        assert consume2.is_set()
+        assert consume.is_set()
         mock.call1.assert_called_once_with({"msg": "hello"})
         mock.call2.assert_called_once_with("hello")
