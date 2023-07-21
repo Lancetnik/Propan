@@ -9,7 +9,7 @@ from tests.brokers.base.consume import BrokerConsumeTestcase
 
 
 @pytest.mark.rabbit
-class TestRabbitConsume(BrokerConsumeTestcase):
+class TestConsume(BrokerConsumeTestcase):
     @pytest.mark.asyncio
     async def test_consume_from_exchange(
         self,
@@ -20,7 +20,7 @@ class TestRabbitConsume(BrokerConsumeTestcase):
         consume = asyncio.Event()
 
         @broker.subscriber(queue=queue, exchange=exchange, retry=1)
-        def h():
+        def h(m):
             consume.set()
 
         await broker.start()
@@ -33,6 +33,8 @@ class TestRabbitConsume(BrokerConsumeTestcase):
             ),
             timeout=3,
         )
+
+        assert consume.is_set()
 
     @pytest.mark.asyncio
     async def test_consume_with_get_old(
@@ -51,7 +53,7 @@ class TestRabbitConsume(BrokerConsumeTestcase):
             exchange=RabbitExchange(name=exchange.name, passive=True),
             retry=True,
         )
-        def h():
+        def h(m):
             consume.set()
 
         await broker.start()
@@ -66,6 +68,8 @@ class TestRabbitConsume(BrokerConsumeTestcase):
             ),
             timeout=3,
         )
+
+        assert consume.is_set()
 
     @pytest.mark.asyncio
     async def test_consume_ack(

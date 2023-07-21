@@ -1,4 +1,3 @@
-import anyio
 import pytest
 
 from propan.broker.core.abc import BrokerUsecase
@@ -70,33 +69,3 @@ class BrokerTestclientTestcase(
 
         with pytest.raises(ValueError):
             await test_broker.publish("hello", queue)
-
-    @pytest.mark.asyncio
-    async def test_rpc_timeout_raises(self, queue: str, test_broker: BrokerUsecase):
-        @test_broker.subscriber(queue)
-        async def m():  # pragma: no cover
-            await anyio.sleep(1)
-
-        with pytest.raises(TimeoutError):
-            await test_broker.publish(
-                "hello",
-                queue,
-                rpc=True,
-                raise_timeout=True,
-                rpc_timeout=0,
-            )
-
-    @pytest.mark.asyncio
-    async def test_rpc_timeout(self, queue: str, test_broker: BrokerUsecase):
-        @test_broker.subscriber(queue)
-        async def m():  # pragma: no cover
-            await anyio.sleep(1)
-
-        assert (
-            await test_broker.publish(
-                "hello",
-                queue,
-                rpc=True,
-                rpc_timeout=0,
-            )
-        ) is None

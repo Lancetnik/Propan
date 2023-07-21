@@ -5,7 +5,7 @@ from tests.brokers.base.connection import BrokerConnectionTestcase
 
 
 @pytest.mark.rabbit
-class TestRabbitConnection(BrokerConnectionTestcase):
+class TestConnection(BrokerConnectionTestcase):
     broker = RabbitBroker
 
     @pytest.mark.asyncio

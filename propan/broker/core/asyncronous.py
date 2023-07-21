@@ -4,6 +4,7 @@ from functools import wraps
 from types import TracebackType
 from typing import (
     Any,
+    AsyncContextManager,
     Awaitable,
     Callable,
     List,
@@ -40,6 +41,7 @@ from propan.utils import context
 
 
 class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
+    middlewares: List[Callable[[MsgType], AsyncContextManager[None]]]
     _global_parser: AsyncParser[MsgType]
     _global_decoder: AsyncDecoder[MsgType]
 
@@ -92,8 +94,19 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         *broker_args: Any,
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decode_message: AsyncDecoder[MsgType] = None,
-        parse_message: AsyncParser[MsgType] = None,
+        decoder: AsyncDecoder[MsgType] = None,
+        parser: AsyncParser[MsgType] = None,
+        middlewares: Optional[
+            List[
+                Callable[
+                    [PropanMessage[MsgType]],
+                    AsyncContextManager[None],
+                ]
+            ]
+        ] = None,
+        filter: Callable[
+            [PropanMessage[MsgType]], Awaitable[bool]
+        ] = lambda m: not m.processed,
         _raw: bool = False,
         _get_dependant: Callable[[Callable[..., Any]], CallModel] = build_call_model,
         **broker_kwargs: AnyDict,
@@ -101,16 +114,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         [Callable[P_HandlerParams, T_HandlerReturn]],
         HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
     ]:
-        super().subscriber(
-            *broker_args,
-            retry=retry,
-            dependencies=dependencies,
-            decode_message=decode_message,
-            parse_message=parse_message,
-            _raw=_raw,
-            _get_dependant=_get_dependant,
-            **broker_kwargs,
-        )
+        super().subscriber()
 
     def __init__(
         self,
@@ -120,12 +124,16 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
         dependencies: Sequence[Depends] = (),
-        decode_message: AsyncDecoder[MsgType] = None,
-        parse_message: AsyncParser[MsgType] = None,
-        # AsyncAPI
-        protocol: str = "",
-        protocol_version: Optional[str] = None,
-        url_: Union[str, List[str]] = "",
+        decoder: AsyncDecoder[MsgType] = None,
+        parser: AsyncParser[MsgType] = None,
+        middlewares: Optional[
+            List[
+                Callable[
+                    [MsgType],
+                    AsyncContextManager[None],
+                ]
+            ]
+        ] = None,
         **kwargs: AnyDict,
     ) -> None:
         super().__init__(
@@ -135,11 +143,9 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             log_level=log_level,
             log_fmt=log_fmt,
             dependencies=dependencies,
-            decode_message=decode_message,
-            parse_message=parse_message,
-            protocol=protocol,
-            protocol_version=protocol_version,
-            url_=url_,
+            decoder=decoder,
+            parser=parser,
+            middlewares=middlewares,
             **kwargs,
         )
 
@@ -250,7 +256,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
                     self._log("Skipped", extra=log_context)
                     raise e
                 except Exception as e:
-                    self._log(repr(e), logging.ERROR)
+                    self._log(f"{type(e).__name__}: {e}", logging.ERROR, exc_info=e)
                     raise e
                 else:
                     self._log("Processed", extra=log_context)

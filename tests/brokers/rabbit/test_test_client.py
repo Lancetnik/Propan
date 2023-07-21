@@ -8,7 +8,7 @@ from propan.rabbit.annotations import RabbitMessage
 from tests.brokers.base.testclient import BrokerTestclientTestcase
 
 
-class TestRabbitTestclient(BrokerTestclientTestcase):
+class TestTestclient(BrokerTestclientTestcase):
     @pytest.mark.asyncio
     async def test_raw(
         self,

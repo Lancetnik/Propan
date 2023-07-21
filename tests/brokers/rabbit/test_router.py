@@ -8,7 +8,9 @@ from tests.brokers.base.router import RouterLocalTestcase, RouterTestcase
 
 
 @pytest.mark.rabbit
-class TestRabbitRouter(RouterTestcase):
+class TestRouter(RouterTestcase):
+    broker_class = RabbitRouter
+
     async def test_queue_obj(
         self,
         mock: Mock,
@@ -24,7 +26,7 @@ class TestRabbitRouter(RouterTestcase):
         r_queue = RabbitQueue(queue)
 
         @router.subscriber(r_queue)
-        def subscriber():
+        def subscriber(m):
             mock()
 
         broker.include_router(router)
@@ -43,4 +45,4 @@ class TestRabbitRouter(RouterTestcase):
 
 
 class TestRabbitRouterLocal(RouterLocalTestcase):
-    pass
+    broker_class = RabbitRouter

@@ -17,13 +17,15 @@ class RabbitLoggingMixin(LoggingMixin):
         *args: Any,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
-        log_fmt: Optional[str] = None,
+        log_fmt: str | None = None,
         **kwargs: AnyDict,
     ) -> None:
         super().__init__(
+            *args,
             logger=logger,
             log_level=log_level,
             log_fmt=log_fmt,
+            **kwargs,
         )
         self._max_queue_len = 4
         self._max_exchange_len = 4

@@ -5,8 +5,10 @@ from itertools import chain
 from types import TracebackType
 from typing import (
     Any,
+    AsyncContextManager,
     Awaitable,
     Callable,
+    ContextManager,
     Dict,
     Generic,
     List,
@@ -24,6 +26,7 @@ from fast_depends.dependencies import Depends
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.handler import BaseHandler
 from propan.broker.message import PropanMessage
+from propan.broker.middlewares import CriticalLogMiddleware
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.router import BrokerRouter
 from propan.broker.schemas import HandlerCallWrapper, Publisher
@@ -59,6 +62,9 @@ class BrokerUsecase(
     handlers: Dict[int, BaseHandler]
     dependencies: Sequence[Depends]
     started: bool
+    middlewares: List[
+        Callable[[MsgType], Union[AsyncContextManager[None], ContextManager[None]]]
+    ]
     _publishers: List[Publisher]
     _global_parser: CustomParser[MsgType]
     _global_decoder: CustomDecoder[MsgType]
@@ -73,8 +79,15 @@ class BrokerUsecase(
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
         dependencies: Sequence[Depends] = (),
-        decode_message: CustomDecoder[MsgType] = None,
-        parse_message: CustomParser[MsgType] = None,
+        middlewares: Optional[
+            List[
+                Callable[
+                    [MsgType], Union[AsyncContextManager[None], ContextManager[None]]
+                ]
+            ]
+        ] = None,
+        decoder: CustomDecoder[MsgType] = None,
+        parser: CustomParser[MsgType] = None,
         **kwargs: AnyDict,
     ) -> None:
         super().__init__(logger, log_level, log_fmt)
@@ -83,13 +96,14 @@ class BrokerUsecase(
         self._is_apply_types = apply_types
         self.handlers = {}
         self._publishers = []
+        self.middlewares = [CriticalLogMiddleware(logger), *(middlewares or ())]
         self.dependencies = dependencies
 
         self._connection_args = args
         self._connection_kwargs = kwargs
 
-        self._global_parser = parse_message
-        self._global_decoder = decode_message
+        self._global_parser = parser
+        self._global_decoder = decoder
 
         context.set_global("logger", logger)
         context.set_global("broker", self)
@@ -200,6 +214,9 @@ class BrokerUsecase(
     def start(self) -> None:
         self.started = True
 
+        for h in self.handlers.values():
+            h.global_middlewares = (*self.middlewares, *h.global_middlewares)
+
         if self.logger is not None:
             change_logger_handlers(self.logger, self.fmt)
 
@@ -244,8 +261,19 @@ class BrokerUsecase(
         *broker_args: Any,
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decode_message: Optional[CustomDecoder[MsgType]] = None,
-        parse_message: Optional[CustomParser[MsgType]] = None,
+        decoder: Optional[CustomDecoder[MsgType]] = None,
+        parser: Optional[CustomParser[MsgType]] = None,
+        middlewares: Optional[
+            List[
+                Callable[
+                    [PropanMessage[MsgType]],
+                    Union[AsyncContextManager[None], ContextManager[None]],
+                ]
+            ]
+        ] = None,
+        filter: Callable[
+            [PropanMessage[MsgType]], Union[bool, Awaitable[bool]]
+        ] = lambda m: not m.processed,
         _raw: bool = False,
         _get_dependant: Callable[[Callable[..., Any]], CallModel] = build_call_model,
         **broker_kwargs: AnyDict,

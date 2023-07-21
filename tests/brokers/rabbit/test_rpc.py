@@ -4,5 +4,5 @@ from tests.brokers.base.rpc import BrokerRPCTestcase, ReplyAndConsumeForbidden
 
 
 @pytest.mark.rabbit
-class TestRabbitRPC(BrokerRPCTestcase, ReplyAndConsumeForbidden):
+class TestRPC(BrokerRPCTestcase, ReplyAndConsumeForbidden):
     pass

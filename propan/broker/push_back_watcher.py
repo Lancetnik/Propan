@@ -59,7 +59,7 @@ class OneTryWatcher(BaseWatcher):
         pass
 
 
-class PushBackWatcher(BaseWatcher):
+class CounterWatcher(BaseWatcher):
     memory: CounterType[str]
 
     def __init__(

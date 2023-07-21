@@ -1,5 +1,5 @@
 class SkipMessage(Exception):
-    """PushBackWatcher Instruction to skip message"""
+    """Watcher Instruction to skip message"""
 
 
 class HandlerException(Exception):
