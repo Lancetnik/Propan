@@ -17,7 +17,7 @@ asyncio.run(pub())
 
 The `publish` method accepts the following arguments:
 
-* `message`: bytes | str | dict | Sequence[Any] | pydatic.BaseModel - message to send
+* `message`: bytes | str | dict | Sequence[Any] | pydantic.BaseModel - message to send
 * `subject`: str - *subject*, where the message will be sent.
 
 ## Message Parameters

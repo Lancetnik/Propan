@@ -1,7 +1,7 @@
 # Rabbit Publishing
 
 `RabbitBroker` also uses the unified `publish` method to send messages.
-However, in this case, an object of the `aio_pika.Message` class (if necessary) can act as a message (in addition to `str`, `bytes`, `dict`, `pydatic.BaseModel`).
+However, in this case, an object of the `aio_pika.Message` class (if necessary) can act as a message (in addition to `str`, `bytes`, `dict`, `pydantic.BaseModel`).
 
 ```python
 import asyncio
@@ -9,7 +9,7 @@ from propan import RabbitBroker
 
 async def pub():
     async with RabbitBroker() as broker:
-        await broker.publish("Hi!", queue="test", exhcange="test")
+        await broker.publish("Hi!", queue="test", exchange="test")
 
 asyncio.run(pub())
 ```
@@ -18,7 +18,7 @@ asyncio.run(pub())
 
 The `publish` method takes the following arguments:
 
-* `message`: bytes | str | dict | Sequence[Any] | pydatic.BaseModel | aio_pika.Message = "" - message to send
+* `message`: bytes | str | dict | Sequence[Any] | pydantic.BaseModel | aio_pika.Message = "" - message to send
 * `exchange`: str | RabbitExchange | None = None - the exchange where the message will be sent to. If not specified - *default* is used
 * `queue`: str | RabbitQueue = "" - the queue where the message will be sent (since most queues use their name as the routing key, this is a human-readable version of `routing_key`)
 * `routing_key`: str = "" - also a message routing key, if not specified, the `queue` argument is used

@@ -1,7 +1,7 @@
 # Rabbit Publishing
 
 Для отправки сообщений `RabbitBroker` также использует унифицированный метод `publish`.
-Однако, в данном случае в качестве сообщения (помимо `str`, `bytes`, `dict`, `pydatic.BaseModel`) может выступать объект класса `aio_pika.Message` (при необходимости).
+Однако, в данном случае в качестве сообщения (помимо `str`, `bytes`, `dict`, `pydantic.BaseModel`) может выступать объект класса `aio_pika.Message` (при необходимости).
 
 ```python
 import asyncio
@@ -9,7 +9,7 @@ from propan import RabbitBroker
 
 async def pub():
     async with RabbitBroker() as broker:
-        await broker.publish("Hi!", queue="test", exhcange="test")
+        await broker.publish("Hi!", queue="test", exchange="test")
 
 asyncio.run(pub())
 ```
@@ -18,7 +18,7 @@ asyncio.run(pub())
 
 Метод `publish` принимает следующие аргументы:
 
-* `message`: bytes | str | dict | Sequence[Any] | pydatic.BaseModel | aio_pika.Message = "" - сообщение для отправки
+* `message`: bytes | str | dict | Sequence[Any] | pydantic.BaseModel | aio_pika.Message = "" - сообщение для отправки
 * `exchange`: str | RabbitExchange | None = None - exchange, куда будет отправлено сообщение. Если не указан - используется *default*
 * `queue`: str | RabbitQueue = "" - очередь, куда будет отправлено сообщение (т.к. большинство очередей используют свое название в качестве ключа маршрутизации, это человекочитаемый вариант `routing_key`)
 * `routing_key`: str = "" - тоже ключ маршрутизации сообщения, если не указан - используется аргумент `queue`
