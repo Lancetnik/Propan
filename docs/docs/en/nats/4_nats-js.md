@@ -12,7 +12,7 @@ If you need stricter restrictions, like:
 
 You should use the **NATS JetStream** extension.
 
-In fact, the **JetStream** extension is the same **NATS** with the addition a persistent layer above the file system. Therefore, all interfaces for publishing and consuming messages are similar to the refular **NATS** usage.
+In fact, the **JetStream** extension is the same **NATS** with the addition a persistent layer above the file system. Therefore, all interfaces for publishing and consuming messages are similar to the regular **NATS** usage.
 
 However, the **JetStream** layer has many possibilities for configuration: from the deleting old messages policy to the maximum stored messages number limit. You can find out more about all **JetStream** features in the official [documentation](https://docs.nats.io/using-nats/developer/develop_jetstream ){.external-link target="_blank"}.
 
