@@ -304,18 +304,9 @@ class RabbitBroker(
 
                     for publisher in call_wrapper._publishers:
                         try:
-                            await self._publisher._publish(
+                            await publisher.publish(
                                 message=r,
-                                exchange=publisher.exchange,
-                                routing_key=publisher.queue.name
-                                or publisher.routing_key,
-                                mandatory=publisher.mandatory,
-                                immediate=publisher.immediate,
-                                timeout=publisher.timeout,
-                                persist=publisher.persist,
-                                reply_to=publisher.reply_to,
                                 correlation_id=message.correlation_id,
-                                **publisher.message_kwargs,
                             )
                         except Exception as e:
                             self._log(
@@ -323,8 +314,8 @@ class RabbitBroker(
                                 logging.ERROR,
                                 self._get_log_context(
                                     context.get_local("message"),
-                                    publisher.queue,
-                                    publisher.exchange,
+                                    getattr(publisher, "queue", ""),
+                                    getattr(publisher, "exchange", ""),
                                 ),
                             )
 
