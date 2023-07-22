@@ -6,7 +6,7 @@ import aiormq
 from propan.rabbit.helpers import AioPikaPublisher
 from propan.rabbit.shared.publisher import Publisher as BasePub
 from propan.rabbit.types import AioPikaSendableMessage
-from propan.types import DecodedMessage
+from propan.types import DecodedMessage, AnyDict
 
 
 @dataclass
@@ -20,6 +20,7 @@ class Publisher(BasePub):
         rpc: bool = False,
         rpc_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
+        **message_kwargs: AnyDict,
     ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
         return await self._publisher.publish(
             message=message,
@@ -35,4 +36,5 @@ class Publisher(BasePub):
             persist=self.persist,
             reply_to=self.reply_to,
             **self.message_kwargs,
+            **message_kwargs,
         )

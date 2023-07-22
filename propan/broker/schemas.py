@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, Json
 from typing_extensions import TypeVar
 
 from propan.broker.types import P_HandlerParams, T_HandlerReturn
-from propan.types import DecodedMessage, DecoratedCallable, SendableMessage
+from propan.types import DecodedMessage, DecoratedCallable, SendableMessage, AnyDict
 
 Cls = TypeVar("Cls")
 
@@ -93,7 +93,7 @@ class Publisher:
         return handler_call
 
     @abstractmethod
-    def publish(self, message: SendableMessage) -> Optional[DecodedMessage]:
+    def publish(self, message: SendableMessage, **kwargs: AnyDict) -> Optional[DecodedMessage]:
         raise NotImplementedError()
 
 
