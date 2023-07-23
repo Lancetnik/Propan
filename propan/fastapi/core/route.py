@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+from contextlib import AsyncExitStack
 from functools import wraps
 from itertools import dropwhile
 from typing import Any, Callable, Coroutine, Optional, Sequence, Union
@@ -127,21 +128,24 @@ def get_app(
     dependency_overrides_provider: Optional[Any] = None,
 ) -> Callable[[PropanMessage], Coroutine[Any, Any, Any]]:
     async def app(request: PropanMessage) -> Any:
-        solved_result = await solve_dependencies(
-            request=request,
-            body=request._body,
-            dependant=dependant,
-            dependency_overrides_provider=dependency_overrides_provider,
-        )
+        async with AsyncExitStack() as stack:
+            request.scope["fastapi_astack"] = stack
 
-        values, errors, _, _2, _3 = solved_result
-        if errors:
-            raise_fastapi_validation_error(errors, request._body)
+            solved_result = await solve_dependencies(
+                request=request,
+                body=request._body,
+                dependant=dependant,
+                dependency_overrides_provider=dependency_overrides_provider,
+            )
 
-        return await run_endpoint_function(
-            dependant=dependant,
-            values=values,
-            is_coroutine=asyncio.iscoroutinefunction(dependant.call),
-        )
+            values, errors, _, _2, _3 = solved_result
+            if errors:
+                raise_fastapi_validation_error(errors, request._body)
+
+            return await run_endpoint_function(
+                dependant=dependant,
+                values=values,
+                is_coroutine=asyncio.iscoroutinefunction(dependant.call),
+            )
 
     return app
