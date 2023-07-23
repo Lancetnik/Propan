@@ -13,7 +13,7 @@ async def example(js: NatsJS):
     assert (await storage.get("hello")) == b"propan!"
 
     # JS Object Storage
-    storage = await js.create_object_sotre("propan-obs")
+    storage = await js.create_object_store("propan-obs")
 
     obj_name = "file.mp4"
     with open(obj_name) as f:
