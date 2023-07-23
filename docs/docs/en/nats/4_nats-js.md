@@ -12,7 +12,7 @@ If you need stricter restrictions, like:
 
 You should use the **NATS JetStream** extension.
 
-In fact, the **JetStream** extension is the same **NATS** with the addition a persistent layer above the file system. Therefore, all interfaces for publishing and consuming messages are similar to the refular **NATS** usage.
+In fact, the **JetStream** extension is the same **NATS** with the addition a persistent layer above the file system. Therefore, all interfaces for publishing and consuming messages are similar to the regular **NATS** usage.
 
 However, the **JetStream** layer has many possibilities for configuration: from the deleting old messages policy to the maximum stored messages number limit. You can find out more about all **JetStream** features in the official [documentation](https://docs.nats.io/using-nats/developer/develop_jetstream ){.external-link target="_blank"}.
 
@@ -21,7 +21,7 @@ However, the **JetStream** layer has many possibilities for configuration: from 
 
     When connecting a `consumer` (and, especially, when reconnecting), you must determine for yourself, according to what logic it will consume messages: from the subject beginning, starting with some message, starting from some time, only new ones, etc. Don't be surprised if a connection is restored, your `consumer` starts to process all messages received earlier again - you haven't defined the rule.
 
-Also **NATS JetStream** has built-in `key-value` (close to **Redis**) and `object` (close to **Minio**) storages, which, in addition to interface *put/get* have the ability to subscribe to events, which can be extremely useful in vary scenarios.
+Also **NATS JetStream** has built-in `key-value` (close to **Redis**) and `object` (close to **Minio**) storages, which, in addition to interface *put/get* have the ability to subscribe to events, which can be extremely useful in various scenarios.
 
 **Propan** does not provide access to this functionality directly, but it is covered by the [nats-py] library used({{urls.nats_py }}){target="_blank"}. You can access the **JS** object from the application context:
 
