@@ -115,10 +115,4 @@ class BrokerPublishTestcase:
                 timeout=3,
             )
 
-        mock.assert_called_with(
-            {
-                "a": 1,
-                "b": 1,
-                "args": (2, 3)
-            }
-        )
+        mock.assert_called_with({"a": 1, "b": 1, "args": (2, 3)})

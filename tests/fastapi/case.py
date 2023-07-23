@@ -34,12 +34,20 @@ class FastAPITestcase:
         def dep(a: str, c: str):
             mock(f"{a}, {c}")
 
+        def yield_dep():
+            mock.yield_start()
+            yield "called"
+            mock.yield_close()
+
         @router.event(name)
         async def hello():
             return "1"
 
         @router.event(name2)
-        async def hello2(b: int, w=Header()):  # noqa: B008
+        async def hello2(b: int, w=Header(), y=Depends(yield_dep)):  # noqa: B008
+            mock.yield_start.assert_called_once()
+            assert y == "called"
+            assert not mock.call_count
             return w
 
         @router.event(name3, dependencies=(Depends(mock_dep, use_cache=False),))
@@ -71,4 +79,5 @@ class FastAPITestcase:
             assert r == "3"
 
         mock.assert_called_with("hi, depends")
+        mock.yield_close.assert_called_once()
         assert mock.dep.call_count == 4

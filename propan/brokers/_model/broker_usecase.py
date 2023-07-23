@@ -44,7 +44,6 @@ from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils import apply_types, context
 from propan.utils.functions import get_function_positional_arguments, to_async
 
-
 T = TypeVar("T", bound=DecodedMessage)
 
 MsgType = TypeVar("MsgType")
@@ -290,10 +289,14 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
         message: str,
         log_level: Optional[int] = None,
         extra: Optional[AnyDict] = None,
+        **kwargs: AnyDict,
     ) -> None:
         if self.logger is not None:
             self.logger.log(
-                level=(log_level or self.log_level), msg=message, extra=extra
+                level=(log_level or self.log_level),
+                msg=message,
+                extra=extra,
+                **kwargs,
             )
 
     # Final Broker Impl

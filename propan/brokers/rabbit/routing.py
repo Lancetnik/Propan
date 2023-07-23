@@ -21,6 +21,6 @@ class RabbitRouter(BrokerRouter[IncomingMessage]):
         Callable[[IncomingMessage, bool], Awaitable[T_HandlerReturn]],
     ]:
         q = validate_queue(queue)
-        return super().handle(model_copy(q, update={
-            "name": self.prefix + q.name
-        }), *args, **kwargs)
+        return super().handle(
+            model_copy(q, update={"name": self.prefix + q.name}), *args, **kwargs
+        )

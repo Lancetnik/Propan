@@ -19,6 +19,6 @@ class SQSRouter(BrokerRouter[AnyDict]):
         if isinstance(queue, str):
             queue = SQSQueue(queue)
 
-        return super().handle(model_copy(queue, update={
-            "name": self.prefix + queue.name
-        }), **kwargs)
+        return super().handle(
+            model_copy(queue, update={"name": self.prefix + queue.name}), **kwargs
+        )
