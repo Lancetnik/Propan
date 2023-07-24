@@ -80,16 +80,6 @@ class MqttBroker(BrokerAsyncUsecase[Any, Client]):
     async def start(self) -> None:
         self.client.loop_start()
 
-    async def _parse_message(self, message: Any) -> PropanMessage:
-        return PropanMessage(
-            body=message.payload,
-            headers=message.opts,
-            reply_to=None,
-            message_id=message.mid,
-            content_type=None,
-            raw_message=message,
-        )
-
     async def _process_message(
         self,
         func,
