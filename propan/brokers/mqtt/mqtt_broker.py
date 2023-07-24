@@ -77,9 +77,6 @@ class MqttBroker(BrokerAsyncUsecase[Any, Client]):
             raw_message=message,
         )
 
-    async def start(self) -> None:
-        self.client.loop_start()
-
     async def _process_message(
         self,
         func,
@@ -88,8 +85,6 @@ class MqttBroker(BrokerAsyncUsecase[Any, Client]):
         @wraps(func)
         async def wrapper(message: PropanMessage[Any]) -> T:
             r = await func(message)
-            # if message.reply_to:
-            #     await self.publish(r, message.reply_to)
             return r
         return wrapper
 
