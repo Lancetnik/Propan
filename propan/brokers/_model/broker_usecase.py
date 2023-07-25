@@ -632,7 +632,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
                     self._log("Skipped", extra=log_context)
                     raise e
                 except Exception as e:
-                    self._log(repr(e), logging.ERROR)
+                    self._log(repr(e), logging.ERROR, exc_info=e)
                     raise e
                 else:
                     self._log("Processed", extra=log_context)
