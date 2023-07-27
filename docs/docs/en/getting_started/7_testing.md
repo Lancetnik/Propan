@@ -14,7 +14,7 @@ Also, the absence of dependencies helps to avoid tests failure, based on an erro
 
 **Propan** allows you to modify the behavior of your broker so that it passes messages "in memory" without requiring you to discover external dependencies.
 
-Let's image we have an application like so:
+Let's imagine we have an application like so:
 
 {% import 'getting_started/test/1.md' as includes with context %}
 {{ includes }}
