@@ -51,7 +51,6 @@ async def publish(
     incoming = build_message(
         message=message,
         topic=topic,
-        headers=headers,
     )
 
     for handler in self.handlers:  # pragma: no branch
