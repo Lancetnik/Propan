@@ -59,14 +59,13 @@ class BrokerRPCTestcase:
 
     @pytest.mark.asyncio
     async def test_rpc_with_reply(
-        self, queue: str, mock: Mock, rpc_broker: BrokerUsecase
+        self, queue: str, mock: Mock, rpc_broker: BrokerUsecase, event: asyncio.Event
     ):
-        consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
         reply_queue = queue + "1"
 
         @rpc_broker.subscriber(reply_queue)
         async def response_hanler(m: str):
+            event.set()
             mock(m)
 
         @rpc_broker.subscriber(queue)
@@ -76,7 +75,7 @@ class BrokerRPCTestcase:
         await rpc_broker.start()
 
         await rpc_broker.publish("hello", queue, reply_to=reply_queue)
-        await asyncio.wait_for(consume.wait(), 3)
+        await asyncio.wait_for(event.wait(), 3)
 
         mock.assert_called_with("1")
 

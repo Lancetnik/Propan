@@ -4,39 +4,36 @@ from unittest.mock import Mock
 import pytest
 
 from propan.broker.core.abc import BrokerUsecase
+from propan.exceptions import StopConsume
 
 
+@pytest.mark.asyncio
 class BrokerConsumeTestcase:
     @pytest.fixture
     def consume_broker(self, broker: BrokerUsecase):
         return broker
 
-    @pytest.mark.asyncio
     async def test_consume(
         self,
-        mock: Mock,
         queue: str,
         consume_broker: BrokerUsecase,
+        event: asyncio.Event,
     ):
-        consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
-
         @consume_broker.subscriber(queue)
         def subscriber(m):
-            mock()
+            event.set()
 
         await consume_broker.start()
         await asyncio.wait(
             (
                 asyncio.create_task(consume_broker.publish("hello", queue)),
-                asyncio.create_task(consume.wait()),
+                asyncio.create_task(event.wait()),
             ),
             timeout=3,
         )
 
-        mock.assert_called_once()
+        assert event.is_set()
 
-    @pytest.mark.asyncio
     async def test_consume_from_multi(
         self,
         mock: Mock,
@@ -70,7 +67,6 @@ class BrokerConsumeTestcase:
         assert consume.is_set()
         assert mock.call_count == 2
 
-    @pytest.mark.asyncio
     async def test_consume_double(
         self,
         mock: Mock,
@@ -104,7 +100,6 @@ class BrokerConsumeTestcase:
         assert consume.is_set()
         assert mock.call_count == 2
 
-    @pytest.mark.asyncio
     async def test_different_consume(
         self,
         mock: Mock,
@@ -143,7 +138,6 @@ class BrokerConsumeTestcase:
         mock.method.assert_called_once()
         mock.method2.assert_called_once()
 
-    @pytest.mark.asyncio
     async def test_consume_with_filter(
         self,
         mock: Mock,
@@ -181,3 +175,35 @@ class BrokerConsumeTestcase:
         assert consume.is_set()
         mock.call1.assert_called_once_with({"msg": "hello"})
         mock.call2.assert_called_once_with("hello")
+
+
+@pytest.mark.asyncio
+class BrokerRealConsumeTestcase(BrokerConsumeTestcase):
+    @pytest.mark.slow
+    async def test_stop_consume_exc(
+        self,
+        queue: str,
+        mock: Mock,
+        consume_broker: BrokerUsecase,
+        event: asyncio.Event,
+    ):
+        @consume_broker.subscriber(queue)
+        def subscriber(m):
+            event.set()
+            mock()
+            raise StopConsume()
+
+        await consume_broker.start()
+        await asyncio.wait(
+            (
+                asyncio.create_task(consume_broker.publish("hello", queue)),
+                asyncio.create_task(event.wait()),
+            ),
+            timeout=3,
+        )
+        await asyncio.sleep(0.5)
+        await consume_broker.publish("hello", queue)
+        await asyncio.sleep(0.5)
+
+        assert event.is_set()
+        mock.assert_called_once()

@@ -6,7 +6,7 @@ import aiormq
 from propan.rabbit.helpers import AioPikaPublisher
 from propan.rabbit.shared.publisher import Publisher as BasePub
 from propan.rabbit.types import AioPikaSendableMessage
-from propan.types import DecodedMessage, AnyDict
+from propan.types import AnyDict, DecodedMessage
 
 
 @dataclass

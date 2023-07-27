@@ -74,8 +74,8 @@ class AioPikaParser:
             body=message.body,
             headers=message.headers,
             reply_to=message.reply_to or "",
-            message_id=message.message_id,
             content_type=message.content_type,
+            message_id=message.message_id or str(uuid4()),
             correlation_id=message.correlation_id or str(uuid4()),
             raw_message=message,
         )

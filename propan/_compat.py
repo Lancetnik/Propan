@@ -1,10 +1,11 @@
 import importlib.util
 import json
 import os
-from typing import Any, Dict, Type
+from typing import Any, Dict, List, Type
 
 from fast_depends._compat import PYDANTIC_V2, FieldInfo
 from pydantic import BaseModel
+from typing_extensions import Never
 
 from propan.types import AnyDict
 
@@ -14,6 +15,29 @@ def is_installed(package: str) -> bool:
 
 
 IS_OPTIMIZED = os.getenv("PYTHONOPTIMIZE", False)
+
+
+if is_installed("fastapi"):
+    from fastapi import __version__ as FASTAPI_VERSION
+
+    FASTAPI_V2 = FASTAPI_VERSION.startswith("0.10")
+
+    if FASTAPI_V2:
+        from fastapi._compat import _normalize_errors
+        from fastapi.exceptions import RequestValidationError
+
+        def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
+            raise RequestValidationError(_normalize_errors(errors), body=body)
+
+    else:
+        from pydantic import ValidationError as RequestValidationError
+        from pydantic import create_model
+
+        ROUTER_VALIDATION_ERROR_MODEL = create_model("PropanRoute")
+
+        def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
+            raise RequestValidationError(errors, ROUTER_VALIDATION_ERROR_MODEL)
+
 
 if PYDANTIC_V2:
     from pydantic import ConfigDict

@@ -15,6 +15,15 @@ class BrokerConnectionTestcase:
         return True
 
     @pytest.mark.asyncio
+    async def test_close_before_start(self, async_mock):
+        br = self.broker()
+        assert br._connection is None
+        await br.close()
+        br._connection = async_mock
+        await br._close()
+        assert not br.started
+
+    @pytest.mark.asyncio
     async def test_warning(self, broker: BrokerUsecase):
         async with broker:
             await broker.start()

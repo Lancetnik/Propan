@@ -1,5 +1,4 @@
 import asyncio
-from unittest.mock import Mock
 
 import pytest
 
@@ -13,21 +12,18 @@ class TestRouter(RouterTestcase):
 
     async def test_queue_obj(
         self,
-        mock: Mock,
         router: RabbitRouter,
         broker: RabbitBroker,
         queue: str,
+        event: asyncio.Event,
     ):
         router.prefix = "test/"
-
-        consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
 
         r_queue = RabbitQueue(queue)
 
         @router.subscriber(r_queue)
         def subscriber(m):
-            mock()
+            event.set()
 
         broker.include_router(router)
 
@@ -36,12 +32,12 @@ class TestRouter(RouterTestcase):
         await asyncio.wait(
             (
                 asyncio.create_task(broker.publish("hello", f"test/{r_queue.name}")),
-                asyncio.create_task(consume.wait()),
+                asyncio.create_task(event.wait()),
             ),
             timeout=3,
         )
 
-        mock.assert_called_once()
+        assert event.is_set()
 
 
 class TestRabbitRouterLocal(RouterLocalTestcase):

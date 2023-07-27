@@ -51,7 +51,10 @@ async def call_handler(
 
 def _wrap_handler_mock(mock: MagicMock, func):
     @wraps(func)
-    def _patched_call(msg: PropanMessage[Any]) -> Any:
+    def _patched_call(
+        msg: PropanMessage[Any],
+        reraise_exc: bool = False,
+    ) -> Any:
         mock(msg.decoded_body)
         return func(msg)
 
