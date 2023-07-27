@@ -24,7 +24,7 @@ Then make an *RPC* request to check the result of the execution:
 {! includes/getting_started/test/2.md !}
 
 !!! note
-    Using test broker this way **RPC** is always able, even broker doesn't support it in regular mode.
+    When using the test broker this way, it is always possible to perform **RPC** requests even if the broker doesn't support it in regular mode.
 
 ## Using fixtures
 
