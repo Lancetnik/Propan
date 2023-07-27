@@ -230,6 +230,15 @@ class BrokerUsecase(
         self.started = False
 
     @abstractmethod
+    def _close(  # type: ignore[override]
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
+        self._connection = None
+
+    @abstractmethod
     def _process_message(
         self,
         func: Callable[

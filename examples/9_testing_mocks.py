@@ -16,7 +16,6 @@ publisher2 = broker.publisher("test-resp2")
 async def handle():
     return "response"
 
-
 @pytest.mark.asyncio
 async def test_handle():
     async with TestRabbitBroker(broker) as br:

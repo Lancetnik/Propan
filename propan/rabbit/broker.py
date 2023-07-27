@@ -73,27 +73,24 @@ class RabbitBroker(
         self.declarer = None
         self._publisher = None
 
-    async def close(
+    async def _close(
         self,
         exc_type: Optional[Type[BaseException]] = None,
         exc_val: Optional[BaseException] = None,
         exec_tb: Optional[TracebackType] = None,
     ) -> None:
-        await super().close(exc_type, exc_val, exec_tb)
-
         if self._channel is not None:
             await self._channel.close()
             self._channel = None
-
-        if self._connection is not None:
-            await self._connection.close()
-            self._connection = None
 
         if self.declarer is not None:
             self.declarer = None
 
         if self._publisher is not None:
             self._publisher = None
+
+        await self._connection.close()
+        await super()._close(exc_type, exc_val, exec_tb)
 
     async def connect(self, *args: Any, **kwargs: AnyDict) -> aio_pika.RobustConnection:
         connection = await super().connect(*args, **kwargs)
@@ -163,7 +160,8 @@ class RabbitBroker(
             ]
         ] = None,
         filter: Callable[
-            [RabbitMessage], Union[bool, Awaitable[bool]]
+            [RabbitMessage],
+            Union[bool, Awaitable[bool]],
         ] = lambda m: not m.processed,
         **original_kwargs: AnyDict,
     ) -> Callable[
@@ -314,8 +312,8 @@ class RabbitBroker(
                                 logging.ERROR,
                                 self._get_log_context(
                                     context.get_local("message"),
-                                    getattr(publisher, "queue", ""),
-                                    getattr(publisher, "exchange", ""),
+                                    getattr(publisher, "queue", RabbitQueue("")),
+                                    getattr(publisher, "exchange", None),
                                 ),
                             )
 

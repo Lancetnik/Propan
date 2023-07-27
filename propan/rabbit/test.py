@@ -1,8 +1,8 @@
 import re
 import sys
 from functools import partial
-from types import MethodType
-from typing import Any, Optional, Union
+from types import MethodType, TracebackType
+from typing import Any, Optional, Type, Union
 
 from propan.types import AnyDict
 
@@ -22,8 +22,9 @@ from typing_extensions import assert_never
 from propan.broker.test import call_handler, patch_broker_calls
 from propan.rabbit.broker import RabbitBroker
 from propan.rabbit.helpers import AioPikaParser
+from propan.rabbit.message import RabbitMessage
 from propan.rabbit.shared.constants import ExchangeType
-from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue
+from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
 from propan.rabbit.shared.types import TimeoutType
 from propan.rabbit.types import AioPikaSendableMessage
 
@@ -36,6 +37,7 @@ def TestRabbitBroker(broker: RabbitBroker) -> RabbitBroker:
     _fake_start(broker)
     broker.start = AsyncMock(wraps=partial(_fake_start, broker))
     broker._connect = MethodType(_fake_connect, broker)
+    broker.close = MethodType(_fake_close, broker)
     return broker
 
 
@@ -87,31 +89,6 @@ def build_message(
 class FakePublisher:
     def __init__(self, broker: RabbitBroker):
         self.broker = broker
-
-    async def _publish(
-        self,
-        message: AioPikaSendableMessage = "",
-        exchange: Union[RabbitExchange, str, None] = None,
-        *,
-        routing_key: str = "",
-        mandatory: bool = True,
-        immediate: bool = False,
-        timeout: TimeoutType = None,
-        persist: bool = False,
-        reply_to: Optional[str] = None,
-        **message_kwargs: AnyDict,
-    ) -> Any:
-        return await self.publish(
-            message=message,
-            exchange=exchange,
-            routing_key=routing_key,
-            mandatory=mandatory,
-            immediate=immediate,
-            timeout=timeout,
-            persist=persist,
-            reply_to=reply_to,
-            **message_kwargs,
-        )
 
     async def publish(
         self,
@@ -198,20 +175,45 @@ async def _fake_connect(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> No
     self._publisher = FakePublisher(self)
 
 
+async def _fake_close(
+    self: RabbitBroker,
+    exc_type: Optional[Type[BaseException]] = None,
+    exc_val: Optional[BaseException] = None,
+    exec_tb: Optional[TracebackType] = None,
+) -> None:
+    for p in self._publishers:
+        p.mock.reset_mock()
+        if getattr(p, "_fake_handler", False):
+            key = get_routing_hash(p.queue, p.exchange)
+            self.handlers.pop(key, None)
+
+    for h in self.handlers.values():
+        for f, _, _, _, _, _ in h.calls:
+            f.mock.reset_mock()
+
+
 def _fake_start(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> None:
     for p in self._publishers:
+        key = get_routing_hash(p.queue, p.exchange)
+        handler = self.handlers.get(key)
+
+        if handler is not None:
+            for f, _, _, _, _, _ in handler.calls:
+                f.mock.side_effect = p.mock
+
+        else:
+            p._fake_handler = True
+
+            @self.subscriber(
+                queue=p.queue,
+                exchange=p.exchange,
+                _raw=True,
+            )
+            def f(msg: RabbitMessage):
+                pass
+
+            p.mock = f.mock
+
         p._publisher = self._publisher
-
-    for publisher in self._publishers:
-
-        @self.subscriber(
-            queue=publisher.queue,
-            exchange=publisher.exchange,
-            _raw=True,
-        )
-        def f(msg):
-            pass
-
-        publisher.mock = f.mock
 
     patch_broker_calls(self)

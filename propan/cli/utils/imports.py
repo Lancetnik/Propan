@@ -11,7 +11,7 @@ def try_import_propan(module: Path, app: str) -> PropanApp:
     try:
         propan_app = import_object(module, app)
 
-    except (ValueError, FileNotFoundError, AttributeError) as e:
+    except FileNotFoundError as e:
         typer.echo(e, err=True)
         raise typer.BadParameter(
             "Please, input module like [python_file:propan_app_name]"
@@ -38,7 +38,12 @@ def import_object(module: Path, app: str) -> object:
         raise ValueError(f"{spec} has no loader")
 
     loader.exec_module(mod)
-    obj = getattr(mod, app)
+
+    try:
+        obj = getattr(mod, app)
+    except AttributeError as e:
+        raise FileNotFoundError(module) from e
+
     return obj
 
 

@@ -46,12 +46,11 @@ class BrokerPublishTestcase:
         message,
         message_type,
         expected_message,
+        event: asyncio.Event,
     ):
-        consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()  # pragma: no branch
-
         @pub_broker.subscriber(queue)
         async def handler(m: message_type, logger: Logger):
+            event.set()
             mock(m)
 
         async with pub_broker:
@@ -60,7 +59,7 @@ class BrokerPublishTestcase:
             await asyncio.wait(
                 (
                     asyncio.create_task(pub_broker.publish(message, queue)),
-                    asyncio.create_task(consume.wait()),
+                    asyncio.create_task(event.wait()),
                 ),
                 timeout=3,
             )
@@ -68,15 +67,16 @@ class BrokerPublishTestcase:
         if expected_message is None:
             expected_message = message
 
+        assert event.is_set()
         mock.assert_called_with(expected_message)
 
     @pytest.mark.asyncio
-    async def test_unwrap_dict(self, mock: Mock, queue: str, pub_broker: BrokerUsecase):
-        consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()
-
+    async def test_unwrap_dict(
+        self, mock: Mock, queue: str, pub_broker: BrokerUsecase, event: asyncio.Event
+    ):
         @pub_broker.subscriber(queue)
         async def m(a: int, b: int, logger: Logger):
+            event.set()
             mock({"a": a, "b": b})
 
         async with pub_broker:
@@ -84,11 +84,12 @@ class BrokerPublishTestcase:
             await asyncio.wait(
                 (
                     asyncio.create_task(pub_broker.publish({"a": 1, "b": 1.0}, queue)),
-                    asyncio.create_task(consume.wait()),
+                    asyncio.create_task(event.wait()),
                 ),
                 timeout=3,
             )
 
+        assert event.is_set()
         mock.assert_called_with(
             {
                 "a": 1,
@@ -97,12 +98,12 @@ class BrokerPublishTestcase:
         )
 
     @pytest.mark.asyncio
-    async def test_unwrap_list(self, mock: Mock, queue: str, pub_broker: BrokerUsecase):
-        consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()
-
+    async def test_unwrap_list(
+        self, mock: Mock, queue: str, pub_broker: BrokerUsecase, event: asyncio.Event
+    ):
         @pub_broker.subscriber(queue)
         async def m(a: int, b: int, *args: Tuple[int, ...], logger: Logger):
+            event.set()
             mock({"a": a, "b": b, "args": args})
 
         async with pub_broker:
@@ -110,20 +111,21 @@ class BrokerPublishTestcase:
             await asyncio.wait(
                 (
                     asyncio.create_task(pub_broker.publish([1, 1.0, 2.0, 3.0], queue)),
-                    asyncio.create_task(consume.wait()),
+                    asyncio.create_task(event.wait()),
                 ),
                 timeout=3,
             )
 
+        assert event.is_set()
         mock.assert_called_with({"a": 1, "b": 1, "args": (2, 3)})
 
     @pytest.mark.asyncio
     async def test_base_publisher(
-        self, mock: Mock, queue: str, pub_broker: BrokerUsecase
+        self,
+        queue: str,
+        pub_broker: BrokerUsecase,
+        event: asyncio.Event,
     ):
-        consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()
-
         @pub_broker.subscriber(queue)
         @pub_broker.publisher(queue + "resp")
         async def m():
@@ -131,27 +133,27 @@ class BrokerPublishTestcase:
 
         @pub_broker.subscriber(queue + "resp")
         async def resp():
-            mock()
+            event.set()
 
         async with pub_broker:
             await pub_broker.start()
             await asyncio.wait(
                 (
                     asyncio.create_task(pub_broker.publish("", queue)),
-                    asyncio.create_task(consume.wait()),
+                    asyncio.create_task(event.wait()),
                 ),
                 timeout=3,
             )
 
-        mock.assert_called_once()
+        assert event.is_set()
 
     @pytest.mark.asyncio
     async def test_publisher_object(
-        self, mock: Mock, queue: str, pub_broker: BrokerUsecase
+        self,
+        queue: str,
+        pub_broker: BrokerUsecase,
+        event: asyncio.Event,
     ):
-        consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()
-
         publisher = pub_broker.publisher(queue + "resp")
 
         @publisher
@@ -161,27 +163,27 @@ class BrokerPublishTestcase:
 
         @pub_broker.subscriber(queue + "resp")
         async def resp():
-            mock()
+            event.set()
 
         async with pub_broker:
             await pub_broker.start()
             await asyncio.wait(
                 (
                     asyncio.create_task(pub_broker.publish("", queue)),
-                    asyncio.create_task(consume.wait()),
+                    asyncio.create_task(event.wait()),
                 ),
                 timeout=3,
             )
 
-        mock.assert_called_once()
+        assert event.is_set()
 
     @pytest.mark.asyncio
     async def test_publish_manual(
-        self, mock: Mock, queue: str, pub_broker: BrokerUsecase
+        self,
+        queue: str,
+        pub_broker: BrokerUsecase,
+        event: asyncio.Event,
     ):
-        consume = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()
-
         publisher = pub_broker.publisher(queue + "resp")
 
         @pub_broker.subscriber(queue)
@@ -190,28 +192,24 @@ class BrokerPublishTestcase:
 
         @pub_broker.subscriber(queue + "resp")
         async def resp():
-            mock()
+            event.set()
 
         async with pub_broker:
             await pub_broker.start()
             await asyncio.wait(
                 (
                     asyncio.create_task(pub_broker.publish("", queue)),
-                    asyncio.create_task(consume.wait()),
+                    asyncio.create_task(event.wait()),
                 ),
                 timeout=3,
             )
 
-        mock.assert_called_once()
+        assert event.is_set()
 
     @pytest.mark.asyncio
     async def test_multiple_publishers(self, queue: str, pub_broker: BrokerUsecase):
-        mock = Mock()
-        mock2 = Mock()
         consume = asyncio.Event()
         consume2 = asyncio.Event()
-        mock.side_effect = lambda *_: consume.set()
-        mock2.side_effect = lambda *_: consume2.set()
 
         @pub_broker.publisher(queue + "resp2")
         @pub_broker.subscriber(queue)
@@ -221,11 +219,11 @@ class BrokerPublishTestcase:
 
         @pub_broker.subscriber(queue + "resp")
         async def resp():
-            mock()
+            consume.set()
 
         @pub_broker.subscriber(queue + "resp2")
         async def resp2():
-            mock2()
+            consume2.set()
 
         async with pub_broker:
             await pub_broker.start()
@@ -238,12 +236,13 @@ class BrokerPublishTestcase:
                 timeout=3,
             )
 
-        mock.assert_called_once()
-        mock2.assert_called_once()
+        assert consume.is_set()
+        assert consume2.is_set()
 
     @pytest.mark.asyncio
-    async def test_reusable_publishers(self, queue: str, pub_broker: BrokerUsecase):
-        mock = Mock()
+    async def test_reusable_publishers(
+        self, mock: Mock, queue: str, pub_broker: BrokerUsecase
+    ):
         consume = asyncio.Event()
         consume2 = asyncio.Event()
 

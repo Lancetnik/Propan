@@ -1,27 +1,28 @@
 import asyncio
+from unittest.mock import MagicMock, patch
 
 import pytest
-from aio_pika import Message
+from aio_pika import IncomingMessage, Message
 
+from propan.exceptions import AckMessage, NackMessage, RejectMessage, SkipMessage
 from propan.rabbit import RabbitBroker, RabbitExchange, RabbitQueue
 from propan.rabbit.annotations import RabbitMessage
-from tests.brokers.base.consume import BrokerConsumeTestcase
+from tests.brokers.base.consume import BrokerRealConsumeTestcase
 
 
 @pytest.mark.rabbit
-class TestConsume(BrokerConsumeTestcase):
+class TestConsume(BrokerRealConsumeTestcase):
     @pytest.mark.asyncio
     async def test_consume_from_exchange(
         self,
         queue: str,
         exchange: RabbitExchange,
         broker: RabbitBroker,
+        event: asyncio.Event,
     ):
-        consume = asyncio.Event()
-
         @broker.subscriber(queue=queue, exchange=exchange, retry=1)
         def h(m):
-            consume.set()
+            event.set()
 
         await broker.start()
         await asyncio.wait(
@@ -29,12 +30,12 @@ class TestConsume(BrokerConsumeTestcase):
                 asyncio.create_task(
                     broker.publish("hello", queue=queue, exchange=exchange)
                 ),
-                asyncio.create_task(consume.wait()),
+                asyncio.create_task(event.wait()),
             ),
             timeout=3,
         )
 
-        assert consume.is_set()
+        assert event.is_set()
 
     @pytest.mark.asyncio
     async def test_consume_with_get_old(
@@ -42,9 +43,8 @@ class TestConsume(BrokerConsumeTestcase):
         queue: str,
         exchange: RabbitExchange,
         broker: RabbitBroker,
+        event: asyncio.Event,
     ):
-        consume = asyncio.Event()
-
         await broker.declare_queue(RabbitQueue(queue))
         await broker.declare_exchange(exchange)
 
@@ -54,7 +54,7 @@ class TestConsume(BrokerConsumeTestcase):
             retry=True,
         )
         def h(m):
-            consume.set()
+            event.set()
 
         await broker.start()
         await asyncio.wait(
@@ -64,12 +64,12 @@ class TestConsume(BrokerConsumeTestcase):
                         Message(b"hello"), queue=queue, exchange=exchange.name
                     )
                 ),
-                asyncio.create_task(consume.wait()),
+                asyncio.create_task(event.wait()),
             ),
             timeout=3,
         )
 
-        assert consume.is_set()
+        assert event.is_set()
 
     @pytest.mark.asyncio
     async def test_consume_ack(
@@ -77,47 +77,28 @@ class TestConsume(BrokerConsumeTestcase):
         queue: str,
         exchange: RabbitExchange,
         full_broker: RabbitBroker,
+        event: asyncio.Event,
     ):
-        consume = asyncio.Event()
-        consume2 = asyncio.Event()
-        consume3 = asyncio.Event()
-
         @full_broker.subscriber(queue=queue, exchange=exchange, retry=1)
         async def handler(msg: RabbitMessage):
-            consume.set()
-
-        @full_broker.subscriber(queue=queue + "1", exchange=exchange, retry=1)
-        async def handler2(msg: RabbitMessage):
-            consume2.set()
-            raise ValueError()
-
-        @full_broker.subscriber(queue=queue + "2", exchange=exchange, retry=1)
-        async def handler3(msg: RabbitMessage):
-            consume3.set()
-            raise ValueError()
+            event.set()
 
         await full_broker.start()
-        await asyncio.wait(
-            (
-                asyncio.create_task(
-                    full_broker.publish("hello", queue=queue, exchange=exchange)
+        with patch.object(
+            IncomingMessage, "ack", spy_decorator(IncomingMessage.ack)
+        ) as m:
+            await asyncio.wait(
+                (
+                    asyncio.create_task(
+                        full_broker.publish("hello", queue=queue, exchange=exchange)
+                    ),
+                    asyncio.create_task(event.wait()),
                 ),
-                asyncio.create_task(
-                    full_broker.publish("hello", queue=queue + "1", exchange=exchange)
-                ),
-                asyncio.create_task(
-                    full_broker.publish("hello", queue=queue + "2", exchange=exchange)
-                ),
-                asyncio.create_task(consume.wait()),
-                asyncio.create_task(consume2.wait()),
-                asyncio.create_task(consume3.wait()),
-            ),
-            timeout=3,
-        )
+                timeout=3,
+            )
+            m.mock.assert_called_once()
 
-        assert consume.is_set()
-        assert consume2.is_set()
-        assert consume3.is_set()
+        assert event.is_set()
 
     @pytest.mark.asyncio
     async def test_consume_manual_ack(
@@ -125,47 +106,226 @@ class TestConsume(BrokerConsumeTestcase):
         queue: str,
         exchange: RabbitExchange,
         full_broker: RabbitBroker,
+        event: asyncio.Event,
     ):
-        consume = asyncio.Event()
-        consume2 = asyncio.Event()
-        consume3 = asyncio.Event()
-
         @full_broker.subscriber(queue=queue, exchange=exchange, retry=1)
         async def handler(msg: RabbitMessage):
-            await msg.raw_message.ack()
-            consume.set()
+            await msg.ack()
+            event.set()
 
-        @full_broker.subscriber(queue=queue + "1", exchange=exchange, retry=1)
-        async def handler2(msg: RabbitMessage):
-            await msg.raw_message.nack()
-            consume2.set()
-            raise ValueError()
+        await full_broker.start()
+        with patch.object(
+            IncomingMessage, "ack", spy_decorator(IncomingMessage.ack)
+        ) as m:
+            await asyncio.wait(
+                (
+                    asyncio.create_task(
+                        full_broker.publish("hello", queue=queue, exchange=exchange)
+                    ),
+                    asyncio.create_task(event.wait()),
+                ),
+                timeout=3,
+            )
+            m.mock.assert_called_once()
+        assert event.is_set()
 
-        @full_broker.subscriber(queue=queue + "2", exchange=exchange, retry=1)
-        async def handler3(msg: RabbitMessage):
-            await msg.raw_message.reject()
-            consume3.set()
+    @pytest.mark.asyncio
+    async def test_consume_exception_ack(
+        self,
+        queue: str,
+        exchange: RabbitExchange,
+        full_broker: RabbitBroker,
+        event: asyncio.Event,
+    ):
+        @full_broker.subscriber(queue=queue, exchange=exchange, retry=1)
+        async def handler(msg: RabbitMessage):
+            try:
+                raise AckMessage()
+            finally:
+                event.set()
+
+        await full_broker.start()
+        with patch.object(
+            IncomingMessage, "ack", spy_decorator(IncomingMessage.ack)
+        ) as m:
+            await asyncio.wait(
+                (
+                    asyncio.create_task(
+                        full_broker.publish("hello", queue=queue, exchange=exchange)
+                    ),
+                    asyncio.create_task(event.wait()),
+                ),
+                timeout=3,
+            )
+            m.mock.assert_called_once()
+        assert event.is_set()
+
+    @pytest.mark.asyncio
+    async def test_consume_manual_nack(
+        self,
+        queue: str,
+        exchange: RabbitExchange,
+        full_broker: RabbitBroker,
+        event: asyncio.Event,
+    ):
+        @full_broker.subscriber(queue=queue, exchange=exchange, retry=1)
+        async def handler(msg: RabbitMessage):
+            await msg.nack()
+            event.set()
             raise ValueError()
 
         await full_broker.start()
-        await asyncio.wait(
-            (
-                asyncio.create_task(
-                    full_broker.publish("hello", queue=queue, exchange=exchange)
+        with patch.object(
+            IncomingMessage, "nack", spy_decorator(IncomingMessage.nack)
+        ) as m:
+            await asyncio.wait(
+                (
+                    asyncio.create_task(
+                        full_broker.publish("hello", queue=queue, exchange=exchange)
+                    ),
+                    asyncio.create_task(event.wait()),
                 ),
-                asyncio.create_task(
-                    full_broker.publish("hello", queue=queue + "1", exchange=exchange)
-                ),
-                asyncio.create_task(
-                    full_broker.publish("hello", queue=queue + "2", exchange=exchange)
-                ),
-                asyncio.create_task(consume.wait()),
-                asyncio.create_task(consume2.wait()),
-                asyncio.create_task(consume3.wait()),
-            ),
-            timeout=3,
-        )
+                timeout=3,
+            )
+            m.mock.assert_called_once()
+        assert event.is_set()
 
-        assert consume.is_set()
-        assert consume2.is_set()
-        assert consume3.is_set()
+    @pytest.mark.asyncio
+    async def test_consume_exception_nack(
+        self,
+        queue: str,
+        exchange: RabbitExchange,
+        full_broker: RabbitBroker,
+        event: asyncio.Event,
+    ):
+        @full_broker.subscriber(queue=queue, exchange=exchange, retry=1)
+        async def handler(msg: RabbitMessage):
+            try:
+                raise NackMessage()
+            finally:
+                event.set()
+
+        await full_broker.start()
+        with patch.object(
+            IncomingMessage, "nack", spy_decorator(IncomingMessage.nack)
+        ) as m:
+            await asyncio.wait(
+                (
+                    asyncio.create_task(
+                        full_broker.publish("hello", queue=queue, exchange=exchange)
+                    ),
+                    asyncio.create_task(event.wait()),
+                ),
+                timeout=3,
+            )
+            m.mock.assert_called_once()
+        assert event.is_set()
+
+    @pytest.mark.asyncio
+    async def test_consume_manual_reject(
+        self,
+        queue: str,
+        exchange: RabbitExchange,
+        full_broker: RabbitBroker,
+        event: asyncio.Event,
+    ):
+        @full_broker.subscriber(queue=queue, exchange=exchange, retry=1)
+        async def handler(msg: RabbitMessage):
+            await msg.reject()
+            event.set()
+            raise ValueError()
+
+        await full_broker.start()
+        with patch.object(
+            IncomingMessage, "reject", spy_decorator(IncomingMessage.reject)
+        ) as m:
+            await asyncio.wait(
+                (
+                    asyncio.create_task(
+                        full_broker.publish("hello", queue=queue, exchange=exchange)
+                    ),
+                    asyncio.create_task(event.wait()),
+                ),
+                timeout=3,
+            )
+            m.mock.assert_called_once()
+        assert event.is_set()
+
+    @pytest.mark.asyncio
+    async def test_consume_exception_reject(
+        self,
+        queue: str,
+        exchange: RabbitExchange,
+        full_broker: RabbitBroker,
+        event: asyncio.Event,
+    ):
+        @full_broker.subscriber(queue=queue, exchange=exchange, retry=1)
+        async def handler(msg: RabbitMessage):
+            try:
+                raise RejectMessage()
+            finally:
+                event.set()
+
+        await full_broker.start()
+        with patch.object(
+            IncomingMessage, "reject", spy_decorator(IncomingMessage.reject)
+        ) as m:
+            await asyncio.wait(
+                (
+                    asyncio.create_task(
+                        full_broker.publish("hello", queue=queue, exchange=exchange)
+                    ),
+                    asyncio.create_task(event.wait()),
+                ),
+                timeout=3,
+            )
+            m.mock.assert_called_once()
+        assert event.is_set()
+
+    @pytest.mark.asyncio
+    async def test_consume_skip_message(
+        self,
+        queue: str,
+        full_broker: RabbitBroker,
+        event: asyncio.Event,
+    ):
+        @full_broker.subscriber(queue)
+        async def handler(msg: RabbitMessage):
+            try:
+                raise SkipMessage()
+            finally:
+                event.set()
+
+        await full_broker.start()
+        with patch.object(
+            IncomingMessage, "reject", spy_decorator(IncomingMessage.reject)
+        ) as m:
+            with patch.object(
+                IncomingMessage, "reject", spy_decorator(IncomingMessage.reject)
+            ) as m1:
+                with patch.object(
+                    IncomingMessage, "reject", spy_decorator(IncomingMessage.reject)
+                ) as m2:
+                    await asyncio.wait(
+                        (
+                            asyncio.create_task(full_broker.publish("hello", queue)),
+                            asyncio.create_task(event.wait()),
+                        ),
+                        timeout=3,
+                    )
+                    assert not m.mock.called
+                    assert not m1.mock.called
+                    assert not m2.mock.called
+
+        assert event.is_set()
+
+
+def spy_decorator(method):
+    mock = MagicMock()
+
+    async def wrapper(*args, **kwargs):
+        mock(*args, **kwargs)
+        return await method(*args, **kwargs)
+
+    wrapper.mock = mock
+    return wrapper

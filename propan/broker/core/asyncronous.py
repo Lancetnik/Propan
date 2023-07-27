@@ -55,16 +55,27 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         raise NotImplementedError()
 
     @abstractmethod
+    async def _close(  # type: ignore[override]
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exec_tb: Optional[TracebackType] = None,
+    ) -> None:
+        super()._close(exc_type, exc_val, exec_tb)
+
     async def close(  # type: ignore[override]
         self,
         exc_type: Optional[Type[BaseException]] = None,
         exc_val: Optional[BaseException] = None,
         exec_tb: Optional[TracebackType] = None,
     ) -> None:
-        super().close()
+        super().close(exc_type, exc_val, exec_tb)
 
         for h in self.handlers.values():
             await h.close()
+
+        if self._connection is not None:
+            await self._close(exc_type, exc_val, exec_tb)
 
     @abstractmethod
     def _process_message(  # type: ignore[override]
