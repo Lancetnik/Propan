@@ -6,7 +6,7 @@ import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
-from propan._compat import ResponseValidationError
+from propan._compat import RequestValidationError
 from propan.fastapi import KafkaRouter
 from propan.test import TestKafkaBroker
 from propan.test.kafka import build_message
@@ -87,7 +87,7 @@ async def test_invalid_request(router: KafkaRouter):
 
     msg = build_message("Hello", "test")
 
-    with pytest.raises(ResponseValidationError):
+    with pytest.raises(RequestValidationError):
         await handler(msg, reraise_exc=True)
 
 

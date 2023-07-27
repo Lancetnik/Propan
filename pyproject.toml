@@ -195,6 +195,7 @@ cov = "bash ./scripts/test-cov.sh -v -m 'all'"
 
 [tool.mypy]
 strict = true
+follow_imports = "skip"
 ignore_missing_imports = true
 disallow_subclassing_any = true
 python_version = "3.7"

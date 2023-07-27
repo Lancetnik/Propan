@@ -2,9 +2,8 @@ import asyncio
 from unittest.mock import Mock
 
 from propan import SQSBroker, SQSRouter
-from propan.test.sqs import build_message
 from propan.brokers.sqs.schema import SQSQueue
-
+from propan.test.sqs import build_message
 from tests.brokers.base.router import RouterTestcase
 
 
