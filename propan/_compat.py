@@ -21,19 +21,19 @@ if is_installed("fastapi"):
 
     if FASTAPI_V2:
         from fastapi._compat import _normalize_errors
-        from fastapi.exceptions import ResponseValidationError
+        from fastapi.exceptions import RequestValidationError
 
         def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
-            raise ResponseValidationError(_normalize_errors(errors), body=body)
+            raise RequestValidationError(_normalize_errors(errors), body=body)
 
     else:
-        from pydantic import ValidationError as ResponseValidationError
+        from pydantic import ValidationError as RequestValidationError
         from pydantic import create_model
 
         ROUTER_VALIDATION_ERROR_MODEL = create_model("PropanRoute")
 
         def raise_fastapi_validation_error(errors: List[Any], body: AnyDict) -> Never:
-            raise ResponseValidationError(errors, ROUTER_VALIDATION_ERROR_MODEL)
+            raise RequestValidationError(errors, ROUTER_VALIDATION_ERROR_MODEL)
 
 
 if PYDANTIC_V2:
