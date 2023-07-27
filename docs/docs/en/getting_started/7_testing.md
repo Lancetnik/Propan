@@ -6,7 +6,7 @@ second: you need to modify the broker with
 # Testing
 
 To test your app locally or in a CI pipeline, you want to reduce the number of external dependencies.
-Runs a test suite more presently than instantiate a container with your Message Broker within the CI pipeline.
+This allows running a test suite more quickly than when a container with your Message Broker needs to be instantiated within the CI pipeline.
 
 Also, the absence of dependencies helps to avoid tests failure, based on an error in transmitting data to the broker, or accessing broker too early (when the container is not yet ready to receive connection).
 
