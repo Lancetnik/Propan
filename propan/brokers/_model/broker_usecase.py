@@ -24,7 +24,6 @@ from typing import (
 from fast_depends._compat import PYDANTIC_V2
 from fast_depends.core import CallModel, build_call_model
 from fast_depends.dependencies import Depends
-from fast_depends.utils import args_to_kwargs
 from typing_extensions import Self, TypeAlias, TypeVar
 
 from propan.brokers._model.routing import BrokerRouter
@@ -150,12 +149,16 @@ class BrokerUsecase(ABC, Generic[MsgType, ConnectionType]):
 
     def _resolve_connection_kwargs(self, *args: Any, **kwargs: AnyDict) -> AnyDict:
         arguments = get_function_positional_arguments(self.__init__)  # type: ignore
-        init_kwargs = args_to_kwargs(
-            arguments,
-            *self._connection_args,
+
+        init_kwargs = {
             **self._connection_kwargs,
-        )
-        connect_kwargs = args_to_kwargs(arguments, *args, **kwargs)
+            **dict(zip(arguments, self._connection_args)),
+        }
+
+        connect_kwargs = {
+            **kwargs,
+            **dict(zip(arguments, args)),
+        }
         return {**init_kwargs, **connect_kwargs}
 
     @staticmethod
