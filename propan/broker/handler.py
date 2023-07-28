@@ -15,6 +15,8 @@ from typing import (
     overload,
 )
 
+from fast_depends.core import CallModel
+
 from propan._compat import IS_OPTIMIZED
 from propan.broker.message import PropanMessage
 from propan.broker.schemas import HandlerCallWrapper
@@ -38,17 +40,24 @@ class BaseHandler(Generic[MsgType]):
             CustomParser[MsgType],
             CustomDecoder[MsgType],
             List[Callable[[PropanMessage[MsgType]], ContextManager[None]]],
+            CallModel[F_Spec, F_Return],
         ]
     ]
 
     global_middlewares: List[Callable[[MsgType], ContextManager[None]]]
 
-    def __init__(self):
+    def __init__(
+        self,
+        *,
+        description: Optional[str] = None,
+    ):
         self.calls = []
         self.global_middlewares = []
         self.call_middlewares = {}
         self.parsers = {}
         self.decoders = {}
+        # AsyncAPI information
+        self._description = description
 
     def add_call(
         self,
@@ -56,6 +65,7 @@ class BaseHandler(Generic[MsgType]):
         wrapped_call: Callable[[MsgType, bool], F_Return],
         parser: CustomParser[MsgType],
         decoder: CustomDecoder[MsgType],
+        dependant: CallModel[F_Spec, F_Return],
         filter: Callable[
             [PropanMessage[MsgType]], bool
         ] = lambda m: not m.processed,  # pragma: no cover
@@ -71,6 +81,7 @@ class BaseHandler(Generic[MsgType]):
                 parser,
                 decoder,
                 middlewares or (),
+                dependant,
             )
         )
 
@@ -79,9 +90,20 @@ class BaseHandler(Generic[MsgType]):
         if not self.calls:
             return "undefined"
 
-        caller = self.calls[0][0]
+        caller = self.calls[0][0]._original_call
         name = getattr(caller, "__name__", str(caller))
         return name
+
+    @property
+    def description(self) -> Optional[str]:
+        if not self.calls:
+            description = None
+
+        else:
+            caller = self.calls[0][0]._original_call
+            description = getattr(caller, "__doc__", None)
+
+        return self._description or description
 
     @abstractmethod
     def consume(self, msg: MsgType) -> None:
@@ -92,7 +114,7 @@ class BaseHandler(Generic[MsgType]):
                 stack.enter_context(m(msg))
 
             processed = False
-            for handler, call, f, parser, decoder, middlewares in self.calls:
+            for handler, call, f, parser, decoder, middlewares, _ in self.calls:
                 message = parser(msg)
                 message.decoded_body = decoder(message)
                 message.processed = processed
@@ -180,6 +202,7 @@ class AsyncHandler(BaseHandler[MsgType]):
         ],
         parser: AsyncParser[MsgType],
         decoder: AsyncDecoder[MsgType],
+        dependant: CallModel[F_Spec, F_Return],
         filter: Callable[
             [PropanMessage[MsgType]], Awaitable[bool]
         ] = lambda m: not m.processed,  # pragma: no cover
@@ -192,6 +215,7 @@ class AsyncHandler(BaseHandler[MsgType]):
             wrapped_call=wrapped_call,
             parser=parser,
             decoder=decoder,
+            dependant=dependant,
             filter=filter,
             middlewares=middlewares,
         )
@@ -204,7 +228,7 @@ class AsyncHandler(BaseHandler[MsgType]):
                 await stack.enter_async_context(m(msg))
 
             processed = False
-            for handler, call, f, parser, decoder, middlewares in self.calls:
+            for handler, call, f, parser, decoder, middlewares, _ in self.calls:
                 message = await parser(msg)
                 message.decoded_body = await decoder(message)
                 message.processed = processed

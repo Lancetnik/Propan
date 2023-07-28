@@ -13,7 +13,15 @@ def patch_broker_calls(broker: BrokerUsecase) -> None:
     original_handlers = tuple(broker.handlers.values())
     for handler in original_handlers:
         calls = []
-        for wrapper, wrapped_f, filter_f, parser, decoder, middlewares in handler.calls:
+        for (
+            wrapper,
+            wrapped_f,
+            filter_f,
+            parser,
+            decoder,
+            middlewares,
+            dep,
+        ) in handler.calls:
             mock = MagicMock()
             calls.append(
                 (
@@ -23,6 +31,7 @@ def patch_broker_calls(broker: BrokerUsecase) -> None:
                     parser,
                     decoder,
                     middlewares,
+                    dep,
                 )
             )
 

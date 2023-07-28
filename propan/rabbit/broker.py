@@ -60,10 +60,14 @@ class RabbitBroker(
         url: Union[str, URL, None] = None,
         *,
         max_consumers: Optional[int] = None,
+        protocol: str = "amqp",
+        protocol_version: Optional[str] = "0.9.1",
         **kwargs: AnyDict,
     ) -> None:
         super().__init__(
             url=url or "amqp://guest:guest@localhost:5672/",
+            protocol=protocol,
+            protocol_version=protocol_version,
             **kwargs,
         )
 
@@ -163,6 +167,8 @@ class RabbitBroker(
             [RabbitMessage],
             Union[bool, Awaitable[bool]],
         ] = lambda m: not m.processed,
+        # AsyncAPI information
+        description: Optional[str] = None,
         **original_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
@@ -179,7 +185,7 @@ class RabbitBroker(
             func: Callable[P_HandlerParams, T_HandlerReturn],
         ) -> AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
             handler_call: AMQPHandlerCallWrapper
-            wrapped_func, handler_call = self._wrap_handler(
+            wrapped_func, handler_call, dependant = self._wrap_handler(
                 func,
                 extra_dependencies=dependencies,
                 **original_kwargs,
@@ -194,6 +200,7 @@ class RabbitBroker(
                     queue=r_queue,
                     exchange=r_exchange,
                     consume_args=consume_args,
+                    description=description,
                 ),
             )
 
@@ -204,6 +211,7 @@ class RabbitBroker(
                 middlewares=middlewares,
                 parser=parser or self._global_parser,
                 decoder=decoder or self._global_decoder,
+                dependant=dependant,
             )
 
             self.handlers[key] = handler

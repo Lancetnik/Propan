@@ -23,6 +23,7 @@ from fast_depends._compat import PYDANTIC_V2
 from fast_depends.core import CallModel, build_call_model
 from fast_depends.dependencies import Depends
 
+from propan import asyncapi
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.handler import BaseHandler
 from propan.broker.message import PropanMessage
@@ -59,7 +60,7 @@ class BrokerUsecase(
 ):
     logger: Optional[logging.Logger]
     log_level: int
-    handlers: Dict[int, BaseHandler]
+    handlers: Dict[Any, BaseHandler]
     dependencies: Sequence[Depends]
     started: bool
     middlewares: List[
@@ -73,7 +74,14 @@ class BrokerUsecase(
 
     def __init__(
         self,
+        url: Union[str, List[str]],
         *args: Any,
+        # AsyncAPI kwargs
+        protocol: str,
+        protocol_version: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[Sequence[asyncapi.Tag]] = None,
+        # broker kwargs
         apply_types: bool = True,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
@@ -110,6 +118,13 @@ class BrokerUsecase(
 
         self.started = False
 
+        # AsyncAPI information
+        self.url = url
+        self.protocol = protocol
+        self.protocol_version = protocol_version
+        self.description = description
+        self.tags = tags
+
     def include_router(self, router: BrokerRouter[MsgType]) -> None:
         for r in router._handlers:
             self.subscriber(*r.args, **r.kwargs)(r.call)
@@ -143,14 +158,16 @@ class BrokerUsecase(
     ) -> Tuple[
         WrappedHandlerCall[MsgType, T_HandlerReturn],
         HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        CallModel[P_HandlerParams, T_HandlerReturn],
     ]:
         if isinstance(func, HandlerCallWrapper):
             handler_call, func = func, func._original_call
+            dependant = _get_dependant(func)
         else:
             handler_call = HandlerCallWrapper(func)
 
         if handler_call._wrapped_call is not None:
-            return handler_call._wrapped_call, handler_call
+            return handler_call._wrapped_call, handler_call, dependant
 
         if _is_sync:
             f = func
@@ -207,7 +224,7 @@ class BrokerUsecase(
         f = suppress_decor(f)
 
         handler_call._wrapped_call = f
-        return f, handler_call
+        return f, handler_call, dependant
 
     # Final Broker Impl
     @abstractmethod
