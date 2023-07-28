@@ -24,6 +24,9 @@
     <a href="https://github.com/Lancetnik/Propan/blob/main/LICENSE" target="_blank">
         <img alt="GitHub" src="https://img.shields.io/github/license/Lancetnik/Propan?color=%23007ec6">
     </a>
+    <a href="https://discord.gg/ChhMXJpvz7" target="_blank">
+        <img alt="Discord" src="https://img.shields.io/discord/1122560426794831872?logo=discord">
+    </a>
 </p>
 
 # Propan
