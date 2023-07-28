@@ -7,6 +7,7 @@ app = PropanApp(broker)
 
 publisher = broker.publisher("response-queue")
 
+
 @publisher
 @broker.subscriber("test-queue")
 async def handle(msg, logger: Logger):

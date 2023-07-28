@@ -1,6 +1,7 @@
 from typing import AsyncContextManager, Awaitable, Callable, List, Optional
 
 import aio_pika
+from fast_depends.core import CallModel
 
 from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
@@ -22,10 +23,15 @@ class Handler(AsyncHandler[aio_pika.IncomingMessage]):
     def __init__(
         self,
         queue: RabbitQueue,
+        # RMQ information
         exchange: Optional[RabbitExchange] = None,
         consume_args: Optional[AnyDict] = None,
+        # AsyncAPI information
+        description: Optional[str] = None,
     ):
-        super().__init__()
+        super().__init__(
+            description=description,
+        )
 
         self.queue = queue
         self.exchange = exchange
@@ -41,6 +47,7 @@ class Handler(AsyncHandler[aio_pika.IncomingMessage]):
             [PropanMessage[aio_pika.IncomingMessage], bool],
             Awaitable[Optional[F_Return]],
         ],
+        dependant: CallModel[F_Spec, F_Return],
         parser: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
         filter: Callable[
@@ -60,6 +67,7 @@ class Handler(AsyncHandler[aio_pika.IncomingMessage]):
             parser=self._resolve_custom_func(parser, AioPikaParser.parse_message),
             decoder=self._resolve_custom_func(decoder, AioPikaParser.decode_message),
             filter=filter,
+            dependant=dependant,
             middlewares=middlewares,
         )
 

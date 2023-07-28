@@ -218,6 +218,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     ) -> Tuple[
         AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],
         HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        CallModel[P_HandlerParams, T_HandlerReturn],
     ]:
         return super()._wrap_handler(  # type: ignore[return-value]
             func,

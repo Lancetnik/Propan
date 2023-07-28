@@ -1,24 +1,19 @@
 import logging
 from abc import ABC
-from typing import Awaitable, Callable, Dict, List, Optional
+from typing import Awaitable, Callable, Dict, List, Optional, Sequence
 
 import anyio
-from typing_extensions import ParamSpec, Protocol, TypeVar
+from pydantic import AnyHttpUrl
+from typing_extensions import ParamSpec, TypeVar
 
+from propan import asyncapi
+from propan.broker.core.abc import BrokerUsecase
+from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.cli.supervisors.utils import set_exit
 from propan.log import logger
 from propan.types import AnyCallable, AsyncFunc, SettingField
 from propan.utils import apply_types, context
 from propan.utils.functions import to_async
-
-
-class Runnable(Protocol):
-    async def start(self) -> None:
-        ...
-
-    async def close(self) -> None:
-        ...
-
 
 P_HookParams = ParamSpec("P_HookParams")
 T_HookReturn = TypeVar("T_HookReturn")
@@ -32,12 +27,18 @@ class ABCApp(ABC):
 
     def __init__(
         self,
-        broker: Optional[Runnable] = None,
+        broker: Optional[BrokerUsecase] = None,
         logger: Optional[logging.Logger] = logger,
-        # AsyncAPI args,
+        # AsyncAPI information
         title: str = "Propan",
         version: str = "0.1.0",
         description: str = "",
+        terms_of_service: Optional[AnyHttpUrl] = None,
+        license: Optional[asyncapi.License] = None,
+        contact: Optional[asyncapi.Contact] = None,
+        identifier: Optional[str] = None,
+        tags: Optional[Sequence[asyncapi.Tag]] = None,
+        external_docs: Optional[asyncapi.Docs] = None,
     ):
         self.broker = broker
         self.logger = logger
@@ -50,11 +51,18 @@ class ABCApp(ABC):
         self._after_shutdown_calling = []
         self._command_line_options: Dict[str, SettingField] = {}
 
+        # AsyncAPI information
         self.title = title
         self.version = version
         self.description = description
+        self.terms_of_service = terms_of_service
+        self.license = license
+        self.contact = contact
+        self.identifier = identifier
+        self.tags = tags
+        self.external_docs = external_docs
 
-    def set_broker(self, broker: Runnable) -> None:
+    def set_broker(self, broker: BrokerUsecase) -> None:
         """Set already existed App object broker
         Usefull then you create/init broker in `on_startup` hook"""
         self.broker = broker
@@ -103,12 +111,18 @@ class PropanApp(ABCApp):
 
     def __init__(
         self,
-        broker: Optional[Runnable] = None,
+        broker: Optional[BrokerAsyncUsecase] = None,
         logger: Optional[logging.Logger] = logger,
         # AsyncAPI args,
         title: str = "Propan",
         version: str = "0.1.0",
         description: str = "",
+        terms_of_service: Optional[AnyHttpUrl] = None,
+        license: Optional[asyncapi.License] = None,
+        contact: Optional[asyncapi.Contact] = None,
+        identifier: Optional[str] = None,
+        tags: Optional[Sequence[asyncapi.Tag]] = None,
+        external_docs: Optional[asyncapi.Docs] = None,
     ):
         """Asyncronous Propan Application class
 
@@ -129,6 +143,12 @@ class PropanApp(ABCApp):
             title=title,
             version=version,
             description=description,
+            terms_of_service=terms_of_service,
+            license=license,
+            contact=contact,
+            identifier=identifier,
+            tags=tags,
+            external_docs=external_docs,
         )
 
         self._stop_event = None

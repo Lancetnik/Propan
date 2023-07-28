@@ -1,9 +1,10 @@
 import pytest
 import pytest_asyncio
-from propan.rabbit.test import TestRabbitBroker
 from fastapi.exceptions import RequestValidationError
 
-from .app import router, publisher, handler
+from propan.rabbit.test import TestRabbitBroker
+
+from .app import handler, publisher, router
 
 
 @pytest_asyncio.fixture

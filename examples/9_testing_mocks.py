@@ -10,11 +10,13 @@ app = PropanApp(broker)
 publisher1 = broker.publisher("test-resp")
 publisher2 = broker.publisher("test-resp2")
 
+
 @publisher1
 @publisher2
 @broker.subscriber("test")
 async def handle():
     return "response"
+
 
 @pytest.mark.asyncio
 async def test_handle():
