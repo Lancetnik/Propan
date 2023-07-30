@@ -109,7 +109,7 @@ test = [
     "propan[async-sqs]",
     "propan[testsuite]",
 
-    "fastapi>=0.100.0b2",
+    "fastapi>=0.100.0",
     "httpx",
 ]
 

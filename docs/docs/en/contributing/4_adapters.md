@@ -1,6 +1,6 @@
 # Create Custom **Propan** Broker
 
-If you want to help me with the development of the project and develop a new **PropanBroker** for a not yet supported message broker from the [plan](../../#supported-mq-brokers) or you just want to expand the functionality of **Propan** for internal usage, this instruction can be very helpful to you.
+If you want to help me with the development of the project and develop a new **PropanBroker** for a not yet supported message broker from the [plan](../../index.md#supported-mq-brokers) or you just want to expand the functionality of **Propan** for internal usage, this instruction can be very helpful to you.
 
 In this section, we will go through the details of the implementation of brokers using examples from **Propan**.
 
