@@ -15,7 +15,7 @@ A clear and concise description of what the problem is. Ex. I'm always frustrate
 A clear and concise description of what you want to happen.
 
 **Feature code example**
-Please, too show others how you image the feature syntax, illustrate it by the **Propan** code example
+Please, to show others how you image the feature syntax, illustrate it by the **Propan** code example
 
 ```python
 from propan import PropanApp
