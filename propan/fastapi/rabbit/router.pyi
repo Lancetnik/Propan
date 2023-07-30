@@ -86,7 +86,7 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         pass
     def event(  # type: ignore[override]
         self,
-        queue: Union[str, RabbitQueue],
+        queue: Optional[Union[str, RabbitQueue]],
         *,
         exchange: Union[str, RabbitExchange, None] = None,
         consume_arguments: Optional[AnyDict] = None,

@@ -150,7 +150,7 @@ class PropanRouter(APIRouter, Generic[Broker, MsgType]):
 
     def event(
         self,
-        path: Union[str, Queue],
+        path: Optional[Union[str, Queue]],
         *extra: Union[Queue, str],
         dependencies: Optional[Sequence[params.Depends]] = None,
         **broker_kwargs: Dict[str, Any],
@@ -166,7 +166,7 @@ class PropanRouter(APIRouter, Generic[Broker, MsgType]):
             func: HandlerCallable[T_HandlerReturn],
         ) -> Callable[[MsgType, bool], Awaitable[T_HandlerReturn]]:
             return self.add_api_mq_route(
-                path,
+                path or func.__name__,
                 *extra,
                 endpoint=func,
                 dependencies=current_dependencies,
