@@ -2,6 +2,39 @@
 
 If you already cloned the repository and you know that you need to deep dive in the code, here are some guidelines to set up your environment.
 
+### Commits
+
+When making commits, use semantic commit messages system.
+
+Format: `<type>(<scope>): <subject>`
+
+Where `<scope>` is optional.
+
+```
+feat: add synchronous RabbitMQ wrapper
+^--^  ^------------^
+|     |
+|     +-> Summary in present tense.
+|
++-------> Type: chore, docs, feat, fix, refactor, style, or test.
+```
+
+More Examples:
+
+- `feat`: (New feature for the user, not a new feature for build script)
+- `fix`: (Bug fix for the user, not a fix to a build script)
+- `docs`: (Changes to the documentation)
+- `style`: (Formatting, linting)
+- `refactor`: (Refactoring code, eg. renaming a variable)
+- `test`: (Adding missing tests, refactoring tests)
+- `chore`: (Updating grunt tasks etc.)
+
+References:
+
+- https://www.conventionalcommits.org/
+- https://sparkbox.com/foundry/semantic_commit_messages
+- http://karma-runner.github.io/1.0/dev/git-commit-msg.html
+
 ### Virtual environment with `venv`
 
 You can create a virtual environment in a directory using Python's `venv` module:
