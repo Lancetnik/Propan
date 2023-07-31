@@ -16,7 +16,7 @@ from propan.annotations import Logger
 
 broker = RabbitBroker()
 
-@broker.hanle("test")
+@broker.handle("test")
 async def func(logger: Logger):
     logger.info("message received")
 ```

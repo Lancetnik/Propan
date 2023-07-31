@@ -6,15 +6,15 @@ second: you need to modify the broker with
 # Testing
 
 To test your app locally or in a CI pipeline, you want to reduce the number of external dependencies.
-Runs a test suite more presently than instantiate a container with your Message Broker within the CI pipeline.
+This allows running a test suite more quickly than when a container with your Message Broker needs to be instantiated within the CI pipeline.
 
-Also, the absence of dependencies helps to avoid tests failure, based on an error in transmitting data to the broker, or accessing broker too early (when the container is not yet ready to receive connection).
+Also, the absence of dependencies helps to avoid test failures that are due to errors in transmitting data to the broker, or accessing the broker too early (when the container is not yet ready to receive connections).
 
 ## Broker modification
 
 **Propan** allows you to modify the behavior of your broker so that it passes messages "in memory" without requiring you to discover external dependencies.
 
-Let's image we have an application like so:
+Let's imagine we have an application like so:
 
 {% import 'getting_started/test/1.md' as includes with context %}
 {{ includes }}
@@ -24,7 +24,7 @@ Then make an *RPC* request to check the result of the execution:
 {! includes/getting_started/test/2.md !}
 
 !!! note
-    Using test broker this way **RPC** is always able, even broker doesn't support it in regular mode.
+    When using the test broker this way, it is always possible to perform **RPC** requests even if the broker doesn't support it in regular mode.
 
 ## Using fixtures
 
