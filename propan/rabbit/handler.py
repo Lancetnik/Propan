@@ -4,10 +4,10 @@ import aio_pika
 from fast_depends.core import CallModel
 
 from propan.broker.handler import AsyncHandler
-from propan.broker.message import PropanMessage
 from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import AsyncDecoder, AsyncParser
 from propan.rabbit.helpers import AioPikaParser, RabbitDeclarer
+from propan.rabbit.message import RabbitMessage
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue
 from propan.types import AnyDict, F_Return, F_Spec
 
@@ -44,19 +44,20 @@ class Handler(AsyncHandler[aio_pika.IncomingMessage]):
         self,
         handler: HandlerCallWrapper[F_Spec, F_Return],
         wrapped_call: Callable[
-            [PropanMessage[aio_pika.IncomingMessage], bool],
+            [RabbitMessage, bool],
             Awaitable[Optional[F_Return]],
         ],
         dependant: CallModel[F_Spec, F_Return],
         parser: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
         filter: Callable[
-            [PropanMessage[aio_pika.IncomingMessage]], Awaitable[bool]
+            [RabbitMessage], Awaitable[bool]
         ] = lambda m: not m.processed,  # pragma: no cover
         middlewares: Optional[
             List[
                 Callable[
-                    [PropanMessage[aio_pika.IncomingMessage]], AsyncContextManager[None]
+                    [RabbitMessage],
+                    AsyncContextManager[None],
                 ]
             ]
         ] = None,

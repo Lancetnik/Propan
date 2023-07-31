@@ -20,16 +20,12 @@ async def handler_middleware(message: RabbitMessage):
 
 
 broker = RabbitBroker(
-    "amqp://guest:guest@localhost:5672/",
-    middlewares=(highlevel_middleware,)
+    "amqp://guest:guest@localhost:5672/", middlewares=(highlevel_middleware,)
 )
 app = PropanApp(broker)
 
 
-@broker.subscriber(
-    "test",
-    middlewares=(handler_middleware,)
-)
+@broker.subscriber("test", middlewares=(handler_middleware,))
 async def handler(msg):
     assert msg == "fake message"
 

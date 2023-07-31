@@ -208,7 +208,7 @@ class BrokerUsecase(
         f = self._wrap_decode_message(
             func=f,
             _raw=_raw,
-            params=tuple(chain(dependant.flat_params.items(), extra)),
+            params=tuple(chain(dependant.flat_params.values(), extra)),
         )
 
         f = self._process_message(

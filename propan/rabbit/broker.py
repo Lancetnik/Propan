@@ -57,7 +57,7 @@ class RabbitBroker(
 
     def __init__(
         self,
-        url: Union[str, URL, None] = None,
+        url: Union[str, URL, None] = "amqp://guest:guest@localhost:5672/",
         *,
         max_consumers: Optional[int] = None,
         protocol: str = "amqp",
@@ -65,7 +65,7 @@ class RabbitBroker(
         **kwargs: AnyDict,
     ) -> None:
         super().__init__(
-            url=url or "amqp://guest:guest@localhost:5672/",
+            url=url,
             protocol=protocol,
             protocol_version=protocol_version,
             **kwargs,
@@ -151,8 +151,9 @@ class RabbitBroker(
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
         *,
-        dependencies: Sequence[Depends] = (),
         consume_args: Optional[AnyDict] = None,
+        # broker arguments
+        dependencies: Sequence[Depends] = (),
         parser: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
@@ -181,6 +182,19 @@ class RabbitBroker(
 
         self._setup_log_context(r_queue, r_exchange)
 
+        key = get_routing_hash(r_queue, r_exchange)
+        handler = self.handlers.get(
+            key,
+            Handler(
+                queue=r_queue,
+                exchange=r_exchange,
+                consume_args=consume_args,
+                description=description,
+            ),
+        )
+
+        self.handlers[key] = handler
+
         def consumer_wrapper(
             func: Callable[P_HandlerParams, T_HandlerReturn],
         ) -> AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
@@ -193,17 +207,6 @@ class RabbitBroker(
                 exchange=r_exchange,
             )
 
-            key = get_routing_hash(r_queue, r_exchange)
-            handler = self.handlers.get(
-                key,
-                Handler(
-                    queue=r_queue,
-                    exchange=r_exchange,
-                    consume_args=consume_args,
-                    description=description,
-                ),
-            )
-
             handler.add_call(
                 handler=handler_call,
                 wrapped_call=wrapped_func,
@@ -213,8 +216,6 @@ class RabbitBroker(
                 decoder=decoder or self._global_decoder,
                 dependant=dependant,
             )
-
-            self.handlers[key] = handler
 
             return handler_call
 
