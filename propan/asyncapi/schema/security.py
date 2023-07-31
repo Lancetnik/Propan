@@ -4,36 +4,21 @@ from pydantic import AnyHttpUrl, BaseModel, Field
 from typing_extensions import Literal
 
 
-class AsyncAPIOauthFlowObj(BaseModel):
-    authorization_url: Optional[AnyHttpUrl] = Field(
-        default=None,
-        alias="authorizationUrl",
-    )
-    token_url: Optional[AnyHttpUrl] = Field(
-        default=None,
-        alias="tokenUrl",
-    )
-    refresh_url: Optional[AnyHttpUrl] = Field(
-        default=None,
-        alias="refreshUrl",
-    )
+class OauthFlowObj(BaseModel):
+    authorizationUrl: Optional[AnyHttpUrl] = None
+    tokenUrl: Optional[AnyHttpUrl] = None
+    refreshUrl: Optional[AnyHttpUrl] = None
     scopes: Dict[str, str]
 
 
-class AsyncAPIOauthFlows(BaseModel):
-    implicit: Optional[AsyncAPIOauthFlowObj] = None
-    password: Optional[AsyncAPIOauthFlowObj] = None
-    client_credentials: Optional[AsyncAPIOauthFlowObj] = Field(
-        default=None,
-        alias="clientCredentials",
-    )
-    authorization_code: Optional[AsyncAPIOauthFlowObj] = Field(
-        default=None,
-        alias="authorizationCode",
-    )
+class OauthFlows(BaseModel):
+    implicit: Optional[OauthFlowObj] = None
+    password: Optional[OauthFlowObj] = None
+    clientCredentials: Optional[OauthFlowObj] = None
+    authorizationCode: Optional[OauthFlowObj] = None
 
 
-class AsyncAPISecuritySchemeComponent(BaseModel):
+class SecuritySchemeComponent(BaseModel):
     type: Literal[
         "userPassword",
         "apikey",
@@ -56,12 +41,6 @@ class AsyncAPISecuritySchemeComponent(BaseModel):
         alias="in",
     )
     scheme: Optional[str] = None
-    bearer_format: Optional[str] = Field(
-        default=None,
-        alias="bearerFormat",
-    )
-    openid_connect_url: Optional[str] = Field(
-        default=None,
-        alias="openIdConnectUrl",
-    )
-    flows: Optional[AsyncAPIOauthFlows] = None
+    bearerFormat: Optional[str] = None
+    openIdConnectUrl: Optional[str] = None
+    flows: Optional[OauthFlows] = None

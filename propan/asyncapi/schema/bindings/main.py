@@ -2,43 +2,32 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from propan.asyncapi.schema.bindings.amqp import ChannelBinding as amqpChannelBinding
-from propan.asyncapi.schema.bindings.amqp import (
-    OperationBinding as amqpOperationBinding,
-)
-from propan.asyncapi.schema.bindings.kafka import (
-    AsyncAPIKafkaChannelBinding,
-    AsyncAPIKafkaOperationBinding,
-)
-from propan.asyncapi.schema.bindings.nats import (
-    AsyncAPINatsChannelBinding,
-    AsyncAPINatsOperationBinding,
-)
-from propan.asyncapi.schema.bindings.redis import (
-    AsyncAPIRedisChannelBinding,
-    AsyncAPIRedisOperationBinding,
-)
-from propan.asyncapi.schema.bindings.sqs import (
-    AsyncAPISQSChannelBinding,
-    AsyncAPISQSOperationBinding,
-)
+from propan.asyncapi.schema.bindings import amqp as amqp_bindings
+from propan.asyncapi.schema.bindings import kafka as kafka_bindings
+from propan.asyncapi.schema.bindings import nats as nats_bindings
+from propan.asyncapi.schema.bindings import redis as redis_bindings
+from propan.asyncapi.schema.bindings import sqs as sqs_bindings
 
 
 class ServerBinding(BaseModel):
-    pass
+    amqp: Optional[amqp_bindings.ServerBinding] = None
+    kafka: Optional[kafka_bindings.ServerBinding] = None
+    sqs: Optional[sqs_bindings.ServerBinding] = None
+    nats: Optional[nats_bindings.ServerBinding] = None
+    redis: Optional[redis_bindings.ServerBinding] = None
 
 
 class ChannelBinding(BaseModel):
-    amqp: Optional[amqpChannelBinding] = None
-    kafka: Optional[AsyncAPIKafkaChannelBinding] = None
-    sqs: Optional[AsyncAPISQSChannelBinding] = None
-    nats: Optional[AsyncAPINatsChannelBinding] = None
-    redis: Optional[AsyncAPIRedisChannelBinding] = None
+    amqp: Optional[amqp_bindings.ChannelBinding] = None
+    kafka: Optional[kafka_bindings.ChannelBinding] = None
+    sqs: Optional[sqs_bindings.ChannelBinding] = None
+    nats: Optional[nats_bindings.ChannelBinding] = None
+    redis: Optional[redis_bindings.ChannelBinding] = None
 
 
 class OperationBinding(BaseModel):
-    amqp: Optional[amqpOperationBinding] = None
-    kafka: Optional[AsyncAPIKafkaOperationBinding] = None
-    sqs: Optional[AsyncAPISQSOperationBinding] = None
-    nats: Optional[AsyncAPINatsOperationBinding] = None
-    redis: Optional[AsyncAPIRedisOperationBinding] = None
+    amqp: Optional[amqp_bindings.OperationBinding] = None
+    kafka: Optional[kafka_bindings.OperationBinding] = None
+    sqs: Optional[sqs_bindings.OperationBinding] = None
+    nats: Optional[nats_bindings.OperationBinding] = None
+    redis: Optional[redis_bindings.OperationBinding] = None
