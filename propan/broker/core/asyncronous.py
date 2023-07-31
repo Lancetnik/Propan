@@ -190,12 +190,12 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
 
         @wraps(func)
         async def decode_wrapper(message: PropanMessage[MsgType]) -> T_HandlerReturn:
-            msg = message.decoded_body
-
             if _raw is True:
                 return await func(message)
 
-            elif is_unwrap is True:
+            msg = message.decoded_body
+
+            if is_unwrap is True:
                 if isinstance(msg, Mapping):
                     return await func(**msg)
                 else:
