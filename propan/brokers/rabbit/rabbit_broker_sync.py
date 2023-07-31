@@ -1,7 +1,7 @@
 from functools import wraps
 from threading import Event
 from types import TracebackType
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, Union
+from typing import Any, Awaitable, Callable, List, Optional, Sequence, Tuple, Type, Union
 from uuid import uuid4
 
 import pika
@@ -28,6 +28,8 @@ from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.brokers.rabbit.utils import RABBIT_REPLY, validate_exchange, validate_queue
 from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils import context
+
+from propan.brokers.middlewares import MsgType
 
 PIKA_RAW_MESSAGE: TypeAlias = Tuple[
     blocking_connection.BlockingChannel,
@@ -71,13 +73,13 @@ class RabbitSyncBroker(
 
         self._channel = None
 
-        self.__max_queue_len = 4
-        self.__max_exchange_len = 4
+        self._max_queue_len = 4
+        self._max_exchange_len = 4
         self._queues = {}
         self._exchanges = {}
 
     def _connect(self, **kwargs: Any) -> blocking_connection.BlockingConnection:
-        connection = pika.BlockingConnection()
+        connection = pika.BlockingConnection(pika.ConnectionParameters(self.url))
 
         if self._channel is None:
             max_consumers = self._max_consumers
@@ -245,7 +247,7 @@ class RabbitSyncBroker(
         type_: Optional[str] = None,
         user_id: Optional[str] = None,
         app_id: Optional[str] = None,
-    ) -> DecodedMessage | None:
+    ) -> Optional[DecodedMessage]:
         if self._channel is None:
             raise ValueError("RabbitBroker channel not started yet")
 
@@ -364,6 +366,16 @@ class RabbitSyncBroker(
                 current = current.bind_to
 
         return exch
+
+    def _wrap_middleware(
+        self,
+        func: Callable[[MsgType], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]],
+    ) -> Callable[[MsgType], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]]:
+        @wraps(func)
+        def middleware_wrapper(message: MsgType) -> T_HandlerReturn:
+            pass
+
+        return middleware_wrapper
 
 
 def _wrap_pika_msg(func):
