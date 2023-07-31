@@ -1,35 +1,23 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
-
-from propan.types import AnyDict
+from pydantic import BaseModel
 
 
-class AsyncAPIKafkaChannelBinding(BaseModel):
+class ServerBinding(BaseModel):
+    bindingVersion: str = "0.4.0"
+
+
+class ChannelBinding(BaseModel):
     topic: List[str]
     partitions: Optional[int] = None
     replicas: Optional[int] = None
     # TODO:
     # topicConfiguration
-    version: str = Field(
-        default="0.4.0",
-        alias="bindingVersion",
-    )
+    bindingVersion: str = "0.4.0"
 
 
-class AsyncAPIKafkaOperationBinding(BaseModel):
-    group_id: Optional[AnyDict] = Field(
-        default=None,
-        alias="groupId",
-    )
-    client_id: Optional[AnyDict] = Field(
-        default=None,
-        alias="clientId",
-    )
-
-    reply_to: Optional[AnyDict] = Field(default=None, alias="replyTo")
-
-    version: str = Field(
-        default="0.4.0",
-        alias="bindingVersion",
-    )
+class OperationBinding(BaseModel):
+    groupId: Optional[Dict[str, Any]] = None
+    clientId: Optional[Dict[str, Any]] = None
+    replyTo: Optional[Dict[str, Any]] = None
+    bindingVersion: str = "0.4.0"

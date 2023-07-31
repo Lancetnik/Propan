@@ -1,32 +1,23 @@
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from propan.asyncapi.schema.utils import AsyncAPIExternalDocs, AsyncAPITag
+from propan.asyncapi.schema.utils import ExternalDocs, Tag
 
 
-class AsyncAPICorrelationId(BaseModel):
+class CorrelationId(BaseModel):
     description: Optional[str] = None
     location: str
 
 
-class AsyncAPIMessage(BaseModel):
+class Message(BaseModel):
     title: Optional[str] = None
     name: Optional[str] = None
     summary: Optional[str] = None
     description: Optional[str] = None
-    message_id: Optional[str] = Field(
-        default=None,
-        alias="messageId",
-    )
-    correlation_id: Optional[AsyncAPICorrelationId] = Field(
-        default=None,
-        alias="correlationId",
-    )
-    content_type: Optional[str] = Field(
-        default=None,
-        alias="contentType",
-    )
+    messageId: Optional[str] = None
+    correlationId: Optional[CorrelationId] = None
+    contentType: Optional[str] = None
 
     payload: Dict[str, Any]
     # TODO:
@@ -36,8 +27,5 @@ class AsyncAPIMessage(BaseModel):
     # examples
     # traits
 
-    tags: Optional[List[AsyncAPITag]] = None
-    external_docs: Optional[AsyncAPIExternalDocs] = Field(
-        default=None,
-        alias="externalDocs",
-    )
+    tags: Optional[List[Tag]] = None
+    externalDocs: Optional[ExternalDocs] = None

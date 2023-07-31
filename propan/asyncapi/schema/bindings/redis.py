@@ -1,23 +1,19 @@
-from typing import Optional
+from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing_extensions import Literal
 
-from propan.types import AnyDict
+
+class ServerBinding(BaseModel):
+    bindingVersion: str = "custom"
 
 
-class AsyncAPIRedisChannelBinding(BaseModel):
+class ChannelBinding(BaseModel):
     channel: str
     method: Literal["ssubscribe", "psubscribe", "subscribe"] = "subscribe"
-    version: str = Field(
-        default="custom",
-        alias="bindingVersion",
-    )
+    bindingVersion: str = "custom"
 
 
-class AsyncAPIRedisOperationBinding(BaseModel):
-    reply_to: Optional[AnyDict] = Field(default=None, alias="replyTo")
-    version: str = Field(
-        default="custom",
-        alias="bindingVersion",
-    )
+class OperationBinding(BaseModel):
+    replyTo: Optional[Dict[str, Any]] = None
+    bindingVersion: str = "custom"

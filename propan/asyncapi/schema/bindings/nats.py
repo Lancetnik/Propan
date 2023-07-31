@@ -1,22 +1,18 @@
-from typing import Optional
+from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, Field
-
-from propan.types import AnyDict
+from pydantic import BaseModel
 
 
-class AsyncAPINatsChannelBinding(BaseModel):
+class ServerBinding(BaseModel):
+    bindingVersion: str = "custom"
+
+
+class ChannelBinding(BaseModel):
     subject: str
     queue: Optional[str] = None
-    version: str = Field(
-        default="custom",
-        alias="bindingVersion",
-    )
+    bindingVersion: str = "custom"
 
 
-class AsyncAPINatsOperationBinding(BaseModel):
-    reply_to: Optional[AnyDict] = Field(default=None, alias="replyTo")
-    version: str = Field(
-        default="custom",
-        alias="bindingVersion",
-    )
+class OperationBinding(BaseModel):
+    replyTo: Optional[Dict[str, Any]] = None
+    bindingVersion: str = "custom"

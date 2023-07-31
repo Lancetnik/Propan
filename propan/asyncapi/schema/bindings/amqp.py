@@ -1,9 +1,7 @@
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 from typing_extensions import Literal
-
-from propan.types import AnyDict
 
 
 class Queue(BaseModel):
@@ -22,6 +20,10 @@ class Exchange(BaseModel):
     vhost: str = "/"
 
 
+class ServerBinding(BaseModel):
+    bindingVersion: str = "0.2.0"
+
+
 class ChannelBinding(BaseModel):
     is_: Literal["queue", "routingKey"] = Field(..., alias="is")
     bindingVersion: str = "0.2.0"
@@ -32,5 +34,5 @@ class ChannelBinding(BaseModel):
 class OperationBinding(BaseModel):
     cc: Optional[str] = None
     ack: bool = True
-    replyTo: Optional[AnyDict] = None
+    replyTo: Optional[Dict[str, Any]] = None
     bindingVersion: str = "0.2.0"

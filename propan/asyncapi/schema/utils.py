@@ -3,15 +3,15 @@ from typing import Optional
 from pydantic import AnyHttpUrl, BaseModel, Field
 
 
-class AsyncAPIExternalDocs(BaseModel):
+class ExternalDocs(BaseModel):
     url: AnyHttpUrl
     description: Optional[str] = None
 
 
-class AsyncAPITag(BaseModel):
+class Tag(BaseModel):
     name: str
     description: str = ""
-    externalDocs: Optional[AsyncAPIExternalDocs] = None
+    externalDocs: Optional[ExternalDocs] = None
 
 
 class Reference(BaseModel):

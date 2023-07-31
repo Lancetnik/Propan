@@ -38,7 +38,7 @@ class ABCApp(ABC):
         contact: Optional[asyncapi.Contact] = None,
         identifier: Optional[str] = None,
         tags: Optional[Sequence[asyncapi.Tag]] = None,
-        external_docs: Optional[asyncapi.Docs] = None,
+        external_docs: Optional[asyncapi.ExternalDocs] = None,
     ):
         self.broker = broker
         self.logger = logger
@@ -122,7 +122,7 @@ class PropanApp(ABCApp):
         contact: Optional[asyncapi.Contact] = None,
         identifier: Optional[str] = None,
         tags: Optional[Sequence[asyncapi.Tag]] = None,
-        external_docs: Optional[asyncapi.Docs] = None,
+        external_docs: Optional[asyncapi.ExternalDocs] = None,
     ):
         """Asyncronous Propan Application class
 

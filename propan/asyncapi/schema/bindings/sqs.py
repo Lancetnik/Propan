@@ -1,22 +1,17 @@
-from typing import Optional
+from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, Field
-
-from propan.types import AnyDict
+from pydantic import BaseModel
 
 
-class AsyncAPISQSChannelBinding(BaseModel):
-    queue: AnyDict
-    version: str = Field(
-        default="custom",
-        alias="bindingVersion",
-    )
+class ServerBinding(BaseModel):
+    bindingVersion: str = "custom"
 
 
-class AsyncAPISQSOperationBinding(BaseModel):
-    reply_to: Optional[AnyDict] = Field(default=None, alias="replyTo")
+class ChannelBinding(BaseModel):
+    queue: Dict[str, Any]
+    bindingVersion: str = "custom"
 
-    version: str = Field(
-        default="custom",
-        alias="bindingVersion",
-    )
+
+class OperationBinding(BaseModel):
+    replyTo: Optional[Dict[str, Any]] = None
+    bindingVersion: str = "custom"

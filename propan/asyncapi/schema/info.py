@@ -10,21 +10,21 @@ else:  # pragma: no cover
     EmailStr = str  # type: ignore
 
 
-class AsyncAPIContact(BaseModel):
+class Contact(BaseModel):
     name: str
     url: Optional[AnyHttpUrl] = None
     email: Optional[EmailStr] = None
 
 
-class AsyncAPILicense(BaseModel):
+class License(BaseModel):
     name: str
     url: Optional[AnyHttpUrl] = None
 
 
-class AsyncAPIInfo(BaseModel):
+class Info(BaseModel):
     title: str
     version: str = "1.0.0"
     description: str = ""
     termsOfService: Optional[AnyHttpUrl] = None
-    contact: Optional[AsyncAPIContact] = None
-    license: Optional[AsyncAPILicense] = None
+    contact: Optional[Contact] = None
+    license: Optional[License] = None
