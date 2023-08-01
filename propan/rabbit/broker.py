@@ -28,7 +28,7 @@ from propan.broker.types import (
     T_HandlerReturn,
 )
 from propan.exceptions import RuntimeException
-from propan.rabbit.handler import Handler
+from propan.rabbit.asyncapi import Handler
 from propan.rabbit.helpers import AioPikaPublisher, RabbitDeclarer
 from propan.rabbit.message import RabbitMessage
 from propan.rabbit.publisher import Publisher
