@@ -2,8 +2,10 @@ from propan import __about__ as about
 
 try:
     from propan.test.rabbit import TestRabbitBroker
+    from propan.test.rabbit_sync import TestRabbitSyncBroker
 except Exception:
     TestRabbitBroker = about.INSTALL_RABBIT
+    TestRabbitSyncBroker = about.INSTALL_RABBIT
 
 try:
     from propan.test.redis import TestRedisBroker
@@ -26,7 +28,7 @@ except Exception:
     TestSQSBroker = about.INSTALL_SQS
 
 assert any(
-    (TestRabbitBroker, TestRedisBroker, TestKafkaBroker, TestNatsBroker, TestSQSBroker)
+    (TestRabbitBroker, TestRedisBroker, TestKafkaBroker, TestNatsBroker, TestSQSBroker, TestRabbitSyncBroker)
 ), about.INSTALL_MESSAGE
 
 __all__ = (
@@ -35,4 +37,5 @@ __all__ = (
     "TestKafkaBroker",
     "TestNatsBroker",
     "TestSQSBroker",
+    "TestRabbitSyncBroker",
 )
