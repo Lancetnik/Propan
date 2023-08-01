@@ -17,6 +17,7 @@ from typing import (
 
 from fast_depends.core import CallModel
 
+from propan.asyncapi import Channel
 from propan._compat import IS_OPTIMIZED
 from propan.broker.message import PropanMessage
 from propan.broker.schemas import HandlerCallWrapper
@@ -139,6 +140,9 @@ class BaseHandler(Generic[MsgType]):
                         processed = True
 
         return result
+
+    def schema(self) -> Tuple[str, Optional[Channel]]:
+        return self.name, None
 
     @abstractmethod
     def start(self) -> None:
