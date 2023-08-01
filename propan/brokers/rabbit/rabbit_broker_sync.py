@@ -1,7 +1,17 @@
 from functools import wraps
 from threading import Event
 from types import TracebackType
-from typing import Any, Awaitable, Callable, List, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 from uuid import uuid4
 
 import pika
@@ -136,7 +146,7 @@ class RabbitSyncBroker(
         *,
         dependencies: Sequence[Depends] = (),
         description: str = "",
-        **original_kwargs: Any,
+        **original_kwargs: AnyDict,
     ) -> Callable[
         [HandlerCallable[T_HandlerReturn]],
         Callable[[Any, bool], T_HandlerReturn],
@@ -196,12 +206,12 @@ class RabbitSyncBroker(
 
             context = WatcherContext(
                 watcher,
-                message.message_id,
-                on_success=lambda: channel.basic_ack(method_frame.delivery_tag),
-                on_error=lambda: channel.basic_nack(
+                message,
+                on_success=lambda msg: channel.basic_ack(method_frame.delivery_tag),
+                on_error=lambda msg: channel.basic_nack(
                     method_frame.delivery_tag, requeue=True
                 ),
-                on_max=lambda: channel.basic_reject(
+                on_max=lambda msg: channel.basic_reject(
                     method_frame.delivery_tag, requeue=False
                 ),
             )
@@ -373,7 +383,8 @@ class RabbitSyncBroker(
     ) -> Callable[[MsgType], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]]:
         @wraps(func)
         def middleware_wrapper(message: MsgType) -> T_HandlerReturn:
-            pass
+            r = func(message)
+            return r
 
         return middleware_wrapper
 
