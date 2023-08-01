@@ -134,3 +134,30 @@ class WatcherContext:
 
         else:
             await call_or_await(self.on_error, self.message, **self.extra_args)
+
+    def __enter__(self) -> None:
+        self.watcher.add(self.message.message_id)
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        if not exc_type:
+            if callable(self.on_success):
+                try:
+                    self.on_success(self.message, **self.extra_args)
+                except TypeError as e:
+                    print("on_success type error", e)
+            self.watcher.remove(self.message.message_id)
+
+        elif isinstance(exc_val, SkipMessage):
+            self.watcher.remove(self.message.message_id)
+
+        elif self.watcher.is_max(self.message.message_id):
+            self.on_max(self.message, **self.extra_args)
+            self.watcher.remove(self.message.message_id)
+
+        else:
+            self.on_error(self.message, **self.extra_args)
