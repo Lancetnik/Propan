@@ -3,7 +3,6 @@ from threading import Event
 from types import TracebackType
 from typing import (
     Any,
-    Awaitable,
     Callable,
     List,
     Optional,
@@ -39,7 +38,6 @@ from propan.brokers.rabbit.utils import RABBIT_REPLY, validate_exchange, validat
 from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils import context
 
-from propan.brokers.middlewares import MsgType
 
 PIKA_RAW_MESSAGE: TypeAlias = Tuple[
     blocking_connection.BlockingChannel,
@@ -89,7 +87,8 @@ class RabbitSyncBroker(
         self._exchanges = {}
 
     def _connect(self, **kwargs: Any) -> blocking_connection.BlockingConnection:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(self.url))
+        # TODO: use all kwargs here
+        connection = pika.BlockingConnection(pika.URLParameters(kwargs["url"]))
 
         if self._channel is None:
             max_consumers = self._max_consumers
@@ -198,21 +197,22 @@ class RabbitSyncBroker(
             watcher = NotPushBackWatcher()
 
         @wraps(func)
-        def wrapper(message):
-            channel: blocking_connection.BlockingChannel
-            method_frame: spec.Basic.Deliver
-            header_frame: spec.BasicProperties
+        def wrapper(message: PikaMessage):
             channel, method_frame, header_frame, _ = message.raw_message
 
             context = WatcherContext(
                 watcher,
                 message,
-                on_success=lambda msg: channel.basic_ack(method_frame.delivery_tag),
+                on_success=lambda msg: channel.basic_ack(
+                    method_frame.delivery_tag
+                ),
                 on_error=lambda msg: channel.basic_nack(
-                    method_frame.delivery_tag, requeue=True
+                    method_frame.delivery_tag,
+                    requeue=True,
                 ),
                 on_max=lambda msg: channel.basic_reject(
-                    method_frame.delivery_tag, requeue=False
+                    method_frame.delivery_tag,
+                    requeue=False,
                 ),
             )
 
@@ -266,6 +266,7 @@ class RabbitSyncBroker(
         message, content_type = super()._encode_message(message)
 
         response_event: Optional[Event] = None
+        response_msg: Optional[DecodedMessage] = None
         if callback is True:
             if reply_to is not None:
                 raise WRONG_PUBLISH_ARGS
@@ -279,7 +280,9 @@ class RabbitSyncBroker(
                 header_frame: spec.BasicProperties,
                 body: bytes,
             ):
-                # TODO: return message
+                nonlocal response_msg
+                msg = self._parse_message((channel, method_frame, header_frame, body))
+                response_msg = self._decode_message(msg)
                 response_event.set()
 
             response_consumer_tag = self._channel.basic_consume(
@@ -312,8 +315,11 @@ class RabbitSyncBroker(
 
         if response_event is not None:
             self._channel._process_data_events(callback_timeout)
-            response_event.wait()
-            self._channel.basic_cancel(response_consumer_tag)
+            try:
+                response_event.wait()
+                return response_msg
+            finally:
+                self._channel.basic_cancel(response_consumer_tag)
 
     def _init_handler(self, handler: Handler) -> None:
         self.declare_queue(handler.queue)
@@ -377,17 +383,6 @@ class RabbitSyncBroker(
 
         return exch
 
-    def _wrap_middleware(
-        self,
-        func: Callable[[MsgType], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]],
-    ) -> Callable[[MsgType], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]]:
-        @wraps(func)
-        def middleware_wrapper(message: MsgType) -> T_HandlerReturn:
-            r = func(message)
-            return r
-
-        return middleware_wrapper
-
 
 def _wrap_pika_msg(func):
     @wraps(func)
@@ -399,7 +394,8 @@ def _wrap_pika_msg(func):
         reraise_exc: bool = False,
     ):
         return func(
-            (channel, method_frame, header_frame, body), reraise_exc=reraise_exc
+            (channel, method_frame, header_frame, body),
+            reraise_exc=reraise_exc,
         )
 
     return pika_handler_func_wrapper

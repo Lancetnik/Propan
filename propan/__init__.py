@@ -12,10 +12,10 @@ if is_installed("aio_pika"):
 else:
     RabbitBroker = RabbitRouter = about.INSTALL_RABBIT  # type: ignore
 
-if is_installed("pika"):
+try:
     from propan.brokers.rabbit.rabbit_broker_sync import RabbitSyncBroker
     from propan.brokers.rabbit.routing import RabbitRouter
-else:
+except ImportError:
     RabbitSyncBroker = RabbitRouter = about.INSTALL_RABBIT_SYNC  # type: ignore
 
 if is_installed("nats"):
