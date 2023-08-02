@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Union
 
 import aiormq
@@ -11,7 +11,7 @@ from propan.types import AnyDict, DecodedMessage
 
 @dataclass
 class Publisher(BasePub):
-    _publisher: Optional[AioPikaPublisher] = None
+    _publisher: Optional[AioPikaPublisher] = field(default=None)
 
     async def publish(
         self,

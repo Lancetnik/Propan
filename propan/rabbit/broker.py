@@ -28,10 +28,9 @@ from propan.broker.types import (
     T_HandlerReturn,
 )
 from propan.exceptions import RuntimeException
-from propan.rabbit.asyncapi import Handler
+from propan.rabbit.asyncapi import Handler, Publisher
 from propan.rabbit.helpers import AioPikaPublisher, RabbitDeclarer
 from propan.rabbit.message import RabbitMessage
-from propan.rabbit.publisher import Publisher
 from propan.rabbit.shared.constants import RABBIT_REPLY
 from propan.rabbit.shared.logging import RabbitLoggingMixin
 from propan.rabbit.shared.publisher import AMQPHandlerCallWrapper
@@ -48,12 +47,12 @@ class RabbitBroker(
     BrokerAsyncUsecase[aio_pika.IncomingMessage, aio_pika.RobustConnection],
 ):
     handlers: Dict[int, Handler]
+    _publishers: Dict[int, Publisher]
+
     declarer: Optional[RabbitDeclarer]
     _publisher: Optional[AioPikaPublisher]
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
-
-    _publishers: List[Publisher]
 
     def __init__(
         self,
@@ -98,7 +97,7 @@ class RabbitBroker(
 
     async def connect(self, *args: Any, **kwargs: AnyDict) -> aio_pika.RobustConnection:
         connection = await super().connect(*args, **kwargs)
-        for p in self._publishers:
+        for p in self._publishers.values():
             p._publisher = self._publisher
         return connection
 
@@ -232,21 +231,31 @@ class RabbitBroker(
         timeout: TimeoutType = None,
         persist: bool = False,
         reply_to: Optional[str] = None,
+        # AsyncAPI information
+        title: Optional[str] = None,
+        description: Optional[str] = None,
         **message_kwargs: AnyDict,
     ) -> Publisher:
-        publisher = Publisher(
-            queue=RabbitQueue.validate(queue),
-            exchange=RabbitExchange.validate(exchange),
-            routing_key=routing_key,
-            mandatory=mandatory,
-            immediate=immediate,
-            timeout=timeout,
-            persist=persist,
-            reply_to=reply_to,
-            message_kwargs=message_kwargs,
-            _publisher=self._publisher,
+        q, ex = RabbitQueue.validate(queue), RabbitExchange.validate(exchange)
+        key = get_routing_hash(q, ex)
+        publisher = self._publishers.get(
+            key,
+            Publisher(
+                title=title,
+                description=description,
+                queue=q,
+                exchange=ex,
+                routing_key=routing_key,
+                mandatory=mandatory,
+                immediate=immediate,
+                timeout=timeout,
+                persist=persist,
+                reply_to=reply_to,
+                message_kwargs=message_kwargs,
+                _publisher=self._publisher,
+            ),
         )
-        return super().publisher(publisher)
+        return super().publisher(key, publisher)
 
     async def publish(
         self,

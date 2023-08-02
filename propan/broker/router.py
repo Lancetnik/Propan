@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Callable, Generic, List
+from typing import Any, Callable, Dict, Generic, List
 
 from typing_extensions import ParamSpec, TypeVar
 
@@ -31,7 +31,7 @@ class BrokerRoute(Generic[MsgType, T_RouteReturn]):
 class BrokerRouter(Generic[MsgType]):
     prefix: str
     _handlers: List[BrokerRoute[MsgType, Any]]
-    _publishers: List[BrokerRoute[MsgType, Any]]
+    _publishers: Dict[Any, BrokerRoute[MsgType, Any]]
 
     def __init__(
         self,
@@ -39,7 +39,7 @@ class BrokerRouter(Generic[MsgType]):
     ):
         self.prefix = prefix
         self._handlers = []
-        self._publishers = []
+        self._publishers = {}
 
     @abstractmethod
     def subscriber(

@@ -81,7 +81,7 @@ class KafkaBroker(
         **kwargs: AnyDict,
     ) -> AnyDict:
         connection = await super().connect(*args, **kwargs)
-        for p in self._publishers:
+        for p in self._publishers.values():
             p._publisher = self._publisher
         return connection
 

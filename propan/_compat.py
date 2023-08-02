@@ -48,7 +48,7 @@ if PYDANTIC_V2:
     def dump_json(data: Any) -> str:
         return json.dumps(model_to_jsonable(data))
 
-    def get_model_fileds(model: BaseModel) -> Dict[str, FieldInfo]:
+    def get_model_fields(model: BaseModel) -> Dict[str, FieldInfo]:
         return model.model_fields
 
     def model_to_json(model: BaseModel, **kwargs: AnyDict) -> str:
@@ -81,7 +81,7 @@ else:
     def dump_json(data: Any) -> str:
         return json.dumps(data, default=pydantic_encoder)
 
-    def get_model_fileds(model: BaseModel) -> Dict[str, FieldInfo]:
+    def get_model_fields(model: BaseModel) -> Dict[str, FieldInfo]:
         return model.__fields__
 
     def model_to_json(model: BaseModel, **kwargs: AnyDict) -> str:
