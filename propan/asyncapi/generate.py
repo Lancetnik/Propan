@@ -1,8 +1,9 @@
-from typing import Any, Dict
+from typing import Dict
 
 from propan.app import PropanApp
 from propan.asyncapi import Channel, Components, Info, Message, Schema, Server
 from propan.constants import ContentTypes
+from propan.types import AnyDict
 
 
 def get_app_schema(app: PropanApp) -> Schema:
@@ -10,7 +11,7 @@ def get_app_schema(app: PropanApp) -> Schema:
     channels = get_app_broker_channels(app)
 
     messages: Dict[str, Message] = {}
-    payloads: Dict[str, Dict[str, Any]] = {}
+    payloads: Dict[str, AnyDict] = {}
     for channel_name, ch in channels.items():
         ch.servers = list(servers.keys())
 
