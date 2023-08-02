@@ -181,7 +181,7 @@ async def _fake_close(
     exc_val: Optional[BaseException] = None,
     exec_tb: Optional[TracebackType] = None,
 ) -> None:
-    for p in self._publishers:
+    for key, p in self._publishers.items():
         p.mock.reset_mock()
         if getattr(p, "_fake_handler", False):
             key = get_routing_hash(p.queue, p.exchange)
@@ -193,8 +193,7 @@ async def _fake_close(
 
 
 def _fake_start(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> None:
-    for p in self._publishers:
-        key = get_routing_hash(p.queue, p.exchange)
+    for key, p in self._publishers.items():
         handler = self.handlers.get(key)
 
         if handler is not None:

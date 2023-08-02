@@ -15,7 +15,7 @@ from propan.types import AnyDict
 
 @dataclass
 class Publisher(ABC, BasePub):
-    queue: RabbitQueue
+    queue: RabbitQueue = field(default=RabbitQueue(""))
     exchange: Optional[RabbitExchange] = None
     routing_key: str = ""
     mandatory: bool = True

@@ -61,12 +61,13 @@ class BrokerUsecase(
     logger: Optional[logging.Logger]
     log_level: int
     handlers: Dict[Any, BaseHandler]
+    _publishers: Dict[Any, Publisher]
+
     dependencies: Sequence[Depends]
     started: bool
     middlewares: List[
         Callable[[MsgType], Union[AsyncContextManager[None], ContextManager[None]]]
     ]
-    _publishers: List[Publisher]
     _global_parser: CustomParser[MsgType]
     _global_decoder: CustomDecoder[MsgType]
     _connection: Optional[ConnectionType]
@@ -103,7 +104,7 @@ class BrokerUsecase(
         self._connection = None
         self._is_apply_types = apply_types
         self.handlers = {}
-        self._publishers = []
+        self._publishers = {}
         self.middlewares = [CriticalLogMiddleware(logger), *(middlewares or ())]
         self.dependencies = dependencies
 
@@ -129,8 +130,7 @@ class BrokerUsecase(
         for r in router._handlers:
             self.subscriber(*r.args, **r.kwargs)(r.call)
 
-        for r in router._publishers:
-            self._publishers.append(r)
+        self._publishers.update(router._publishers)
 
     def _resolve_connection_kwargs(self, *args: Any, **kwargs: AnyDict) -> AnyDict:
         arguments = get_function_positional_arguments(self.__init__)  # type: ignore
@@ -200,6 +200,8 @@ class BrokerUsecase(
                         # TODO: remove it with stable PydanticV2
                         params_unique[p.name] = p
 
+            # TODO: build model for AsyncAPI scheme
+            # dependant.model = build_model(...)
             dependant.flat_params = params_unique
 
         if self._is_apply_types is True:
@@ -318,9 +320,10 @@ class BrokerUsecase(
     @abstractmethod
     def publisher(
         self,
+        key: Any,
         publisher: Publisher,
     ) -> Publisher:
-        self._publishers.append(publisher)
+        self._publishers[key] = publisher
         return publisher
 
     @abstractmethod

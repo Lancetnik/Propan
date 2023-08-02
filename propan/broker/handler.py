@@ -17,8 +17,8 @@ from typing import (
 
 from fast_depends.core import CallModel
 
-from propan.asyncapi import Channel
 from propan._compat import IS_OPTIMIZED
+from propan.asyncapi import Channel
 from propan.broker.message import PropanMessage
 from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
@@ -93,7 +93,7 @@ class BaseHandler(Generic[MsgType]):
 
         caller = self.calls[0][0]._original_call
         name = getattr(caller, "__name__", str(caller))
-        return name
+        return name.replace("_", " ").title().replace(" ", "")
 
     @property
     def description(self) -> Optional[str]:
@@ -193,6 +193,7 @@ class AsyncHandler(BaseHandler[MsgType]):
             AsyncParser[MsgType],
             AsyncDecoder[MsgType],
             List[Callable[[PropanMessage[MsgType]], AsyncContextManager[None]]],
+            CallModel[F_Spec, F_Return],
         ]
     ]
 
