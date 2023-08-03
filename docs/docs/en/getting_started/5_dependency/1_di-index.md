@@ -91,7 +91,7 @@ Dependencies can also contain other dependencies. This works in a very predictab
 
 ## Use with regular functions
 
-You can use the decorator `@apply_types` not only together with your `@broker.hanle', but also with the usual functions: both synchronous and asynchronous.
+You can use the decorator `@apply_types` not only together with your `@broker.handle', but also with the usual functions: both synchronous and asynchronous.
 
 === "Sync"
     ```python hl_lines="3-4" linenums="1"
