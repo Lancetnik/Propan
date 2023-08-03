@@ -1,6 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
-from typing import Any, Callable, Type, TypeVar
+from typing import Callable, Type, TypeVar
 from unittest.mock import Mock
 
 import pytest
@@ -17,9 +17,7 @@ Broker = TypeVar("Broker", bound=BrokerAsyncUsecase)
 
 @pytest.mark.asyncio
 class FastAPITestcase:
-    router_class: Type[PropanRouter[BrokerAsyncUsecase, Any]]
-    broker_test: Callable[[Broker], Broker]
-    build_message: AnyCallable
+    router_class: Type[PropanRouter[BrokerAsyncUsecase]]
 
     async def test_base_real(self, mock: Mock, queue: str, event: asyncio.Event):
         router = self.router_class()
@@ -98,6 +96,13 @@ class FastAPITestcase:
 
         assert event.is_set()
         mock.assert_called_once_with("hi")
+
+
+@pytest.mark.asyncio
+class FastAPILocalTestcase:
+    router_class: Type[PropanRouter[BrokerAsyncUsecase]]
+    broker_test: Callable[[Broker], Broker]
+    build_message: AnyCallable
 
     async def test_base(self, queue: str):
         router = self.router_class()

@@ -21,6 +21,7 @@ from yarl import URL
 
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.push_back_watcher import BaseWatcher, OneTryWatcher, WatcherContext
+from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
     AsyncDecoder,
     AsyncParser,
@@ -33,13 +34,11 @@ from propan.rabbit.helpers import AioPikaPublisher, RabbitDeclarer
 from propan.rabbit.message import RabbitMessage
 from propan.rabbit.shared.constants import RABBIT_REPLY
 from propan.rabbit.shared.logging import RabbitLoggingMixin
-from propan.rabbit.shared.publisher import AMQPHandlerCallWrapper
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
 from propan.rabbit.shared.types import TimeoutType
-from propan.rabbit.types import AioPikaSendableMessage
 from propan.types import AnyDict, DecodedMessage
 from propan.utils import context
-from propan.utils.functions import to_async
+from propan.utils.functions import patch_annotation, to_async
 
 
 class RabbitBroker(
@@ -172,7 +171,7 @@ class RabbitBroker(
         **original_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
     ]:
         super().subscriber()
 
@@ -196,8 +195,8 @@ class RabbitBroker(
 
         def consumer_wrapper(
             func: Callable[P_HandlerParams, T_HandlerReturn],
-        ) -> AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
-            handler_call: AMQPHandlerCallWrapper
+        ) -> HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
+            handler_call: HandlerCallWrapper
             wrapped_func, handler_call, dependant = self._wrap_handler(
                 func,
                 extra_dependencies=dependencies,
@@ -257,45 +256,18 @@ class RabbitBroker(
         )
         return super().publisher(key, publisher)
 
+    @patch_annotation(AioPikaPublisher.publish)
     async def publish(
-        self,
-        message: AioPikaSendableMessage = "",
-        queue: Union[RabbitQueue, str] = "",
-        exchange: Union[RabbitExchange, str, None] = None,
-        *,
-        routing_key: str = "",
-        mandatory: bool = True,
-        immediate: bool = False,
-        timeout: TimeoutType = None,
-        rpc: bool = False,
-        rpc_timeout: Optional[float] = 30.0,
-        raise_timeout: bool = False,
-        persist: bool = False,
-        reply_to: Optional[str] = None,
-        **message_kwargs: AnyDict,
+        self, *args: Any, **kwargs: AnyDict
     ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
         if self._channel is None:
-            raise ValueError("RabbitBroker channel not started yet")
-        return await self._publisher.publish(
-            message=message,
-            queue=queue,
-            exchange=exchange,
-            routing_key=routing_key,
-            mandatory=mandatory,
-            immediate=immediate,
-            timeout=timeout,
-            rpc=rpc,
-            rpc_timeout=rpc_timeout,
-            raise_timeout=raise_timeout,
-            persist=persist,
-            reply_to=reply_to,
-            **message_kwargs,
-        )
+            raise ValueError("RabbitBroker channel is not started yet")
+        return await self._publisher.publish(*args, **kwargs)
 
     def _process_message(
         self,
         func: Callable[[RabbitMessage], Awaitable[T_HandlerReturn]],
-        call_wrapper: AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        call_wrapper: HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
         watcher: Optional[BaseWatcher],
     ) -> Callable[[RabbitMessage], Awaitable[T_HandlerReturn]]:
         if watcher is None:
@@ -333,6 +305,7 @@ class RabbitBroker(
                                     getattr(publisher, "queue", RabbitQueue("")),
                                     getattr(publisher, "exchange", None),
                                 ),
+                                exc_info=e,
                             )
 
                     return r

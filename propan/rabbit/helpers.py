@@ -153,8 +153,8 @@ class AioPikaPublisher:
         self,
         channel: aio_pika.RobustChannel,
         declarer: RabbitDeclarer,
-        global_parser,
-        global_decoder,
+        global_parser: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
+        global_decoder: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
     ):
         self._channel = channel
         self.declarer = declarer
