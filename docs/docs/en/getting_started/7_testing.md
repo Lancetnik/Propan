@@ -10,6 +10,11 @@ Runs a test suite more presently than instantiate a container with your Message 
 
 Also, the absence of dependencies helps to avoid tests failure, based on an error in transmitting data to the broker, or accessing broker too early (when the container is not yet ready to receive connection).
 
+!!! note
+    To run asynchronous tests using **pytest**, you need to install extensions.
+
+    You can use, for example, [**pytest-asyncio**](https://pytest-asyncio.readthedocs.io/en/latest/){target="_blank"} or [**anyio**](https://anyio.readthedocs.io/en/stable/testing.html){target="_blank"}
+
 ## Broker modification
 
 **Propan** allows you to modify the behavior of your broker so that it passes messages "in memory" without requiring you to discover external dependencies.
