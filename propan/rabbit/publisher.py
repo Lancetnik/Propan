@@ -20,6 +20,7 @@ class Publisher(BasePub):
         rpc: bool = False,
         rpc_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
+        correlation_id: Optional[str] = None,
         **message_kwargs: AnyDict,
     ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
         return await self._publisher.publish(
@@ -35,6 +36,7 @@ class Publisher(BasePub):
             raise_timeout=raise_timeout,
             persist=self.persist,
             reply_to=self.reply_to,
+            correlation_id=correlation_id,
             **self.message_kwargs,
             **message_kwargs,
         )

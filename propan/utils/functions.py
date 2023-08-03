@@ -38,3 +38,14 @@ def get_function_positional_arguments(func: AnyCallable) -> List[str]:
     return [
         param.name for param in signature.parameters.values() if param.kind in arg_kinds
     ]
+
+
+def patch_annotation(
+    func: Callable[F_Spec, F_Return]
+) -> Callable[[Callable[..., F_Return]], Callable[F_Spec, F_Return],]:
+    def patch_annotation_wrapper(
+        wrapper: Callable[..., F_Return]
+    ) -> Callable[F_Spec, F_Return]:
+        return wraps(func)(wrapper)
+
+    return patch_annotation_wrapper

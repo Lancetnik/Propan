@@ -33,10 +33,9 @@ from propan.types import AnyDict
 from propan.utils.functions import to_async
 
 Broker = TypeVar("Broker", bound=BrokerAsyncUsecase[Any, Any])
-MsgType = TypeVar("MsgType")
 
 
-class PropanRouter(APIRouter, Generic[Broker, MsgType]):
+class PropanRouter(APIRouter, Generic[Broker]):
     broker_class: Type[Broker]
     broker: Broker
     docs_router: Optional[APIRouter]

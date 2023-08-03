@@ -1,8 +1,10 @@
 import asyncio
 from typing import Any, AsyncContextManager, Awaitable, Callable, List, Optional
 
+import anyio
 from aiokafka import AIOKafkaConsumer, ConsumerRecord
 from fast_depends.core import CallModel
+from typing_extensions import Never
 
 from propan.broker.handler import AsyncHandler
 from propan.broker.schemas import HandlerCallWrapper
@@ -36,13 +38,18 @@ class Handler(AsyncHandler[ConsumerRecord]):
         self.consumer = None
 
     async def start(self, **consumer_kwargs: AnyDict) -> None:
-        self.consumer = consumer = self.builder(**consumer_kwargs)
+        self.consumer = consumer = self.builder(*self.topics, **consumer_kwargs)
         await consumer.start()
+        self.task = asyncio.create_task(self._consume())
 
     async def close(self) -> None:
         if self.consumer is not None:
             await self.consumer.stop()
             self.consumer = None
+
+        if self.task is not None:
+            self.task.cancel()
+            self.task = None
 
     def add_call(
         self,
@@ -70,3 +77,25 @@ class Handler(AsyncHandler[ConsumerRecord]):
             dependant=dependant,
             middlewares=middlewares,
         )
+
+    async def _consume(self) -> Never:
+        # TODO: log connection lost
+        # c = self._get_log_context(None, self.topics)
+
+        connected = True
+        while True:
+            try:
+                msg = await self.consumer.getone()
+
+            except Exception:
+                if connected is True:
+                    # self._log(e, logging.WARNING, c)
+                    connected = False
+                await anyio.sleep(5)
+
+            else:
+                if connected is False:
+                    # self._log("Connection established", logging.INFO, c)
+                    connected = True
+
+                await self.consume(msg)

@@ -1,17 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    overload,
-)
+from typing import Any, Callable, Generic, List, Optional, Tuple, Type, Union, overload
 from unittest.mock import MagicMock
 
 from pydantic import BaseModel, Field, Json
@@ -53,7 +42,6 @@ class NameRequired(BaseModel):
 
 class HandlerCallWrapper(Generic[P_HandlerParams, T_HandlerReturn]):
     mock: MagicMock
-    response_mocks: Dict[str, MagicMock]
 
     _wrapped_call: Optional[DecoratedCallable]
     _original_call: Callable[P_HandlerParams, T_HandlerReturn]
@@ -77,7 +65,6 @@ class HandlerCallWrapper(Generic[P_HandlerParams, T_HandlerReturn]):
             self._wrapped_call = None
             self._publishers = []
             self.mock = MagicMock()
-            self.response_mocks = {}
             self.__name__ = getattr(self._original_call, "__name__", "undefined")
 
     def __call__(
@@ -119,7 +106,10 @@ class Publisher:
 
     @abstractmethod
     def publish(
-        self, message: SendableMessage, **kwargs: AnyDict
+        self,
+        message: SendableMessage,
+        correlation_id: Optional[str] = None,
+        **kwargs: AnyDict,
     ) -> Optional[DecodedMessage]:
         raise NotImplementedError()
 

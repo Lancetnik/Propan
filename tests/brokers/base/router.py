@@ -10,6 +10,7 @@ from tests.brokers.base.parser import LocalCustomParserTestcase
 
 
 @pytest.mark.asyncio
+@pytest.mark.rabbit
 class RouterTestcase(LocalMiddlewareTestcase, LocalCustomParserTestcase):
     build_message: AnyCallable
 
@@ -239,14 +240,15 @@ class RouterLocalTestcase(RouterTestcase):
         subscriber.mock.assert_called_with("hello")
 
     async def test_manual_publisher_mock(
-        self, queue: str, pub_broker: BrokerAsyncUsecase
+        self, router: BrokerRouter, queue: str, pub_broker: BrokerAsyncUsecase
     ):
-        publisher = pub_broker.publisher(queue + "resp")
+        publisher = router.publisher(queue + "resp")
 
         @pub_broker.subscriber(queue)
         async def m(m):
             await publisher.publish("response")
 
+        pub_broker.include_router(router)
         await pub_broker.start()
         await pub_broker.publish("hello", queue)
         publisher.mock.assert_called_with("response")

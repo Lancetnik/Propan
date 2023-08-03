@@ -1,4 +1,5 @@
-from functools import partial
+import logging
+from functools import partial, wraps
 from types import TracebackType
 from typing import (
     Any,
@@ -21,20 +22,22 @@ from typing_extensions import Literal
 
 from propan.__about__ import __version__
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
-from propan.broker.push_back_watcher import BaseWatcher
-from propan.broker.schemas import HandlerCallWrapper, Publisher
+from propan.broker.push_back_watcher import BaseWatcher, OneTryWatcher, WatcherContext
+from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
     AsyncDecoder,
     AsyncParser,
     P_HandlerParams,
     T_HandlerReturn,
 )
-from propan.kafka.handler import Handler
+from propan.exceptions import RuntimeException
+from propan.kafka.asyncapi import Handler, Publisher
+from propan.kafka.helpers import AioKafkaPublisher
 from propan.kafka.message import KafkaMessage
 from propan.kafka.shared.logging import KafkaLoggingMixin
-from propan.types import AnyDict, DecodedMessage, SendableMessage
+from propan.types import AnyDict, DecodedMessage
 from propan.utils import context
-from propan.utils.functions import to_async
+from propan.utils.functions import patch_annotation, to_async
 
 
 class KafkaBroker(
@@ -42,7 +45,8 @@ class KafkaBroker(
     BrokerAsyncUsecase[aiokafka.ConsumerRecord, AnyDict],
 ):
     handlers: Dict[str, Handler]
-    _publisher: Optional[aiokafka.AIOKafkaProducer]
+    _publishers: Dict[int, Publisher]
+    _publisher: Optional[AioKafkaPublisher]
 
     def __init__(
         self,
@@ -94,7 +98,11 @@ class KafkaBroker(
         producer = aiokafka.AIOKafkaProducer(**kwargs)
         context.set_global("producer", producer)
         await producer.start()
-        self._publisher = producer
+        self._publisher = AioKafkaPublisher(
+            producer=producer,
+            global_decoder=self._global_decoder,
+            global_parser=self._global_parser,
+        )
 
         consumer_kwargs = {
             k: v
@@ -134,13 +142,54 @@ class KafkaBroker(
             self._log(f"`{handler.name}` waiting for messages", extra=c)
             await handler.start(**self._connection)
 
-    async def _process_message(
+    def _process_message(
         self,
         func: Callable[[KafkaMessage], Awaitable[T_HandlerReturn]],
         call_wrapper: HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
-        watcher: BaseWatcher | None,
+        watcher: Optional[BaseWatcher],
     ) -> Callable[[KafkaMessage], Awaitable[T_HandlerReturn]]:
-        return super()._process_message(func, call_wrapper, watcher)
+        if watcher is None:
+            watcher = OneTryWatcher()
+
+        @wraps(func)
+        async def process_wrapper(message: KafkaMessage) -> T_HandlerReturn:
+            async with WatcherContext(watcher, message):
+                try:
+                    r = await self._execute_handler(func, message)
+
+                except RuntimeException:
+                    pass
+
+                else:
+                    headers = {"correlation_id": message.correlation_id}
+
+                    if message.reply_to:
+                        await self.publish(
+                            message=r or "",
+                            headers=headers,
+                            topic=message.reply_to,
+                        )
+
+                    for publisher in call_wrapper._publishers:
+                        try:
+                            await publisher.publish(
+                                message=r,
+                                correlation_id=message.correlation_id,
+                            )
+                        except Exception as e:
+                            self._log(
+                                f"Publish exception: {e}",
+                                logging.ERROR,
+                                self._get_log_context(
+                                    context.get_local("message"),
+                                    (getattr(publisher, "topic", ""),),
+                                ),
+                                exc_info=e,
+                            )
+
+                    return r
+
+        return process_wrapper
 
     def subscriber(
         self,
@@ -195,7 +244,7 @@ class KafkaBroker(
         **original_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        Any,  # AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
     ]:
         super().subscriber()
 
@@ -238,8 +287,7 @@ class KafkaBroker(
 
         def consumer_wrapper(
             func: Callable[P_HandlerParams, T_HandlerReturn],
-        ) -> Any:  # AMQPHandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
-            # handler_call: AMQPHandlerCallWrapper
+        ) -> HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
             wrapped_func, handler_call, dependant = self._wrap_handler(
                 func=func,
                 extra_dependencies=dependencies,
@@ -252,8 +300,8 @@ class KafkaBroker(
                 wrapped_call=wrapped_func,
                 filter=to_async(filter),
                 middlewares=middlewares,
-                parser=parser or self._global_parser,
-                decoder=decoder or self._global_decoder,
+                parser=parser or self._global_parser,  # specify batch parser here
+                decoder=decoder or self._global_decoder,  # specify batch decoder here
                 dependant=dependant,
             )
 
@@ -261,25 +309,31 @@ class KafkaBroker(
 
         return consumer_wrapper
 
-    def publisher(self, publisher: Publisher) -> Publisher:
-        return super().publisher(publisher)
-
-    async def publish(
+    def publisher(
         self,
-        message: SendableMessage,
-        *args: Any,
+        topic: str,
+        key: Optional[bytes] = None,
+        partition: Optional[int] = None,
+        timestamp_ms: Optional[int] = None,
+        headers: Optional[Dict[str, str]] = None,
         reply_to: str = "",
-        rpc: bool = False,
-        rpc_timeout: Optional[float] = None,
-        raise_timeout: bool = False,
-        **kwargs: AnyDict,
-    ) -> Optional[DecodedMessage]:
-        return await super().publish(
-            message,
-            *args,
-            reply_to=reply_to,
-            rpc=rpc,
-            rpc_timeout=rpc_timeout,
-            raise_timeout=raise_timeout,
-            **kwargs,
+    ) -> Publisher:
+        publisher = self._publishers.get(
+            topic,
+            Publisher(
+                topic=topic,
+                key=key,
+                partition=partition,
+                timestamp_ms=timestamp_ms,
+                headers=headers,
+                reply_to=reply_to,
+                _publisher=self._publisher,
+            ),
         )
+        return super().publisher(topic, publisher)
+
+    @patch_annotation(AioKafkaPublisher.publish)
+    async def publish(self, *args: Any, **kwargs: AnyDict) -> Optional[DecodedMessage]:
+        if self._publisher is None:
+            raise ValueError("KafkaBroker is not started yet")
+        return await self._publisher.publish(*args, **kwargs)
