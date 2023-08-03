@@ -17,7 +17,7 @@ import pika
 from fast_depends.dependencies import Depends
 from pika import spec
 from pika.adapters import blocking_connection
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, Never
 
 from propan._compat import model_to_dict
 from propan.brokers._model.broker_usecase import (
@@ -116,13 +116,17 @@ class RabbitSyncBroker(
             self._connection.close()
             self._connection = None
 
-    def start(self) -> None:
+    def start(self) -> Never:
         context.set_local(
             "log_context",
             self._get_log_context(None, RabbitQueue(""), RabbitExchange("")),
         )
 
         super().start()
+        self._channel.start_consuming()
+
+    def _init_handlers(self):
+        super()._init_handlers()
 
         for handler in self.handlers:
             self._init_handler(handler)
@@ -135,8 +139,6 @@ class RabbitSyncBroker(
                 queue=handler.queue.name,
                 on_message_callback=func,
             )
-
-        self._channel.start_consuming()
 
     def handle(
         self,

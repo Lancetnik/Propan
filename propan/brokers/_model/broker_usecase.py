@@ -652,11 +652,18 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
 class BrokerSyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     _global_parser: SyncParser[MsgType]
     _global_decoder: SyncDecoder[MsgType]
+    _inited: bool
 
     @abstractmethod
     def start(self) -> None:
         super().start()
+        if not self._inited:
+            self._init_handlers()
         self.connect()
+
+    @abstractmethod
+    def _init_handlers(self) -> Any:
+        self._inited = True
 
     @abstractmethod
     def _connect(self, **kwargs: AnyDict) -> Any:
@@ -670,6 +677,7 @@ class BrokerSyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         exec_tb: Optional[TracebackType] = None,
     ) -> None:
         super().close()
+        self._inited = False
 
     @abstractmethod
     def _process_message(  # type: ignore[override]
@@ -755,6 +763,7 @@ class BrokerSyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             url_=url_,
             **kwargs,
         )
+        self._inited = False
 
     def connect(self, *args: Any, **kwargs: AnyDict) -> ConnectionType:
         if self._connection is None:

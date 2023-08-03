@@ -1,28 +1,22 @@
-import multiprocessing
-import threading
-import time
 from typing import Any
 
 from propan.brokers._model import BrokerSyncUsecase
-from propan.brokers.rabbit import RabbitSyncBroker
 
 
 class BrokerConsumeSyncTestcase:
     def test_consume(self, queue: str, broker: BrokerSyncUsecase):
-        message: Any = "hello"
+        message: Any = None
 
         @broker.handle(queue)
         def handle(body):
-            print("handle", body)
             nonlocal message
             message = body
-            exit(0)
+            broker.close()
 
         with broker:
-            process = threading.Thread(target=broker.start)
-            process.start()
+            broker._init_handlers()
             broker.publish("hello", queue)
-            print("publish")
+            broker.start()
 
         assert message == "hello"
 
