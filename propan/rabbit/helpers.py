@@ -11,7 +11,7 @@ from anyio.streams.memory import MemoryObjectReceiveStream
 
 from propan._compat import model_to_dict
 from propan.broker.parsers import decode_message, encode_message
-from propan.broker.types import AsyncDecoder, AsyncParser
+from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
 from propan.exceptions import WRONG_PUBLISH_ARGS
 from propan.rabbit.message import RabbitMessage
 from propan.rabbit.shared.constants import RABBIT_REPLY
@@ -145,16 +145,16 @@ class RPCCallback:
 class AioPikaPublisher:
     _channel: aio_pika.RobustChannel
     _rpc_lock: anyio.Lock
-    _decoder: AsyncDecoder[aio_pika.IncomingMessage]
-    _parser: AsyncParser[aio_pika.IncomingMessage]
+    _decoder: AsyncCustomDecoder[aio_pika.IncomingMessage]
+    _parser: AsyncCustomParser[aio_pika.IncomingMessage]
     declarer: RabbitDeclarer
 
     def __init__(
         self,
         channel: aio_pika.RobustChannel,
         declarer: RabbitDeclarer,
-        global_parser: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
-        global_decoder: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
+        global_parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
+        global_decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
     ):
         self._channel = channel
         self.declarer = declarer

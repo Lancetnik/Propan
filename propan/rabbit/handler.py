@@ -5,14 +5,14 @@ from fast_depends.core import CallModel
 
 from propan.broker.handler import AsyncHandler
 from propan.broker.schemas import HandlerCallWrapper
-from propan.broker.types import AsyncDecoder, AsyncParser
+from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
 from propan.rabbit.helpers import AioPikaParser, RabbitDeclarer
 from propan.rabbit.message import RabbitMessage
-from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue
+from propan.rabbit.shared.schemas import BaseRMQInformation, RabbitExchange, RabbitQueue
 from propan.types import AnyDict, F_Return, F_Spec
 
 
-class Handler(AsyncHandler[aio_pika.IncomingMessage]):
+class Handler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
     queue: RabbitQueue
     exchange: Optional[RabbitExchange]
     consume_args: AnyDict
@@ -48,8 +48,8 @@ class Handler(AsyncHandler[aio_pika.IncomingMessage]):
             Awaitable[Optional[F_Return]],
         ],
         dependant: CallModel[F_Spec, F_Return],
-        parser: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
-        decoder: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
+        parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
+        decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         filter: Callable[
             [RabbitMessage], Awaitable[bool]
         ] = lambda m: not m.processed,  # pragma: no cover
@@ -72,7 +72,7 @@ class Handler(AsyncHandler[aio_pika.IncomingMessage]):
             middlewares=middlewares,
         )
 
-    async def start(self, declarer: RabbitDeclarer) -> None:
+    async def start(self, declarer: RabbitDeclarer) -> None:  # type: ignore[override]
         self._queue_obj = queue = await declarer.declare_queue(self.queue)
 
         if self.exchange is not None:

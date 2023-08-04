@@ -21,7 +21,7 @@ from typing_extensions import assert_never
 
 from propan.broker.test import call_handler, patch_broker_calls
 from propan.rabbit.broker import RabbitBroker
-from propan.rabbit.helpers import AioPikaParser
+from propan.rabbit.helpers import AioPikaParser, AioPikaPublisher
 from propan.rabbit.message import RabbitMessage
 from propan.rabbit.shared.constants import ExchangeType
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
@@ -35,9 +35,9 @@ def TestRabbitBroker(broker: RabbitBroker) -> RabbitBroker:
     broker._channel = AsyncMock()
     broker.declarer = AsyncMock()
     _fake_start(broker)
-    broker.start = AsyncMock(wraps=partial(_fake_start, broker))
-    broker._connect = MethodType(_fake_connect, broker)
-    broker.close = MethodType(_fake_close, broker)
+    broker.start = AsyncMock(wraps=partial(_fake_start, broker))  # type: ignore[method-assign]
+    broker._connect = MethodType(_fake_connect, broker)  # type: ignore[method-assign]
+    broker.close = MethodType(_fake_close, broker)  # type: ignore[method-assign]
     return broker
 
 
@@ -61,15 +61,22 @@ def build_message(
     reply_to: Optional[str] = None,
     **message_kwargs: AnyDict,
 ) -> PatchedMessage:
-    que, exch = RabbitQueue.validate(queue), RabbitExchange.validate(exchange)
-    msg = AioPikaParser.encode_message(message, **message_kwargs)
+    que = RabbitQueue.validate(queue)
+    exch = RabbitExchange.validate(exchange)
+    msg = AioPikaParser.encode_message(
+        message=message,
+        persist=False,
+        reply_to=reply_to,
+        callback_queue=None,
+        **message_kwargs,
+    )
 
     routing = routing_key or (que.name if que else "")
 
     return PatchedMessage(
         aiormq.abc.DeliveredMessage(
             delivery=spec.Basic.Deliver(
-                exchange=exch.name if exch else "",
+                exchange=exch.name if exch and exch.name else "",
                 routing_key=routing,
             ),
             header=ContentHeader(
@@ -86,7 +93,7 @@ def build_message(
     )
 
 
-class FakePublisher:
+class FakePublisher(AioPikaPublisher):
     def __init__(self, broker: RabbitBroker):
         self.broker = broker
 
@@ -120,25 +127,30 @@ class FakePublisher:
 
         for handler in self.broker.handlers.values():  # pragma: no branch
             if handler.exchange == exch:
-                call = False
+                call: bool = False
 
-                if exch is None or handler.exchange.type == ExchangeType.DIRECT:
+                if (
+                    handler.exchange is None
+                    or handler.exchange.type == ExchangeType.DIRECT
+                ):
                     call = handler.queue.name == incoming.routing_key
 
                 elif handler.exchange.type == ExchangeType.FANOUT:
                     call = True
 
                 elif handler.exchange.type == ExchangeType.TOPIC:
-                    call = re.match(
-                        handler.queue.name.replace(".", r"\.").replace("*", ".*"),
-                        incoming.routing_key,
+                    call = bool(
+                        re.match(
+                            handler.queue.name.replace(".", r"\.").replace("*", ".*"),
+                            incoming.routing_key or "",
+                        )
                     )
 
                 elif handler.exchange.type == ExchangeType.HEADERS:  # pramga: no branch
                     queue_headers = handler.queue.bind_arguments
                     msg_headers = incoming.headers
 
-                    if not queue_headers and not msg_headers:
+                    if not queue_headers:
                         call = True
 
                     else:
@@ -153,10 +165,10 @@ class FakePublisher:
                                 none = False
 
                         if not none:
-                            call = matcher == "any" or full
+                            call = (matcher == "any") or full
 
                 else:  # pragma: no cover
-                    assert_never(handler.exchange.type)
+                    assert_never(exch)
 
                 if call:
                     r = await call_handler(
@@ -208,8 +220,8 @@ def _fake_start(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> None:
                 exchange=p.exchange,
                 _raw=True,
             )
-            def f(msg: RabbitMessage):
-                pass
+            def f(msg: RabbitMessage) -> str:
+                return ""
 
             p.mock = f.mock
 

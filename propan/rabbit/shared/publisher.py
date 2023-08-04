@@ -5,15 +5,13 @@ from typing import Optional
 from typing_extensions import TypeAlias
 
 from propan.broker.schemas import Publisher as BasePub
-from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue
+from propan.rabbit.shared.schemas import BaseRMQInformation
 from propan.rabbit.shared.types import TimeoutType
 from propan.types import AnyDict
 
 
 @dataclass
-class Publisher(ABC, BasePub):
-    queue: RabbitQueue = field(default=RabbitQueue(""))
-    exchange: Optional[RabbitExchange] = None
+class Publisher(ABC, BasePub, BaseRMQInformation):
     routing_key: str = ""
     mandatory: bool = True
     immediate: bool = False

@@ -12,13 +12,13 @@ T_RouteReturn = TypeVar("T_RouteReturn", bound=SendableMessage)
 
 
 class BrokerRoute(Generic[MsgType, T_RouteReturn]):
-    call: Callable[P_RouteCall, T_RouteReturn]
+    call: Callable[..., T_RouteReturn]
     args: Any
     kwargs: AnyDict
 
     def __init__(
         self,
-        call: Callable[P_RouteCall, T_RouteReturn],
+        call: Callable[..., T_RouteReturn],
         *,
         args: Any,
         kwargs: AnyDict,
@@ -61,9 +61,9 @@ class BrokerRouter(Generic[MsgType]):
     ]:
         def router_subscriber_wrapper(
             func: Callable[P_RouteCall, T_RouteReturn]
-        ) -> BrokerRoute[MsgType, T_RouteReturn]:
+        ) -> HandlerCallWrapper[P_RouteCall, T_RouteReturn]:
             func = HandlerCallWrapper(func)
-            route = BrokerRoute(
+            route: BrokerRoute[MsgType, T_RouteReturn] = BrokerRoute(
                 call=func,
                 args=args,
                 kwargs=kwargs,

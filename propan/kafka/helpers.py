@@ -4,7 +4,7 @@ from uuid import uuid4
 import aiokafka
 
 from propan.broker.parsers import decode_message, encode_message
-from propan.broker.types import AsyncDecoder, AsyncParser
+from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
 from propan.kafka.message import KafkaMessage
 from propan.types import DecodedMessage, SendableMessage
 
@@ -32,14 +32,14 @@ class AioKafkaParser:
 
 class AioKafkaPublisher:
     _producer: Optional[aiokafka.AIOKafkaProducer]
-    _decoder: AsyncDecoder[aiokafka.ConsumerRecord]
-    _parser: AsyncParser[aiokafka.ConsumerRecord]
+    _decoder: AsyncCustomDecoder[aiokafka.ConsumerRecord]
+    _parser: AsyncCustomParser[aiokafka.ConsumerRecord]
 
     def __init__(
         self,
         producer: aiokafka.AIOKafkaProducer,
-        global_parser: Optional[AsyncDecoder[aiokafka.ConsumerRecord]] = None,
-        global_decoder: Optional[AsyncParser[aiokafka.ConsumerRecord]] = None,
+        global_parser: Optional[AsyncCustomDecoder[aiokafka.ConsumerRecord]] = None,
+        global_decoder: Optional[AsyncCustomParser[aiokafka.ConsumerRecord]] = None,
     ):
         self._producer = producer
         self._parser = global_parser or AioKafkaParser.parse_message

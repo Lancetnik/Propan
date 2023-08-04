@@ -38,12 +38,12 @@ class LoggingMixin:
         message: str,
         log_level: Optional[int] = None,
         extra: Optional[AnyDict] = None,
-        **kwargs: AnyDict,
+        exc_info: Optional[Exception] = None,
     ) -> None:
         if self.logger is not None:
             self.logger.log(
                 level=(log_level or self.log_level),
                 msg=message,
                 extra=extra,
-                **kwargs,
+                exc_info=exc_info,
             )

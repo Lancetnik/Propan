@@ -3,6 +3,7 @@ from abc import abstractmethod
 from contextlib import AsyncExitStack, ExitStack
 from functools import partial
 from typing import (
+    Any,
     AsyncContextManager,
     Awaitable,
     Callable,
@@ -18,30 +19,47 @@ from typing import (
 from fast_depends.core import CallModel
 
 from propan._compat import IS_OPTIMIZED
-from propan.asyncapi import Channel
+from propan.asyncapi.base import AsyncAPIOperation
 from propan.broker.message import PropanMessage
 from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
+    AsyncCustomDecoder,
+    AsyncCustomParser,
     AsyncDecoder,
     AsyncParser,
     CustomDecoder,
     CustomParser,
+    Decoder,
     MsgType,
+    Parser,
+    SyncCustomDecoder,
+    SyncCustomParser,
+    SyncDecoder,
+    SyncParser,
 )
 from propan.exceptions import StopConsume
-from propan.types import F_Return, F_Spec
+from propan.types import F_Spec, SendableMessage, SendableReturn
 
 
-class BaseHandler(Generic[MsgType]):
+async def async_default_filter(msg: PropanMessage[Any]) -> bool:
+    return not msg.processed
+
+
+class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
     calls: List[
         Tuple[
-            HandlerCallWrapper[F_Spec, F_Return],
-            Callable[[MsgType, bool], F_Return],
-            Callable[[PropanMessage[MsgType]], bool],
-            CustomParser[MsgType],
-            CustomDecoder[MsgType],
-            List[Callable[[PropanMessage[MsgType]], ContextManager[None]]],
-            CallModel[F_Spec, F_Return],
+            HandlerCallWrapper[..., SendableMessage],  # original
+            Callable[  # wrapped
+                [PropanMessage[MsgType]],
+                Optional[SendableMessage],
+            ],
+            Callable[[PropanMessage[MsgType]], bool],  # filter
+            SyncParser[MsgType],  # parser
+            SyncDecoder[MsgType],  # decoder
+            List[  # middlewares
+                Callable[[PropanMessage[MsgType]], ContextManager[None]]
+            ],
+            CallModel[..., SendableMessage],  # dependant
         ]
     ]
 
@@ -54,19 +72,16 @@ class BaseHandler(Generic[MsgType]):
     ):
         self.calls = []
         self.global_middlewares = []
-        self.call_middlewares = {}
-        self.parsers = {}
-        self.decoders = {}
         # AsyncAPI information
         self._description = description
 
     def add_call(
         self,
-        handler: HandlerCallWrapper[F_Spec, F_Return],
-        wrapped_call: Callable[[MsgType, bool], F_Return],
-        parser: CustomParser[MsgType],
-        decoder: CustomDecoder[MsgType],
-        dependant: CallModel[F_Spec, F_Return],
+        handler: HandlerCallWrapper[F_Spec, SendableReturn],
+        wrapped_call: Callable[[PropanMessage[MsgType]], Optional[SendableReturn]],
+        parser: SyncParser[MsgType],
+        decoder: SyncDecoder[MsgType],
+        dependant: CallModel[F_Spec, SendableReturn],
         filter: Callable[
             [PropanMessage[MsgType]], bool
         ] = lambda m: not m.processed,  # pragma: no cover
@@ -75,7 +90,7 @@ class BaseHandler(Generic[MsgType]):
         ] = None,
     ) -> None:
         self.calls.append(
-            (
+            (  # type: ignore
                 handler,
                 wrapped_call,
                 filter,
@@ -107,8 +122,8 @@ class BaseHandler(Generic[MsgType]):
         return self._description or description
 
     @abstractmethod
-    def consume(self, msg: MsgType) -> None:
-        result = None
+    def consume(self, msg: MsgType) -> SendableMessage:
+        result: SendableMessage = None
 
         with ExitStack() as stack:
             for m in self.global_middlewares:
@@ -122,27 +137,26 @@ class BaseHandler(Generic[MsgType]):
 
                 if f(message):
                     assert (
-                        not message.processed
+                        not processed
                     ), "You can't proccess a message with multiple consumers"
 
                     try:
-                        for m in middlewares:
-                            stack.enter_context(m(message))
+                        for inner_m in middlewares:
+                            stack.enter_context(inner_m(message))
 
                         handler.mock(message.decoded_body)
                         result = call(message)
+
                     except StopConsume:
                         self.close()
-                        return
+                        return None
+
                     else:
+                        message.processed = processed = True
                         if IS_OPTIMIZED:
                             break
-                        processed = True
 
         return result
-
-    def schema(self) -> Tuple[str, Optional[Channel]]:
-        return self.name, None
 
     @abstractmethod
     def start(self) -> None:
@@ -155,24 +169,40 @@ class BaseHandler(Generic[MsgType]):
     @overload
     @staticmethod
     def _resolve_custom_func(
-        custom_func: Optional[CustomDecoder[MsgType]],
-        default_func: CustomDecoder[MsgType],
-    ) -> CustomDecoder[MsgType]:
+        custom_func: Optional[SyncCustomDecoder[MsgType]],
+        default_func: SyncDecoder[MsgType],
+    ) -> SyncDecoder[MsgType]:
         ...
 
     @overload
     @staticmethod
     def _resolve_custom_func(
-        custom_func: Optional[CustomParser[MsgType]],
-        default_func: CustomParser[MsgType],
-    ) -> CustomParser[MsgType]:
+        custom_func: Optional[SyncCustomParser[MsgType]],
+        default_func: SyncParser[MsgType],
+    ) -> SyncParser[MsgType]:
+        ...
+
+    @overload
+    @staticmethod
+    def _resolve_custom_func(
+        custom_func: Optional[AsyncCustomDecoder[MsgType]],
+        default_func: AsyncDecoder[MsgType],
+    ) -> AsyncDecoder[MsgType]:
+        ...
+
+    @overload
+    @staticmethod
+    def _resolve_custom_func(
+        custom_func: Optional[AsyncCustomParser[MsgType]],
+        default_func: AsyncParser[MsgType],
+    ) -> AsyncParser[MsgType]:
         ...
 
     @staticmethod
     def _resolve_custom_func(
         custom_func: Optional[Union[CustomDecoder[MsgType], CustomParser[MsgType]]],
-        default_func: Union[CustomDecoder[MsgType], CustomParser[MsgType]],
-    ) -> Union[CustomDecoder[MsgType], CustomParser[MsgType]]:
+        default_func: Union[Decoder[MsgType], Parser[MsgType]],
+    ) -> Union[Decoder[MsgType], Parser[MsgType]]:
         if custom_func is None:
             return default_func
 
@@ -181,52 +211,62 @@ class BaseHandler(Generic[MsgType]):
             len(original_params) == 2
         ), "You should specify 2 incoming arguments: [<msg>, <original_function>]"
         name = tuple(original_params.items())[1][0]
-        return partial(custom_func, **{name: default_func})
+        return partial(custom_func, **{name: default_func})  # type: ignore
 
 
 class AsyncHandler(BaseHandler[MsgType]):
-    calls: List[
+    calls: List[  # type: ignore[assignment]
         Tuple[
-            HandlerCallWrapper[F_Spec, F_Return],
-            Callable[[MsgType, bool], Awaitable[F_Return]],
-            Callable[[PropanMessage[MsgType]], Awaitable[bool]],
-            AsyncParser[MsgType],
-            AsyncDecoder[MsgType],
-            List[Callable[[PropanMessage[MsgType]], AsyncContextManager[None]]],
-            CallModel[F_Spec, F_Return],
+            HandlerCallWrapper[..., SendableMessage],  # original
+            Callable[  # wrapped
+                [PropanMessage[MsgType]],
+                Awaitable[Optional[SendableMessage]],
+            ],
+            Callable[[PropanMessage[MsgType]], Awaitable[bool]],  # filter
+            AsyncParser[MsgType],  # parser
+            AsyncDecoder[MsgType],  # decoder
+            List[  # middlewares
+                Callable[[PropanMessage[MsgType]], AsyncContextManager[None]]
+            ],
+            CallModel[..., SendableMessage],  # dependant
         ]
     ]
 
-    global_middlewares: List[Callable[[MsgType], AsyncContextManager[None]]]
+    global_middlewares: List[  # type: ignore[assignment]
+        Callable[[MsgType], AsyncContextManager[None]]
+    ]
 
-    def add_call(
+    def add_call(  # type: ignore[override]
         self,
-        handler: HandlerCallWrapper[F_Spec, F_Return],
+        handler: HandlerCallWrapper[F_Spec, SendableReturn],
         wrapped_call: Callable[
-            [PropanMessage[MsgType], bool], Awaitable[Optional[F_Return]]
+            [PropanMessage[MsgType]],
+            Awaitable[Optional[SendableReturn]],
         ],
         parser: AsyncParser[MsgType],
         decoder: AsyncDecoder[MsgType],
-        dependant: CallModel[F_Spec, F_Return],
+        dependant: CallModel[F_Spec, SendableReturn],
         filter: Callable[
             [PropanMessage[MsgType]], Awaitable[bool]
-        ] = lambda m: not m.processed,  # pragma: no cover
+        ] = async_default_filter,
         middlewares: Optional[
             List[Callable[[PropanMessage[MsgType]], AsyncContextManager[None]]]
         ] = None,
     ) -> None:
-        super().add_call(
-            handler=handler,
-            wrapped_call=wrapped_call,
-            parser=parser,
-            decoder=decoder,
-            dependant=dependant,
-            filter=filter,
-            middlewares=middlewares,
+        self.calls.append(
+            (  # type: ignore
+                handler,
+                wrapped_call,
+                filter,
+                parser,
+                decoder,
+                middlewares or (),
+                dependant,
+            )
         )
 
-    async def consume(self, msg: MsgType) -> None:
-        result = None
+    async def consume(self, msg: MsgType) -> SendableMessage:  # type: ignore[override]
+        result: SendableMessage = None
 
         async with AsyncExitStack() as stack:
             for m in self.global_middlewares:
@@ -240,29 +280,31 @@ class AsyncHandler(BaseHandler[MsgType]):
 
                 if await f(message):
                     assert (
-                        not message.processed
+                        not processed
                     ), "You can't proccess a message with multiple consumers"
 
                     try:
-                        for m in middlewares:
-                            await stack.enter_async_context(m(message))
+                        for inner_m in middlewares:
+                            await stack.enter_async_context(inner_m(message))
 
                         handler.mock(message.decoded_body)
                         result = await call(message)
+
                     except StopConsume:
                         await self.close()
-                        return
+                        return None
+
                     else:
+                        message.processed = processed = True
                         if IS_OPTIMIZED:
                             break
-                        processed = True
 
         return result
 
     @abstractmethod
-    async def start(self) -> None:
+    async def start(self) -> None:  # type: ignore[override]
         raise NotImplementedError()
 
     @abstractmethod
-    async def close(self) -> None:
+    async def close(self) -> None:  # type: ignore[override]
         raise NotImplementedError()

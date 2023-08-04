@@ -1,5 +1,5 @@
 from functools import partial, wraps
-from typing import Any, Optional
+from typing import Any, Callable, ContextManager, Optional
 from unittest.mock import MagicMock
 
 import anyio
@@ -7,11 +7,12 @@ import anyio
 from propan.broker.core.abc import BrokerUsecase
 from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
+from propan.broker.types import MsgType
+from propan.types import DecodedMessage, F_Return
 
 
-def patch_broker_calls(broker: BrokerUsecase) -> None:
-    original_handlers = tuple(broker.handlers.values())
-    for handler in original_handlers:
+def patch_broker_calls(broker: BrokerUsecase[Any, Any]) -> None:
+    for handler in broker.handlers.values():
         calls = []
         for (
             wrapper,
@@ -26,7 +27,7 @@ def patch_broker_calls(broker: BrokerUsecase) -> None:
             calls.append(
                 (
                     wrapper,
-                    _wrap_handler_mock(mock, partial(wrapped_f, reraise_exc=True)),
+                    partial(_wrap_handler_mock(mock, wrapped_f), reraise_exc=True),
                     filter_f,
                     parser,
                     decoder,
@@ -35,36 +36,40 @@ def patch_broker_calls(broker: BrokerUsecase) -> None:
                 )
             )
 
-        handler.calls = calls
+        handler.calls = calls  # type: ignore
 
 
 async def call_handler(
-    handler: AsyncHandler,
+    handler: AsyncHandler[Any],
     message: Any,
     rpc: bool = False,
     rpc_timeout: Optional[float] = 30.0,
     raise_timeout: bool = False,
-) -> Any:
+) -> Optional[DecodedMessage]:
+    scope: Callable[[Optional[float], bool], ContextManager[Any]]
     if raise_timeout:
         scope = anyio.fail_after
     else:
         scope = anyio.move_on_after
 
-    result: Any = None
     with scope(rpc_timeout):
         result = await handler.consume(message)
 
-    if rpc is True:  # pragma: no branch
-        return result
+        if rpc is True:
+            return result
+
+    return None
 
 
-def _wrap_handler_mock(mock: MagicMock, func):
+def _wrap_handler_mock(
+    mock: MagicMock, func: Callable[[PropanMessage[MsgType], bool], F_Return]
+) -> Callable[[PropanMessage[MsgType], bool], F_Return]:
     @wraps(func)
     def _patched_call(
-        msg: PropanMessage[Any],
+        msg: PropanMessage[MsgType],
         reraise_exc: bool = False,
-    ) -> Any:
+    ) -> F_Return:
         mock(msg.decoded_body)
-        return func(msg)
+        return func(msg, reraise_exc)
 
     return _patched_call

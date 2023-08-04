@@ -12,6 +12,7 @@ from propan.types import AnyDict, DecodedMessage
 @dataclass
 class Publisher(BasePub):
     _publisher: Optional[AioPikaPublisher] = field(default=None)
+    _fake_handler: bool = False
 
     async def publish(
         self,
