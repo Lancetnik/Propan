@@ -121,6 +121,23 @@ class FastAPILocalTestcase:
                 r = await router.broker.publish("hi", queue, rpc=True, rpc_timeout=0.5)
                 assert r == "hi"
 
+    async def test_base_without_state(self, queue: str):
+        router = self.router_class(setup_state=False)
+        router.broker = self.broker_test(router.broker)
+
+        app = FastAPI(lifespan=router.lifespan_context)
+
+        @router.subscriber(queue)
+        async def hello():
+            return "hi"
+
+        async with router.broker:
+            with TestClient(app) as client:
+                assert not client.app_state.get("broker")
+
+                r = await router.broker.publish("hi", queue, rpc=True, rpc_timeout=0.5)
+                assert r == "hi"
+
     async def test_invalid(self, queue: str):
         router = self.router_class()
         router.broker = self.broker_test(router.broker)
