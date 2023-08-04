@@ -2,9 +2,10 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from logging import Logger
 from types import TracebackType
-from typing import Awaitable, Callable, Optional, Type, Union
+from typing import Awaitable, Callable
+from typing import Counter as CounterType
+from typing import Optional, Type, Union
 
-from typing_extensions import Counter as CounterType
 from typing_extensions import TypeVar
 
 from propan.brokers._model.schemas import PropanMessage

@@ -10,7 +10,7 @@ authors = [
     { name = "Pastukhov Nikita", email = "diementros@yandex.ru" },
 ]
 
-keywords = ["rabbitmq", "framework", "message brokers"]
+keywords = ["rabbitmq", "nats", "kafka", "sqs", "redis", "framework", "message brokers"]
 
 requires-python = ">=3.7"
 
@@ -40,7 +40,10 @@ classifiers = [
     "Framework :: AsyncIO",
     "Framework :: Pydantic",
     "Framework :: Pydantic :: 1",
+    "Framework :: Pydantic :: 2",
 ]
+
+dynamic = ["version"]
 
 dependencies = [
     "fast-depends>=2.1.1",
@@ -48,17 +51,6 @@ dependencies = [
     "typer",
     "uvloop>=0.14.0,!=0.15.0,!=0.15.1; sys_platform != 'win32' and (sys_platform != 'cygwin' and platform_python_implementation != 'PyPy')",
 ]
-
-dynamic = ["version"]
-
-[project.urls]
-Homepage = "https://lancetnik.github.io/Propan/"
-Documentation = "https://lancetnik.github.io/Propan/"
-Tracker = "https://github.com/Lancetnik/Propan/issues"
-Source = "https://github.com/Lancetnik/Propan"
-
-[project.scripts]
-propan = "propan.__main__:cli"
 
 [project.optional-dependencies]
 async-rabbit = [
@@ -77,6 +69,10 @@ async-kafka = [
     "aiokafka>=0.8",
 ]
 
+async-sqs = [
+    "aiobotocore",
+]
+
 doc = [
     "PyYAML",
     "email-validator>=2.0.0",
@@ -84,10 +80,6 @@ doc = [
     "jsonref",
     "fastapi",
     "uvicorn",
-]
-
-async-sqs = [
-    "aiobotocore",
 ]
 
 testsuite = [
@@ -136,8 +128,18 @@ dev = [
     "black==23.3.0",
     "isort>=5",
     "ruff==0.0.275",
+    "pyupgrade-directories",
     "typer[all]",
 ]
+
+[project.urls]
+Homepage = "https://lancetnik.github.io/Propan/"
+Documentation = "https://lancetnik.github.io/Propan/"
+Tracker = "https://github.com/Lancetnik/Propan/issues"
+Source = "https://github.com/Lancetnik/Propan"
+
+[project.scripts]
+propan = "propan.__main__:cli"
 
 [tool.hatch.metadata]
 allow-direct-references = true

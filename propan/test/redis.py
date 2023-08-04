@@ -1,14 +1,9 @@
 import re
-import sys
 from types import MethodType
 from typing import Any, Dict, Optional, Union
+from unittest.mock import AsyncMock
 
 from typing_extensions import TypeAlias
-
-if sys.version_info < (3, 8):
-    from asyncmock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
 
 from propan._compat import model_to_json
 from propan.brokers.redis.redis_broker import RedisBroker

@@ -21,24 +21,21 @@ def import_error(error_msg: str) -> Mock:
 
 
 INSTALL_RABBIT = import_error(
-    (
-        "\nYou should install RabbitMQ dependencies"
-        '\npip install "propan[async-rabbit]"'
-    )
+    "\nYou should install RabbitMQ dependencies" '\npip install "propan[async-rabbit]"'
 )
 
 INSTALL_KAFKA = import_error(
-    ("\nYou should install Kafka dependencies" '\npip install "propan[async-kafka]"')
+    "\nYou should install Kafka dependencies" '\npip install "propan[async-kafka]"'
 )
 
 INSTALL_NATS = import_error(
-    ("\nYou should install NATS dependencies" '\npip install "propan[async-nats]"')
+    "\nYou should install NATS dependencies" '\npip install "propan[async-nats]"'
 )
 
 INSTALL_SQS = import_error(
-    ("\nYou should install SQS dependencies" '\npip install "propan[async-sqs]"')
+    "\nYou should install SQS dependencies" '\npip install "propan[async-sqs]"'
 )
 
 INSTALL_REDIS = import_error(
-    ("\nYou should install RabbitMQ dependencies" '\npip install "propan[async-redis]"')
+    "\nYou should install RabbitMQ dependencies" '\npip install "propan[async-redis]"'
 )

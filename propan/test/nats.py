@@ -1,14 +1,9 @@
-import sys
 from types import MethodType
 from typing import Any, Dict, Optional, Union
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 from nats.aio.msg import Msg
-
-if sys.version_info < (3, 8):
-    from asyncmock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
 
 from propan import NatsBroker
 from propan.test.utils import call_handler
