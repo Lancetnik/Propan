@@ -1,9 +1,8 @@
 from abc import abstractmethod
+from dataclasses import dataclass, field
 from typing import Any, Generic, Optional, Union
 from uuid import uuid4
 
-from pydantic import Field
-from pydantic.dataclasses import dataclass as pydantic_dataclass
 from typing_extensions import TypeVar
 
 from propan.types import AnyDict, DecodedMessage
@@ -11,7 +10,7 @@ from propan.types import AnyDict, DecodedMessage
 Msg = TypeVar("Msg")
 
 
-@pydantic_dataclass
+@dataclass
 class PropanMessage(Generic[Msg]):
     raw_message: Msg
 
@@ -20,9 +19,9 @@ class PropanMessage(Generic[Msg]):
 
     content_type: Optional[str] = None
     reply_to: str = ""
-    headers: AnyDict = Field(default_factory=dict)
-    message_id: str = Field(default_factory=lambda: str(uuid4()))  # pragma: no cover
-    correlation_id: str = Field(
+    headers: AnyDict = field(default_factory=dict)
+    message_id: str = field(default_factory=lambda: str(uuid4()))  # pragma: no cover
+    correlation_id: str = field(
         default_factory=lambda: str(uuid4())
     )  # pragma: no cover
 
