@@ -2,4 +2,6 @@ mypy==1.4.1
 black==23.3.0
 isort>=5
 ruff==0.0.275
+types-redis
+types-PyYAML
 pyupgrade-directories
