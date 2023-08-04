@@ -144,7 +144,7 @@ services:
       - 8222:8222  # management
   
   kafka:
-    image: bitnami/kafka
+    image: bitnami/kafka:3.5.0
     ports:
       - 9092:9092
     environment:
