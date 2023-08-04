@@ -62,7 +62,7 @@ $ propan run [projectname].app.serve:app --env=.env --reload
 
 Enjoy your new development experience!
 
-??? tip "Don't forget to stop test broker container"
+??? tip "Don't forget to stop the test broker container"
     ```bash
     docker container stop test-mq
     ```

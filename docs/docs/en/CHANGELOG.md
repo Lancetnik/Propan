@@ -242,7 +242,7 @@ broker = RabbitBroker()
 async def healthcheck(msg: str) -> str:
      return "pong"
 
-def test_publish():
+async def test_publish():
      async with TestRabbitBroker(broker) as test_broker:
          await test_broker.start()
          r = await test_broker.publish("ping", queue="ping", callback=True)
