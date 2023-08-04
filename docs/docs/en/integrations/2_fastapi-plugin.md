@@ -24,7 +24,7 @@ use it to declare any `get`, `post`, `put` and other HTTP methods. For example, 
 !!! warning
     If your **ASGI** server does not support installing **state** inside **lifespan**, you can disable this behavior as follows:
     ```python
-    router = Propane Router(..., setup_state=False)
+    router = PropanRouter(..., setup_state=False)
     ```
     However, after that you will not be able to access the broker from your application's **state** (but it is still available as the `router.broker`)
 
