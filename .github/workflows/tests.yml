@@ -68,7 +68,7 @@ jobs:
           key: ${{ runner.os }}-python-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-test-v03
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -e .[test]
+        run: pip install -r requirements.test.txt .[async-rabbit,async-kafka,async-nats,async-redis,async-sqs,doc] 
       - name: Install Pydantic v1
         if: matrix.pydantic-version == 'pydantic-v1'
         run: pip install "pydantic>=1.10.0,<2.0.0"
@@ -105,7 +105,7 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -e .[testsuite,async-nats]
+        run: pip install -r requirements.test.txt .[async-nats]
       - run: mkdir coverage
       - name: Test
         run: coverage run -m pytest -m "run and nats" tests/cli/test_run.py
@@ -135,7 +135,7 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -e .[testsuite,async-rabbit]
+        run: pip install -r requirements.test.txt .[async-rabbit]
       - run: mkdir coverage
       - name: Test
         run: coverage run -m pytest -m "run and rabbit" tests/cli/test_run.py
@@ -176,7 +176,7 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -e .[testsuite,async-kafka]
+        run: pip install -r requirements.test.txt .[async-kafka]
       - run: mkdir coverage
       - name: Test
         run: coverage run -m pytest -m "run and kafka" tests/cli/test_run.py
@@ -206,7 +206,7 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -e .[testsuite,async-sqs]
+        run: pip install -r requirements.test.txt .[async-sqs]
       - run: mkdir coverage
       - name: Test
         run: coverage run -m pytest -m "run and sqs" tests/cli/test_run.py
@@ -236,7 +236,7 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -e .[testsuite,async-redis]
+        run: pip install -r requirements.test.txt .[async-redis]
       - run: mkdir coverage
       - name: Test
         run: coverage run -m pytest -m "run and redis" tests/cli/test_run.py
