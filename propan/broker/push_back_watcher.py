@@ -2,9 +2,8 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from logging import Logger
 from types import TracebackType
+from typing import Counter as CounterType
 from typing import Optional, Type
-
-from typing_extensions import Counter as CounterType
 
 from propan.broker.message import PropanMessage
 from propan.broker.types import MsgType

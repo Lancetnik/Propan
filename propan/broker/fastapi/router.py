@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from enum import Enum
 from typing import (
     Any,
+    AsyncIterator,
     Awaitable,
     Callable,
     Dict,
@@ -23,7 +24,7 @@ from starlette import routing
 from starlette.responses import JSONResponse, Response
 from starlette.routing import _DefaultLifespan
 from starlette.types import AppType, ASGIApp, Lifespan
-from typing_extensions import AsyncIterator, TypeVar
+from typing_extensions import TypeVar
 
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.fastapi.route import PropanRoute

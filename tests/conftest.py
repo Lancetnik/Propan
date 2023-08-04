@@ -1,10 +1,4 @@
-import sys
-from unittest.mock import Mock
-
-if sys.version_info < (3, 8):
-    from asyncmock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
