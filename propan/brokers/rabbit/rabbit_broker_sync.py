@@ -1,14 +1,23 @@
 from functools import wraps
 from threading import Event
 from types import TracebackType
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 from uuid import uuid4
 
 import pika
 from fast_depends.dependencies import Depends
 from pika import spec
 from pika.adapters import blocking_connection
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, Never
 
 from propan._compat import model_to_dict
 from propan.brokers._model.broker_usecase import (
@@ -28,6 +37,7 @@ from propan.brokers.rabbit.schemas import Handler, RabbitExchange, RabbitQueue
 from propan.brokers.rabbit.utils import RABBIT_REPLY, validate_exchange, validate_queue
 from propan.types import AnyDict, DecodedMessage, SendableMessage
 from propan.utils import context
+
 
 PIKA_RAW_MESSAGE: TypeAlias = Tuple[
     blocking_connection.BlockingChannel,
@@ -71,13 +81,14 @@ class RabbitSyncBroker(
 
         self._channel = None
 
-        self.__max_queue_len = 4
-        self.__max_exchange_len = 4
+        self._max_queue_len = 4
+        self._max_exchange_len = 4
         self._queues = {}
         self._exchanges = {}
 
     def _connect(self, **kwargs: Any) -> blocking_connection.BlockingConnection:
-        connection = pika.BlockingConnection()
+        # TODO: use all kwargs here
+        connection = pika.BlockingConnection(pika.URLParameters(kwargs["url"]))
 
         if self._channel is None:
             max_consumers = self._max_consumers
@@ -105,13 +116,17 @@ class RabbitSyncBroker(
             self._connection.close()
             self._connection = None
 
-    def start(self) -> None:
+    def start(self) -> Never:
         context.set_local(
             "log_context",
             self._get_log_context(None, RabbitQueue(""), RabbitExchange("")),
         )
 
         super().start()
+        self._channel.start_consuming()
+
+    def _init_handlers(self):
+        super()._init_handlers()
 
         for handler in self.handlers:
             self._init_handler(handler)
@@ -125,8 +140,6 @@ class RabbitSyncBroker(
                 on_message_callback=func,
             )
 
-        self._channel.start_consuming()
-
     def handle(
         self,
         queue: Union[str, RabbitQueue],
@@ -134,7 +147,7 @@ class RabbitSyncBroker(
         *,
         dependencies: Sequence[Depends] = (),
         description: str = "",
-        **original_kwargs: Any,
+        **original_kwargs: AnyDict,
     ) -> Callable[
         [HandlerCallable[T_HandlerReturn]],
         Callable[[Any, bool], T_HandlerReturn],
@@ -186,21 +199,22 @@ class RabbitSyncBroker(
             watcher = NotPushBackWatcher()
 
         @wraps(func)
-        def wrapper(message):
-            channel: blocking_connection.BlockingChannel
-            method_frame: spec.Basic.Deliver
-            header_frame: spec.BasicProperties
+        def wrapper(message: PikaMessage):
             channel, method_frame, header_frame, _ = message.raw_message
 
             context = WatcherContext(
                 watcher,
-                message.message_id,
-                on_success=lambda: channel.basic_ack(method_frame.delivery_tag),
-                on_error=lambda: channel.basic_nack(
-                    method_frame.delivery_tag, requeue=True
+                message,
+                on_success=lambda msg: channel.basic_ack(
+                    method_frame.delivery_tag
                 ),
-                on_max=lambda: channel.basic_reject(
-                    method_frame.delivery_tag, requeue=False
+                on_error=lambda msg: channel.basic_nack(
+                    method_frame.delivery_tag,
+                    requeue=True,
+                ),
+                on_max=lambda msg: channel.basic_reject(
+                    method_frame.delivery_tag,
+                    requeue=False,
                 ),
             )
 
@@ -245,7 +259,7 @@ class RabbitSyncBroker(
         type_: Optional[str] = None,
         user_id: Optional[str] = None,
         app_id: Optional[str] = None,
-    ) -> DecodedMessage | None:
+    ) -> Optional[DecodedMessage]:
         if self._channel is None:
             raise ValueError("RabbitBroker channel not started yet")
 
@@ -254,6 +268,7 @@ class RabbitSyncBroker(
         message, content_type = super()._encode_message(message)
 
         response_event: Optional[Event] = None
+        response_msg: Optional[DecodedMessage] = None
         if callback is True:
             if reply_to is not None:
                 raise WRONG_PUBLISH_ARGS
@@ -267,7 +282,9 @@ class RabbitSyncBroker(
                 header_frame: spec.BasicProperties,
                 body: bytes,
             ):
-                # TODO: return message
+                nonlocal response_msg
+                msg = self._parse_message((channel, method_frame, header_frame, body))
+                response_msg = self._decode_message(msg)
                 response_event.set()
 
             response_consumer_tag = self._channel.basic_consume(
@@ -300,8 +317,11 @@ class RabbitSyncBroker(
 
         if response_event is not None:
             self._channel._process_data_events(callback_timeout)
-            response_event.wait()
-            self._channel.basic_cancel(response_consumer_tag)
+            try:
+                response_event.wait()
+                return response_msg
+            finally:
+                self._channel.basic_cancel(response_consumer_tag)
 
     def _init_handler(self, handler: Handler) -> None:
         self.declare_queue(handler.queue)
@@ -376,7 +396,8 @@ def _wrap_pika_msg(func):
         reraise_exc: bool = False,
     ):
         return func(
-            (channel, method_frame, header_frame, body), reraise_exc=reraise_exc
+            (channel, method_frame, header_frame, body),
+            reraise_exc=reraise_exc,
         )
 
     return pika_handler_func_wrapper

@@ -407,7 +407,8 @@ class SQSBroker(BrokerAsyncUsecase[AnyDict, AioBaseClient]):
 
 
 async def delete_message(
-    message: SQSMessage, connection: Optional[AioBaseClient]
+    message: SQSMessage,
+    connection: Optional[AioBaseClient],
 ) -> None:
     if connection:
         await connection.delete_message(
