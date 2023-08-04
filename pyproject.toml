@@ -21,7 +21,6 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -136,6 +135,7 @@ dev = [
     "black==23.3.0",
     "isort>=5",
     "ruff==0.0.275",
+    "pyupgrade-directories",
     "typer[all]",
 ]
 
@@ -171,7 +171,7 @@ features = [
 ]
 
 [[tool.hatch.envs.test.matrix]]
-python = ["37", "38", "39", "310", "311"]
+python = ["38", "39", "310", "311"]
 
 [tool.hatch.envs.test.scripts]
 run = "pytest -q -m 'not slow and not run'"
@@ -198,7 +198,7 @@ strict = true
 ignore_missing_imports = true
 disallow_subclassing_any = true
 follow_imports = "skip"
-python_version = "3.7"
+python_version = "3.8"
 
 [tool.isort]
 profile = "black"
@@ -206,13 +206,13 @@ known_first_party = ["propan"]
 
 [tool.black]
 line-length = 88
-target-version = ['py37']
+target-version = ['py38']
 include = '\.pyi?$'
 
 [tool.ruff]
 fix = true
 line-length = 88
-target-version = "py37"
+target-version = "py38"
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings

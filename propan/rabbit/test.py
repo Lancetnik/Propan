@@ -1,16 +1,8 @@
 import re
-import sys
 from functools import partial
 from types import MethodType, TracebackType
 from typing import Any, Optional, Type, Union
-
-from propan.types import AnyDict
-
-if sys.version_info < (3, 8):
-    from asyncmock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
-
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import aiormq
@@ -27,6 +19,7 @@ from propan.rabbit.shared.constants import ExchangeType
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
 from propan.rabbit.shared.types import TimeoutType
 from propan.rabbit.types import AioPikaSendableMessage
+from propan.types import AnyDict
 
 __all__ = ("TestRabbitBroker",)
 
