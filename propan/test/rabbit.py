@@ -1,8 +1,13 @@
 import re
+import sys
 from contextlib import asynccontextmanager
 from types import MethodType
 from typing import Any, Optional, Union
-from unittest.mock import AsyncMock
+
+if sys.version_info < (3, 8):
+    from asyncmock import AsyncMock
+else:
+    from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import aiormq
