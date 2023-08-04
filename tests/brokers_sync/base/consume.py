@@ -1,3 +1,4 @@
+import time
 from typing import Any
 
 from propan.brokers._model import BrokerSyncUsecase
@@ -20,50 +21,38 @@ class BrokerConsumeSyncTestcase:
 
         assert message == "hello"
 
-    # def test_consume_double(
-    #     self,
-    #     mock: Mock,
-    #     queue: str,
-    #     broker: BrokerSyncUsecase,
-    # ):
-    #     consume = threading.Event()
-    #     consume2 = threading.Event()
+    def test_different_consume(
+        self,
+        queue: str,
+        broker: BrokerSyncUsecase,
+    ):
+        message: Any = None
+        other_message: Any = None
 
-    #     @broker.handle(queue)
-    #     async def handler(m):
-    #         if not consume.is_set():
-    #             consume.set()
-    #         else:
-    #             consume2.set()
-    #         mock()
+        other_topic = "other_queue"
 
-    #     with broker:
-    #         broker.start()
-    #         consume.wait(3)
-    #         consume2.wait(3)
+        @broker.handle(queue)
+        def handle(body):
+            nonlocal message
+            message = body
+            broker.close()
 
-    #     assert mock.call_count == 2
+        @broker.handle(other_topic)
+        def other_handle(body):
+            print("other_handle", body)
+            nonlocal other_message
+            other_message = body
+            broker.close()
 
-    # def test_different_consume(
-    #     self,
-    #     mock: Mock,
-    #     queue: str,
-    #     broker: BrokerSyncUsecase,
-    # ):
-    #     first_consume = threading.Event()
-    #     second_consume = threading.Event()
+        with broker:
+            broker._init_handlers()
+            broker.publish("hello", queue)
+            broker.start()
 
-    #     mock.method.side_effect = lambda *_: first_consume.set()  # pragma: no branch
-    #     mock.method2.side_effect = lambda *_: second_consume.set()  # pragma: no branch
+        with broker:
+            broker._init_handlers()
+            broker.publish("bye", other_topic)
+            broker.start()
 
-    #     another_topic = queue + "1"
-    #     broker.handle(queue)(mock.method)
-    #     broker.handle(another_topic)(mock.method2)
-
-    #     with broker:
-    #         broker.start()
-    #         first_consume.wait(3)
-    #         second_consume.wait(3)
-
-    #     mock.method.assert_called_once()
-    #     mock.method2.assert_called_once()
+        assert message == "hello"
+        assert other_message == "bye"
