@@ -26,6 +26,6 @@ jobs:
         with:
           key: ${{ github.ref }}
           path: .cache
-      - run: pip install mkdocs-material mkdocs-static-i18n mdx-include mkdocs-macros-plugin mkdocs-glightbox pillow cairosvg
+      - run: pip install -r requirements.docs.txt
       - working-directory: ./docs
         run: mkdocs gh-deploy --force

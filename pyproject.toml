@@ -10,7 +10,7 @@ authors = [
     { name = "Pastukhov Nikita", email = "diementros@yandex.ru" },
 ]
 
-keywords = ["rabbitmq", "nats", "kafka", "sqs", "redis", "framework", "message brokers"]
+keywords = ["rabbitmq", "kafka", "framework", "message brokers"]
 
 requires-python = ">=3.7"
 
@@ -21,7 +21,6 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -46,7 +45,7 @@ classifiers = [
 dynamic = ["version"]
 
 dependencies = [
-    "fast-depends>=2.1.1",
+    "fast-depends>=2.1.3",
     "watchfiles",
     "typer",
     "uvloop>=0.14.0,!=0.15.0,!=0.15.1; sys_platform != 'win32' and (sys_platform != 'cygwin' and platform_python_implementation != 'PyPy')",
@@ -57,80 +56,10 @@ async-rabbit = [
     "aio-pika>=9",
 ]
 
-async-nats = [
-    "nats-py>=2,!=2.3.0",
-]
-
-async-redis = [
-    "redis>=4.2.0rc1",
-]
-
 async-kafka = [
     "aiokafka>=0.8",
 ]
 
-async-sqs = [
-    "aiobotocore",
-]
-
-doc = [
-    "PyYAML",
-    "email-validator>=2.0.0",
-    "polyfactory>=2.5.0; python_version > '3.7'",
-    "jsonref",
-    "fastapi",
-    "uvicorn",
-]
-
-testsuite = [
-    "coverage[toml]>=7.2",
-    "pytest==7.4.0",
-    "pytest-asyncio>=0.21",
-    "asyncmock; python_version < '3.8'",
-
-    "pydantic-settings>=2.0a1",
-    "python-dotenv",
-]
-
-test = [
-    "propan[doc]",
-    "propan[async-rabbit]",
-    "propan[async-nats]",
-    "propan[async-redis]",
-    "propan[async-kafka]",
-    "propan[async-sqs]",
-    "propan[testsuite]",
-
-    "fastapi>=0.100.0",
-    "httpx",
-]
-
-dev-doc = [
-    "mkdocs-material >=8.1.4,<9.0.0",
-    "mkdocs-static-i18n",
-    "mdx-include >=1.4.1,<2.0.0",
-    "mkdocs-macros-plugin",
-    "mkdocs-glightbox",
-    "pillow",
-    "cairosvg",
-
-    "typer[all]",
-]
-
-dev = [
-    "propan[test]",
-    "propan[dev-doc]",
-
-    "types-redis",
-    "types-PyYAML",
-
-    "mypy==1.4.1",
-    "black==23.3.0",
-    "isort>=5",
-    "ruff==0.0.275",
-    "pyupgrade-directories",
-    "typer[all]",
-]
 
 [project.urls]
 Homepage = "https://lancetnik.github.io/Propan/"
@@ -140,10 +69,6 @@ Source = "https://github.com/Lancetnik/Propan"
 
 [project.scripts]
 propan = "propan.__main__:cli"
-
-[tool.hatch.metadata]
-allow-direct-references = true
-allow-ambiguous-features = true
 
 [tool.hatch.version]
 path = "propan/__about__.py"
@@ -155,52 +80,9 @@ exclude = [
     "/docs",
 ]
 
-[tool.hatch.envs.default]
-python = "3.11" 
-skip-install = false
-features = [
-  "dev",
-]
-
-[tool.hatch.envs.test]
-features = [
-  "test",
-  "async-sqs",
-  "async-kafka",
-  "async-nats",
-  "async-rabbit",
-  "async-redis",
-]
-
-[[tool.hatch.envs.test.matrix]]
-python = ["37", "38", "39", "310", "311"]
-
-[tool.hatch.envs.test.scripts]
-run = "pytest -q -m 'not slow and not run'"
-run-all = "pytest -m 'all and not run'"
-
-[tool.hatch.envs.test-last]
-python = "3.11"
-features = [
-  "test",
-  "async-sqs",
-  "async-kafka",
-  "async-nats",
-  "async-rabbit",
-  "async-redis",
-]
-
-[tool.hatch.envs.test-last.scripts]
-run = "pytest -q -m 'not slow and not run'"
-run-all = "pytest -v -m 'all and not run'"
-cov = "bash ./scripts/test-cov.sh -v -m 'all'"
-
 [tool.mypy]
 strict = true
-follow_imports = "skip"
-ignore_missing_imports = true
-disallow_subclassing_any = true
-python_version = "3.7"
+python_version = "3.8"
 
 [tool.isort]
 profile = "black"
@@ -208,13 +90,13 @@ known_first_party = ["propan"]
 
 [tool.black]
 line-length = 88
-target-version = ['py37']
+target-version = ['py38']
 include = '\.pyi?$'
 
 [tool.ruff]
 fix = true
 line-length = 88
-target-version = "py37"
+target-version = "py38"
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -239,25 +121,22 @@ extend-immutable-calls = [
     "propan.utils.context.Depends", "propan.utils.context.Context",
     "typer.Argument", "typer.Option",
     "pydantic.Field", "rocketry.args.Arg",
-    "fastapi.Depends", "fastapi.datastructures.Default",
+    "fastapi.Depends", "fastapi.Header",
+    "fastapi.datastructures.Default",
     "kafka.partitioner.default.DefaultPartitioner",
 ]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-q -m 'not slow and not run'"
+addopts = "-q -m 'not slow'"
 testpaths = [
     "tests",
 ]
 markers = [
     "rabbit",
-    "nats",
-    "redis",
     "kafka",
-    "sqs",
     "slow",
     "all",
-    "run",
 ]
 
 [tool.coverage.run]
