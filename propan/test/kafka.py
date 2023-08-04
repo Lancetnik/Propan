@@ -1,14 +1,9 @@
-import sys
 from datetime import datetime
 from types import MethodType
 from typing import Any, Dict, Optional
+from unittest.mock import AsyncMock
 
 from aiokafka.structs import ConsumerRecord
-
-if sys.version_info < (3, 8):
-    from asyncmock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
 
 from propan import KafkaBroker
 from propan.test.utils import call_handler

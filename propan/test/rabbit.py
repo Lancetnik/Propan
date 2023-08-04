@@ -1,16 +1,8 @@
 import re
-import sys
 from contextlib import asynccontextmanager
 from types import MethodType
 from typing import Any, Optional, Union
-
-from propan.types import AnyDict
-
-if sys.version_info < (3, 8):
-    from asyncmock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
-
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import aiormq
@@ -27,6 +19,7 @@ from propan.brokers.rabbit import (
 from propan.brokers.rabbit.rabbit_broker import PikaSendableMessage, TimeoutType
 from propan.brokers.rabbit.utils import validate_exchange, validate_queue
 from propan.test.utils import call_handler
+from propan.types import AnyDict
 
 __all__ = (
     "build_message",

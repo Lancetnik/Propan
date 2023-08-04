@@ -1,14 +1,9 @@
 import json
-import sys
 from hashlib import md5
 from types import MethodType
 from typing import Any, Dict, Optional
+from unittest.mock import AsyncMock
 from uuid import uuid4
-
-if sys.version_info < (3, 8):
-    from asyncmock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
 
 from propan import SQSBroker
 from propan.brokers.sqs.schema import SQSMessage
