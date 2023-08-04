@@ -62,7 +62,7 @@ class PropanRouter(APIRouter, Generic[Broker]):
         on_shutdown: Optional[Sequence[Callable[[], Any]]] = None,
         deprecated: Optional[bool] = None,
         include_in_schema: bool = True,
-        schema_url: str = "/asyncapi",
+        setup_state: bool = True,
         lifespan: Optional[Lifespan[Any]] = None,
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
@@ -78,6 +78,8 @@ class PropanRouter(APIRouter, Generic[Broker]):
             apply_types=False,
             **connection_kwars,  # type: ignore
         )
+
+        self.setup_state = setup_state
 
         super().__init__(
             prefix=prefix,
@@ -174,7 +176,10 @@ class PropanRouter(APIRouter, Generic[Broker]):
                     if h_context:  # pragma: no branch
                         context.update(h_context)
                 try:
-                    yield context
+                    if self.setup_state:
+                        yield context
+                    else:
+                        yield
                 finally:
                     await self.broker.close()
 
