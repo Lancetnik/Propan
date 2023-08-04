@@ -1,0 +1,13 @@
+-e .
+-e .[doc]
+-e .[async-rabbit]
+-e .[async-nats]
+-e .[async-sqs]
+-e .[async-kafka]
+-e .[async-redis]
+
+-r requirements.test.txt
+-r requirements.docs.txt
+-r requirements.lint.txt
+
+typer[all]
