@@ -8,7 +8,7 @@ from typing_extensions import Never
 
 from propan.broker.handler import AsyncHandler
 from propan.broker.schemas import HandlerCallWrapper
-from propan.broker.types import AsyncDecoder, AsyncParser
+from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
 from propan.kafka.helpers import AioKafkaParser
 from propan.kafka.message import KafkaMessage
 from propan.types import AnyDict, F_Return, F_Spec
@@ -59,8 +59,8 @@ class Handler(AsyncHandler[ConsumerRecord]):
             Awaitable[Optional[F_Return]],
         ],
         dependant: CallModel[F_Spec, F_Return],
-        parser: Optional[AsyncParser[ConsumerRecord]] = None,
-        decoder: Optional[AsyncDecoder[ConsumerRecord]] = None,
+        parser: Optional[AsyncCustomParser[ConsumerRecord]] = None,
+        decoder: Optional[AsyncCustomDecoder[ConsumerRecord]] = None,
         filter: Callable[
             [KafkaMessage], Awaitable[bool]
         ] = lambda m: not m.processed,  # pragma: no cover

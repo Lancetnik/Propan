@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
 from pydantic import Field
@@ -121,3 +122,10 @@ def get_routing_hash(
     exchange: Optional[RabbitExchange] = None,
 ) -> int:
     return hash(queue) + hash(exchange or "")
+
+
+@dataclass
+class BaseRMQInformation:
+    queue: RabbitQueue = field(default=RabbitQueue(""))
+    exchange: Optional[RabbitExchange] = field(default=None)
+    description: Optional[str] = field(default=None)

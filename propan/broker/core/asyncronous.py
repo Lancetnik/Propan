@@ -25,8 +25,8 @@ from propan.broker.message import PropanMessage
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
-    AsyncDecoder,
-    AsyncParser,
+    AsyncCustomDecoder,
+    AsyncCustomParser,
     AsyncWrappedHandlerCall,
     ConnectionType,
     HandlerCallable,
@@ -42,8 +42,8 @@ from propan.utils import context
 
 class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     middlewares: List[Callable[[MsgType], AsyncContextManager[None]]]
-    _global_parser: AsyncParser[MsgType]
-    _global_decoder: AsyncDecoder[MsgType]
+    _global_parser: AsyncCustomParser[MsgType]
+    _global_decoder: AsyncCustomDecoder[MsgType]
 
     @abstractmethod
     async def start(self) -> None:  # type: ignore[override]
@@ -105,8 +105,8 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         *broker_args: Any,
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decoder: AsyncDecoder[MsgType] = None,
-        parser: AsyncParser[MsgType] = None,
+        decoder: AsyncCustomDecoder[MsgType] = None,
+        parser: AsyncCustomParser[MsgType] = None,
         middlewares: Optional[
             List[
                 Callable[
@@ -135,8 +135,8 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
         dependencies: Sequence[Depends] = (),
-        decoder: AsyncDecoder[MsgType] = None,
-        parser: AsyncParser[MsgType] = None,
+        decoder: AsyncCustomDecoder[MsgType] = None,
+        parser: AsyncCustomParser[MsgType] = None,
         middlewares: Optional[
             List[
                 Callable[

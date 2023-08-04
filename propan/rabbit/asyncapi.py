@@ -11,15 +11,17 @@ from propan.asyncapi import (
     Operation,
     OperationBinding,
 )
+from propan.asyncapi.base import AsyncAPIOperation
 from propan.asyncapi.message import get_response_schema, parse_handler_params
 from propan.asyncapi.schema.bindings import amqp
 from propan.rabbit.handler import Handler as BaseHandler
 from propan.rabbit.publisher import Publisher as BasePublisher
-from propan.rabbit.shared.schemas import ExchangeType, RabbitExchange
+from propan.rabbit.shared.constants import ExchangeType
+from propan.rabbit.shared.schemas import BaseRMQInformation, RabbitExchange
 from propan.types import AnyDict
 
 
-class RMQAsyncAPIChannel:
+class RMQAsyncAPIChannel(AsyncAPIOperation, BaseRMQInformation):
     @abstractmethod
     def get_payloads(self) -> List[AnyDict]:
         raise NotImplementedError()

@@ -1,39 +1,50 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, Generic, List, Optional, Tuple, Type, Union, overload
+from typing import Any, Callable, Generic, List, Optional, Type, Union, overload
 from unittest.mock import MagicMock
 
 from pydantic import BaseModel, Field, Json
-from typing_extensions import TypeVar
+from typing_extensions import Self, TypeVar
 
-from propan.asyncapi import Channel
+from propan.asyncapi.base import AsyncAPIOperation
 from propan.broker.types import P_HandlerParams, T_HandlerReturn
 from propan.types import AnyDict, DecodedMessage, DecoratedCallable, SendableMessage
 
 Cls = TypeVar("Cls")
+NameRequiredCls = TypeVar("NameRequiredCls", bound="NameRequired")
 
 
 class NameRequired(BaseModel):
     name: Optional[str] = Field(...)
 
-    def __eq__(self, __value: Optional["NameRequired"]) -> bool:
-        return __value and self.name == __value.name
+    def __eq__(self, __value: object) -> bool:
+        if __value is None:
+            return False
+
+        if not isinstance(__value, NameRequired):
+            return NotImplemented
+
+        return self.name == __value.name
 
     def __init__(self, name: str, **kwargs: Any):
         super().__init__(name=name, **kwargs)
 
     @overload
     @classmethod
-    def validate(cls: Type[Cls], value: None = None) -> None:
+    def validate(
+        cls: Type[NameRequiredCls], value: Union[str, NameRequiredCls]
+    ) -> NameRequiredCls:
         ...
 
     @overload
     @classmethod
-    def validate(cls: Type[Cls], value: Union[str, Cls]) -> Cls:
+    def validate(cls: Type[NameRequiredCls], value: None) -> None:
         ...
 
     @classmethod
-    def validate(cls: Type[Cls], value: Union[str, Cls, None]) -> Optional[Cls]:
+    def validate(
+        cls: Type[NameRequiredCls], value: Union[str, NameRequiredCls, None]
+    ) -> Optional[NameRequiredCls]:
         if value is not None:
             if isinstance(value, str):
                 value = cls(value)
@@ -49,9 +60,12 @@ class HandlerCallWrapper(Generic[P_HandlerParams, T_HandlerReturn]):
 
     def __new__(
         cls,
-        call: Callable[P_HandlerParams, T_HandlerReturn],
-    ):
-        if isinstance(call, HandlerCallWrapper):
+        call: Union[
+            "HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]",
+            Callable[P_HandlerParams, T_HandlerReturn],
+        ],
+    ) -> Self:
+        if isinstance(call, cls):
             return call
         else:
             return super().__new__(cls)
@@ -77,11 +91,11 @@ class HandlerCallWrapper(Generic[P_HandlerParams, T_HandlerReturn]):
 
 
 @dataclass
-class Publisher:
+class Publisher(AsyncAPIOperation):
     title: Optional[str] = field(default=None)
     description: Optional[str] = field(default=None)
 
-    calls: List[Callable[P_HandlerParams, T_HandlerReturn]] = field(
+    calls: List[Callable[..., Any]] = field(
         init=False, default_factory=list, repr=False
     )
     mock: MagicMock = field(init=False, default_factory=MagicMock, repr=False)
@@ -91,9 +105,6 @@ class Publisher:
         return self.title or self.calls[0].__name__.replace("_", " ").title().replace(
             " ", ""
         )
-
-    def schema(self) -> Tuple[str, Optional[Channel]]:
-        return self.channel_title, None
 
     def __call__(
         self,

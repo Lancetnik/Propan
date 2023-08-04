@@ -9,38 +9,47 @@ Decoded = TypeVar("Decoded", bound=DecodedMessage)
 MsgType = TypeVar("MsgType")
 ConnectionType = TypeVar("ConnectionType")
 
-SyncParser: TypeAlias = Optional[
-    Callable[
-        [MsgType, Callable[[MsgType], PropanMessage[MsgType]]],
+SyncParser: TypeAlias = Callable[
+    [MsgType],
+    PropanMessage[MsgType],
+]
+AsyncParser: TypeAlias = Callable[
+    [MsgType],
+    Awaitable[PropanMessage[MsgType]],
+]
+SyncCustomParser: TypeAlias = Callable[
+    [MsgType, SyncParser[MsgType]],
+    PropanMessage[MsgType],
+]
+AsyncCustomParser: TypeAlias = Callable[
+    [MsgType, SyncParser[MsgType]],
+    Awaitable[PropanMessage[MsgType]],
+]
+Parser: TypeAlias = Union[AsyncParser[MsgType], SyncParser[MsgType]]
+CustomParser: TypeAlias = Union[AsyncCustomParser[MsgType], SyncCustomParser[MsgType]]
+
+SyncDecoder: TypeAlias = Callable[
+    [PropanMessage[MsgType]],
+    DecodedMessage,
+]
+SyncCustomDecoder: TypeAlias = Callable[
+    [PropanMessage[MsgType], SyncDecoder[MsgType]],
+    DecodedMessage,
+]
+AsyncDecoder: TypeAlias = Callable[
+    [
         PropanMessage[MsgType],
-    ]
+    ],
+    Awaitable[DecodedMessage],
 ]
-AsyncParser: TypeAlias = Optional[
-    Callable[
-        [MsgType, Callable[[MsgType], Awaitable[PropanMessage[MsgType]]]],
-        Awaitable[PropanMessage[MsgType]],
-    ]
+AsyncCustomDecoder: TypeAlias = Callable[
+    [PropanMessage[MsgType], AsyncDecoder[MsgType]],
+    Awaitable[DecodedMessage],
 ]
-SyncDecoder: TypeAlias = Optional[
-    Callable[
-        [
-            PropanMessage[MsgType],
-            Callable[[PropanMessage[MsgType]], DecodedMessage],
-        ],
-        DecodedMessage,
-    ]
+Decoder: TypeAlias = Union[AsyncDecoder[MsgType], SyncDecoder[MsgType]]
+CustomDecoder: TypeAlias = Union[
+    AsyncCustomDecoder[MsgType], SyncCustomDecoder[MsgType]
 ]
-AsyncDecoder: TypeAlias = Optional[
-    Callable[
-        [
-            PropanMessage[MsgType],
-            Callable[[PropanMessage[MsgType]], Awaitable[DecodedMessage]],
-        ],
-        Awaitable[DecodedMessage],
-    ]
-]
-CustomParser: TypeAlias = Union[AsyncParser[MsgType], SyncParser[MsgType]]
-CustomDecoder: TypeAlias = Union[AsyncDecoder[MsgType], SyncDecoder[MsgType]]
 
 P_HandlerParams = ParamSpec("P_HandlerParams")
 T_HandlerReturn = TypeVar("T_HandlerReturn", bound=SendableMessage)

@@ -33,4 +33,6 @@ SendableMessage: TypeAlias = Union[
     None,
 ]
 
+SendableReturn = TypeVar("SendableReturn", bound=SendableMessage)
+
 SettingField: TypeAlias = Union[bool, str, List[str]]

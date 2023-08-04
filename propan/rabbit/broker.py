@@ -23,8 +23,8 @@ from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.push_back_watcher import BaseWatcher, OneTryWatcher, WatcherContext
 from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
-    AsyncDecoder,
-    AsyncParser,
+    AsyncCustomDecoder,
+    AsyncCustomParser,
     P_HandlerParams,
     T_HandlerReturn,
 )
@@ -152,8 +152,8 @@ class RabbitBroker(
         consume_args: Optional[AnyDict] = None,
         # broker arguments
         dependencies: Sequence[Depends] = (),
-        parser: Optional[AsyncParser[aio_pika.IncomingMessage]] = None,
-        decoder: Optional[AsyncDecoder[aio_pika.IncomingMessage]] = None,
+        parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
+        decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
             List[
                 Callable[
