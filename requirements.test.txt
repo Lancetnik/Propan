@@ -4,5 +4,7 @@ pytest-asyncio>=0.21
 asyncmock
 pydantic_settings
 
+pydantic-settings>=2.0a1
+python-dotenv
 fastapi>=0.100.0b
 httpx
