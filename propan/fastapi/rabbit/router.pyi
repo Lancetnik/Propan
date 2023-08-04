@@ -67,6 +67,7 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         decode_message: AsyncDecoder[IncomingMessage] = None,
         parse_message: AsyncParser[IncomingMessage] = None,
         schema_url: str = "/asyncapi",
+        setup_state: bool = True,
         protocol: str = "amqp",
         protocol_version: str = "0.9.1",
     ) -> None:

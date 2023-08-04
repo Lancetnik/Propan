@@ -78,6 +78,7 @@ class RedisRouter(PropanRouter[RedisBroker]):
         ),
         # Broker kwargs
         schema_url: str = "/asyncapi",
+        setup_state: bool = True,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = None,

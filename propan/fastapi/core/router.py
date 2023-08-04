@@ -80,6 +80,7 @@ class PropanRouter(APIRouter, Generic[Broker, MsgType]):
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
         ),
+        setup_state: bool = True,
         **connection_kwars: AnyDict,
     ) -> None:
         assert (
@@ -91,6 +92,7 @@ class PropanRouter(APIRouter, Generic[Broker, MsgType]):
             apply_types=False,
             **connection_kwars,  # type: ignore
         )
+        self.setup_state = setup_state
 
         super().__init__(
             prefix=prefix,
@@ -197,6 +199,7 @@ class PropanRouter(APIRouter, Generic[Broker, MsgType]):
                     context = dict(maybe_context)
 
                 context.update({"broker": self.broker})
+
                 await self.broker.start()
 
                 for h in self._after_startup_hooks:
@@ -204,7 +207,11 @@ class PropanRouter(APIRouter, Generic[Broker, MsgType]):
                     if h_context:  # pragma: no branch
                         context.update(h_context)
 
-                yield context
+                if self.setup_state:
+                    yield context
+                else:
+                    yield
+
                 await self.broker.close()
 
         return start_broker_lifespan

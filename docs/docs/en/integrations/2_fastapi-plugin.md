@@ -21,6 +21,13 @@ in any way convenient for you. The message header is placed in `headers`.
 Also, this router can be fully used as an `HttpRouter` (of which it is the inheritor). So you can
 use it to declare any `get`, `post`, `put` and other HTTP methods. For example, this is done at  **19** line.
 
+!!! warning
+    If your **ASGI** server does not support installing **state** inside **lifespan**, you can disable this behavior as follows:
+    ```python
+    router = Propane Router(..., setup_state=False)
+    ```
+    However, after that you will not be able to access the broker from your application's **state** (but it is still available as the `router.broker`)
+
 ## Sending messages
 
 Inside each router there is a broker. You can easily access it if you need to send a message to MQ.
