@@ -1,6 +1,20 @@
 -e .
+-e .[doc]
 -e .[async-rabbit]
+-e .[async-nats]
 -e .[async-sqs]
+-e .[async-kafka]
+-e .[async-redis]
+
+types-redis
+types-PyYAML
+
+mypy==1.4.1
+black==23.3.0
+isort>=5
+ruff==0.0.275
+pyupgrade-directories
+typer[all]
 
 -r requirements.test.txt
 -r requirements.docs.txt

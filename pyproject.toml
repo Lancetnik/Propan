@@ -10,7 +10,7 @@ authors = [
     { name = "Pastukhov Nikita", email = "diementros@yandex.ru" },
 ]
 
-keywords = ["rabbitmq", "kafka", "framework", "message brokers"]
+keywords = ["rabbitmq", "nats", "kafka", "sqs", "redis", "framework", "message brokers"]
 
 requires-python = ">=3.7"
 
@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -45,7 +46,7 @@ classifiers = [
 dynamic = ["version"]
 
 dependencies = [
-    "fast-depends>=2.1.3",
+    "fast-depends>=2.1.1",
     "watchfiles",
     "typer",
     "uvloop>=0.14.0,!=0.15.0,!=0.15.1; sys_platform != 'win32' and (sys_platform != 'cygwin' and platform_python_implementation != 'PyPy')",
@@ -56,10 +57,30 @@ async-rabbit = [
     "aio-pika>=9",
 ]
 
+async-nats = [
+    "nats-py>=2,!=2.3.0",
+]
+
+async-redis = [
+    "redis>=4.2.0rc1",
+]
+
 async-kafka = [
     "aiokafka>=0.8",
 ]
 
+async-sqs = [
+    "aiobotocore",
+]
+
+doc = [
+    "PyYAML",
+    "email-validator>=2.0.0",
+    "polyfactory>=2.5.0; python_version > '3.7'",
+    "jsonref",
+    "fastapi",
+    "uvicorn",
+]
 
 [project.urls]
 Homepage = "https://lancetnik.github.io/Propan/"
@@ -69,6 +90,10 @@ Source = "https://github.com/Lancetnik/Propan"
 
 [project.scripts]
 propan = "propan.__main__:cli"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+allow-ambiguous-features = true
 
 [tool.hatch.version]
 path = "propan/__about__.py"
@@ -80,9 +105,52 @@ exclude = [
     "/docs",
 ]
 
+[tool.hatch.envs.default]
+python = "3.11" 
+skip-install = false
+features = [
+  "dev",
+]
+
+[tool.hatch.envs.test]
+features = [
+  "test",
+  "async-sqs",
+  "async-kafka",
+  "async-nats",
+  "async-rabbit",
+  "async-redis",
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["37", "38", "39", "310", "311"]
+
+[tool.hatch.envs.test.scripts]
+run = "pytest -q -m 'not slow and not run'"
+run-all = "pytest -m 'all and not run'"
+
+[tool.hatch.envs.test-last]
+python = "3.11"
+features = [
+  "test",
+  "async-sqs",
+  "async-kafka",
+  "async-nats",
+  "async-rabbit",
+  "async-redis",
+]
+
+[tool.hatch.envs.test-last.scripts]
+run = "pytest -q -m 'not slow and not run'"
+run-all = "pytest -v -m 'all and not run'"
+cov = "bash ./scripts/test-cov.sh -v -m 'all'"
+
 [tool.mypy]
 strict = true
-python_version = "3.8"
+follow_imports = "skip"
+ignore_missing_imports = true
+disallow_subclassing_any = true
+python_version = "3.7"
 
 [tool.isort]
 profile = "black"
@@ -90,13 +158,13 @@ known_first_party = ["propan"]
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py37']
 include = '\.pyi?$'
 
 [tool.ruff]
 fix = true
 line-length = 88
-target-version = "py38"
+target-version = "py37"
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -121,22 +189,25 @@ extend-immutable-calls = [
     "propan.utils.context.Depends", "propan.utils.context.Context",
     "typer.Argument", "typer.Option",
     "pydantic.Field", "rocketry.args.Arg",
-    "fastapi.Depends", "fastapi.Header",
-    "fastapi.datastructures.Default",
+    "fastapi.Depends", "fastapi.datastructures.Default",
     "kafka.partitioner.default.DefaultPartitioner",
 ]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-q -m 'not slow'"
+addopts = "-q -m 'not slow and not run'"
 testpaths = [
     "tests",
 ]
 markers = [
     "rabbit",
+    "nats",
+    "redis",
     "kafka",
+    "sqs",
     "slow",
     "all",
+    "run",
 ]
 
 [tool.coverage.run]
