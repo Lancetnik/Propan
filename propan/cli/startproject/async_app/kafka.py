@@ -27,7 +27,7 @@ def _create_project_dir(dirname: Path) -> Path:
         "",
         "services:",
         "  kafka:",
-        "    image: bitnami/kafka",
+        "    image: bitnami/kafka:3.5.0",
         "    ports:",
         "      - 9092:9092",
         "    environment:",
