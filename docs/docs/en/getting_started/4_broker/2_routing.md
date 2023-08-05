@@ -18,6 +18,17 @@ To learn more about the behavior of specialized brokers, go to the following sec
 * [NatsBroker](../../../nats/1_nats-index/#routing-rules)
 * [RedisBroker](../../../redis/1_redis-index/#routing-rules)
 
+## Delayed handlers registration
+
+If you don't want to mix an application "business logic" with the routing one, you can use the standard **Python** decorators behavior "without sugar": just define a handler function, and register it later.
+
+```python
+async def base_handler(body: str):
+    ...
+
+broker.handle("test")(base_handler)
+```
+
 ## BrokerRouter
 
 Sometimes it can be convenient to divide handlers into groups that can be connected to your application with just one command.
