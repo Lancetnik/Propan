@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict, Generic, List
 
 from typing_extensions import ParamSpec, TypeVar
 
-from propan.broker.schemas import HandlerCallWrapper, Publisher
+from propan.broker.schemas import BasePublisher, HandlerCallWrapper
 from propan.broker.types import MsgType
 from propan.types import AnyDict, SendableMessage
 
@@ -79,5 +79,5 @@ class BrokerRouter(Generic[MsgType]):
         subj: str,
         *args: Any,
         **kwargs: AnyDict,
-    ) -> Publisher:
+    ) -> BasePublisher:
         raise NotImplementedError()

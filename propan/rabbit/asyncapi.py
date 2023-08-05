@@ -14,8 +14,8 @@ from propan.asyncapi import (
 from propan.asyncapi.base import AsyncAPIOperation
 from propan.asyncapi.message import get_response_schema, parse_handler_params
 from propan.asyncapi.schema.bindings import amqp
-from propan.rabbit.handler import Handler as BaseHandler
-from propan.rabbit.publisher import Publisher as BasePublisher
+from propan.rabbit.handler import LogicHandler
+from propan.rabbit.publisher import LogicPublisher
 from propan.rabbit.shared.constants import ExchangeType
 from propan.rabbit.shared.schemas import BaseRMQInformation, RabbitExchange
 from propan.types import AnyDict
@@ -80,7 +80,7 @@ class RMQAsyncAPIChannel(AsyncAPIOperation, BaseRMQInformation):
         )
 
 
-class Publisher(RMQAsyncAPIChannel, BasePublisher):
+class Publisher(RMQAsyncAPIChannel, LogicPublisher):
     def get_payloads(self) -> Tuple[str, Channel]:
         payloads = []
         for call in self.calls:
@@ -94,7 +94,7 @@ class Publisher(RMQAsyncAPIChannel, BasePublisher):
         return payloads
 
 
-class Handler(RMQAsyncAPIChannel, BaseHandler):
+class Handler(RMQAsyncAPIChannel, LogicHandler):
     def get_payloads(self) -> Tuple[str, Channel]:
         payloads = []
         for _, _, _, _, _, _, dep in self.calls:

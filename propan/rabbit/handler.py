@@ -12,7 +12,7 @@ from propan.rabbit.shared.schemas import BaseRMQInformation, RabbitExchange, Rab
 from propan.types import AnyDict, F_Return, F_Spec
 
 
-class Handler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
+class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
     queue: RabbitQueue
     exchange: Optional[RabbitExchange]
     consume_args: AnyDict

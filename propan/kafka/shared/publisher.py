@@ -2,11 +2,11 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from propan.broker.schemas import Publisher as BasePub
+from propan.broker.schemas import BasePublisher
 
 
 @dataclass
-class Publisher(ABC, BasePub):
+class ABCPublisher(ABC, BasePublisher):
     topic: str = ""
     key: Optional[bytes] = None
     partition: Optional[int] = None

@@ -32,21 +32,23 @@ from propan.broker.types import (
 )
 from propan.exceptions import RuntimeException
 from propan.kafka.asyncapi import Handler, Publisher
-from propan.kafka.helpers import AioKafkaPublisher
 from propan.kafka.message import KafkaMessage
+from propan.kafka.producer import AioKafkaPropanProducer
 from propan.kafka.shared.logging import KafkaLoggingMixin
+from propan.kafka.shared.schemas import ConsumerConnectionParams
 from propan.types import AnyDict, DecodedMessage
 from propan.utils import context
+from propan.utils.data import filter_by_dict
 from propan.utils.functions import patch_annotation, to_async
 
 
 class KafkaBroker(
     KafkaLoggingMixin,
-    BrokerAsyncUsecase[aiokafka.ConsumerRecord, AnyDict],
+    BrokerAsyncUsecase[aiokafka.ConsumerRecord, ConsumerConnectionParams],
 ):
     handlers: Dict[str, Handler]
     _publishers: Dict[int, Publisher]
-    _publisher: Optional[AioKafkaPublisher]
+    _producer: Optional[AioKafkaPropanProducer]
 
     def __init__(
         self,
@@ -65,7 +67,7 @@ class KafkaBroker(
             bootstrap_servers=bootstrap_servers,
         )
         self.response_topic = response_topic
-        self._publisher = None
+        self._producer = None
 
     async def _close(
         self,
@@ -73,9 +75,9 @@ class KafkaBroker(
         exc_val: Optional[BaseException] = None,
         exec_tb: Optional[TracebackType] = None,
     ) -> None:
-        if self._publisher is not None:
-            await self._publisher.stop()
-            self._publisher = None
+        if self._producer is not None:
+            await self._producer.stop()
+            self._producer = None
 
         await super()._close(exc_type, exc_val, exec_tb)
 
@@ -86,7 +88,7 @@ class KafkaBroker(
     ) -> AnyDict:
         connection = await super().connect(*args, **kwargs)
         for p in self._publishers.values():
-            p._publisher = self._publisher
+            p._producer = self._producer
         return connection
 
     async def _connect(
@@ -96,38 +98,15 @@ class KafkaBroker(
         kwargs["client_id"] = kwargs.get("client_id", "propan-" + __version__)
 
         producer = aiokafka.AIOKafkaProducer(**kwargs)
-        context.set_global("producer", producer)
         await producer.start()
-        self._publisher = AioKafkaPublisher(
+        self._producer = AioKafkaPropanProducer(
             producer=producer,
             global_decoder=self._global_decoder,
             global_parser=self._global_parser,
         )
+        context.set_global("producer", self._producer)
 
-        consumer_kwargs = {
-            k: v
-            for k, v in kwargs.items()
-            if k
-            in {
-                "bootstrap_servers",
-                "loop",
-                "client_id",
-                "request_timeout_ms",
-                "retry_backoff_ms",
-                "metadata_max_age_ms",
-                "security_protocol",
-                "api_version",
-                "connections_max_idle_ms",
-                "sasl_mechanism",
-                "sasl_plain_password",
-                "sasl_plain_username",
-                "sasl_kerberos_service_name",
-                "sasl_kerberos_domain_name",
-                "sasl_oauth_token_provider",
-            }
-            and v
-        }
-        return consumer_kwargs
+        return filter_by_dict(ConsumerConnectionParams, kwargs)
 
     async def start(self) -> None:
         context.set_local(
@@ -327,13 +306,13 @@ class KafkaBroker(
                 timestamp_ms=timestamp_ms,
                 headers=headers,
                 reply_to=reply_to,
-                _publisher=self._publisher,
+                _producer=self._producer,
             ),
         )
         return super().publisher(topic, publisher)
 
-    @patch_annotation(AioKafkaPublisher.publish)
+    @patch_annotation(AioKafkaPropanProducer.publish)
     async def publish(self, *args: Any, **kwargs: AnyDict) -> Optional[DecodedMessage]:
-        if self._publisher is None:
+        if self._producer is None:
             raise ValueError("KafkaBroker is not started yet")
-        return await self._publisher.publish(*args, **kwargs)
+        return await self._producer.publish(*args, **kwargs)

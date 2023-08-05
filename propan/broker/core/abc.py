@@ -30,7 +30,7 @@ from propan.broker.message import PropanMessage
 from propan.broker.middlewares import CriticalLogMiddleware
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.router import BrokerRouter
-from propan.broker.schemas import HandlerCallWrapper, Publisher
+from propan.broker.schemas import BasePublisher, HandlerCallWrapper
 from propan.broker.types import (
     ConnectionType,
     CustomDecoder,
@@ -61,7 +61,7 @@ class BrokerUsecase(
     logger: Optional[logging.Logger]
     log_level: int
     handlers: Dict[Any, BaseHandler]
-    _publishers: Dict[Any, Publisher]
+    _publishers: Dict[Any, BasePublisher]
 
     dependencies: Sequence[Depends]
     started: bool
@@ -321,8 +321,8 @@ class BrokerUsecase(
     def publisher(
         self,
         key: Any,
-        publisher: Publisher,
-    ) -> Publisher:
+        publisher: BasePublisher,
+    ) -> BasePublisher:
         self._publishers[key] = publisher
         return publisher
 

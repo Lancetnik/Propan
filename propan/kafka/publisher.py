@@ -1,14 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from propan.kafka.helpers import AioKafkaPublisher
-from propan.kafka.shared.publisher import Publisher as BasePub
+from propan.kafka.producer import AioKafkaPropanProducer
+from propan.kafka.shared.publisher import ABCPublisher
 from propan.types import DecodedMessage, SendableMessage
 
 
 @dataclass
-class Publisher(BasePub):
-    _publisher: Optional[AioKafkaPublisher] = field(default=None)
+class LogicPublisher(ABCPublisher):
+    _producer: Optional[AioKafkaPropanProducer] = field(default=None)
 
     async def publish(
         self,
@@ -19,7 +19,7 @@ class Publisher(BasePub):
         raise_timeout: bool = False,
         correlation_id: str = "",
     ) -> Optional[DecodedMessage]:
-        return await self._publisher.publish(
+        return await self._producer.publish(
             message=message,
             topic=self.topic,
             key=self.key,

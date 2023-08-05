@@ -9,12 +9,12 @@ from typing_extensions import Never
 from propan.broker.handler import AsyncHandler
 from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
-from propan.kafka.helpers import AioKafkaParser
 from propan.kafka.message import KafkaMessage
+from propan.kafka.parser import AioKafkaParser
 from propan.types import AnyDict, F_Return, F_Spec
 
 
-class Handler(AsyncHandler[ConsumerRecord]):
+class LogicHandler(AsyncHandler[ConsumerRecord]):
     topics: List[str]
 
     consumer: Optional[AIOKafkaConsumer] = None
@@ -37,6 +37,7 @@ class Handler(AsyncHandler[ConsumerRecord]):
         self.task = None
         self.consumer = None
 
+    # TODO: use **kwargs: Unpack[ConsumerConnectionParams] with py3.12 release 2023-10-02
     async def start(self, **consumer_kwargs: AnyDict) -> None:
         self.consumer = consumer = self.builder(*self.topics, **consumer_kwargs)
         await consumer.start()

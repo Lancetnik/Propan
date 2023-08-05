@@ -4,14 +4,14 @@ from typing import Optional
 
 from typing_extensions import TypeAlias
 
-from propan.broker.schemas import Publisher as BasePub
+from propan.broker.schemas import BasePublisher
 from propan.rabbit.shared.schemas import BaseRMQInformation
 from propan.rabbit.shared.types import TimeoutType
 from propan.types import AnyDict
 
 
 @dataclass
-class Publisher(ABC, BasePub, BaseRMQInformation):
+class ABCPublisher(ABC, BasePublisher, BaseRMQInformation):
     routing_key: str = ""
     mandatory: bool = True
     immediate: bool = False
