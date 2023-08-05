@@ -17,4 +17,4 @@ __all__ = (
 
 KafkaMessage = Annotated[KM, Context("message")]
 KafkaBroker = Annotated[KB, Context("broker")]
-KafkaProducer = Annotated[AioKafkaPropanProducer, Context("producer")]
+KafkaProducer = Annotated[AioKafkaPropanProducer, Context("broker._producer")]

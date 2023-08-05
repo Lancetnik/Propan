@@ -8,7 +8,7 @@ from propan.types import DecodedMessage, SendableMessage
 
 @dataclass
 class LogicPublisher(ABCPublisher):
-    _producer: Optional[AioKafkaPropanProducer] = field(default=None)
+    _producer: Optional[AioKafkaPropanProducer] = field(default=None, init=False)
 
     async def publish(
         self,

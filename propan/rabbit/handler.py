@@ -6,8 +6,9 @@ from fast_depends.core import CallModel
 from propan.broker.handler import AsyncHandler
 from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
-from propan.rabbit.helpers import AioPikaParser, RabbitDeclarer
+from propan.rabbit.helpers import RabbitDeclarer
 from propan.rabbit.message import RabbitMessage
+from propan.rabbit.parser import AioPikaParser
 from propan.rabbit.shared.schemas import BaseRMQInformation, RabbitExchange, RabbitQueue
 from propan.types import AnyDict, F_Return, F_Spec
 
