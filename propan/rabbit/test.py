@@ -24,7 +24,10 @@ from propan.types import AnyDict
 __all__ = ("TestRabbitBroker",)
 
 
-def TestRabbitBroker(broker: RabbitBroker) -> RabbitBroker:
+def TestRabbitBroker(broker: RabbitBroker, with_real: bool = False) -> RabbitBroker:
+    if with_real:
+        return broker
+
     broker._channel = AsyncMock()
     broker.declarer = AsyncMock()
     _fake_start(broker)

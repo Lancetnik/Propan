@@ -5,26 +5,34 @@ import pytest
 
 from propan.rabbit import ExchangeType, RabbitBroker, RabbitExchange, RabbitQueue
 from propan.rabbit.annotations import RabbitMessage
+from propan.rabbit import TestRabbitBroker
 from tests.brokers.base.testclient import BrokerTestclientTestcase
 
-
+@pytest.mark.asyncio
 class TestTestclient(BrokerTestclientTestcase):
-    @pytest.mark.asyncio
-    async def test_raw(
+    @pytest.mark.rabbit
+    async def test_with_real_testclient(
         self,
-        test_broker: RabbitBroker,
+        broker: RabbitBroker,
         queue: str,
+        event: asyncio.Event,
     ):
-        @test_broker.subscriber(queue)
-        async def handler(m):
-            raise ValueError()
+        @broker.subscriber(queue)
+        def subscriber(m):
+            event.set()
 
-        await test_broker.start()
+        async with TestRabbitBroker(broker, with_real=True) as br:
+            await br.start()
+            await asyncio.wait(
+                (
+                    asyncio.create_task(br.publish("hello", queue)),
+                    asyncio.create_task(event.wait()),
+                ),
+                timeout=3,
+            )
 
-        with pytest.raises(ValueError):
-            await test_broker.publish("", queue)
+        assert event.is_set()
 
-    @pytest.mark.asyncio
     async def test_direct(
         self,
         test_broker: RabbitBroker,
@@ -44,7 +52,6 @@ class TestTestclient(BrokerTestclientTestcase):
         )
         assert None is await test_broker.publish("", exchange="test2", rpc=True)
 
-    @pytest.mark.asyncio
     async def test_fanout(
         self,
         test_broker: RabbitBroker,
@@ -63,7 +70,6 @@ class TestTestclient(BrokerTestclientTestcase):
 
         assert mock.call_count == 1
 
-    @pytest.mark.asyncio
     async def test_topic(
         self,
         test_broker: RabbitBroker,
@@ -82,7 +88,6 @@ class TestTestclient(BrokerTestclientTestcase):
         assert 2 == await test_broker.publish("", "logs.error", exchange=exch, rpc=True)
         assert None is await test_broker.publish("", "logs.error", rpc=True)
 
-    @pytest.mark.asyncio
     async def test_header(
         self,
         test_broker: RabbitBroker,
@@ -121,7 +126,6 @@ class TestTestclient(BrokerTestclientTestcase):
         )
         assert 3 == await test_broker.publish(exchange=exch, rpc=True, headers={})
 
-    @pytest.mark.asyncio
     async def test_consume_manual_ack(
         self,
         queue: str,
