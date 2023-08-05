@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 import aiormq
 
-from propan.rabbit.helpers import AioPikaPublisher
+from propan.rabbit.producer import AioPikaPropanProducer
 from propan.rabbit.shared.publisher import ABCPublisher
 from propan.rabbit.types import AioPikaSendableMessage
 from propan.types import AnyDict, DecodedMessage
@@ -11,7 +11,7 @@ from propan.types import AnyDict, DecodedMessage
 
 @dataclass
 class LogicPublisher(ABCPublisher):
-    _publisher: Optional[AioPikaPublisher] = field(default=None)
+    _producer: Optional[AioPikaPropanProducer] = field(default=None, init=False)
     _fake_handler: bool = False
 
     async def publish(
@@ -24,7 +24,7 @@ class LogicPublisher(ABCPublisher):
         correlation_id: Optional[str] = None,
         **message_kwargs: AnyDict,
     ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
-        return await self._publisher.publish(
+        return await self._producer.publish(
             message=message,
             queue=self.queue,
             exchange=self.exchange,

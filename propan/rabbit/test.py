@@ -13,8 +13,9 @@ from typing_extensions import assert_never
 
 from propan.broker.test import call_handler, patch_broker_calls
 from propan.rabbit.broker import RabbitBroker
-from propan.rabbit.helpers import AioPikaParser, AioPikaPublisher
 from propan.rabbit.message import RabbitMessage
+from propan.rabbit.parser import AioPikaParser
+from propan.rabbit.producer import AioPikaPropanProducer
 from propan.rabbit.shared.constants import ExchangeType
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
 from propan.rabbit.shared.types import TimeoutType
@@ -86,7 +87,7 @@ def build_message(
     )
 
 
-class FakePublisher(AioPikaPublisher):
+class FakeProducer(AioPikaPropanProducer):
     def __init__(self, broker: RabbitBroker):
         self.broker = broker
 
@@ -177,7 +178,7 @@ class FakePublisher(AioPikaPublisher):
 
 
 async def _fake_connect(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> None:
-    self._publisher = FakePublisher(self)
+    self._producer = FakeProducer(self)
 
 
 async def _fake_close(
@@ -218,6 +219,6 @@ def _fake_start(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> None:
 
             p.mock = f.mock
 
-        p._publisher = self._publisher
+        p._producer = self._producer
 
     patch_broker_calls(self)

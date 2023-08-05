@@ -30,8 +30,9 @@ from propan.broker.types import (
 )
 from propan.exceptions import RuntimeException
 from propan.rabbit.asyncapi import Handler, Publisher
-from propan.rabbit.helpers import AioPikaPublisher, RabbitDeclarer
+from propan.rabbit.helpers import RabbitDeclarer
 from propan.rabbit.message import RabbitMessage
+from propan.rabbit.producer import AioPikaPropanProducer
 from propan.rabbit.shared.constants import RABBIT_REPLY
 from propan.rabbit.shared.logging import RabbitLoggingMixin
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
@@ -49,7 +50,7 @@ class RabbitBroker(
     _publishers: Dict[int, Publisher]
 
     declarer: Optional[RabbitDeclarer]
-    _publisher: Optional[AioPikaPublisher]
+    _producer: Optional[AioPikaPropanProducer]
     _connection: Optional[aio_pika.RobustConnection]
     _channel: Optional[aio_pika.RobustChannel]
 
@@ -73,7 +74,7 @@ class RabbitBroker(
 
         self._channel = None
         self.declarer = None
-        self._publisher = None
+        self._producer = None
 
     async def _close(
         self,
@@ -88,8 +89,8 @@ class RabbitBroker(
         if self.declarer is not None:
             self.declarer = None
 
-        if self._publisher is not None:
-            self._publisher = None
+        if self._producer is not None:
+            self._producer = None
 
         await self._connection.close()
         await super()._close(exc_type, exc_val, exec_tb)
@@ -97,7 +98,7 @@ class RabbitBroker(
     async def connect(self, *args: Any, **kwargs: AnyDict) -> aio_pika.RobustConnection:
         connection = await super().connect(*args, **kwargs)
         for p in self._publishers.values():
-            p._publisher = self._publisher
+            p._producer = self._producer
         return connection
 
     async def _connect(
@@ -116,7 +117,7 @@ class RabbitBroker(
                 ensure=False,
             )
 
-            self._publisher = AioPikaPublisher(
+            self._producer = AioPikaPropanProducer(
                 channel,
                 declarer,
                 global_decoder=self._global_decoder,
@@ -251,18 +252,17 @@ class RabbitBroker(
                 persist=persist,
                 reply_to=reply_to,
                 message_kwargs=message_kwargs,
-                _publisher=self._publisher,
             ),
         )
         return super().publisher(key, publisher)
 
-    @patch_annotation(AioPikaPublisher.publish)
+    @patch_annotation(AioPikaPropanProducer.publish)
     async def publish(
         self, *args: Any, **kwargs: AnyDict
     ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
         if self._channel is None:
             raise ValueError("RabbitBroker channel is not started yet")
-        return await self._publisher.publish(*args, **kwargs)
+        return await self._producer.publish(*args, **kwargs)
 
     def _process_message(
         self,

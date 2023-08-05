@@ -104,7 +104,6 @@ class KafkaBroker(
             global_decoder=self._global_decoder,
             global_parser=self._global_parser,
         )
-        context.set_global("producer", self._producer)
 
         return filter_by_dict(ConsumerConnectionParams, kwargs)
 
@@ -306,7 +305,6 @@ class KafkaBroker(
                 timestamp_ms=timestamp_ms,
                 headers=headers,
                 reply_to=reply_to,
-                _producer=self._producer,
             ),
         )
         return super().publisher(topic, publisher)
