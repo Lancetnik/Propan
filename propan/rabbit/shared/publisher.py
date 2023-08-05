@@ -4,7 +4,7 @@ from typing import Optional
 
 from typing_extensions import TypeAlias
 
-from propan.broker.schemas import BasePublisher
+from propan.broker.publisher import BasePublisher
 from propan.rabbit.shared.schemas import BaseRMQInformation
 from propan.rabbit.shared.types import TimeoutType
 from propan.types import AnyDict

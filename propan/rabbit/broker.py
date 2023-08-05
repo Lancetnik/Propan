@@ -21,13 +21,13 @@ from yarl import URL
 
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.push_back_watcher import BaseWatcher, OneTryWatcher, WatcherContext
-from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
     P_HandlerParams,
     T_HandlerReturn,
 )
+from propan.broker.wrapper import HandlerCallWrapper
 from propan.exceptions import RuntimeException
 from propan.rabbit.asyncapi import Handler, Publisher
 from propan.rabbit.helpers import RabbitDeclarer

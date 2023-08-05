@@ -1,24 +1,24 @@
 from abc import abstractmethod
 from typing import Any, Callable, Dict, Generic, List
 
-from typing_extensions import ParamSpec, TypeVar
+from typing_extensions import ParamSpec
 
-from propan.broker.schemas import BasePublisher, HandlerCallWrapper
+from propan.broker.publisher import BasePublisher
 from propan.broker.types import MsgType
-from propan.types import AnyDict, SendableMessage
+from propan.broker.wrapper import HandlerCallWrapper
+from propan.types import AnyDict, SendableReturn
 
 P_RouteCall = ParamSpec("P_RouteCall")
-T_RouteReturn = TypeVar("T_RouteReturn", bound=SendableMessage)
 
 
-class BrokerRoute(Generic[MsgType, T_RouteReturn]):
-    call: Callable[..., T_RouteReturn]
+class BrokerRoute(Generic[MsgType, SendableReturn]):
+    call: Callable[..., SendableReturn]
     args: Any
     kwargs: AnyDict
 
     def __init__(
         self,
-        call: Callable[..., T_RouteReturn],
+        call: Callable[..., SendableReturn],
         *,
         args: Any,
         kwargs: AnyDict,
@@ -48,22 +48,22 @@ class BrokerRouter(Generic[MsgType]):
         *args: Any,
         **kwargs: AnyDict,
     ) -> Callable[
-        [Callable[P_RouteCall, T_RouteReturn]],
-        HandlerCallWrapper[P_RouteCall, T_RouteReturn],
+        [Callable[P_RouteCall, SendableReturn]],
+        HandlerCallWrapper[P_RouteCall, SendableReturn],
     ]:
         raise NotImplementedError()
 
     def _wrap_subscriber(
         self, *args: Any, **kwargs: AnyDict
     ) -> Callable[
-        [Callable[P_RouteCall, T_RouteReturn]],
-        HandlerCallWrapper[P_RouteCall, T_RouteReturn],
+        [Callable[P_RouteCall, SendableReturn]],
+        HandlerCallWrapper[P_RouteCall, SendableReturn],
     ]:
         def router_subscriber_wrapper(
-            func: Callable[P_RouteCall, T_RouteReturn]
-        ) -> HandlerCallWrapper[P_RouteCall, T_RouteReturn]:
+            func: Callable[P_RouteCall, SendableReturn]
+        ) -> HandlerCallWrapper[P_RouteCall, SendableReturn]:
             func = HandlerCallWrapper(func)
-            route: BrokerRoute[MsgType, T_RouteReturn] = BrokerRoute(
+            route: BrokerRoute[MsgType, SendableReturn] = BrokerRoute(
                 call=func,
                 args=args,
                 kwargs=kwargs,

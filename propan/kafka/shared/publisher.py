@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from propan.broker.schemas import BasePublisher
+from propan.broker.publisher import BasePublisher
 
 
 @dataclass
