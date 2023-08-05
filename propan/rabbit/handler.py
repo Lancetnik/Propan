@@ -4,8 +4,8 @@ import aio_pika
 from fast_depends.core import CallModel
 
 from propan.broker.handler import AsyncHandler
-from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
+from propan.broker.wrapper import HandlerCallWrapper
 from propan.rabbit.helpers import RabbitDeclarer
 from propan.rabbit.message import RabbitMessage
 from propan.rabbit.parser import AioPikaParser

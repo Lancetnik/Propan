@@ -23,7 +23,6 @@ from typing_extensions import Self
 from propan.broker.core.abc import BrokerUsecase
 from propan.broker.message import PropanMessage
 from propan.broker.push_back_watcher import BaseWatcher
-from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
@@ -34,6 +33,7 @@ from propan.broker.types import (
     P_HandlerParams,
     T_HandlerReturn,
 )
+from propan.broker.wrapper import HandlerCallWrapper
 from propan.exceptions import AckMessage, NackMessage, RejectMessage, SkipMessage
 from propan.log import access_logger
 from propan.types import AnyDict, DecodedMessage, SendableMessage

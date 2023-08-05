@@ -19,8 +19,9 @@ from starlette.routing import BaseRoute
 from propan._compat import raise_fastapi_validation_error
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.message import PropanMessage as NativeMessage
-from propan.broker.schemas import HandlerCallWrapper, NameRequired
+from propan.broker.schemas import NameRequired
 from propan.broker.types import P_HandlerParams, T_HandlerReturn
+from propan.broker.wrapper import HandlerCallWrapper
 from propan.types import AnyDict
 
 

@@ -28,8 +28,10 @@ from typing_extensions import TypeVar
 
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.fastapi.route import PropanRoute
-from propan.broker.schemas import BasePublisher, HandlerCallWrapper, NameRequired
+from propan.broker.publisher import BasePublisher
+from propan.broker.schemas import NameRequired
 from propan.broker.types import P_HandlerParams, T_HandlerReturn
+from propan.broker.wrapper import HandlerCallWrapper
 from propan.types import AnyDict
 from propan.utils.functions import to_async
 

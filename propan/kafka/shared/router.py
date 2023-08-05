@@ -3,7 +3,7 @@ from typing import Callable
 from aiokafka import ConsumerRecord
 
 from propan.broker.router import BrokerRouter, P_RouteCall, T_RouteReturn
-from propan.broker.schemas import HandlerCallWrapper
+from propan.broker.wrapper import HandlerCallWrapper
 from propan.types import AnyDict
 
 

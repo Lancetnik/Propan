@@ -28,9 +28,9 @@ from propan.broker.core.mixins import LoggingMixin
 from propan.broker.handler import BaseHandler
 from propan.broker.message import PropanMessage
 from propan.broker.middlewares import CriticalLogMiddleware
+from propan.broker.publisher import BasePublisher
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.router import BrokerRouter
-from propan.broker.schemas import BasePublisher, HandlerCallWrapper
 from propan.broker.types import (
     ConnectionType,
     CustomDecoder,
@@ -47,6 +47,7 @@ from propan.broker.utils import (
     set_message_context,
     suppress_decor,
 )
+from propan.broker.wrapper import HandlerCallWrapper
 from propan.log import access_logger
 from propan.types import AnyDict
 from propan.utils import apply_types, context

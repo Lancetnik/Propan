@@ -7,8 +7,8 @@ from fast_depends.core import CallModel
 from typing_extensions import Never
 
 from propan.broker.handler import AsyncHandler
-from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
+from propan.broker.wrapper import HandlerCallWrapper
 from propan.kafka.message import KafkaMessage
 from propan.kafka.parser import AioKafkaParser
 from propan.types import AnyDict, F_Return, F_Spec

@@ -21,7 +21,6 @@ from fast_depends.core import CallModel
 from propan._compat import IS_OPTIMIZED
 from propan.asyncapi.base import AsyncAPIOperation
 from propan.broker.message import PropanMessage
-from propan.broker.schemas import HandlerCallWrapper
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
@@ -37,6 +36,7 @@ from propan.broker.types import (
     SyncDecoder,
     SyncParser,
 )
+from propan.broker.wrapper import HandlerCallWrapper
 from propan.exceptions import StopConsume
 from propan.types import F_Spec, SendableMessage, SendableReturn
 
