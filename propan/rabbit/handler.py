@@ -2,15 +2,22 @@ from typing import AsyncContextManager, Awaitable, Callable, List, Optional
 
 import aio_pika
 from fast_depends.core import CallModel
+from typing_extensions import override
 
 from propan.broker.handler import AsyncHandler
-from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
+from propan.broker.types import (
+    AsyncCustomDecoder,
+    AsyncCustomParser,
+    AsyncWrappedHandlerCall,
+    P_HandlerParams,
+    T_HandlerReturn,
+)
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.rabbit.helpers import RabbitDeclarer
 from propan.rabbit.message import RabbitMessage
 from propan.rabbit.parser import AioPikaParser
 from propan.rabbit.shared.schemas import BaseRMQInformation, RabbitExchange, RabbitQueue
-from propan.types import AnyDict, F_Return, F_Spec
+from propan.types import AnyDict
 
 
 class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
@@ -43,17 +50,17 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
 
     def add_call(
         self,
-        handler: HandlerCallWrapper[F_Spec, F_Return],
-        wrapped_call: Callable[
-            [RabbitMessage, bool],
-            Awaitable[Optional[F_Return]],
+        *,
+        handler: HandlerCallWrapper[
+            aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn
         ],
-        dependant: CallModel[F_Spec, F_Return],
-        parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
-        decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
-        filter: Callable[
-            [RabbitMessage], Awaitable[bool]
-        ] = lambda m: not m.processed,  # pragma: no cover
+        wrapped_call: AsyncWrappedHandlerCall[
+            aio_pika.IncomingMessage, T_HandlerReturn
+        ],
+        dependant: CallModel[P_HandlerParams, T_HandlerReturn],
+        filter: Callable[[RabbitMessage], Awaitable[bool]],
+        parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]],
+        decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]],
         middlewares: Optional[
             List[
                 Callable[
@@ -61,7 +68,7 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
                     AsyncContextManager[None],
                 ]
             ]
-        ] = None,
+        ],
     ) -> None:
         super().add_call(
             handler=handler,
@@ -73,6 +80,7 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
             middlewares=middlewares,
         )
 
+    @override
     async def start(self, declarer: RabbitDeclarer) -> None:  # type: ignore[override]
         self._queue_obj = queue = await declarer.declare_queue(self.queue)
 

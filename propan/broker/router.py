@@ -1,30 +1,20 @@
 from abc import abstractmethod
 from typing import Any, Callable, Dict, Generic, List
 
-from typing_extensions import ParamSpec
-
 from propan.broker.publisher import BasePublisher
-from propan.broker.types import MsgType
+from propan.broker.types import MsgType, P_HandlerParams, T_HandlerReturn
 from propan.broker.wrapper import HandlerCallWrapper
-from propan.types import AnyDict, SendableReturn as T_RouteReturn
-
-P_RouteCall = ParamSpec("P_RouteCall")
+from propan.types import AnyDict
 
 
-__all__ = (
-    "P_RouteCall"
-    "T_RouteReturn",
-    "BrokerRouter",
-)
-
-class BrokerRoute(Generic[MsgType, T_RouteReturn]):
-    call: Callable[..., T_RouteReturn]
+class BrokerRoute(Generic[MsgType, T_HandlerReturn]):
+    call: Callable[..., T_HandlerReturn]
     args: Any
     kwargs: AnyDict
 
     def __init__(
         self,
-        call: Callable[..., T_RouteReturn],
+        call: Callable[..., T_HandlerReturn],
         *,
         args: Any,
         kwargs: AnyDict,
@@ -54,28 +44,30 @@ class BrokerRouter(Generic[MsgType]):
         *args: Any,
         **kwargs: AnyDict,
     ) -> Callable[
-        [Callable[P_RouteCall, T_RouteReturn]],
-        HandlerCallWrapper[P_RouteCall, T_RouteReturn],
+        [Callable[P_HandlerParams, T_HandlerReturn]],
+        HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
     ]:
         raise NotImplementedError()
 
     def _wrap_subscriber(
         self, *args: Any, **kwargs: AnyDict
     ) -> Callable[
-        [Callable[P_RouteCall, T_RouteReturn]],
-        HandlerCallWrapper[P_RouteCall, T_RouteReturn],
+        [Callable[P_HandlerParams, T_HandlerReturn]],
+        HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
     ]:
         def router_subscriber_wrapper(
-            func: Callable[P_RouteCall, T_RouteReturn]
-        ) -> HandlerCallWrapper[P_RouteCall, T_RouteReturn]:
-            func = HandlerCallWrapper(func)
-            route: BrokerRoute[MsgType, T_RouteReturn] = BrokerRoute(
-                call=func,
+            func: Callable[P_HandlerParams, T_HandlerReturn]
+        ) -> HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn]:
+            wrapped_func: HandlerCallWrapper[
+                MsgType, P_HandlerParams, T_HandlerReturn
+            ] = HandlerCallWrapper(func)
+            route: BrokerRoute[MsgType, T_HandlerReturn] = BrokerRoute(
+                call=wrapped_func,
                 args=args,
                 kwargs=kwargs,
             )
             self._handlers.append(route)
-            return func
+            return wrapped_func
 
         return router_subscriber_wrapper
 
@@ -85,5 +77,5 @@ class BrokerRouter(Generic[MsgType]):
         subj: str,
         *args: Any,
         **kwargs: AnyDict,
-    ) -> BasePublisher:
+    ) -> BasePublisher[MsgType]:
         raise NotImplementedError()

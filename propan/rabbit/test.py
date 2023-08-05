@@ -9,7 +9,6 @@ import aiormq
 from aio_pika.message import IncomingMessage
 from pamqp import commands as spec
 from pamqp.header import ContentHeader
-from typing_extensions import assert_never
 
 from propan.broker.test import call_handler, patch_broker_calls
 from propan.rabbit.broker import RabbitBroker
@@ -162,7 +161,7 @@ class FakeProducer(AioPikaPropanProducer):
                             call = (matcher == "any") or full
 
                 else:  # pragma: no cover
-                    assert_never(exch)
+                    raise AssertionError("unreachable")
 
                 if call:
                     r = await call_handler(

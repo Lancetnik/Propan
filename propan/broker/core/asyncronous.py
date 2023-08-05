@@ -18,7 +18,7 @@ from typing import (
 
 from fast_depends.core import CallModel, build_call_model
 from fast_depends.dependencies import Depends
-from typing_extensions import Self
+from typing_extensions import Self, override
 
 from propan.broker.core.abc import BrokerUsecase
 from propan.broker.message import PropanMessage
@@ -28,7 +28,6 @@ from propan.broker.types import (
     AsyncCustomParser,
     AsyncWrappedHandlerCall,
     ConnectionType,
-    HandlerCallable,
     MsgType,
     P_HandlerParams,
     T_HandlerReturn,
@@ -45,6 +44,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     _global_parser: AsyncCustomParser[MsgType]
     _global_decoder: AsyncCustomDecoder[MsgType]
 
+    @override
     @abstractmethod
     async def start(self) -> None:  # type: ignore[override]
         super().start()
@@ -54,6 +54,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     async def _connect(self, **kwargs: AnyDict) -> ConnectionType:
         raise NotImplementedError()
 
+    @override
     @abstractmethod
     async def _close(  # type: ignore[override]
         self,
@@ -63,6 +64,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     ) -> None:
         super()._close(exc_type, exc_val, exec_tb)
 
+    @override
     async def close(  # type: ignore[override]
         self,
         exc_type: Optional[Type[BaseException]] = None,
@@ -77,11 +79,12 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         if self._connection is not None:
             await self._close(exc_type, exc_val, exec_tb)
 
+    @override
     @abstractmethod
     def _process_message(  # type: ignore[override]
         self,
         func: Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]],
-        call_wrapper: HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        call_wrapper: HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
         watcher: Optional[BaseWatcher],
     ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
         raise NotImplementedError()
@@ -99,6 +102,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     ) -> Optional[DecodedMessage]:
         raise NotImplementedError()
 
+    @override
     @abstractmethod
     def subscriber(  # type: ignore[override,return]
         self,
@@ -123,7 +127,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         **broker_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
     ]:
         super().subscriber()
 
@@ -160,6 +164,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             **kwargs,
         )
 
+    @override
     async def connect(  # type: ignore[override]
         self, *args: Any, **kwargs: AnyDict
     ) -> ConnectionType:
@@ -180,6 +185,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     ) -> None:
         await self.close(exc_type, exc_val, exec_tb)
 
+    @override
     def _wrap_decode_message(  # type: ignore[override]
         self,
         func: Callable[..., Awaitable[T_HandlerReturn]],
@@ -206,9 +212,10 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
 
         return decode_wrapper
 
+    @override
     def _wrap_handler(  # type: ignore[override]
         self,
-        func: HandlerCallable[T_HandlerReturn],
+        func: Callable[P_HandlerParams, T_HandlerReturn],
         *,
         retry: Union[bool, int] = False,
         extra_dependencies: Sequence[Depends] = (),
@@ -217,7 +224,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         **broker_log_context_kwargs: AnyDict,
     ) -> Tuple[
         AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],
-        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
         CallModel[P_HandlerParams, T_HandlerReturn],
     ]:
         return super()._wrap_handler(  # type: ignore[return-value]
@@ -247,6 +254,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             await message.reject()
             raise e
 
+    @override
     def _log_execution(  # type: ignore[override]
         self,
         func: Callable[

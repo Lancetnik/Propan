@@ -1,6 +1,6 @@
 from typing import Awaitable, Callable, Optional, Union
 
-from typing_extensions import ParamSpec, TypeAlias, TypeVar
+from typing_extensions import ParamSpec, Protocol, TypeAlias, TypeVar
 
 from propan.broker.message import PropanMessage
 from propan.types import DecodedMessage, SendableMessage
@@ -63,12 +63,25 @@ HandlerWrapper: TypeAlias = Callable[
     HandlerCallable[T_HandlerReturn],
 ]
 
-SyncWrappedHandlerCall: TypeAlias = Callable[
-    [PropanMessage[MsgType], bool], Optional[T_HandlerReturn]
-]
-AsyncWrappedHandlerCall: TypeAlias = Callable[
-    [PropanMessage[MsgType], bool], Awaitable[Optional[T_HandlerReturn]]
-]
+
+class AsyncWrappedHandlerCall(Protocol[MsgType, T_HandlerReturn]):
+    async def __call__(
+        self,
+        __msg: PropanMessage[MsgType],
+        reraise_exc: bool = False,
+    ) -> Optional[T_HandlerReturn]:
+        ...
+
+
+class SyncWrappedHandlerCall(Protocol[MsgType, T_HandlerReturn]):
+    def __call__(
+        self,
+        __msg: PropanMessage[MsgType],
+        reraise_exc: bool = False,
+    ) -> Optional[T_HandlerReturn]:
+        ...
+
+
 WrappedHandlerCall: TypeAlias = Union[
     AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],
     SyncWrappedHandlerCall[MsgType, T_HandlerReturn],

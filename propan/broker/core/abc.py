@@ -61,8 +61,8 @@ class BrokerUsecase(
 ):
     logger: Optional[logging.Logger]
     log_level: int
-    handlers: Dict[Any, BaseHandler]
-    _publishers: Dict[Any, BasePublisher]
+    handlers: Dict[Any, BaseHandler[MsgType]]
+    _publishers: Dict[Any, BasePublisher[MsgType]]
 
     dependencies: Sequence[Depends]
     started: bool
@@ -158,7 +158,7 @@ class BrokerUsecase(
         **broker_log_context_kwargs: AnyDict,
     ) -> Tuple[
         WrappedHandlerCall[MsgType, T_HandlerReturn],
-        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
         CallModel[P_HandlerParams, T_HandlerReturn],
     ]:
         if isinstance(func, HandlerCallWrapper):
@@ -250,7 +250,7 @@ class BrokerUsecase(
         self.started = False
 
     @abstractmethod
-    def _close(  # type: ignore[override]
+    def _close(
         self,
         exc_type: Optional[Type[BaseException]] = None,
         exc_val: Optional[BaseException] = None,
@@ -264,7 +264,7 @@ class BrokerUsecase(
         func: Callable[
             [PropanMessage[MsgType]], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]
         ],
-        call_wrapper: HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        call_wrapper: HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
         watcher: Optional[BaseWatcher],
     ) -> Callable[
         [PropanMessage[MsgType]], Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]
@@ -308,7 +308,7 @@ class BrokerUsecase(
         **broker_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
     ]:
         if self.started:
             warnings.warn(
@@ -322,8 +322,8 @@ class BrokerUsecase(
     def publisher(
         self,
         key: Any,
-        publisher: BasePublisher,
-    ) -> BasePublisher:
+        publisher: BasePublisher[MsgType],
+    ) -> BasePublisher[MsgType]:
         self._publishers[key] = publisher
         return publisher
 

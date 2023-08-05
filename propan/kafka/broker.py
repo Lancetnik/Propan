@@ -123,7 +123,9 @@ class KafkaBroker(
     def _process_message(
         self,
         func: Callable[[KafkaMessage], Awaitable[T_HandlerReturn]],
-        call_wrapper: HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        call_wrapper: HandlerCallWrapper[
+            aiokafka.ConsumerRecord, P_HandlerParams, T_HandlerReturn
+        ],
         watcher: Optional[BaseWatcher],
     ) -> Callable[[KafkaMessage], Awaitable[T_HandlerReturn]]:
         if watcher is None:
@@ -222,7 +224,7 @@ class KafkaBroker(
         **original_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        HandlerCallWrapper[aiokafka.ConsumerRecord, P_HandlerParams, T_HandlerReturn],
     ]:
         super().subscriber()
 
@@ -265,7 +267,9 @@ class KafkaBroker(
 
         def consumer_wrapper(
             func: Callable[P_HandlerParams, T_HandlerReturn],
-        ) -> HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
+        ) -> HandlerCallWrapper[
+            aiokafka.ConsumerRecord, P_HandlerParams, T_HandlerReturn
+        ]:
             wrapped_func, handler_call, dependant = self._wrap_handler(
                 func=func,
                 extra_dependencies=dependencies,
