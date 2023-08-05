@@ -6,19 +6,25 @@ from typing_extensions import ParamSpec
 from propan.broker.publisher import BasePublisher
 from propan.broker.types import MsgType
 from propan.broker.wrapper import HandlerCallWrapper
-from propan.types import AnyDict, SendableReturn
+from propan.types import AnyDict, SendableReturn as T_RouteReturn
 
 P_RouteCall = ParamSpec("P_RouteCall")
 
 
-class BrokerRoute(Generic[MsgType, SendableReturn]):
-    call: Callable[..., SendableReturn]
+__all__ = (
+    "P_RouteCall"
+    "T_RouteReturn",
+    "BrokerRouter",
+)
+
+class BrokerRoute(Generic[MsgType, T_RouteReturn]):
+    call: Callable[..., T_RouteReturn]
     args: Any
     kwargs: AnyDict
 
     def __init__(
         self,
-        call: Callable[..., SendableReturn],
+        call: Callable[..., T_RouteReturn],
         *,
         args: Any,
         kwargs: AnyDict,
@@ -48,22 +54,22 @@ class BrokerRouter(Generic[MsgType]):
         *args: Any,
         **kwargs: AnyDict,
     ) -> Callable[
-        [Callable[P_RouteCall, SendableReturn]],
-        HandlerCallWrapper[P_RouteCall, SendableReturn],
+        [Callable[P_RouteCall, T_RouteReturn]],
+        HandlerCallWrapper[P_RouteCall, T_RouteReturn],
     ]:
         raise NotImplementedError()
 
     def _wrap_subscriber(
         self, *args: Any, **kwargs: AnyDict
     ) -> Callable[
-        [Callable[P_RouteCall, SendableReturn]],
-        HandlerCallWrapper[P_RouteCall, SendableReturn],
+        [Callable[P_RouteCall, T_RouteReturn]],
+        HandlerCallWrapper[P_RouteCall, T_RouteReturn],
     ]:
         def router_subscriber_wrapper(
-            func: Callable[P_RouteCall, SendableReturn]
-        ) -> HandlerCallWrapper[P_RouteCall, SendableReturn]:
+            func: Callable[P_RouteCall, T_RouteReturn]
+        ) -> HandlerCallWrapper[P_RouteCall, T_RouteReturn]:
             func = HandlerCallWrapper(func)
-            route: BrokerRoute[MsgType, SendableReturn] = BrokerRoute(
+            route: BrokerRoute[MsgType, T_RouteReturn] = BrokerRoute(
                 call=func,
                 args=args,
                 kwargs=kwargs,
