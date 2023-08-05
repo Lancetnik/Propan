@@ -1,10 +1,10 @@
-from propan.kafka.handler import Handler as BaseHandler
-from propan.kafka.publisher import Publisher as BasePub
+from propan.kafka.handler import LogicHandler
+from propan.kafka.publisher import LogicPublisher
 
 
-class Handler(BaseHandler):
+class Handler(LogicHandler):
     pass
 
 
-class Publisher(BasePub):
+class Publisher(LogicPublisher):
     pass

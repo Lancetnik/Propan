@@ -56,7 +56,7 @@ class HandlerCallWrapper(Generic[P_HandlerParams, T_HandlerReturn]):
 
     _wrapped_call: Optional[DecoratedCallable]
     _original_call: Callable[P_HandlerParams, T_HandlerReturn]
-    _publishers: List["Publisher"]
+    _publishers: List["BasePublisher"]
 
     def __new__(
         cls,
@@ -91,7 +91,7 @@ class HandlerCallWrapper(Generic[P_HandlerParams, T_HandlerReturn]):
 
 
 @dataclass
-class Publisher(AsyncAPIOperation):
+class BasePublisher(AsyncAPIOperation):
     title: Optional[str] = field(default=None)
     description: Optional[str] = field(default=None)
 

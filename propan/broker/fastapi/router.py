@@ -28,7 +28,7 @@ from typing_extensions import TypeVar
 
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.fastapi.route import PropanRoute
-from propan.broker.schemas import HandlerCallWrapper, NameRequired, Publisher
+from propan.broker.schemas import BasePublisher, HandlerCallWrapper, NameRequired
 from propan.broker.types import P_HandlerParams, T_HandlerReturn
 from propan.types import AnyDict
 from propan.utils.functions import to_async
@@ -201,7 +201,7 @@ class PropanRouter(APIRouter, Generic[Broker]):
         queue: Union[NameRequired, str],
         *publisher_args: Any,
         **publisher_kwargs: AnyDict,
-    ) -> Publisher:
+    ) -> BasePublisher:
         return self.broker.publisher(
             queue,
             *publisher_args,
