@@ -3,7 +3,7 @@ import inspect
 from contextlib import AsyncExitStack
 from functools import wraps
 from itertools import dropwhile
-from typing import Any, Callable, Coroutine, Optional, Sequence, Union
+from typing import Any, Callable, Coroutine, Generic, Optional, Sequence, Union
 
 from fastapi import params
 from fastapi.dependencies.models import Dependant
@@ -20,21 +20,23 @@ from propan._compat import raise_fastapi_validation_error
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.message import PropanMessage as NativeMessage
 from propan.broker.schemas import NameRequired
-from propan.broker.types import P_HandlerParams, T_HandlerReturn
+from propan.broker.types import MsgType, P_HandlerParams, T_HandlerReturn
 from propan.broker.wrapper import HandlerCallWrapper
-from propan.types import AnyDict
+from propan.types import AnyDict, SendableMessage
 
 
-class PropanRoute(BaseRoute):
+class PropanRoute(BaseRoute, Generic[MsgType, P_HandlerParams, T_HandlerReturn]):
+    handler: HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn]
+
     def __init__(
         self,
         path: Union[NameRequired, str],
         *extra: Union[NameRequired, str],
         endpoint: Union[
             Callable[P_HandlerParams, T_HandlerReturn],
-            HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+            HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
         ],
-        broker: BrokerAsyncUsecase[Any, Any],
+        broker: BrokerAsyncUsecase[MsgType, Any],
         dependencies: Sequence[params.Depends] = (),
         dependency_overrides_provider: Optional[Any] = None,
         **handle_kwargs: AnyDict,
@@ -106,7 +108,7 @@ class PropanMessage(Request):
         cls,
         dependant: Dependant,
         dependency_overrides_provider: Optional[Any] = None,
-    ) -> Callable[[NativeMessage[Any]], Any]:
+    ) -> Callable[[NativeMessage[Any]], SendableMessage]:
         assert dependant.call
         func = get_app(dependant, dependency_overrides_provider)
 
@@ -120,7 +122,7 @@ class PropanMessage(Request):
             None,
         )
 
-        async def app(message: NativeMessage[Any]) -> Any:
+        async def app(message: NativeMessage[Any]) -> SendableMessage:
             body = message.decoded_body
             if first_arg is not None:
                 if not isinstance(body, dict):  # pragma: no branch

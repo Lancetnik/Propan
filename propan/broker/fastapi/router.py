@@ -24,23 +24,20 @@ from starlette import routing
 from starlette.responses import JSONResponse, Response
 from starlette.routing import _DefaultLifespan
 from starlette.types import AppType, ASGIApp, Lifespan
-from typing_extensions import TypeVar
 
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.fastapi.route import PropanRoute
 from propan.broker.publisher import BasePublisher
 from propan.broker.schemas import NameRequired
-from propan.broker.types import P_HandlerParams, T_HandlerReturn
+from propan.broker.types import MsgType, P_HandlerParams, T_HandlerReturn
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.types import AnyDict
 from propan.utils.functions import to_async
 
-Broker = TypeVar("Broker", bound=BrokerAsyncUsecase[Any, Any])
 
-
-class PropanRouter(APIRouter, Generic[Broker]):
-    broker_class: Type[Broker]
-    broker: Broker
+class PropanRouter(APIRouter, Generic[MsgType]):
+    broker_class: Type[BrokerAsyncUsecase[MsgType, Any]]
+    broker: BrokerAsyncUsecase[MsgType, Any]
     docs_router: Optional[APIRouter]
     _after_startup_hooks: List[
         Callable[[AppType], Awaitable[Optional[Mapping[str, Any]]]]
@@ -112,8 +109,8 @@ class PropanRouter(APIRouter, Generic[Broker]):
         endpoint: Callable[P_HandlerParams, T_HandlerReturn],
         dependencies: Sequence[params.Depends],
         **broker_kwargs: AnyDict,
-    ) -> HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
-        route = PropanRoute(
+    ) -> HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn]:
+        route: PropanRoute[MsgType, P_HandlerParams, T_HandlerReturn] = PropanRoute(
             path,
             *extra,
             endpoint=endpoint,
@@ -133,7 +130,7 @@ class PropanRouter(APIRouter, Generic[Broker]):
         **broker_kwargs: Dict[str, Any],
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
     ]:
         current_dependencies = self.dependencies.copy()
         if dependencies:
@@ -141,7 +138,7 @@ class PropanRouter(APIRouter, Generic[Broker]):
 
         def decorator(
             func: Callable[P_HandlerParams, T_HandlerReturn],
-        ) -> HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
+        ) -> HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn]:
             return self.add_api_mq_route(
                 path,
                 *extra,
@@ -181,7 +178,8 @@ class PropanRouter(APIRouter, Generic[Broker]):
                     if self.setup_state:
                         yield context
                     else:
-                        yield
+                        # NOTE: old asgi compatibility
+                        yield  # type: ignore
                 finally:
                     await self.broker.close()
 
@@ -203,9 +201,9 @@ class PropanRouter(APIRouter, Generic[Broker]):
         queue: Union[NameRequired, str],
         *publisher_args: Any,
         **publisher_kwargs: AnyDict,
-    ) -> BasePublisher:
+    ) -> BasePublisher[MsgType]:
         return self.broker.publisher(
             queue,
             *publisher_args,
-            **publisher_kwargs,
+            **publisher_kwargs,  # type: ignore
         )

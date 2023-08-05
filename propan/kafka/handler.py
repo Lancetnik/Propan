@@ -7,11 +7,17 @@ from fast_depends.core import CallModel
 from typing_extensions import Never
 
 from propan.broker.handler import AsyncHandler
-from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
+from propan.broker.types import (
+    AsyncCustomDecoder,
+    AsyncCustomParser,
+    AsyncWrappedHandlerCall,
+    P_HandlerParams,
+    T_HandlerReturn,
+)
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.kafka.message import KafkaMessage
 from propan.kafka.parser import AioKafkaParser
-from propan.types import AnyDict, F_Return, F_Spec
+from propan.types import AnyDict
 
 
 class LogicHandler(AsyncHandler[ConsumerRecord]):
@@ -54,12 +60,9 @@ class LogicHandler(AsyncHandler[ConsumerRecord]):
 
     def add_call(
         self,
-        handler: HandlerCallWrapper[F_Spec, F_Return],
-        wrapped_call: Callable[
-            [KafkaMessage, bool],
-            Awaitable[Optional[F_Return]],
-        ],
-        dependant: CallModel[F_Spec, F_Return],
+        handler: HandlerCallWrapper[ConsumerRecord, P_HandlerParams, T_HandlerReturn],
+        wrapped_call: AsyncWrappedHandlerCall[ConsumerRecord, T_HandlerReturn],
+        dependant: CallModel[P_HandlerParams, T_HandlerReturn],
         parser: Optional[AsyncCustomParser[ConsumerRecord]] = None,
         decoder: Optional[AsyncCustomDecoder[ConsumerRecord]] = None,
         filter: Callable[

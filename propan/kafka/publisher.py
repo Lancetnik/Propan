@@ -1,13 +1,15 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
+from aiokafka import ConsumerRecord
+
 from propan.kafka.producer import AioKafkaPropanProducer
 from propan.kafka.shared.publisher import ABCPublisher
 from propan.types import DecodedMessage, SendableMessage
 
 
 @dataclass
-class LogicPublisher(ABCPublisher):
+class LogicPublisher(ABCPublisher[ConsumerRecord]):
     _producer: Optional[AioKafkaPropanProducer] = field(default=None, init=False)
 
     async def publish(

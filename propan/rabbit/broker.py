@@ -172,7 +172,7 @@ class RabbitBroker(
         **original_kwargs: AnyDict,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
-        HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        HandlerCallWrapper[aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn],
     ]:
         super().subscriber()
 
@@ -196,8 +196,9 @@ class RabbitBroker(
 
         def consumer_wrapper(
             func: Callable[P_HandlerParams, T_HandlerReturn],
-        ) -> HandlerCallWrapper[P_HandlerParams, T_HandlerReturn]:
-            handler_call: HandlerCallWrapper
+        ) -> HandlerCallWrapper[
+            aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn
+        ]:
             wrapped_func, handler_call, dependant = self._wrap_handler(
                 func,
                 extra_dependencies=dependencies,
@@ -267,7 +268,9 @@ class RabbitBroker(
     def _process_message(
         self,
         func: Callable[[RabbitMessage], Awaitable[T_HandlerReturn]],
-        call_wrapper: HandlerCallWrapper[P_HandlerParams, T_HandlerReturn],
+        call_wrapper: HandlerCallWrapper[
+            aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn
+        ],
         watcher: Optional[BaseWatcher],
     ) -> Callable[[RabbitMessage], Awaitable[T_HandlerReturn]]:
         if watcher is None:

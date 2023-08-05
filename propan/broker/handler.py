@@ -3,7 +3,6 @@ from abc import abstractmethod
 from contextlib import AsyncExitStack, ExitStack
 from functools import partial
 from typing import (
-    Any,
     AsyncContextManager,
     Awaitable,
     Callable,
@@ -17,6 +16,7 @@ from typing import (
 )
 
 from fast_depends.core import CallModel
+from typing_extensions import override
 
 from propan._compat import IS_OPTIMIZED
 from propan.asyncapi.base import AsyncAPIOperation
@@ -26,33 +26,30 @@ from propan.broker.types import (
     AsyncCustomParser,
     AsyncDecoder,
     AsyncParser,
+    AsyncWrappedHandlerCall,
     CustomDecoder,
     CustomParser,
     Decoder,
     MsgType,
+    P_HandlerParams,
     Parser,
     SyncCustomDecoder,
     SyncCustomParser,
     SyncDecoder,
     SyncParser,
+    SyncWrappedHandlerCall,
+    T_HandlerReturn,
 )
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.exceptions import StopConsume
-from propan.types import F_Spec, SendableMessage, SendableReturn
-
-
-async def async_default_filter(msg: PropanMessage[Any]) -> bool:
-    return not msg.processed
+from propan.types import SendableMessage
 
 
 class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
     calls: List[
         Tuple[
-            HandlerCallWrapper[..., SendableMessage],  # original
-            Callable[  # wrapped
-                [PropanMessage[MsgType]],
-                Optional[SendableMessage],
-            ],
+            HandlerCallWrapper[MsgType, ..., SendableMessage],  # original
+            SyncWrappedHandlerCall[MsgType, SendableMessage],  # wrapped
             Callable[[PropanMessage[MsgType]], bool],  # filter
             SyncParser[MsgType],  # parser
             SyncDecoder[MsgType],  # decoder
@@ -77,20 +74,19 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
 
     def add_call(
         self,
-        handler: HandlerCallWrapper[F_Spec, SendableReturn],
-        wrapped_call: Callable[[PropanMessage[MsgType]], Optional[SendableReturn]],
+        *,
+        handler: HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
+        wrapped_call: SyncWrappedHandlerCall[MsgType, T_HandlerReturn],
         parser: SyncParser[MsgType],
         decoder: SyncDecoder[MsgType],
-        dependant: CallModel[F_Spec, SendableReturn],
-        filter: Callable[
-            [PropanMessage[MsgType]], bool
-        ] = lambda m: not m.processed,  # pragma: no cover
+        dependant: CallModel[P_HandlerParams, T_HandlerReturn],
+        filter: Callable[[PropanMessage[MsgType]], bool],
         middlewares: Optional[
             List[Callable[[PropanMessage[MsgType]], ContextManager[None]]]
-        ] = None,
+        ],
     ) -> None:
         self.calls.append(
-            (  # type: ignore
+            (
                 handler,
                 wrapped_call,
                 filter,
@@ -217,11 +213,8 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
 class AsyncHandler(BaseHandler[MsgType]):
     calls: List[  # type: ignore[assignment]
         Tuple[
-            HandlerCallWrapper[..., SendableMessage],  # original
-            Callable[  # wrapped
-                [PropanMessage[MsgType]],
-                Awaitable[Optional[SendableMessage]],
-            ],
+            HandlerCallWrapper[MsgType, ..., SendableMessage],  # original
+            AsyncWrappedHandlerCall[MsgType, SendableMessage],  # wrapped[]],
             Callable[[PropanMessage[MsgType]], Awaitable[bool]],  # filter
             AsyncParser[MsgType],  # parser
             AsyncDecoder[MsgType],  # decoder
@@ -236,25 +229,22 @@ class AsyncHandler(BaseHandler[MsgType]):
         Callable[[MsgType], AsyncContextManager[None]]
     ]
 
+    @override
     def add_call(  # type: ignore[override]
         self,
-        handler: HandlerCallWrapper[F_Spec, SendableReturn],
-        wrapped_call: Callable[
-            [PropanMessage[MsgType]],
-            Awaitable[Optional[SendableReturn]],
-        ],
+        *,
+        handler: HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
+        wrapped_call: AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],
         parser: AsyncParser[MsgType],
         decoder: AsyncDecoder[MsgType],
-        dependant: CallModel[F_Spec, SendableReturn],
-        filter: Callable[
-            [PropanMessage[MsgType]], Awaitable[bool]
-        ] = async_default_filter,
+        dependant: CallModel[P_HandlerParams, T_HandlerReturn],
+        filter: Callable[[PropanMessage[MsgType]], Awaitable[bool]],
         middlewares: Optional[
             List[Callable[[PropanMessage[MsgType]], AsyncContextManager[None]]]
-        ] = None,
+        ],
     ) -> None:
         self.calls.append(
-            (  # type: ignore
+            (
                 handler,
                 wrapped_call,
                 filter,
@@ -265,6 +255,7 @@ class AsyncHandler(BaseHandler[MsgType]):
             )
         )
 
+    @override
     async def consume(self, msg: MsgType) -> SendableMessage:  # type: ignore[override]
         result: SendableMessage = None
 
@@ -301,10 +292,12 @@ class AsyncHandler(BaseHandler[MsgType]):
 
         return result
 
+    @override
     @abstractmethod
     async def start(self) -> None:  # type: ignore[override]
         raise NotImplementedError()
 
+    @override
     @abstractmethod
     async def close(self) -> None:  # type: ignore[override]
         raise NotImplementedError()

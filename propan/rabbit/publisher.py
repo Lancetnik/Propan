@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Union
 
 import aiormq
+from aio_pika import IncomingMessage
 
 from propan.rabbit.producer import AioPikaPropanProducer
 from propan.rabbit.shared.publisher import ABCPublisher
@@ -10,7 +11,7 @@ from propan.types import AnyDict, DecodedMessage
 
 
 @dataclass
-class LogicPublisher(ABCPublisher):
+class LogicPublisher(ABCPublisher[IncomingMessage]):
     _producer: Optional[AioPikaPropanProducer] = field(default=None, init=False)
     _fake_handler: bool = False
 
