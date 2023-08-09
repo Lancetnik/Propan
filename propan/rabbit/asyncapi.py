@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from fast_depends.core import build_call_model
 
@@ -30,58 +30,58 @@ class RMQAsyncAPIChannel(AsyncAPIOperation, BaseRMQInformation):
     def description(self) -> str:
         return "undefined"
 
-    def schema(self) -> Tuple[str, Channel]:
-        name, _ = super().schema()
-
+    def schema(self) -> Dict[str, Channel]:
         payloads = self.get_payloads()
         assert payloads, "You should use this object at least once"
 
-        return name, Channel(
-            description=self.description,
-            subscribe=Operation(
-                bindings=OperationBinding(
-                    amqp=amqp.OperationBinding(
-                        cc=self.queue.name,
-                    ),
-                )
-                if _is_exchange(self.exchange)
-                else None,
-                message=Message(
-                    title=f"{name}Message",
-                    payload=payloads[0]
-                    if len(payloads) == 1
-                    else {"oneOf": {body["title"]: body for body in payloads}},
-                    correlationId=CorrelationId(
-                        location="$message.header#/correlation_id"
+        return {
+            self.name: Channel(
+                description=self.description,
+                subscribe=Operation(
+                    bindings=OperationBinding(
+                        amqp=amqp.OperationBinding(
+                            cc=self.queue.name,
+                        ),
+                    )
+                    if _is_exchange(self.exchange)
+                    else None,
+                    message=Message(
+                        title=f"{self.name}Message",
+                        payload=payloads[0]
+                        if len(payloads) == 1
+                        else {"oneOf": {body["title"]: body for body in payloads}},
+                        correlationId=CorrelationId(
+                            location="$message.header#/correlation_id"
+                        ),
                     ),
                 ),
-            ),
-            bindings=ChannelBinding(
-                amqp=amqp.ChannelBinding(
-                    **{
-                        "is": "routingKey",  # type: ignore
-                        "queue": amqp.Queue(
-                            name=self.queue.name,
-                            durable=self.queue.durable,
-                            exclusive=self.queue.exclusive,
-                            autoDelete=self.queue.auto_delete,
-                        )
-                        if _is_exchange(self.exchange)
-                        else None,
-                        "exchange": (
-                            amqp.Exchange(type="default")
-                            if self.exchange is None
-                            else amqp.Exchange(
-                                type=self.exchange.type,  # type: ignore
-                                name=self.exchange.name,
-                                durable=self.exchange.durable,
-                                autoDelete=self.exchange.auto_delete,
+                bindings=ChannelBinding(
+                    amqp=amqp.ChannelBinding(
+                        **{
+                            "is": "routingKey",  # type: ignore
+                            "queue": amqp.Queue(
+                                name=self.queue.name,
+                                durable=self.queue.durable,
+                                exclusive=self.queue.exclusive,
+                                autoDelete=self.queue.auto_delete,
                             )
-                        ),
-                    }
-                )
-            ),
-        )
+                            if _is_exchange(self.exchange)
+                            else None,
+                            "exchange": (
+                                amqp.Exchange(type="default")
+                                if self.exchange is None
+                                else amqp.Exchange(
+                                    type=self.exchange.type,  # type: ignore
+                                    name=self.exchange.name,
+                                    durable=self.exchange.durable,
+                                    autoDelete=self.exchange.auto_delete,
+                                )
+                            ),
+                        }
+                    )
+                ),
+            )
+        }
 
 
 class Publisher(RMQAsyncAPIChannel, LogicPublisher):
