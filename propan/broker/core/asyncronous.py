@@ -7,6 +7,7 @@ from typing import (
     AsyncContextManager,
     Awaitable,
     Callable,
+    Dict,
     List,
     Mapping,
     Optional,
@@ -16,11 +17,12 @@ from typing import (
     Union,
 )
 
-from fast_depends.core import CallModel, build_call_model
+from fast_depends.core import CallModel
 from fast_depends.dependencies import Depends
 from typing_extensions import Self, override
 
 from propan.broker.core.abc import BrokerUsecase
+from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.types import (
@@ -35,43 +37,45 @@ from propan.broker.types import (
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.exceptions import AckMessage, NackMessage, RejectMessage, SkipMessage
 from propan.log import access_logger
-from propan.types import AnyDict, DecodedMessage, SendableMessage
+from propan.types import SendableMessage
 from propan.utils import context
 
 
-class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
-    middlewares: List[Callable[[MsgType], AsyncContextManager[None]]]
-    _global_parser: AsyncCustomParser[MsgType]
-    _global_decoder: AsyncCustomDecoder[MsgType]
+async def default_filter(msg: PropanMessage[Any]) -> bool:
+    return not msg.processed
 
-    @override
+
+class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
+    handlers: Dict[Any, AsyncHandler[MsgType]]  # type: ignore[assignment]
+    middlewares: List[Callable[[MsgType], AsyncContextManager[None]]]  # type: ignore[assignment]
+    _global_parser: Optional[AsyncCustomParser[MsgType]]
+    _global_decoder: Optional[AsyncCustomDecoder[MsgType]]
+
     @abstractmethod
-    async def start(self) -> None:  # type: ignore[override]
-        super().start()
+    async def start(self) -> None:
+        super()._abc_start()
         await self.connect()
 
     @abstractmethod
-    async def _connect(self, **kwargs: AnyDict) -> ConnectionType:
+    async def _connect(self, **kwargs: Any) -> ConnectionType:
         raise NotImplementedError()
 
-    @override
     @abstractmethod
-    async def _close(  # type: ignore[override]
+    async def _close(
         self,
         exc_type: Optional[Type[BaseException]] = None,
         exc_val: Optional[BaseException] = None,
         exec_tb: Optional[TracebackType] = None,
     ) -> None:
-        super()._close(exc_type, exc_val, exec_tb)
+        super()._abc__close(exc_type, exc_val, exec_tb)
 
-    @override
-    async def close(  # type: ignore[override]
+    async def close(
         self,
         exc_type: Optional[Type[BaseException]] = None,
         exc_val: Optional[BaseException] = None,
         exec_tb: Optional[TracebackType] = None,
     ) -> None:
-        super().close(exc_type, exc_val, exec_tb)
+        super()._abc_close(exc_type, exc_val, exec_tb)
 
         for h in self.handlers.values():
             await h.close()
@@ -81,11 +85,11 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
 
     @override
     @abstractmethod
-    def _process_message(  # type: ignore[override]
+    def _process_message(
         self,
         func: Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]],
         call_wrapper: HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
-        watcher: Optional[BaseWatcher],
+        watcher: BaseWatcher,
     ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
         raise NotImplementedError()
 
@@ -98,8 +102,8 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         rpc: bool = False,
         rpc_timeout: Optional[float] = None,
         raise_timeout: bool = False,
-        **kwargs: AnyDict,
-    ) -> Optional[DecodedMessage]:
+        **kwargs: Any,
+    ) -> Optional[SendableMessage]:
         raise NotImplementedError()
 
     @override
@@ -109,8 +113,8 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         *broker_args: Any,
         retry: Union[bool, int] = False,
         dependencies: Sequence[Depends] = (),
-        decoder: AsyncCustomDecoder[MsgType] = None,
-        parser: AsyncCustomParser[MsgType] = None,
+        decoder: Optional[AsyncCustomDecoder[MsgType]] = None,
+        parser: Optional[AsyncCustomParser[MsgType]] = None,
         middlewares: Optional[
             List[
                 Callable[
@@ -119,14 +123,17 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
                 ]
             ]
         ] = None,
-        filter: Callable[
-            [PropanMessage[MsgType]], Awaitable[bool]
-        ] = lambda m: not m.processed,
+        filter: Callable[[PropanMessage[MsgType]], Awaitable[bool]] = default_filter,
         _raw: bool = False,
-        _get_dependant: Callable[[Callable[..., Any]], CallModel] = build_call_model,
-        **broker_kwargs: AnyDict,
+        _get_dependant: Optional[Any] = None,
+        **broker_kwargs: Any,
     ) -> Callable[
-        [Callable[P_HandlerParams, T_HandlerReturn]],
+        [
+            Union[
+                Callable[P_HandlerParams, T_HandlerReturn],
+                HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
+            ]
+        ],
         HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
     ]:
         super().subscriber()
@@ -139,8 +146,8 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
         dependencies: Sequence[Depends] = (),
-        decoder: AsyncCustomDecoder[MsgType] = None,
-        parser: AsyncCustomParser[MsgType] = None,
+        decoder: Optional[AsyncCustomDecoder[MsgType]] = None,
+        parser: Optional[AsyncCustomParser[MsgType]] = None,
         middlewares: Optional[
             List[
                 Callable[
@@ -149,7 +156,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
                 ]
             ]
         ] = None,
-        **kwargs: AnyDict,
+        **kwargs: Any,
     ) -> None:
         super().__init__(
             *args,
@@ -160,14 +167,11 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             dependencies=dependencies,
             decoder=decoder,
             parser=parser,
-            middlewares=middlewares,
+            middlewares=middlewares,  # type: ignore[arg-type]
             **kwargs,
         )
 
-    @override
-    async def connect(  # type: ignore[override]
-        self, *args: Any, **kwargs: AnyDict
-    ) -> ConnectionType:
+    async def connect(self, *args: Any, **kwargs: Any) -> ConnectionType:
         if self._connection is None:
             _kwargs = self._resolve_connection_kwargs(*args, **kwargs)
             self._connection = await self._connect(**_kwargs)
@@ -186,7 +190,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         await self.close(exc_type, exc_val, exec_tb)
 
     @override
-    def _wrap_decode_message(  # type: ignore[override]
+    def _wrap_decode_message(
         self,
         func: Callable[..., Awaitable[T_HandlerReturn]],
         params: Sequence[Any] = (),
@@ -204,24 +208,23 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             if is_unwrap is True:
                 if isinstance(msg, Mapping):
                     return await func(**msg)
-                else:
+                elif isinstance(msg, Sequence):
                     return await func(*msg)
 
-            else:
-                return await func(msg)
+            return await func(msg)
 
         return decode_wrapper
 
     @override
-    def _wrap_handler(  # type: ignore[override]
+    def _wrap_handler(
         self,
         func: Callable[P_HandlerParams, T_HandlerReturn],
         *,
         retry: Union[bool, int] = False,
         extra_dependencies: Sequence[Depends] = (),
         _raw: bool = False,
-        _get_dependant: Callable[[Callable[..., Any]], CallModel] = build_call_model,
-        **broker_log_context_kwargs: AnyDict,
+        _get_dependant: Optional[Any] = None,
+        **broker_log_context_kwargs: Any,
     ) -> Tuple[
         AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],
         HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
@@ -233,14 +236,13 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             extra_dependencies=extra_dependencies,
             _raw=_raw,
             _get_dependant=_get_dependant,
-            _is_sync=False,
             **broker_log_context_kwargs,
         )
 
     async def _execute_handler(
         self,
-        func: Callable[[PropanMessage], Awaitable[T_HandlerReturn]],
-        message: PropanMessage[Any],
+        func: Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]],
+        message: PropanMessage[MsgType],
     ) -> T_HandlerReturn:
         try:
             return await func(message)
@@ -255,13 +257,13 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             raise e
 
     @override
-    def _log_execution(  # type: ignore[override]
+    def _log_execution(
         self,
         func: Callable[
             [PropanMessage[MsgType]],
             Awaitable[T_HandlerReturn],
         ],
-        **broker_args: AnyDict,
+        **broker_args: Any,
     ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
         @wraps(func)
         async def log_wrapper(message: PropanMessage[MsgType]) -> T_HandlerReturn:

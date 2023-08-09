@@ -1,19 +1,19 @@
 import logging
 import logging.config
 from functools import partial
-from typing import Any, Dict, Type
+from typing import Any, Type
 
 from propan.log.formatter import ColourizedFormatter
 from propan.types import AnyDict
 
 
 def configure_formatter(
-    formatter: Type[logging.Formatter], *args: Any, **kwargs: AnyDict
+    formatter: Type[logging.Formatter], *args: Any, **kwargs: Any
 ) -> logging.Formatter:
     return formatter(*args, **kwargs)
 
 
-LOGGING_CONFIG: Dict[str, Any] = {
+LOGGING_CONFIG: AnyDict = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {

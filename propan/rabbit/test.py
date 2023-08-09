@@ -19,7 +19,7 @@ from propan.rabbit.shared.constants import ExchangeType
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
 from propan.rabbit.shared.types import TimeoutType
 from propan.rabbit.types import AioPikaSendableMessage
-from propan.types import AnyDict
+from propan.types import SendableMessage
 
 __all__ = ("TestRabbitBroker",)
 
@@ -55,7 +55,7 @@ def build_message(
     *,
     routing_key: str = "",
     reply_to: Optional[str] = None,
-    **message_kwargs: AnyDict,
+    **message_kwargs: Any,
 ) -> PatchedMessage:
     que = RabbitQueue.validate(queue)
     exch = RabbitExchange.validate(exchange)
@@ -108,8 +108,8 @@ class FakeProducer(AioPikaPropanProducer):
         raise_timeout: bool = False,
         persist: bool = False,
         reply_to: Optional[str] = None,
-        **message_kwargs: AnyDict,
-    ) -> Any:
+        **message_kwargs: Any,
+    ) -> Optional[SendableMessage]:
         exch = RabbitExchange.validate(exchange)
 
         incoming = build_message(
@@ -178,8 +178,10 @@ class FakeProducer(AioPikaPropanProducer):
                     if rpc:  # pragma: no branch
                         return r
 
+        return None
 
-async def _fake_connect(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> None:
+
+async def _fake_connect(self: RabbitBroker, *args: Any, **kwargs: Any) -> None:
     self._producer = FakeProducer(self)
 
 
@@ -200,7 +202,7 @@ async def _fake_close(
             f.mock.reset_mock()
 
 
-def _fake_start(self: RabbitBroker, *args: Any, **kwargs: AnyDict) -> None:
+def _fake_start(self: RabbitBroker, *args: Any, **kwargs: Any) -> None:
     for key, p in self._publishers.items():
         handler = self.handlers.get(key)
 

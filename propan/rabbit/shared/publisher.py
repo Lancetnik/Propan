@@ -19,7 +19,7 @@ class ABCPublisher(ABC, BasePublisher[MsgType], BaseRMQInformation):
     persist: bool = False
     timeout: TimeoutType = None
     reply_to: Optional[str] = None
-    message_kwargs: AnyDict = field(default_factory={})
+    message_kwargs: AnyDict = field(default_factory=dict)
 
 
 QueueName: TypeAlias = str

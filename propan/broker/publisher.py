@@ -6,18 +6,23 @@ from unittest.mock import MagicMock
 from propan.asyncapi.base import AsyncAPIOperation
 from propan.broker.types import MsgType, P_HandlerParams, T_HandlerReturn
 from propan.broker.wrapper import HandlerCallWrapper
-from propan.types import AnyDict, DecodedMessage, SendableMessage
+from propan.types import SendableMessage
 
 
 @dataclass
 class BasePublisher(AsyncAPIOperation, Generic[MsgType]):
     title: Optional[str] = field(default=None)
-    description: Optional[str] = field(default=None)
+    _description: Optional[str] = field(default=None)
+    _fake_handler: bool = field(default=False)
 
     calls: List[Callable[..., Any]] = field(
         init=False, default_factory=list, repr=False
     )
     mock: MagicMock = field(init=False, default_factory=MagicMock, repr=False)
+
+    @property
+    def description(self) -> str:
+        return self._description or "undefined"
 
     @property
     def channel_title(self) -> str:
@@ -37,10 +42,10 @@ class BasePublisher(AsyncAPIOperation, Generic[MsgType]):
         return handler_call
 
     @abstractmethod
-    def publish(
+    async def publish(
         self,
         message: SendableMessage,
         correlation_id: Optional[str] = None,
-        **kwargs: AnyDict,
-    ) -> Optional[DecodedMessage]:
+        **kwargs: Any,
+    ) -> Optional[SendableMessage]:
         raise NotImplementedError()

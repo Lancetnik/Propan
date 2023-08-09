@@ -20,7 +20,8 @@ async def handler_middleware(message: RabbitMessage):
 
 
 broker = RabbitBroker(
-    "amqp://guest:guest@localhost:5672/", middlewares=(highlevel_middleware,)
+    "amqp://guest:guest@localhost:5672/",
+    middlewares=(highlevel_middleware,),
 )
 app = PropanApp(broker)
 

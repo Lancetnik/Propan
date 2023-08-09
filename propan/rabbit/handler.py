@@ -5,6 +5,8 @@ from fast_depends.core import CallModel
 from typing_extensions import override
 
 from propan.broker.handler import AsyncHandler
+from propan.broker.message import PropanMessage
+from propan.broker.parsers import resolve_custom_func
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
@@ -14,7 +16,6 @@ from propan.broker.types import (
 )
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.rabbit.helpers import RabbitDeclarer
-from propan.rabbit.message import RabbitMessage
 from propan.rabbit.parser import AioPikaParser
 from propan.rabbit.shared.schemas import BaseRMQInformation, RabbitExchange, RabbitQueue
 from propan.types import AnyDict
@@ -48,7 +49,8 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
         self._consumer_tag = None
         self._queue_obj = None
 
-    def add_call(
+    @override
+    def add_call(  # type: ignore[override]
         self,
         *,
         handler: HandlerCallWrapper[
@@ -58,14 +60,13 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
             aio_pika.IncomingMessage, T_HandlerReturn
         ],
         dependant: CallModel[P_HandlerParams, T_HandlerReturn],
-        filter: Callable[[RabbitMessage], Awaitable[bool]],
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]],
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]],
+        filter: Callable[[PropanMessage[aio_pika.IncomingMessage]], Awaitable[bool]],
         middlewares: Optional[
             List[
                 Callable[
-                    [RabbitMessage],
-                    AsyncContextManager[None],
+                    [PropanMessage[aio_pika.IncomingMessage]], AsyncContextManager[None]
                 ]
             ]
         ],
@@ -73,8 +74,8 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
         super().add_call(
             handler=handler,
             wrapped_call=wrapped_call,
-            parser=self._resolve_custom_func(parser, AioPikaParser.parse_message),
-            decoder=self._resolve_custom_func(decoder, AioPikaParser.decode_message),
+            parser=resolve_custom_func(parser, AioPikaParser.parse_message),
+            decoder=resolve_custom_func(decoder, AioPikaParser.decode_message),
             filter=filter,
             dependant=dependant,
             middlewares=middlewares,
@@ -93,11 +94,14 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
             )
 
         self._consumer_tag = await queue.consume(
-            self.consume,
+            # NOTE: aio-pika expects AbstractIncomingMessage, not IncomingMessage
+            self.consume,  # type: ignore[arg-type]
             arguments=self.consume_args,
         )
 
     async def close(self) -> None:
         if self._queue_obj is not None:
-            await self._queue_obj.cancel(self._consumer_tag)
+            if self._consumer_tag is not None:
+                await self._queue_obj.cancel(self._consumer_tag)
+                self._consumer_tag = None
             self._queue_obj = None

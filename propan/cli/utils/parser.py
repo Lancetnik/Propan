@@ -13,12 +13,10 @@ def parse_cli_args(*args: str) -> Tuple[str, Dict[str, SettingField]]:
     field_args: List[str] = []
     app = ""
     for item in reduce(
-        lambda acc, x: acc + x.split("="),
+        lambda acc, x: acc + x.split("="),  # type: ignore
         args,
         [],
-    ) + [
-        "-"
-    ]:  # type: ignore
+    ) + ["-"]:
         if ":" in item:
             app = item
 

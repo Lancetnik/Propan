@@ -1,4 +1,4 @@
-from typing import Callable, Generic, List, Optional, Union
+from typing import Any, Callable, Generic, List, Optional, Union
 from unittest.mock import MagicMock
 
 from typing_extensions import Protocol, Self
@@ -9,16 +9,16 @@ from propan.broker.types import (
     T_HandlerReturn,
     WrappedHandlerCall,
 )
-from propan.types import AnyDict, DecodedMessage, SendableMessage
+from propan.types import SendableMessage
 
 
 class AsyncPublisherProtocol(Protocol):
-    def publish(
+    async def publish(
         self,
         message: SendableMessage,
         correlation_id: Optional[str] = None,
-        **kwargs: AnyDict,
-    ) -> Optional[DecodedMessage]:
+        **kwargs: Any,
+    ) -> Optional[SendableMessage]:
         ...
 
 

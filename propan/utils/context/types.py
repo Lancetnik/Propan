@@ -7,7 +7,9 @@ from propan.types import AnyDict
 from propan.utils.context import context
 
 
-class Context(CustomField):  # type: ignore
+class Context(CustomField):
+    param_name: str
+
     def __init__(
         self,
         real_name: str = "",
@@ -22,7 +24,7 @@ class Context(CustomField):  # type: ignore
             required=(default is _empty),
         )
 
-    def use(self, **kwargs: AnyDict) -> AnyDict:
+    def use(self, **kwargs: Any) -> AnyDict:
         name = self.name or self.param_name
 
         try:

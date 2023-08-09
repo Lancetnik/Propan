@@ -1,13 +1,27 @@
 from contextlib import asynccontextmanager
 from types import TracebackType
-from typing import Any, Optional, Type, Union
+from typing import (
+    Any,
+    AsyncContextManager,
+    AsyncIterator,
+    Callable,
+    Optional,
+    Type,
+    Union,
+)
 
 import aio_pika
 import aiormq
 import anyio
 from anyio.streams.memory import MemoryObjectReceiveStream
 
-from propan.broker.types import AsyncCustomDecoder, AsyncCustomParser
+from propan.broker.parsers import resolve_custom_func
+from propan.broker.types import (
+    AsyncCustomDecoder,
+    AsyncCustomParser,
+    AsyncDecoder,
+    AsyncParser,
+)
 from propan.exceptions import WRONG_PUBLISH_ARGS
 from propan.rabbit.helpers import RabbitDeclarer
 from propan.rabbit.parser import AioPikaParser
@@ -15,27 +29,27 @@ from propan.rabbit.shared.constants import RABBIT_REPLY
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue
 from propan.rabbit.shared.types import TimeoutType
 from propan.rabbit.types import AioPikaSendableMessage
-from propan.types import AnyDict, DecodedMessage
+from propan.types import SendableMessage
 
 
 class AioPikaPropanProducer:
     _channel: aio_pika.RobustChannel
     _rpc_lock: anyio.Lock
-    _decoder: AsyncCustomDecoder[aio_pika.IncomingMessage]
-    _parser: AsyncCustomParser[aio_pika.IncomingMessage]
+    _decoder: AsyncDecoder[aio_pika.IncomingMessage]
+    _parser: AsyncParser[aio_pika.IncomingMessage]
     declarer: RabbitDeclarer
 
     def __init__(
         self,
         channel: aio_pika.RobustChannel,
         declarer: RabbitDeclarer,
-        global_parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
-        global_decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
+        parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]],
+        decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]],
     ):
         self._channel = channel
         self.declarer = declarer
-        self._parser = global_parser or AioPikaParser.parse_message
-        self._decoder = global_decoder or AioPikaParser.decode_message
+        self._parser = resolve_custom_func(parser, AioPikaParser.parse_message)
+        self._decoder = resolve_custom_func(decoder, AioPikaParser.decode_message)
         self._rpc_lock = anyio.Lock()
 
     async def publish(
@@ -53,16 +67,20 @@ class AioPikaPropanProducer:
         raise_timeout: bool = False,
         persist: bool = False,
         reply_to: Optional[str] = None,
-        **message_kwargs: AnyDict,
-    ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
+        **message_kwargs: Any,
+    ) -> Union[aiormq.abc.ConfirmationFrameType, SendableMessage]:
         p_queue = RabbitQueue.validate(queue)
 
+        context: AsyncContextManager[
+            Optional[MemoryObjectReceiveStream[aio_pika.IncomingMessage]]
+        ]
         if rpc is True:
             if reply_to is not None:
                 raise WRONG_PUBLISH_ARGS
             else:
                 context = _RPCCallback(
-                    self._rpc_lock, self.declarer.queues[RABBIT_REPLY]
+                    self._rpc_lock,
+                    self.declarer.queues[RABBIT_REPLY],
                 )
         else:
             context = _fake_context()
@@ -84,18 +102,20 @@ class AioPikaPropanProducer:
                 return r
 
             else:
+                scope: Callable[[Optional[float], bool], AsyncContextManager[Any]]
                 if raise_timeout:
                     scope = anyio.fail_after
                 else:
                     scope = anyio.move_on_after
 
-                msg: Any = None
+                msg: Optional[aio_pika.IncomingMessage] = None
                 with scope(rpc_timeout):
                     msg = await response_queue.receive()
 
                 if msg:
-                    msg = await self._parser(msg)
-                    return await self._decoder(msg)
+                    return await self._decoder(await self._parser(msg))
+
+        return None
 
     async def _publish(
         self,
@@ -108,8 +128,8 @@ class AioPikaPropanProducer:
         timeout: TimeoutType = None,
         persist: bool = False,
         reply_to: Optional[str] = None,
-        **message_kwargs: AnyDict,
-    ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
+        **message_kwargs: Any,
+    ) -> Union[aiormq.abc.ConfirmationFrameType, SendableMessage]:
         p_exchange = RabbitExchange.validate(exchange)
 
         if p_exchange is None:
@@ -138,7 +158,7 @@ class _RPCCallback:
         self.lock = lock
         self.queue = callback_queue
 
-    async def __aenter__(self) -> MemoryObjectReceiveStream:
+    async def __aenter__(self) -> MemoryObjectReceiveStream[aio_pika.IncomingMessage]:
         (
             send_response_stream,
             receive_response_stream,
@@ -157,11 +177,11 @@ class _RPCCallback:
         exc_type: Optional[Type[BaseException]] = None,
         exc_val: Optional[BaseException] = None,
         exec_tb: Optional[TracebackType] = None,
-    ):
+    ) -> None:
         self.lock.release()
         await self.queue.cancel(self.consumer_tag)
 
 
 @asynccontextmanager
-async def _fake_context() -> None:
+async def _fake_context() -> AsyncIterator[None]:
     yield None

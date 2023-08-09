@@ -11,7 +11,7 @@ Msg = TypeVar("Msg")
 
 
 @dataclass
-class PropanMessage(Generic[Msg]):
+class ABCPropanMessage(Generic[Msg]):
     raw_message: Msg
 
     body: Union[bytes, Any]
@@ -27,14 +27,30 @@ class PropanMessage(Generic[Msg]):
 
     processed: bool = False
 
+
+class SyncPropanMessage(ABCPropanMessage[Msg]):
     @abstractmethod
-    def ack(self, **kwargs: AnyDict) -> None:
+    def ack(self, **kwargs: Any) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def nack(self, **kwargs: AnyDict) -> None:
+    def nack(self, **kwargs: Any) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def reject(self, **kwargs: AnyDict) -> None:
+    def reject(self, **kwargs: Any) -> None:
+        raise NotImplementedError()
+
+
+class PropanMessage(ABCPropanMessage[Msg]):
+    @abstractmethod
+    async def ack(self, **kwargs: Any) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def nack(self, **kwargs: Any) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def reject(self, **kwargs: Any) -> None:
         raise NotImplementedError()

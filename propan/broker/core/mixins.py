@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from propan.broker.message import PropanMessage
 from propan.broker.types import MsgType
@@ -14,7 +14,7 @@ class LoggingMixin:
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
-        **kwargs: AnyDict,
+        **kwargs: Any,
     ) -> None:
         self.logger = logger
         self.log_level = log_level
@@ -27,8 +27,8 @@ class LoggingMixin:
     def _get_log_context(
         self,
         message: Optional[PropanMessage[MsgType]],
-        **kwargs: Dict[str, str],
-    ) -> Dict[str, Any]:
+        **kwargs: str,
+    ) -> AnyDict:
         return {
             "message_id": message.message_id[:10] if message else "",
         }

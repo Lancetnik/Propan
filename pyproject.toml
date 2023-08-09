@@ -83,6 +83,7 @@ exclude = [
 [tool.mypy]
 strict = true
 python_version = "3.8"
+ignore_missing_imports = true
 
 [tool.isort]
 profile = "black"

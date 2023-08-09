@@ -1,9 +1,10 @@
 import asyncio
+from typing import Type
 
 import pytest
 
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
-from propan.broker.router import BrokerRouter
+from propan.broker.router import BrokerRoute, BrokerRouter
 from propan.types import AnyCallable
 from tests.brokers.base.middlewares import LocalMiddlewareTestcase
 from tests.brokers.base.parser import LocalCustomParserTestcase
@@ -13,6 +14,7 @@ from tests.brokers.base.parser import LocalCustomParserTestcase
 @pytest.mark.rabbit
 class RouterTestcase(LocalMiddlewareTestcase, LocalCustomParserTestcase):
     build_message: AnyCallable
+    route_class: Type[BrokerRoute]
 
     def patch_broker(
         self, br: BrokerAsyncUsecase, router: BrokerRouter
@@ -162,6 +164,32 @@ class RouterTestcase(LocalMiddlewareTestcase, LocalCustomParserTestcase):
             event.set()
 
         pub_broker.include_router(router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(pub_broker.publish("hello", f"test_{queue}")),
+                asyncio.create_task(event.wait()),
+            ),
+            timeout=3,
+        )
+
+        assert event.is_set()
+
+    async def test_delayed_handlers(
+        self,
+        event: asyncio.Event,
+        router: BrokerRouter,
+        queue: str,
+        pub_broker: BrokerAsyncUsecase,
+    ):
+        def response(m):
+            event.set()
+
+        r = type(router)(prefix="test_", handlers=(self.route_class(response, queue),))
+
+        pub_broker.include_router(r)
 
         await pub_broker.start()
 

@@ -52,7 +52,7 @@ CustomDecoder: TypeAlias = Union[
 ]
 
 P_HandlerParams = ParamSpec("P_HandlerParams")
-T_HandlerReturn = TypeVar("T_HandlerReturn", bound=SendableMessage)
+T_HandlerReturn = TypeVar("T_HandlerReturn", bound=SendableMessage, covariant=True)
 
 HandlerCallable: TypeAlias = Callable[
     ..., Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]

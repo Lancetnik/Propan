@@ -7,4 +7,6 @@ class Handler(LogicHandler):
 
 
 class Publisher(LogicPublisher):
-    pass
+    @property
+    def name(self) -> str:
+        return self.title or "undefined"
