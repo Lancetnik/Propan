@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 import pytest_asyncio
 
-from propan.kafka import KafkaBroker, KafkaRouter
+from propan.kafka import KafkaBroker, KafkaRouter, TestKafkaBroker
 
 
 @dataclass
@@ -35,3 +35,10 @@ async def full_broker(settings):
     broker = KafkaBroker(settings.url)
     async with broker:
         yield broker
+
+
+@pytest_asyncio.fixture
+async def test_broker():
+    broker = KafkaBroker()
+    async with TestKafkaBroker(broker) as br:
+        yield br

@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from pydantic import Field
 
 from propan.broker.schemas import NameRequired
 from propan.rabbit.shared.constants import ExchangeType
 from propan.rabbit.shared.types import TimeoutType
+from propan.types import AnyDict
 
 
 class RabbitQueue(NameRequired):
@@ -14,12 +15,12 @@ class RabbitQueue(NameRequired):
     exclusive: bool = False
     passive: bool = False
     auto_delete: bool = False
-    arguments: Optional[Dict[str, Any]] = None
+    arguments: Optional[AnyDict] = None
     timeout: TimeoutType = None
     robust: bool = True
 
     routing_key: str = Field(default="")
-    bind_arguments: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
+    bind_arguments: Optional[AnyDict] = Field(default=None, exclude=True)
 
     def __hash__(self) -> int:
         return sum(
@@ -42,10 +43,10 @@ class RabbitQueue(NameRequired):
         exclusive: bool = False,
         passive: bool = False,
         auto_delete: bool = False,
-        arguments: Optional[Dict[str, Any]] = None,
+        arguments: Optional[AnyDict] = None,
         timeout: TimeoutType = None,
         robust: bool = True,
-        bind_arguments: Optional[Dict[str, Any]] = None,
+        bind_arguments: Optional[AnyDict] = None,
         routing_key: str = "",
     ):
         super().__init__(
@@ -68,12 +69,12 @@ class RabbitExchange(NameRequired):
     auto_delete: bool = False
     internal: bool = False
     passive: bool = False
-    arguments: Optional[Dict[str, Any]] = None
+    arguments: Optional[AnyDict] = None
     timeout: TimeoutType = None
     robust: bool = True
 
     bind_to: Optional["RabbitExchange"] = Field(default=None, exclude=True)
-    bind_arguments: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
+    bind_arguments: Optional[AnyDict] = Field(default=None, exclude=True)
     routing_key: str = Field(default="", exclude=True)
 
     def __hash__(self) -> int:
@@ -94,11 +95,11 @@ class RabbitExchange(NameRequired):
         auto_delete: bool = False,
         internal: bool = False,
         passive: bool = False,
-        arguments: Optional[Dict[str, Any]] = None,
+        arguments: Optional[AnyDict] = None,
         timeout: TimeoutType = None,
         robust: bool = True,
         bind_to: Optional["RabbitExchange"] = None,
-        bind_arguments: Optional[Dict[str, Any]] = None,
+        bind_arguments: Optional[AnyDict] = None,
         routing_key: str = "",
     ):
         super().__init__(
@@ -128,4 +129,4 @@ def get_routing_hash(
 class BaseRMQInformation:
     queue: RabbitQueue = field(default=RabbitQueue(""))
     exchange: Optional[RabbitExchange] = field(default=None)
-    description: Optional[str] = field(default=None)
+    _description: Optional[str] = field(default=None)

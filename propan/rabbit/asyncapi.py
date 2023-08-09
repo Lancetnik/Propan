@@ -26,6 +26,10 @@ class RMQAsyncAPIChannel(AsyncAPIOperation, BaseRMQInformation):
     def get_payloads(self) -> List[AnyDict]:
         raise NotImplementedError()
 
+    @property
+    def description(self) -> str:
+        return "undefined"
+
     def schema(self) -> Tuple[str, Channel]:
         name, _ = super().schema()
 
@@ -81,7 +85,11 @@ class RMQAsyncAPIChannel(AsyncAPIOperation, BaseRMQInformation):
 
 
 class Publisher(RMQAsyncAPIChannel, LogicPublisher):
-    def get_payloads(self) -> Tuple[str, Channel]:
+    @property
+    def name(self) -> str:
+        return self.title or "undefined"
+
+    def get_payloads(self) -> List[AnyDict]:
         payloads = []
         for call in self.calls:
             call_model = build_call_model(call)
@@ -95,7 +103,7 @@ class Publisher(RMQAsyncAPIChannel, LogicPublisher):
 
 
 class Handler(RMQAsyncAPIChannel, LogicHandler):
-    def get_payloads(self) -> Tuple[str, Channel]:
+    def get_payloads(self) -> List[AnyDict]:
         payloads = []
         for _, _, _, _, _, _, dep in self.calls:
             body = parse_handler_params(dep, prefix=self.name)

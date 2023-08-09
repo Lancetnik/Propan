@@ -3,7 +3,12 @@ from functools import wraps
 from typing import Awaitable, Callable, Optional, Union
 
 from propan.broker.message import PropanMessage
-from propan.broker.push_back_watcher import BaseWatcher, CounterWatcher, EndlessWatcher
+from propan.broker.push_back_watcher import (
+    BaseWatcher,
+    CounterWatcher,
+    EndlessWatcher,
+    OneTryWatcher,
+)
 from propan.broker.types import AsyncWrappedHandlerCall, MsgType, T_HandlerReturn
 from propan.exceptions import HandlerException
 from propan.utils import context
@@ -24,12 +29,12 @@ def change_logger_handlers(logger: logging.Logger, fmt: str) -> None:
 def get_watcher(
     logger: Optional[logging.Logger],
     try_number: Union[bool, int] = True,
-) -> Optional[BaseWatcher]:
+) -> BaseWatcher:
     watcher: Optional[BaseWatcher]
     if try_number is True:
         watcher = EndlessWatcher()
     elif try_number is False:
-        watcher = None
+        watcher = OneTryWatcher()
     else:
         watcher = CounterWatcher(logger=logger, max_tries=try_number)
     return watcher

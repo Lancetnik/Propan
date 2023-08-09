@@ -1,13 +1,16 @@
 from typing import Dict, Optional
 
+from typing_extensions import override
+
 from propan.kafka.asyncapi import Publisher
 from propan.kafka.shared.router import KafkaRouter as BaseRouter
 
 
 class KafkaRouter(BaseRouter):
-    _publishers: Dict[str, Publisher]
+    _publishers: Dict[str, Publisher]  # type: ignore[assignment]
 
-    def publisher(
+    @override
+    def publisher(  # type: ignore[override]
         self,
         topic: str,
         key: Optional[bytes] = None,
@@ -17,7 +20,7 @@ class KafkaRouter(BaseRouter):
         reply_to: str = "",
     ) -> Publisher:
         new_topic = self.prefix + topic
-        publisher = self._publishers[key] = self._publishers.get(
+        publisher = self._publishers[new_topic] = self._publishers.get(
             new_topic,
             Publisher(
                 topic=new_topic,

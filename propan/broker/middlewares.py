@@ -11,7 +11,7 @@ class CriticalLogMiddleware:
     def __init__(self, logger: logging.Logger) -> None:
         self.logger = logger
 
-    def __call__(self: Cls, *args: Any) -> Cls:
+    def __call__(self: Cls, msg: Any) -> Cls:
         return self
 
     async def __aenter__(self: Cls) -> Cls:

@@ -50,7 +50,7 @@ class PropanRouter(APIRouter, Generic[MsgType]):
         tags: Optional[List[Union[str, Enum]]] = None,
         dependencies: Optional[Sequence[params.Depends]] = None,
         default_response_class: Type[Response] = Default(JSONResponse),
-        responses: Optional[Dict[Union[int, str], Dict[str, Any]]] = None,
+        responses: Optional[Dict[Union[int, str], AnyDict]] = None,
         callbacks: Optional[List[routing.BaseRoute]] = None,
         routes: Optional[List[routing.BaseRoute]] = None,
         redirect_slashes: bool = True,
@@ -66,7 +66,7 @@ class PropanRouter(APIRouter, Generic[MsgType]):
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
         ),
-        **connection_kwars: AnyDict,
+        **connection_kwars: Any,
     ) -> None:
         assert (
             self.broker_class
@@ -75,7 +75,7 @@ class PropanRouter(APIRouter, Generic[MsgType]):
         self.broker = self.broker_class(
             *connection_args,
             apply_types=False,
-            **connection_kwars,  # type: ignore
+            **connection_kwars,
         )
 
         self.setup_state = setup_state
@@ -108,7 +108,7 @@ class PropanRouter(APIRouter, Generic[MsgType]):
         *extra: Union[NameRequired, str],
         endpoint: Callable[P_HandlerParams, T_HandlerReturn],
         dependencies: Sequence[params.Depends],
-        **broker_kwargs: AnyDict,
+        **broker_kwargs: Any,
     ) -> HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn]:
         route: PropanRoute[MsgType, P_HandlerParams, T_HandlerReturn] = PropanRoute(
             path,
@@ -127,7 +127,7 @@ class PropanRouter(APIRouter, Generic[MsgType]):
         path: Union[str, NameRequired],
         *extra: Union[NameRequired, str],
         dependencies: Optional[Sequence[params.Depends]] = None,
-        **broker_kwargs: Dict[str, Any],
+        **broker_kwargs: Any,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
         HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
@@ -163,7 +163,7 @@ class PropanRouter(APIRouter, Generic[MsgType]):
 
             async with lifespan_context(app) as maybe_context:
                 if maybe_context is None:
-                    context: Dict[str, Any] = {}
+                    context: AnyDict = {}
                 else:
                     context = dict(maybe_context)
 
@@ -200,10 +200,10 @@ class PropanRouter(APIRouter, Generic[MsgType]):
         self,
         queue: Union[NameRequired, str],
         *publisher_args: Any,
-        **publisher_kwargs: AnyDict,
+        **publisher_kwargs: Any,
     ) -> BasePublisher[MsgType]:
         return self.broker.publisher(
             queue,
             *publisher_args,
-            **publisher_kwargs,  # type: ignore
+            **publisher_kwargs,
         )

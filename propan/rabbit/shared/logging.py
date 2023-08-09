@@ -1,6 +1,8 @@
 import logging
 from typing import Any, Optional
 
+from typing_extensions import override
+
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.message import PropanMessage
 from propan.log import access_logger
@@ -17,8 +19,8 @@ class RabbitLoggingMixin(LoggingMixin):
         *args: Any,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
-        log_fmt: str | None = None,
-        **kwargs: AnyDict,
+        log_fmt: Optional[str] = None,
+        **kwargs: Any,
     ) -> None:
         super().__init__(
             *args,
@@ -30,7 +32,8 @@ class RabbitLoggingMixin(LoggingMixin):
         self._max_queue_len = 4
         self._max_exchange_len = 4
 
-    def _get_log_context(
+    @override
+    def _get_log_context(  # type: ignore[override]
         self,
         message: Optional[PropanMessage[Any]],
         queue: RabbitQueue,
@@ -59,7 +62,9 @@ class RabbitLoggingMixin(LoggingMixin):
         exchange: Optional[RabbitExchange] = None,
     ) -> None:
         if exchange is not None:
-            self._max_exchange_len = max(self._max_exchange_len, len(exchange.name))
+            self._max_exchange_len = max(
+                self._max_exchange_len, len(exchange.name or "")
+            )
 
         if queue is not None:  # pragma: no branch
             self._max_queue_len = max(self._max_queue_len, len(queue.name))

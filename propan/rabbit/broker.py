@@ -12,15 +12,18 @@ from typing import (
     Sequence,
     Type,
     Union,
+    cast,
 )
 
 import aio_pika
 import aiormq
 from fast_depends.dependencies import Depends
+from typing_extensions import override
 from yarl import URL
 
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
-from propan.broker.push_back_watcher import BaseWatcher, OneTryWatcher, WatcherContext
+from propan.broker.message import PropanMessage
+from propan.broker.push_back_watcher import BaseWatcher, WatcherContext
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
@@ -31,23 +34,24 @@ from propan.broker.wrapper import HandlerCallWrapper
 from propan.exceptions import RuntimeException
 from propan.rabbit.asyncapi import Handler, Publisher
 from propan.rabbit.helpers import RabbitDeclarer
-from propan.rabbit.message import RabbitMessage
 from propan.rabbit.producer import AioPikaPropanProducer
 from propan.rabbit.shared.constants import RABBIT_REPLY
 from propan.rabbit.shared.logging import RabbitLoggingMixin
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash
 from propan.rabbit.shared.types import TimeoutType
-from propan.types import AnyDict, DecodedMessage
+from propan.types import AnyDict, SendableMessage
 from propan.utils import context
-from propan.utils.functions import patch_annotation, to_async
+from propan.utils.functions import to_async
+
+RabbitMessage = PropanMessage[aio_pika.IncomingMessage]
 
 
 class RabbitBroker(
     RabbitLoggingMixin,
     BrokerAsyncUsecase[aio_pika.IncomingMessage, aio_pika.RobustConnection],
 ):
-    handlers: Dict[int, Handler]
-    _publishers: Dict[int, Publisher]
+    handlers: Dict[int, Handler]  # type: ignore[assignment]
+    _publishers: Dict[int, Publisher]  # type: ignore[assignment]
 
     declarer: Optional[RabbitDeclarer]
     _producer: Optional[AioPikaPropanProducer]
@@ -61,7 +65,7 @@ class RabbitBroker(
         max_consumers: Optional[int] = None,
         protocol: str = "amqp",
         protocol_version: Optional[str] = "0.9.1",
-        **kwargs: AnyDict,
+        **kwargs: Any,
     ) -> None:
         super().__init__(
             url=url,
@@ -92,10 +96,11 @@ class RabbitBroker(
         if self._producer is not None:
             self._producer = None
 
-        await self._connection.close()
+        if self._connection is not None:
+            await self._connection.close()
         await super()._close(exc_type, exc_val, exec_tb)
 
-    async def connect(self, *args: Any, **kwargs: AnyDict) -> aio_pika.RobustConnection:
+    async def connect(self, *args: Any, **kwargs: Any) -> aio_pika.RobustConnection:
         connection = await super().connect(*args, **kwargs)
         for p in self._publishers.values():
             p._producer = self._producer
@@ -105,23 +110,29 @@ class RabbitBroker(
         self,
         **kwargs: Any,
     ) -> aio_pika.RobustConnection:
-        connection = await aio_pika.connect_robust(**kwargs)
+        connection = cast(
+            aio_pika.RobustConnection,
+            await aio_pika.connect_robust(**kwargs),
+        )
 
         if self._channel is None:  # pragma: no branch
             max_consumers = self._max_consumers
-            channel = self._channel = await connection.channel()
+            channel = self._channel = cast(
+                aio_pika.RobustChannel,
+                await connection.channel(),
+            )
 
             declarer = self.declarer = RabbitDeclarer(channel)
-            self.declarer.queues[RABBIT_REPLY] = await channel.get_queue(
-                RABBIT_REPLY,
-                ensure=False,
+            self.declarer.queues[RABBIT_REPLY] = cast(
+                aio_pika.RobustQueue,
+                await channel.get_queue(RABBIT_REPLY, ensure=False),
             )
 
             self._producer = AioPikaPropanProducer(
                 channel,
                 declarer,
-                global_decoder=self._global_decoder,
-                global_parser=self._global_parser,
+                decoder=self._global_decoder,
+                parser=self._global_parser,
             )
 
             if max_consumers:
@@ -145,7 +156,8 @@ class RabbitBroker(
             self._log(f"`{handler.name}` waiting for messages", extra=c)
             await handler.start(self.declarer)
 
-    def subscriber(
+    @override
+    def subscriber(  # type: ignore[override]
         self,
         queue: Union[str, RabbitQueue],
         exchange: Union[str, RabbitExchange, None] = None,
@@ -163,13 +175,12 @@ class RabbitBroker(
                 ]
             ]
         ] = None,
-        filter: Callable[
-            [RabbitMessage],
-            Union[bool, Awaitable[bool]],
+        filter: Union[
+            Callable[[RabbitMessage], bool], Callable[[RabbitMessage], Awaitable[bool]]
         ] = lambda m: not m.processed,
         # AsyncAPI information
         description: Optional[str] = None,
-        **original_kwargs: AnyDict,
+        **original_kwargs: Any,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
         HandlerCallWrapper[aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn],
@@ -221,7 +232,8 @@ class RabbitBroker(
 
         return consumer_wrapper
 
-    def publisher(
+    @override
+    def publisher(  # type: ignore[override]
         self,
         queue: Union[RabbitQueue, str] = "",
         exchange: Union[RabbitExchange, str, None] = None,
@@ -235,7 +247,7 @@ class RabbitBroker(
         # AsyncAPI information
         title: Optional[str] = None,
         description: Optional[str] = None,
-        **message_kwargs: AnyDict,
+        **message_kwargs: Any,
     ) -> Publisher:
         q, ex = RabbitQueue.validate(queue), RabbitExchange.validate(exchange)
         key = get_routing_hash(q, ex)
@@ -243,7 +255,6 @@ class RabbitBroker(
             key,
             Publisher(
                 title=title,
-                description=description,
                 queue=q,
                 exchange=ex,
                 routing_key=routing_key,
@@ -253,15 +264,19 @@ class RabbitBroker(
                 persist=persist,
                 reply_to=reply_to,
                 message_kwargs=message_kwargs,
+                _description=description,
             ),
         )
-        return super().publisher(key, publisher)
+        super().publisher(key, publisher)
+        return publisher
 
-    @patch_annotation(AioPikaPropanProducer.publish)
-    async def publish(
-        self, *args: Any, **kwargs: AnyDict
-    ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
-        if self._channel is None:
+    @override
+    async def publish(  # type: ignore[override]
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Union[aiormq.abc.ConfirmationFrameType, SendableMessage]:
+        if self._producer is None:
             raise ValueError("RabbitBroker channel is not started yet")
         return await self._producer.publish(*args, **kwargs)
 
@@ -271,11 +286,8 @@ class RabbitBroker(
         call_wrapper: HandlerCallWrapper[
             aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn
         ],
-        watcher: Optional[BaseWatcher],
+        watcher: BaseWatcher,
     ) -> Callable[[RabbitMessage], Awaitable[T_HandlerReturn]]:
-        if watcher is None:
-            watcher = OneTryWatcher()
-
         @wraps(func)
         async def process_wrapper(message: RabbitMessage) -> T_HandlerReturn:
             async with WatcherContext(watcher, message):
@@ -313,11 +325,9 @@ class RabbitBroker(
 
                     return r
 
-        return process_wrapper
+            raise AssertionError("unreachable")
 
-    @property
-    def channel(self) -> aio_pika.RobustChannel:
-        return self._channel
+        return process_wrapper
 
     async def declare_queue(
         self,

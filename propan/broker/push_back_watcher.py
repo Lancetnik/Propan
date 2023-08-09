@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from logging import Logger
 from types import TracebackType
+from typing import Any
 from typing import Counter as CounterType
-from typing import Optional, Type
+from typing import Optional, Type, Union
 
-from propan.broker.message import PropanMessage
+from propan.broker.message import PropanMessage, SyncPropanMessage
 from propan.broker.types import MsgType
 from propan.exceptions import SkipMessage
-from propan.types import AnyDict
 from propan.utils.functions import call_or_await
 
 
@@ -90,12 +90,12 @@ class WatcherContext:
     def __init__(
         self,
         watcher: BaseWatcher,
-        message: PropanMessage[MsgType],
-        **extra_args: AnyDict,
+        message: Union[SyncPropanMessage[MsgType], PropanMessage[MsgType]],
+        **extra_ack_args: Any,
     ):
         self.watcher = watcher
         self.message = message
-        self.extra_args = extra_args or {}
+        self.extra_ack_args = extra_ack_args or {}
 
     async def __aenter__(self) -> None:
         self.watcher.add(self.message.message_id)
@@ -107,15 +107,15 @@ class WatcherContext:
         exc_tb: Optional[TracebackType],
     ) -> None:
         if not exc_type:
-            await call_or_await(self.message.ack, **self.extra_args)
+            await call_or_await(self.message.ack, **self.extra_ack_args)
             self.watcher.remove(self.message.message_id)
 
         elif isinstance(exc_val, SkipMessage):
             self.watcher.remove(self.message.message_id)
 
         elif self.watcher.is_max(self.message.message_id):
-            await call_or_await(self.message.reject, **self.extra_args)
+            await call_or_await(self.message.reject, **self.extra_ack_args)
             self.watcher.remove(self.message.message_id)
 
         else:
-            await call_or_await(self.message.nack, **self.extra_args)
+            await call_or_await(self.message.nack, **self.extra_ack_args)

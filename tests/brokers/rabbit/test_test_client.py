@@ -3,10 +3,16 @@ from unittest.mock import Mock
 
 import pytest
 
-from propan.rabbit import ExchangeType, RabbitBroker, RabbitExchange, RabbitQueue
+from propan.rabbit import (
+    ExchangeType,
+    RabbitBroker,
+    RabbitExchange,
+    RabbitQueue,
+    TestRabbitBroker,
+)
 from propan.rabbit.annotations import RabbitMessage
-from propan.rabbit import TestRabbitBroker
 from tests.brokers.base.testclient import BrokerTestclientTestcase
+
 
 @pytest.mark.asyncio
 class TestTestclient(BrokerTestclientTestcase):

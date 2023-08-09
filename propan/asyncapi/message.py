@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Type, overload
 
 from fast_depends.core import CallModel
 from pydantic import BaseModel
@@ -15,17 +15,44 @@ def parse_handler_params(call: CallModel[Any, Any], prefix: str = "") -> Dict[st
     return body
 
 
+@overload
+def get_response_schema(call: None, prefix: str = "") -> None:
+    ...
+
+
+@overload
 def get_response_schema(call: CallModel[Any, Any], prefix: str = "") -> Dict[str, Any]:
-    # NOTE: FastAPI Dependant object compatibility
-    if getattr(call, "response_model", None) is not None:
-        return_info = get_model_schema(call.response_model, prefix=prefix)
-    else:
-        return_info = None
-
-    return return_info
+    ...
 
 
-def get_model_schema(call: BaseModel, prefix: str = "") -> Optional[Dict[str, Any]]:
+def get_response_schema(
+    call: Optional[CallModel[Any, Any]],
+    prefix: str = "",
+) -> Optional[Dict[str, Any]]:
+    return get_model_schema(
+        getattr(
+            call, "response_model", None
+        ),  # NOTE: FastAPI Dependant object compatibility
+        prefix=prefix,
+    )
+
+
+@overload
+def get_model_schema(call: None, prefix: str = "") -> None:
+    ...
+
+
+@overload
+def get_model_schema(call: Type[BaseModel], prefix: str = "") -> Dict[str, Any]:
+    ...
+
+
+def get_model_schema(
+    call: Optional[Type[BaseModel]], prefix: str = ""
+) -> Optional[Dict[str, Any]]:
+    if call is None:
+        return None
+
     params = get_model_fields(call)
     params_number = len(params)
 
@@ -37,8 +64,10 @@ def get_model_schema(call: BaseModel, prefix: str = "") -> Optional[Dict[str, An
     if params_number == 1:
         name, param = tuple(params.items())[0]
 
-        if param.annotation != Any and issubclass(  # NOTE: 3.7-3.10 compatibility
-            param.annotation, BaseModel
+        if (
+            param.annotation
+            and param.annotation != Any
+            and issubclass(param.annotation, BaseModel)  # NOTE: 3.7-3.10 compatibility
         ):
             model = param.annotation
             use_original_model = True

@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Union, cast
 
 import aio_pika
 
@@ -23,8 +23,11 @@ class RabbitDeclarer(Singleton):
     ) -> aio_pika.RobustQueue:
         q = self.queues.get(queue)
         if q is None:
-            q = await self.channel.declare_queue(
-                **model_to_dict(queue, exclude={"routing_key"})
+            q = cast(
+                aio_pika.RobustQueue,
+                await self.channel.declare_queue(
+                    **model_to_dict(queue, exclude={"routing_key"})
+                ),
             )
             self.queues[queue] = q
         return q
@@ -36,7 +39,10 @@ class RabbitDeclarer(Singleton):
         exch = self.exchanges.get(exchange)
 
         if exch is None:
-            exch = await self.channel.declare_exchange(**model_to_dict(exchange))
+            exch = cast(
+                aio_pika.RobustExchange,
+                await self.channel.declare_exchange(**model_to_dict(exchange)),
+            )
             self.exchanges[exchange] = exch
 
         if exchange.bind_to is not None:

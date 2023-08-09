@@ -7,7 +7,6 @@ from pydantic import AnyHttpUrl
 from typing_extensions import ParamSpec, TypeVar, override
 
 from propan import asyncapi
-from propan.broker.core.abc import BrokerUsecase
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.cli.supervisors.utils import set_exit
 from propan.log import logger
@@ -27,7 +26,7 @@ class ABCApp(ABC):
 
     def __init__(
         self,
-        broker: Optional[BrokerUsecase[Any, Any]] = None,
+        broker: Optional[BrokerAsyncUsecase[Any, Any]] = None,
         logger: Optional[logging.Logger] = logger,
         # AsyncAPI information
         title: str = "Propan",
@@ -62,7 +61,7 @@ class ABCApp(ABC):
         self.tags = tags
         self.external_docs = external_docs
 
-    def set_broker(self, broker: BrokerUsecase[Any, Any]) -> None:
+    def set_broker(self, broker: BrokerAsyncUsecase[Any, Any]) -> None:
         """Set already existed App object broker
         Usefull then you create/init broker in `on_startup` hook"""
         self.broker = broker
@@ -115,7 +114,7 @@ class PropanApp(ABCApp):
 
     def __init__(
         self,
-        broker: Optional[BrokerAsyncUsecase] = None,
+        broker: Optional[BrokerAsyncUsecase[Any, Any]] = None,
         logger: Optional[logging.Logger] = logger,
         # AsyncAPI args,
         title: str = "Propan",

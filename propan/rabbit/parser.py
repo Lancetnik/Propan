@@ -1,20 +1,21 @@
-from typing import Optional
+from typing import Any, Optional
 from uuid import uuid4
 
 import aio_pika
 from aio_pika.abc import DeliveryMode
 
+from propan.broker.message import PropanMessage
 from propan.broker.parsers import decode_message, encode_message
 from propan.rabbit.message import RabbitMessage
 from propan.rabbit.types import AioPikaSendableMessage
-from propan.types import AnyDict, DecodedMessage
+from propan.types import DecodedMessage
 
 
 class AioPikaParser:
     @staticmethod
     async def parse_message(
         message: aio_pika.IncomingMessage,
-    ) -> RabbitMessage:
+    ) -> PropanMessage[aio_pika.IncomingMessage]:
         return RabbitMessage(
             body=message.body,
             headers=message.headers,
@@ -26,7 +27,9 @@ class AioPikaParser:
         )
 
     @staticmethod
-    async def decode_message(msg: RabbitMessage) -> DecodedMessage:
+    async def decode_message(
+        msg: PropanMessage[aio_pika.IncomingMessage],
+    ) -> DecodedMessage:
         return decode_message(msg)
 
     @staticmethod
@@ -35,7 +38,7 @@ class AioPikaParser:
         persist: bool = False,
         callback_queue: Optional[aio_pika.abc.AbstractRobustQueue] = None,
         reply_to: Optional[str] = None,
-        **message_kwargs: AnyDict,
+        **message_kwargs: Any,
     ) -> aio_pika.Message:
         if not isinstance(message, aio_pika.Message):
             message, content_type = encode_message(message)

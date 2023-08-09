@@ -1,21 +1,22 @@
 from dataclasses import dataclass, field
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import aiormq
 from aio_pika import IncomingMessage
+from typing_extensions import override
 
 from propan.rabbit.producer import AioPikaPropanProducer
 from propan.rabbit.shared.publisher import ABCPublisher
 from propan.rabbit.types import AioPikaSendableMessage
-from propan.types import AnyDict, DecodedMessage
+from propan.types import SendableMessage
 
 
 @dataclass
 class LogicPublisher(ABCPublisher[IncomingMessage]):
     _producer: Optional[AioPikaPropanProducer] = field(default=None, init=False)
-    _fake_handler: bool = False
 
-    async def publish(
+    @override
+    async def publish(  # type: ignore[override]
         self,
         message: AioPikaSendableMessage = "",
         *,
@@ -23,8 +24,9 @@ class LogicPublisher(ABCPublisher[IncomingMessage]):
         rpc_timeout: Optional[float] = 30.0,
         raise_timeout: bool = False,
         correlation_id: Optional[str] = None,
-        **message_kwargs: AnyDict,
-    ) -> Union[aiormq.abc.ConfirmationFrameType, DecodedMessage, None]:
+        **message_kwargs: Any,
+    ) -> Union[aiormq.abc.ConfirmationFrameType, SendableMessage]:
+        assert self._producer, "Please, setup `_producer` first"
         return await self._producer.publish(
             message=message,
             queue=self.queue,

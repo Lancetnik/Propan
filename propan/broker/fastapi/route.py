@@ -3,7 +3,17 @@ import inspect
 from contextlib import AsyncExitStack
 from functools import wraps
 from itertools import dropwhile
-from typing import Any, Callable, Coroutine, Generic, Optional, Sequence, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Coroutine,
+    Generic,
+    Optional,
+    Sequence,
+    Union,
+    cast,
+)
 
 from fastapi import params
 from fastapi.dependencies.models import Dependant
@@ -39,7 +49,7 @@ class PropanRoute(BaseRoute, Generic[MsgType, P_HandlerParams, T_HandlerReturn])
         broker: BrokerAsyncUsecase[MsgType, Any],
         dependencies: Sequence[params.Depends] = (),
         dependency_overrides_provider: Optional[Any] = None,
-        **handle_kwargs: AnyDict,
+        **handle_kwargs: Any,
     ) -> None:
         self.path = path
         self.broker = broker
@@ -81,8 +91,10 @@ class PropanRoute(BaseRoute, Generic[MsgType, P_HandlerParams, T_HandlerReturn])
             *extra,
             _raw=True,
             _get_dependant=lambda call: dependant,
-            **handle_kwargs,  # type: ignore
-        )(handler)
+            **handle_kwargs,
+        )(
+            handler  # type: ignore[arg-type]
+        )
 
 
 class PropanMessage(Request):
@@ -108,7 +120,7 @@ class PropanMessage(Request):
         cls,
         dependant: Dependant,
         dependency_overrides_provider: Optional[Any] = None,
-    ) -> Callable[[NativeMessage[Any]], SendableMessage]:
+    ) -> Callable[[NativeMessage[Any]], Awaitable[SendableMessage]]:
         assert dependant.call
         func = get_app(dependant, dependency_overrides_provider)
 
@@ -141,8 +153,8 @@ class PropanMessage(Request):
 def get_app(
     dependant: Dependant,
     dependency_overrides_provider: Optional[Any] = None,
-) -> Callable[[PropanMessage], Coroutine[Any, Any, Any]]:
-    async def app(request: PropanMessage) -> Any:
+) -> Callable[[PropanMessage], Coroutine[Any, Any, SendableMessage]]:
+    async def app(request: PropanMessage) -> SendableMessage:
         async with AsyncExitStack() as stack:
             request.scope["fastapi_astack"] = stack
 
@@ -157,10 +169,15 @@ def get_app(
             if errors:
                 raise_fastapi_validation_error(errors, request._body)
 
-            return await run_endpoint_function(
-                dependant=dependant,
-                values=values,
-                is_coroutine=asyncio.iscoroutinefunction(dependant.call),
+            return cast(
+                SendableMessage,
+                await run_endpoint_function(
+                    dependant=dependant,
+                    values=values,
+                    is_coroutine=asyncio.iscoroutinefunction(dependant.call),
+                ),
             )
+
+        raise AssertionError("unreachable")
 
     return app

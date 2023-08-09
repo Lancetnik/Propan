@@ -1,6 +1,8 @@
 import logging
 from typing import Any, Iterable, Optional, Sequence
 
+from typing_extensions import override
+
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.message import PropanMessage
 from propan.log import access_logger
@@ -15,8 +17,8 @@ class KafkaLoggingMixin(LoggingMixin):
         *args: Any,
         logger: Optional[logging.Logger] = access_logger,
         log_level: int = logging.INFO,
-        log_fmt: str | None = None,
-        **kwargs: AnyDict,
+        log_fmt: Optional[str] = None,
+        **kwargs: Any,
     ) -> None:
         super().__init__(
             *args,
@@ -27,7 +29,8 @@ class KafkaLoggingMixin(LoggingMixin):
         )
         self._max_topic_len = 4
 
-    def _get_log_context(
+    @override
+    def _get_log_context(  # type: ignore[override]
         self,
         message: Optional[PropanMessage[Any]],
         topics: Sequence[str] = (),

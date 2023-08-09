@@ -22,6 +22,7 @@ def get_app_schema(app: PropanApp) -> Schema:
             payloads[p_title] = p
             m.payload = {"$ref": f"#/components/schemas/{p_title}"}
 
+            assert m.title
             messages[m.title] = m
             ch.subscribe.message = {
                 "$ref": f"#/components/messages/{m.title}"
@@ -38,7 +39,7 @@ def get_app_schema(app: PropanApp) -> Schema:
         ),
         defaultContentType=ContentTypes.json.value,
         id=app.identifier,
-        tags=app.tags,
+        tags=list(app.tags) if app.tags else None,
         externalDocs=app.external_docs,
         servers=servers,
         channels=channels,
@@ -54,6 +55,7 @@ def get_app_broker_server(app: PropanApp) -> Dict[str, Server]:
     servers = {}
 
     broker = app.broker
+    assert broker
 
     broker_meta = {
         "protocol": broker.protocol,
@@ -65,7 +67,7 @@ def get_app_broker_server(app: PropanApp) -> Dict[str, Server]:
     if isinstance(broker.url, str):
         servers["development"] = Server(
             url=broker.url,
-            **broker_meta,
+            **broker_meta,  # type: ignore[arg-type]
             # TODO
             # security
             # variables
@@ -80,7 +82,7 @@ def get_app_broker_server(app: PropanApp) -> Dict[str, Server]:
 
 def get_app_broker_channels(app: PropanApp) -> Dict[str, Channel]:
     channels = {}
-
+    assert app.broker
     for h in app.broker.handlers.values():
         name, channel = h.schema()
         if channel is not None:

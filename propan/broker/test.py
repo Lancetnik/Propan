@@ -8,7 +8,7 @@ from propan.broker.core.abc import BrokerUsecase
 from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
 from propan.broker.types import MsgType
-from propan.types import DecodedMessage, F_Return
+from propan.types import F_Return, SendableMessage
 
 
 def patch_broker_calls(broker: BrokerUsecase[Any, Any]) -> None:
@@ -45,7 +45,7 @@ async def call_handler(
     rpc: bool = False,
     rpc_timeout: Optional[float] = 30.0,
     raise_timeout: bool = False,
-) -> Optional[DecodedMessage]:
+) -> Optional[SendableMessage]:
     scope: Callable[[Optional[float], bool], ContextManager[Any]]
     if raise_timeout:
         scope = anyio.fail_after

@@ -2,13 +2,14 @@ from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from typing import Any, Dict, Iterator, TypeVar
 
+from propan.types import AnyDict
 from propan.utils.classes import Singleton
 
 T = TypeVar("T")
 
 
 class ContextRepo(Singleton):
-    _global_context: Dict[str, Any]
+    _global_context: AnyDict
     _scope_context: Dict[str, ContextVar[Any]]
 
     def __init__(self) -> None:
@@ -47,7 +48,7 @@ class ContextRepo(Singleton):
         return self.get(__name)
 
     @property
-    def context(self) -> Dict[str, Any]:
+    def context(self) -> AnyDict:
         return {
             "context": self,
             **{i: j.get() for i, j in self._scope_context.items()},
