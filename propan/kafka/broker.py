@@ -59,6 +59,7 @@ class KafkaBroker(
         response_topic: str = "",
         protocol: str = "kafka",
         api_version: str = "auto",
+        client_id: str = "propan-" + __version__,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -66,8 +67,10 @@ class KafkaBroker(
             protocol=protocol,
             protocol_version=api_version,
             **kwargs,
+            client_id=client_id,
             bootstrap_servers=bootstrap_servers,
         )
+        self.client_id = client_id
         self.response_topic = response_topic
         self._producer = None
 
@@ -93,20 +96,20 @@ class KafkaBroker(
             p._producer = self._producer
         return connection
 
-    async def _connect(
+    @override
+    async def _connect(  # type: ignore[override]
         self,
+        *,
+        client_id: str,
         **kwargs: Any,
     ) -> ConsumerConnectionParams:
-        kwargs["client_id"] = kwargs.get("client_id", "propan-" + __version__)
-
-        producer = aiokafka.AIOKafkaProducer(**kwargs)
+        producer = aiokafka.AIOKafkaProducer(**kwargs, client_id=client_id)
         await producer.start()
         self._producer = AioKafkaPropanProducer(
             producer=producer,
             decoder=self._global_decoder,
             parser=self._global_parser,
         )
-
         return filter_by_dict(ConsumerConnectionParams, kwargs)
 
     async def start(self) -> None:
@@ -237,7 +240,6 @@ class KafkaBroker(
         key = "".join(topics)
         builder = partial(
             aiokafka.AIOKafkaConsumer,
-            group_id=group_id,
             key_deserializer=key_deserializer,
             value_deserializer=value_deserializer,
             fetch_max_wait_ms=fetch_max_wait_ms,
@@ -262,6 +264,8 @@ class KafkaBroker(
             key,
             Handler(
                 *topics,
+                group_id=group_id,
+                client_id=self.client_id,
                 builder=builder,
                 description=description,
                 batch=batch,
@@ -316,6 +320,7 @@ class KafkaBroker(
             topic,
             Publisher(
                 topic=topic,
+                client_id=self.client_id,
                 key=key,
                 batch=batch,
                 partition=partition,

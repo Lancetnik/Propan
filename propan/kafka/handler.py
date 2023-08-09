@@ -15,6 +15,7 @@ from aiokafka import AIOKafkaConsumer, ConsumerRecord
 from fast_depends.core import CallModel
 from typing_extensions import Never, override
 
+from propan.__about__ import __version__
 from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
 from propan.broker.parsers import resolve_custom_func
@@ -31,6 +32,7 @@ from propan.kafka.parser import AioKafkaParser
 
 class LogicHandler(AsyncHandler[ConsumerRecord]):
     topics: Sequence[str]
+    group_id: Optional[str] = None
 
     consumer: Optional[AIOKafkaConsumer] = None
     task: Optional["asyncio.Task[Any]"] = None
@@ -41,7 +43,9 @@ class LogicHandler(AsyncHandler[ConsumerRecord]):
         self,
         *topics: str,
         # Kafka information
-        builder: Callable[[], AIOKafkaConsumer],
+        group_id: Optional[str] = None,
+        client_id: str = "propan-" + __version__,
+        builder: Callable[..., AIOKafkaConsumer],
         batch: bool = False,
         batch_timeout_ms: int = 200,
         max_records: Optional[int] = None,
@@ -52,17 +56,26 @@ class LogicHandler(AsyncHandler[ConsumerRecord]):
             description=description,
         )
 
+        self.group_id = group_id
+        self.client_id = client_id
         self.topics = topics
-        self.builder = builder
-        self.task = None
-        self.consumer = None
+
         self.batch = batch
         self.batch_timeout_ms = batch_timeout_ms
         self.max_records = max_records
 
+        self.builder = builder
+        self.task = None
+        self.consumer = None
+
     # TODO: use **kwargs: Unpack[ConsumerConnectionParams] with py3.12 release 2023-10-02
     async def start(self, **consumer_kwargs: Any) -> None:
-        self.consumer = consumer = self.builder(*self.topics, **consumer_kwargs)
+        self.consumer = consumer = self.builder(
+            *self.topics,
+            group_id=self.group_id,
+            client_id=self.client_id,
+            **consumer_kwargs,
+        )
         await consumer.start()
         self.task = asyncio.create_task(self._consume())
 

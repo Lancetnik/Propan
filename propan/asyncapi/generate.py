@@ -83,14 +83,11 @@ def get_app_broker_server(app: PropanApp) -> Dict[str, Server]:
 def get_app_broker_channels(app: PropanApp) -> Dict[str, Channel]:
     channels = {}
     assert app.broker
+
     for h in app.broker.handlers.values():
-        name, channel = h.schema()
-        if channel is not None:
-            channels[name] = channel
+        channels.update(h.schema())
 
     for p in app.broker._publishers.values():
-        name, channel = p.schema()
-        if channel is not None:
-            channels[name] = channel
+        channels.update(p.schema())
 
     return channels

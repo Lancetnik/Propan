@@ -1,6 +1,6 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, PositiveInt
 
 
 class ServerBinding(BaseModel):
@@ -8,9 +8,9 @@ class ServerBinding(BaseModel):
 
 
 class ChannelBinding(BaseModel):
-    topic: List[str]
-    partitions: Optional[int] = None
-    replicas: Optional[int] = None
+    topic: Optional[str] = None
+    partitions: Optional[PositiveInt] = None
+    replicas: Optional[PositiveInt] = None
     # TODO:
     # topicConfiguration
     bindingVersion: str = "0.4.0"

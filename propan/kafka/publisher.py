@@ -4,6 +4,7 @@ from typing import Optional, Sequence
 from aiokafka import ConsumerRecord
 from typing_extensions import override
 
+from propan.__about__ import __version__
 from propan.kafka.producer import AioKafkaPropanProducer
 from propan.kafka.shared.publisher import ABCPublisher
 from propan.types import SendableMessage
@@ -13,6 +14,7 @@ from propan.types import SendableMessage
 class LogicPublisher(ABCPublisher[ConsumerRecord]):
     _producer: Optional[AioKafkaPropanProducer] = field(default=None, init=False)
     batch: bool = field(default=False)
+    client_id: str = field(default="propan-" + __version__)
 
     @override
     async def publish(  # type: ignore[override]

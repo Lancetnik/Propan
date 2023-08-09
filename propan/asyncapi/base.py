@@ -1,5 +1,5 @@
 from abc import abstractproperty
-from typing import Optional, Tuple
+from typing import Dict
 
 from propan.asyncapi.schema.channels import Channel
 
@@ -9,5 +9,5 @@ class AsyncAPIOperation:
     def name(self) -> str:
         raise NotImplementedError()
 
-    def schema(self) -> Tuple[str, Optional[Channel]]:
-        return self.name, None
+    def schema(self) -> Dict[str, Channel]:
+        return {}
