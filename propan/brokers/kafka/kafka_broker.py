@@ -105,6 +105,7 @@ class KafkaBroker(
                 "sasl_kerberos_service_name",
                 "sasl_kerberos_domain_name",
                 "sasl_oauth_token_provider",
+                "ssl_context",
             }
             and v
         }
