@@ -2,9 +2,15 @@ from typing import Dict
 
 from fast_depends.core import build_call_model
 
-from propan.asyncapi import Channel, ChannelBinding, CorrelationId, Message, Operation
 from propan.asyncapi.base import AsyncAPIOperation
 from propan.asyncapi.message import get_response_schema, parse_handler_params
+from propan.asyncapi.schema import (
+    Channel,
+    ChannelBinding,
+    CorrelationId,
+    Message,
+    Operation,
+)
 from propan.asyncapi.schema.bindings import kafka
 from propan.kafka.handler import LogicHandler
 from propan.kafka.publisher import LogicPublisher

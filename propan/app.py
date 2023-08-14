@@ -6,7 +6,7 @@ import anyio
 from pydantic import AnyHttpUrl
 from typing_extensions import ParamSpec, TypeVar, override
 
-from propan import asyncapi
+from propan.asyncapi.schema import Contact, ExternalDocs, License, Tag
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.cli.supervisors.utils import set_exit
 from propan.log import logger
@@ -33,11 +33,11 @@ class ABCApp(ABC):
         version: str = "0.1.0",
         description: str = "",
         terms_of_service: Optional[AnyHttpUrl] = None,
-        license: Optional[asyncapi.License] = None,
-        contact: Optional[asyncapi.Contact] = None,
+        license: Optional[License] = None,
+        contact: Optional[Contact] = None,
         identifier: Optional[str] = None,
-        tags: Optional[Sequence[asyncapi.Tag]] = None,
-        external_docs: Optional[asyncapi.ExternalDocs] = None,
+        tags: Optional[Sequence[Tag]] = None,
+        external_docs: Optional[ExternalDocs] = None,
     ):
         self.broker = broker
         self.logger = logger
@@ -121,11 +121,11 @@ class PropanApp(ABCApp):
         version: str = "0.1.0",
         description: str = "",
         terms_of_service: Optional[AnyHttpUrl] = None,
-        license: Optional[asyncapi.License] = None,
-        contact: Optional[asyncapi.Contact] = None,
+        license: Optional[License] = None,
+        contact: Optional[Contact] = None,
         identifier: Optional[str] = None,
-        tags: Optional[Sequence[asyncapi.Tag]] = None,
-        external_docs: Optional[asyncapi.ExternalDocs] = None,
+        tags: Optional[Sequence[Tag]] = None,
+        external_docs: Optional[ExternalDocs] = None,
     ):
         """Asyncronous Propan Application class
 

@@ -25,7 +25,7 @@ from fast_depends.core import CallModel, build_call_model
 from fast_depends.dependencies import Depends
 from fast_depends.use import _InjectWrapper
 
-from propan import asyncapi
+from propan.asyncapi import schema as asyncapi
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.handler import BaseHandler
 from propan.broker.message import PropanMessage
