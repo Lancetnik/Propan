@@ -1,7 +1,7 @@
 import importlib.util
 import json
 import os
-from typing import Any, Dict, List, Type, TypeVar
+from typing import Any, Dict, List, Type, TypeVar, Union
 
 from fast_depends._compat import PYDANTIC_V2, FieldInfo
 from pydantic import BaseModel
@@ -61,7 +61,9 @@ if PYDANTIC_V2:
     def model_to_dict(model: BaseModel, **kwargs: Any) -> AnyDict:
         return model.model_dump(**kwargs)
 
-    def model_parse(model: Type[ModelVar], data: bytes, **kwargs: Any) -> ModelVar:
+    def model_parse(
+        model: Type[ModelVar], data: Union[str, bytes], **kwargs: Any
+    ) -> ModelVar:
         return model.model_validate_json(data, **kwargs)
 
     def model_schema(model: Type[BaseModel], **kwargs: Any) -> AnyDict:
@@ -95,7 +97,9 @@ else:
     def model_to_dict(model: BaseModel, **kwargs: Any) -> AnyDict:
         return model.dict(**kwargs)
 
-    def model_parse(model: Type[ModelVar], data: bytes, **kwargs: Any) -> ModelVar:
+    def model_parse(
+        model: Type[ModelVar], data: Union[str, bytes], **kwargs: Any
+    ) -> ModelVar:
         return model.parse_raw(data, **kwargs)
 
     def model_schema(model: Type[BaseModel], **kwargs: Any) -> AnyDict:

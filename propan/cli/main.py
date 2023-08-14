@@ -7,6 +7,7 @@ import anyio
 import typer
 
 from propan.__about__ import __version__
+from propan.cli.docs.app import docs_app
 from propan.cli.utils.imports import get_app_path, try_import_propan
 from propan.cli.utils.logs import LogLevels, get_log_level, set_log_level
 from propan.cli.utils.parser import parse_cli_args
@@ -14,6 +15,7 @@ from propan.log import logger
 from propan.types import SettingField
 
 cli = typer.Typer(pretty_exceptions_short=True)
+cli.add_typer(docs_app, name="docs", help="AsyncAPI scheme commands")
 
 
 def version_callback(version: bool) -> None:
