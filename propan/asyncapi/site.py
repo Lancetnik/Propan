@@ -85,7 +85,11 @@ def get_asyncapi_html(
     )
 
 
-def serve_app(schema: Schema) -> None:
+def serve_app(
+    schema: Schema,
+    host: str,
+    port: int,
+) -> None:
     import uvicorn
     from fastapi import FastAPI
     from fastapi.responses import HTMLResponse
@@ -118,4 +122,4 @@ def serve_app(schema: Schema) -> None:
             )
         )
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=host, port=port)
