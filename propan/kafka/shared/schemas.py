@@ -1,3 +1,4 @@
+import ssl
 from asyncio import AbstractEventLoop
 from typing import List, Optional, Union
 
@@ -29,4 +30,5 @@ class ConsumerConnectionParams(TypedDict, total=False):
     sasl_plain_username: Optional[str]
     sasl_kerberos_service_name: str
     sasl_kerberos_domain_name: Optional[str]
+    ssl_conext: Optional[ssl.SSLContext]
     sasl_oauth_token_provider: Optional[AbstractTokenProvider]
