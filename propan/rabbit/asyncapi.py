@@ -3,7 +3,9 @@ from typing import Dict, List, Optional
 
 from fast_depends.core import build_call_model
 
-from propan.asyncapi import (
+from propan.asyncapi.base import AsyncAPIOperation
+from propan.asyncapi.message import get_response_schema, parse_handler_params
+from propan.asyncapi.schema import (
     Channel,
     ChannelBinding,
     CorrelationId,
@@ -11,8 +13,6 @@ from propan.asyncapi import (
     Operation,
     OperationBinding,
 )
-from propan.asyncapi.base import AsyncAPIOperation
-from propan.asyncapi.message import get_response_schema, parse_handler_params
 from propan.asyncapi.schema.bindings import amqp
 from propan.rabbit.handler import LogicHandler
 from propan.rabbit.publisher import LogicPublisher

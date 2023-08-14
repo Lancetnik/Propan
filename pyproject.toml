@@ -60,6 +60,10 @@ async-kafka = [
     "aiokafka>=0.8",
 ]
 
+docs = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.17.0",
+]
 
 [project.urls]
 Homepage = "https://lancetnik.github.io/Propan/"

@@ -1,4 +1,5 @@
-from typing import Any, Dict, Optional, Type, overload
+from inspect import isclass
+from typing import Any, Dict, Optional, Sequence, Type, overload
 
 from fast_depends.core import CallModel
 from pydantic import BaseModel
@@ -7,7 +8,9 @@ from propan._compat import get_model_fields, model_schema
 
 
 def parse_handler_params(call: CallModel[Any, Any], prefix: str = "") -> Dict[str, Any]:
-    body = get_model_schema(call.model, prefix=prefix)
+    body = get_model_schema(
+        call.model, prefix=prefix, exclude=tuple(call.custom_fields.keys())
+    )
 
     if body is None:
         return {"title": "Payload", "type": "null"}
@@ -38,22 +41,32 @@ def get_response_schema(
 
 
 @overload
-def get_model_schema(call: None, prefix: str = "") -> None:
+def get_model_schema(
+    call: None,
+    prefix: str = "",
+    exclude: Sequence[str] = (),
+) -> None:
     ...
 
 
 @overload
-def get_model_schema(call: Type[BaseModel], prefix: str = "") -> Dict[str, Any]:
+def get_model_schema(
+    call: Type[BaseModel],
+    prefix: str = "",
+    exclude: Sequence[str] = (),
+) -> Dict[str, Any]:
     ...
 
 
 def get_model_schema(
-    call: Optional[Type[BaseModel]], prefix: str = ""
+    call: Optional[Type[BaseModel]],
+    prefix: str = "",
+    exclude: Sequence[str] = (),
 ) -> Optional[Dict[str, Any]]:
     if call is None:
         return None
 
-    params = get_model_fields(call)
+    params = {k: v for k, v in get_model_fields(call).items() if k not in exclude}
     params_number = len(params)
 
     if params_number == 0:
@@ -66,7 +79,7 @@ def get_model_schema(
 
         if (
             param.annotation
-            and param.annotation != Any
+            and isclass(param.annotation)
             and issubclass(param.annotation, BaseModel)  # NOTE: 3.7-3.10 compatibility
         ):
             model = param.annotation

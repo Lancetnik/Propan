@@ -1,6 +1,7 @@
 -e .
 -e .[async-rabbit]
 -e .[async-sqs]
+-e .[docs]
 
 -r requirements.test.txt
 -r requirements.docs.txt

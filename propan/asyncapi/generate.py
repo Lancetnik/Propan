@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from propan.app import PropanApp
-from propan.asyncapi import Channel, Components, Info, Message, Schema, Server
+from propan.asyncapi.schema import Channel, Components, Info, Message, Schema, Server
 from propan.constants import ContentTypes
 
 
