@@ -24,12 +24,6 @@ class BasePublisher(AsyncAPIOperation, Generic[MsgType]):
     def description(self) -> str:
         return self._description or "undefined"
 
-    @property
-    def channel_title(self) -> str:
-        return self.title or self.calls[0].__name__.replace("_", " ").title().replace(
-            " ", ""
-        )
-
     def __call__(
         self,
         func: Callable[P_HandlerParams, T_HandlerReturn],

@@ -2,8 +2,6 @@ from abc import ABC
 from dataclasses import dataclass, field
 from typing import Optional
 
-from typing_extensions import TypeAlias
-
 from propan.broker.publisher import BasePublisher
 from propan.broker.types import MsgType
 from propan.rabbit.shared.schemas import BaseRMQInformation
@@ -22,5 +20,5 @@ class ABCPublisher(ABC, BasePublisher[MsgType], BaseRMQInformation):
     message_kwargs: AnyDict = field(default_factory=dict)
 
 
-QueueName: TypeAlias = str
-ExchangeName: TypeAlias = str
+QueueName = str
+ExchangeName = str

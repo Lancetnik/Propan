@@ -13,16 +13,15 @@ from typing import (
 import anyio
 from aiokafka import AIOKafkaConsumer, ConsumerRecord
 from fast_depends.core import CallModel
-from typing_extensions import Never, override
 
 from propan.__about__ import __version__
+from propan._compat import Never, override
 from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
 from propan.broker.parsers import resolve_custom_func
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
-    AsyncWrappedHandlerCall,
     P_HandlerParams,
     T_HandlerReturn,
 )
@@ -50,10 +49,12 @@ class LogicHandler(AsyncHandler[ConsumerRecord]):
         batch_timeout_ms: int = 200,
         max_records: Optional[int] = None,
         # AsyncAPI information
+        title: Optional[str] = None,
         description: Optional[str] = None,
     ):
         super().__init__(
             description=description,
+            title=title,
         )
 
         self.group_id = group_id
@@ -93,7 +94,6 @@ class LogicHandler(AsyncHandler[ConsumerRecord]):
         self,
         *,
         handler: HandlerCallWrapper[ConsumerRecord, P_HandlerParams, T_HandlerReturn],
-        wrapped_call: AsyncWrappedHandlerCall[ConsumerRecord, T_HandlerReturn],
         dependant: CallModel[P_HandlerParams, T_HandlerReturn],
         parser: Optional[AsyncCustomParser[ConsumerRecord]],
         decoder: Optional[AsyncCustomDecoder[ConsumerRecord]],
@@ -120,7 +120,6 @@ class LogicHandler(AsyncHandler[ConsumerRecord]):
         )
         super().add_call(
             handler=handler,
-            wrapped_call=wrapped_call,
             parser=parser_,
             decoder=decoder_,  # type: ignore[arg-type]
             filter=filter,

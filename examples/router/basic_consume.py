@@ -5,14 +5,7 @@ router = KafkaRouter("prefix_")
 
 
 @router.subscriber("in")
-@router.publisher("out")
-async def handle(msg: str, logger: Logger):
-    logger.info(msg)
-    return "response"
-
-
-@router.subscriber("out")
-async def handle_response(msg: str, logger: Logger):
+async def handle(msg: str, logger: Logger) -> None:
     logger.info(msg)
 
 
@@ -24,4 +17,4 @@ app = PropanApp(broker)
 
 @app.after_startup
 async def test() -> None:
-    await broker.publish("test", "prefix_in")
+    await broker.publish("Hello!", "prefix_in")

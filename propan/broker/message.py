@@ -1,9 +1,7 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Generic, Optional, Union
+from typing import Any, Generic, Optional, TypeVar, Union
 from uuid import uuid4
-
-from typing_extensions import TypeVar
 
 from propan.types import AnyDict, DecodedMessage
 

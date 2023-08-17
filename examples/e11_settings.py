@@ -1,6 +1,11 @@
 import os
 
-from pydantic_settings import BaseSettings
+try:
+    # pydantic V1
+    from pydantic import BaseSettings
+except ImportError:
+    # pydantic V2
+    from pydantic_settings import BaseSettings
 
 from propan import Logger, PropanApp
 from propan.rabbit import RabbitBroker
@@ -20,6 +25,11 @@ app = PropanApp(broker)
 @broker.subscriber(settings.queue)
 async def handle(msg, logger: Logger):
     logger.info(msg)
+
+
+@app.after_startup
+async def test():
+    await broker.publish("Hello!", settings.queue)
 
 
 # ENV=.prod.env propan run serve:app

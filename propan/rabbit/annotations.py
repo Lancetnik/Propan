@@ -1,5 +1,4 @@
-from typing_extensions import Annotated
-
+from propan._compat import Annotated
 from propan.annotations import ContextRepo, Logger, NoCast
 from propan.rabbit.broker import RabbitBroker as RB
 from propan.rabbit.message import RabbitMessage as RM

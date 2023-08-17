@@ -1,36 +1,35 @@
 from datetime import datetime
-from typing import Any, Awaitable, Callable, Dict, List, Sequence, Union
+from typing import Any, Awaitable, Callable, Dict, List, Sequence, TypeVar, Union
 
 from pydantic import BaseModel
-from typing_extensions import ParamSpec, TypeAlias, TypeVar
 
-AnyDict: TypeAlias = Dict[str, Any]
+from propan._compat import ParamSpec
+
+AnyDict = Dict[str, Any]
 
 F_Return = TypeVar("F_Return")
 F_Spec = ParamSpec("F_Spec")
 
-AnyCallable: TypeAlias = Callable[..., Any]
-NoneCallable: TypeAlias = Callable[..., None]
-AsyncFunc: TypeAlias = Callable[..., Awaitable[Any]]
+AnyCallable = Callable[..., Any]
+NoneCallable = Callable[..., None]
+AsyncFunc = Callable[..., Awaitable[Any]]
 
-DecoratedCallable: TypeAlias = AnyCallable
-DecoratedCallableNone: TypeAlias = NoneCallable
+DecoratedCallable = AnyCallable
+DecoratedCallableNone = NoneCallable
 
-JsonDecodable: TypeAlias = Union[
+JsonDecodable = Union[
     float,
     int,
     bool,
     str,
     bytes,
 ]
-DecodedMessage: TypeAlias = Union[
-    Dict[str, JsonDecodable], Sequence[JsonDecodable], JsonDecodable
-]
-SendableMessage: TypeAlias = Union[
+DecodedMessage = Union[Dict[str, JsonDecodable], Sequence[JsonDecodable], JsonDecodable]
+SendableMessage = Union[
     datetime,
     DecodedMessage,
     BaseModel,
     None,
 ]
 
-SettingField: TypeAlias = Union[bool, str, List[str]]
+SettingField = Union[bool, str, List[str]]

@@ -19,8 +19,8 @@ from typing import (
 
 from fast_depends.core import CallModel
 from fast_depends.dependencies import Depends
-from typing_extensions import Self, override
 
+from propan._compat import Self, override
 from propan.broker.core.abc import BrokerUsecase
 from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
@@ -28,7 +28,6 @@ from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
-    AsyncWrappedHandlerCall,
     ConnectionType,
     MsgType,
     P_HandlerParams,
@@ -226,7 +225,6 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         _get_dependant: Optional[Any] = None,
         **broker_log_context_kwargs: Any,
     ) -> Tuple[
-        AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],
         HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
         CallModel[P_HandlerParams, T_HandlerReturn],
     ]:

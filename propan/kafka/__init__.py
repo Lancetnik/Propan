@@ -1,3 +1,4 @@
+from propan.broker.test import TestApp
 from propan.kafka.broker import KafkaBroker
 from propan.kafka.message import KafkaMessage
 from propan.kafka.router import KafkaRouter
@@ -10,4 +11,5 @@ __all__ = (
     "KafkaRouter",
     "KafkaRoute",
     "TestKafkaBroker",
+    "TestApp",
 )

@@ -1,6 +1,5 @@
 import json
 
-from propan._compat import model_to_json
 from propan.asyncapi.schema import Schema
 
 
@@ -16,11 +15,7 @@ def get_asyncapi_html(
     expand_message_examples: bool = True,
     title: str = "Propan",
 ) -> str:
-    schema_json = model_to_json(
-        schema,
-        by_alias=True,
-        exclude_none=True,
-    )
+    schema_json = schema.to_json()
 
     config = {
         "schema": schema_json,

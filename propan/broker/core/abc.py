@@ -24,6 +24,7 @@ from fast_depends._compat import PYDANTIC_V2
 from fast_depends.core import CallModel, build_call_model
 from fast_depends.dependencies import Depends
 from fast_depends.use import _InjectWrapper
+from pydantic import create_model
 
 from propan.asyncapi import schema as asyncapi
 from propan.broker.core.mixins import LoggingMixin
@@ -40,7 +41,6 @@ from propan.broker.types import (
     MsgType,
     P_HandlerParams,
     T_HandlerReturn,
-    WrappedHandlerCall,
 )
 from propan.broker.utils import (
     change_logger_handlers,
@@ -158,7 +158,6 @@ class BrokerUsecase(
         _get_dependant: Optional[Any] = None,
         **broker_log_context_kwargs: Any,
     ) -> Tuple[
-        WrappedHandlerCall[MsgType, T_HandlerReturn],
         HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
         Union[
             CallModel[P_HandlerParams, T_HandlerReturn],
@@ -173,7 +172,7 @@ class BrokerUsecase(
         if isinstance(func, HandlerCallWrapper):
             handler_call, func = func, func._original_call
             if handler_call._wrapped_call is not None:
-                return handler_call._wrapped_call, handler_call, build_dep(func)
+                return handler_call, build_dep(func)
         else:
             handler_call = HandlerCallWrapper(func)
 
@@ -189,25 +188,7 @@ class BrokerUsecase(
         extend_dependencies(extra, dependant)
 
         if getattr(dependant, "flat_params", None) is None:  # handle FastAPI Dependant
-            params = dependant.query_params + dependant.body_params  # type: ignore[attr-defined]
-
-            for d in dependant.dependencies:
-                params.extend(d.query_params + d.body_params)  # type: ignore[attr-defined]
-
-            params_unique = {}
-            params_names = set()
-            for p in params:
-                if p.name not in params_names:
-                    params_names.add(p.name)
-                    if PYDANTIC_V2:
-                        params_unique[p.name] = p.field_info
-                    else:
-                        # TODO: remove it with stable PydanticV2
-                        params_unique[p.name] = p
-
-            # TODO: build model for AsyncAPI scheme
-            # dependant.model = build_model(...)
-            dependant.flat_params = params_unique  # type: ignore[misc]
+            dependant = _patch_fastapi_dependant(dependant)
 
         if self._is_apply_types is True:
             apply_wrapper = cast(
@@ -234,8 +215,8 @@ class BrokerUsecase(
         process_f = set_message_context(process_f)
         suppress_f = suppress_decor(process_f)
 
-        handler_call._wrapped_call = suppress_f
-        return suppress_f, handler_call, dependant
+        handler_call.set_wrapped(suppress_f)
+        return handler_call, dependant
 
     def _abc_start(self) -> None:
         self.started = True
@@ -347,4 +328,34 @@ def extend_dependencies(
         dependant.extra_dependencies = (*dependant.extra_dependencies, *extra)
     else:  # FastAPI dependencies
         dependant.dependencies.extend(extra)
+    return dependant
+
+
+def _patch_fastapi_dependant(
+    dependant: CallModel[P_HandlerParams, Awaitable[T_HandlerReturn]]
+) -> CallModel[P_HandlerParams, Awaitable[T_HandlerReturn]]:
+    params = dependant.query_params + dependant.body_params  # type: ignore[attr-defined]
+
+    for d in dependant.dependencies:
+        params.extend(d.query_params + d.body_params)  # type: ignore[attr-defined]
+
+    params_unique = {}
+    params_names = set()
+    for p in params:
+        if p.name not in params_names:
+            params_names.add(p.name)
+            if PYDANTIC_V2:
+                info = p.field_info
+            else:
+                # TODO: remove it with stable PydanticV2
+                info = p
+            params_unique[p.name] = info
+
+    dependant.model = create_model(  # type: ignore[call-overload]
+        getattr(dependant.call.__name__, "__name__", type(dependant.call).__name__),
+        **{i: (j.annotation, info.default) for i, j in params_unique.items()},
+    )
+    dependant.custom_fields = {}
+    dependant.flat_params = params_unique  # type: ignore[misc]
+
     return dependant

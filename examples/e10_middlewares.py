@@ -27,7 +27,7 @@ app = PropanApp(broker)
 
 
 @broker.subscriber("test", middlewares=(handler_middleware,))
-async def handler(msg):
+async def handle(msg):
     assert msg == "fake message"
 
 

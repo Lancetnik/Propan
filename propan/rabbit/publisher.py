@@ -3,8 +3,8 @@ from typing import Any, Optional, Union
 
 import aiormq
 from aio_pika import IncomingMessage
-from typing_extensions import override
 
+from propan._compat import override
 from propan.rabbit.producer import AioPikaPropanProducer
 from propan.rabbit.shared.publisher import ABCPublisher
 from propan.rabbit.types import AioPikaSendableMessage

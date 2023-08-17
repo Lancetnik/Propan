@@ -8,15 +8,14 @@ app = PropanApp(broker)
 publisher = broker.publisher("response-queue")
 
 
-@publisher
 @broker.subscriber("test-queue")
 async def handle(msg, logger: Logger):
+    await publisher.publish("Response")
     logger.info(msg)
-    return "response"
 
 
 @broker.subscriber("response-queue")
-async def process_response(msg, logger: Logger):
+async def handle_response(msg, logger: Logger):
     logger.info(f"Process response: {msg}")
 
 

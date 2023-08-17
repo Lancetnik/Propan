@@ -6,6 +6,11 @@ from propan.__about__ import __version__
 from propan.utils import context as global_context
 
 
+@pytest.hookimpl(tryfirst=True)
+def pytest_keyboard_interrupt(excinfo):  # pragma: no cover
+    pytest.mark.skip("Interrupted Test Session")
+
+
 def pytest_collection_modifyitems(items):
     for item in items:
         item.add_marker("all")

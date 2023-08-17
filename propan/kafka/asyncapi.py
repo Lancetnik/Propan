@@ -12,6 +12,7 @@ from propan.asyncapi.schema import (
     Operation,
 )
 from propan.asyncapi.schema.bindings import kafka
+from propan.asyncapi.utils import resolve_payloads, to_camelcase
 from propan.kafka.handler import LogicHandler
 from propan.kafka.publisher import LogicPublisher
 
@@ -19,21 +20,19 @@ from propan.kafka.publisher import LogicPublisher
 class Handler(LogicHandler, AsyncAPIOperation):
     def schema(self) -> Dict[str, Channel]:
         payloads = []
-        for _, _, _, _, _, _, dep in self.calls:
+        for _, _, _, _, _, dep in self.calls:
             body = parse_handler_params(dep, prefix=self.name)
             payloads.append(body)
 
         channels = {}
 
         for t in self.topics:
-            channels[f"{self.name}{t}"] = Channel(
+            channels[self.name] = Channel(
                 description=self.description,
                 subscribe=Operation(
                     message=Message(
                         title=f"{self.name}Message",
-                        payload=payloads[0]
-                        if len(payloads) == 1
-                        else {"oneOf": {body["title"]: body for body in payloads}},
+                        payload=resolve_payloads(payloads),
                         correlationId=CorrelationId(
                             location="$message.header#/correlation_id"
                         ),
@@ -48,7 +47,7 @@ class Handler(LogicHandler, AsyncAPIOperation):
 class Publisher(LogicPublisher, AsyncAPIOperation):
     @property
     def name(self) -> str:
-        return self.title or "undefined"
+        return self.title or f"{self.topic.title()}Publisher"
 
     def schema(self) -> Dict[str, Channel]:
         payloads = []
@@ -56,19 +55,18 @@ class Publisher(LogicPublisher, AsyncAPIOperation):
             call_model = build_call_model(call)
             body = get_response_schema(
                 call_model,
-                prefix=call_model.call_name.replace("_", " ").title().replace(" ", ""),
+                prefix=to_camelcase(call_model.call_name),
             )
-            payloads.append(body)
+            if body:
+                payloads.append(body)
 
         return {
-            f"{self.name}{self.topic}": Channel(
+            self.name: Channel(
                 description=self.description,
                 publish=Operation(
                     message=Message(
                         title=f"{self.name}Message",
-                        payload=payloads[0]
-                        if len(payloads) == 1
-                        else {"oneOf": {body["title"]: body for body in payloads}},
+                        payload=resolve_payloads(payloads),
                         correlationId=CorrelationId(
                             location="$message.header#/correlation_id"
                         ),

@@ -1,11 +1,11 @@
 import logging
 from abc import ABC
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, TypeVar
 
 import anyio
 from pydantic import AnyHttpUrl
-from typing_extensions import ParamSpec, TypeVar, override
 
+from propan._compat import ParamSpec, override
 from propan.asyncapi.schema import Contact, ExternalDocs, License, Tag
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.cli.supervisors.utils import set_exit
@@ -48,7 +48,6 @@ class ABCApp(ABC):
         self._after_startup_calling = []
         self._on_shutdown_calling = []
         self._after_shutdown_calling = []
-        self._command_line_options: Dict[str, SettingField] = {}
 
         # AsyncAPI information
         self.title = title
@@ -58,7 +57,7 @@ class ABCApp(ABC):
         self.license = license
         self.contact = contact
         self.identifier = identifier
-        self.tags = tags
+        self.asyncapi_tags = tags
         self.external_docs = external_docs
 
     def set_broker(self, broker: BrokerAsyncUsecase[Any, Any]) -> None:
@@ -220,7 +219,11 @@ class PropanApp(ABCApp):
         """
         return super().after_shutdown(to_async(func))
 
-    async def run(self, log_level: int = logging.INFO) -> None:
+    async def run(
+        self,
+        log_level: int = logging.INFO,
+        run_extra_options: Optional[Dict[str, SettingField]] = None,
+    ) -> None:
         """Run Propan Application
 
         Args:
@@ -233,7 +236,7 @@ class PropanApp(ABCApp):
 
         self._init_async_cycle()
         async with anyio.create_task_group() as tg:
-            tg.start_soon(self._start, log_level)
+            tg.start_soon(self._start, log_level, run_extra_options)
             await self._stop(log_level)
             tg.cancel_scope.cancel()
 
@@ -241,21 +244,27 @@ class PropanApp(ABCApp):
         if self._stop_event is None:
             self._stop_event = anyio.Event()
 
-    async def _start(self, log_level: int = logging.INFO) -> None:
+    async def _start(
+        self,
+        log_level: int = logging.INFO,
+        run_extra_options: Optional[Dict[str, SettingField]] = None,
+    ) -> None:
         self._log(log_level, "Propan app starting...")
-        await self._startup()
+        await self._startup(**(run_extra_options or {}))
         self._log(log_level, "Propan app started successfully! To exit press CTRL+C")
 
     async def _stop(self, log_level: int = logging.INFO) -> None:
         assert self._stop_event, "You should call `_init_async_cycle` first"
         await self._stop_event.wait()
+        self._stop_event = None
+
         self._log(log_level, "Propan app shutting down...")
         await self._shutdown()
         self._log(log_level, "Propan app shut down gracefully.")
 
-    async def _startup(self) -> None:
+    async def _startup(self, **run_extra_options: SettingField) -> None:
         for func in self._on_startup_calling:
-            await func(**self._command_line_options)
+            await func(**run_extra_options)
 
         if self.broker is not None:
             await self.broker.start()

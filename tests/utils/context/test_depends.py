@@ -1,6 +1,6 @@
 import pytest
-from typing_extensions import Annotated
 
+from propan._compat import Annotated
 from propan.utils import Depends, apply_types
 
 
