@@ -1,7 +1,6 @@
-from typing import Any, Optional, Type, Union, overload
+from typing import Any, Optional, Type, TypeVar, Union, overload
 
 from pydantic import BaseModel, Field, Json
-from typing_extensions import TypeVar
 
 Cls = TypeVar("Cls")
 NameRequiredCls = TypeVar("NameRequiredCls", bound="NameRequired")

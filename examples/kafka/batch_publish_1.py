@@ -6,7 +6,7 @@ app = PropanApp(broker)
 
 
 @broker.subscriber("test", batch=True)
-async def handler(msg: list[str], logger: Logger):
+async def handle(msg: list[str], logger: Logger):
     logger.info(msg)
 
 

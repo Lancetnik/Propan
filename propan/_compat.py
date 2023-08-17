@@ -1,11 +1,35 @@
 import importlib.util
 import json
 import os
-from typing import Any, Dict, List, Type, TypeVar, Union
+import sys
+from typing import Any, Callable, Dict, List, Mapping, Optional, Type, TypeVar, Union
 
 from fast_depends._compat import PYDANTIC_V2, FieldInfo
 from pydantic import BaseModel
-from typing_extensions import Never
+
+# TODO: uncomment with 3.12 release
+# if sys.version_info < (3, 12):
+#     from typing_extensions import override as override
+# else:
+#     from typing import override
+from typing_extensions import override as override
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Never as Never
+    from typing_extensions import Self as Self
+else:
+    from typing import Never as Never
+    from typing import Self as Self
+
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec as ParamSpec
+else:
+    from typing import ParamSpec as ParamSpec
+
+if sys.version_info < (3, 9):
+    from typing_extensions import Annotated as Annotated
+else:
+    from typing import Annotated as Annotated
 
 from propan.types import AnyDict
 
@@ -43,11 +67,26 @@ if is_installed("fastapi"):
             raise RequestValidationError(errors, ROUTER_VALIDATION_ERROR_MODEL)  # type: ignore[misc]
 
 
+JsonSchemaValue = Mapping[str, Any]
+
 if PYDANTIC_V2:
-    from pydantic import ConfigDict
-    from pydantic_core import to_jsonable_python as model_to_jsonable
+    from pydantic import ConfigDict as ConfigDict
+    from pydantic._internal._annotated_handlers import (
+        GetJsonSchemaHandler as GetJsonSchemaHandler,
+    )
+    from pydantic_core import CoreSchema as CoreSchema
+    from pydantic_core import to_jsonable_python
+    from pydantic_core.core_schema import (
+        general_plain_validator_function as general_plain_validator_function,
+    )
 
     SCHEMA_FIELD = "json_schema_extra"
+
+    def model_to_jsonable(
+        model: BaseModel,
+        **kwargs: Any,
+    ) -> Any:
+        return to_jsonable_python(model, **kwargs)
 
     def dump_json(data: Any) -> str:
         return json.dumps(model_to_jsonable(data))
@@ -78,6 +117,9 @@ else:
     from pydantic.config import get_config
     from pydantic.json import pydantic_encoder
 
+    GetJsonSchemaHandler = Any  # type: ignore[assignment,misc]
+    CoreSchema = Any  # type: ignore[assignment,misc]
+
     def ConfigDict(  # type: ignore[no-redef]
         **kwargs: Any,
     ) -> Type[BaseConfig]:
@@ -105,11 +147,20 @@ else:
     def model_schema(model: Type[BaseModel], **kwargs: Any) -> AnyDict:
         return model.schema(**kwargs)
 
-    def model_to_jsonable(  # type: ignore[misc]
+    def model_to_jsonable(
         model: BaseModel,
         **kwargs: Any,
-    ) -> AnyDict:
-        return json.loads(model.json(**kwargs))  # type: ignore[no-any-return]
+    ) -> Any:
+        return json.loads(model.json(**kwargs))
 
     def model_copy(model: ModelVar, **kwargs: Any) -> ModelVar:
         return model.copy(**kwargs)
+
+    def general_plain_validator_function(  # type: ignore[misc]
+        function: Callable[..., Any],
+        *,
+        ref: Optional[str] = None,
+        metadata: Any = None,
+        serialization: Any = None,
+    ) -> JsonSchemaValue:
+        return {}

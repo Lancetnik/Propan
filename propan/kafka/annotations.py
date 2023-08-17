@@ -1,5 +1,4 @@
-from typing_extensions import Annotated
-
+from propan._compat import Annotated
 from propan.annotations import ContextRepo, Logger, NoCast
 from propan.kafka.broker import KafkaBroker as KB
 from propan.kafka.message import KafkaMessage as KM

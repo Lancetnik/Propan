@@ -1,9 +1,8 @@
 from typing import Any, Callable, Sequence, Union
 
 from aio_pika.message import IncomingMessage
-from typing_extensions import override
 
-from propan._compat import model_copy
+from propan._compat import model_copy, override
 from propan.broker.router import BrokerRoute as RabbitRoute
 from propan.broker.router import BrokerRouter
 from propan.broker.types import P_HandlerParams, T_HandlerReturn

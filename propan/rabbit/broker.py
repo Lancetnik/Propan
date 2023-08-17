@@ -18,9 +18,9 @@ from typing import (
 import aio_pika
 import aiormq
 from fast_depends.dependencies import Depends
-from typing_extensions import override
 from yarl import URL
 
+from propan._compat import override
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.message import PropanMessage
 from propan.broker.push_back_watcher import BaseWatcher, WatcherContext
@@ -31,7 +31,6 @@ from propan.broker.types import (
     T_HandlerReturn,
 )
 from propan.broker.wrapper import HandlerCallWrapper
-from propan.exceptions import RuntimeException
 from propan.rabbit.asyncapi import Handler, Publisher
 from propan.rabbit.helpers import RabbitDeclarer
 from propan.rabbit.producer import AioPikaPropanProducer
@@ -179,6 +178,7 @@ class RabbitBroker(
             Callable[[RabbitMessage], bool], Callable[[RabbitMessage], Awaitable[bool]]
         ] = lambda m: not m.processed,
         # AsyncAPI information
+        title: Optional[str] = None,
         description: Optional[str] = None,
         **original_kwargs: Any,
     ) -> Callable[
@@ -200,6 +200,7 @@ class RabbitBroker(
                 exchange=r_exchange,
                 consume_args=consume_args,
                 description=description,
+                title=title,
             ),
         )
 
@@ -210,7 +211,7 @@ class RabbitBroker(
         ) -> HandlerCallWrapper[
             aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn
         ]:
-            wrapped_func, handler_call, dependant = self._wrap_handler(
+            handler_call, dependant = self._wrap_handler(
                 func,
                 extra_dependencies=dependencies,
                 **original_kwargs,
@@ -220,7 +221,6 @@ class RabbitBroker(
 
             handler.add_call(
                 handler=handler_call,
-                wrapped_call=wrapped_func,
                 filter=to_async(filter),
                 middlewares=middlewares,
                 parser=parser or self._global_parser,
@@ -291,39 +291,33 @@ class RabbitBroker(
         @wraps(func)
         async def process_wrapper(message: RabbitMessage) -> T_HandlerReturn:
             async with WatcherContext(watcher, message):
-                try:
-                    r = await self._execute_handler(func, message)
+                r = await self._execute_handler(func, message)
+                if message.reply_to:
+                    await self.publish(
+                        message=r,
+                        routing_key=message.reply_to,
+                        correlation_id=message.correlation_id,
+                    )
 
-                except RuntimeException:
-                    pass
-
-                else:
-                    if message.reply_to:
-                        await self.publish(
+                for publisher in call_wrapper._publishers:
+                    try:
+                        await publisher.publish(
                             message=r,
-                            routing_key=message.reply_to,
                             correlation_id=message.correlation_id,
                         )
+                    except Exception as e:
+                        self._log(
+                            f"Publish exception: {e}",
+                            logging.ERROR,
+                            self._get_log_context(
+                                context.get_local("message"),
+                                getattr(publisher, "queue", RabbitQueue("")),
+                                getattr(publisher, "exchange", None),
+                            ),
+                            exc_info=e,
+                        )
 
-                    for publisher in call_wrapper._publishers:
-                        try:
-                            await publisher.publish(
-                                message=r,
-                                correlation_id=message.correlation_id,
-                            )
-                        except Exception as e:
-                            self._log(
-                                f"Publish exception: {e}",
-                                logging.ERROR,
-                                self._get_log_context(
-                                    context.get_local("message"),
-                                    getattr(publisher, "queue", RabbitQueue("")),
-                                    getattr(publisher, "exchange", None),
-                                ),
-                                exc_info=e,
-                            )
-
-                    return r
+                return r
 
             raise AssertionError("unreachable")
 

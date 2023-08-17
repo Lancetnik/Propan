@@ -1,8 +1,6 @@
 from typing import Any, Dict, Optional, Union
 
-from typing_extensions import override
-
-from propan._compat import model_copy
+from propan._compat import model_copy, override
 from propan.rabbit.asyncapi import Publisher
 from propan.rabbit.shared.router import RabbitRouter as BaseRouter
 from propan.rabbit.shared.schemas import RabbitExchange, RabbitQueue, get_routing_hash

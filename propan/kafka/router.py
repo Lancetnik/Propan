@@ -1,7 +1,6 @@
 from typing import Dict, Optional
 
-from typing_extensions import override
-
+from propan._compat import override
 from propan.kafka.asyncapi import Publisher
 from propan.kafka.shared.router import KafkaRouter as BaseRouter
 

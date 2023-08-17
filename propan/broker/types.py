@@ -1,7 +1,6 @@
-from typing import Awaitable, Callable, Optional, Union
+from typing import Awaitable, Callable, Optional, Protocol, TypeVar, Union
 
-from typing_extensions import ParamSpec, Protocol, TypeAlias, TypeVar
-
+from propan._compat import ParamSpec
 from propan.broker.message import PropanMessage
 from propan.types import DecodedMessage, SendableMessage
 
@@ -9,56 +8,52 @@ Decoded = TypeVar("Decoded", bound=DecodedMessage)
 MsgType = TypeVar("MsgType")
 ConnectionType = TypeVar("ConnectionType")
 
-SyncParser: TypeAlias = Callable[
+SyncParser = Callable[
     [MsgType],
     PropanMessage[MsgType],
 ]
-AsyncParser: TypeAlias = Callable[
+AsyncParser = Callable[
     [MsgType],
     Awaitable[PropanMessage[MsgType]],
 ]
-SyncCustomParser: TypeAlias = Callable[
+SyncCustomParser = Callable[
     [MsgType, SyncParser[MsgType]],
     PropanMessage[MsgType],
 ]
-AsyncCustomParser: TypeAlias = Callable[
+AsyncCustomParser = Callable[
     [MsgType, SyncParser[MsgType]],
     Awaitable[PropanMessage[MsgType]],
 ]
-Parser: TypeAlias = Union[AsyncParser[MsgType], SyncParser[MsgType]]
-CustomParser: TypeAlias = Union[AsyncCustomParser[MsgType], SyncCustomParser[MsgType]]
+Parser = Union[AsyncParser[MsgType], SyncParser[MsgType]]
+CustomParser = Union[AsyncCustomParser[MsgType], SyncCustomParser[MsgType]]
 
-SyncDecoder: TypeAlias = Callable[
+SyncDecoder = Callable[
     [PropanMessage[MsgType]],
     DecodedMessage,
 ]
-SyncCustomDecoder: TypeAlias = Callable[
+SyncCustomDecoder = Callable[
     [PropanMessage[MsgType], SyncDecoder[MsgType]],
     DecodedMessage,
 ]
-AsyncDecoder: TypeAlias = Callable[
+AsyncDecoder = Callable[
     [
         PropanMessage[MsgType],
     ],
     Awaitable[DecodedMessage],
 ]
-AsyncCustomDecoder: TypeAlias = Callable[
+AsyncCustomDecoder = Callable[
     [PropanMessage[MsgType], AsyncDecoder[MsgType]],
     Awaitable[DecodedMessage],
 ]
-Decoder: TypeAlias = Union[AsyncDecoder[MsgType], SyncDecoder[MsgType]]
-CustomDecoder: TypeAlias = Union[
-    AsyncCustomDecoder[MsgType], SyncCustomDecoder[MsgType]
-]
+Decoder = Union[AsyncDecoder[MsgType], SyncDecoder[MsgType]]
+CustomDecoder = Union[AsyncCustomDecoder[MsgType], SyncCustomDecoder[MsgType]]
 
 P_HandlerParams = ParamSpec("P_HandlerParams")
 T_HandlerReturn = TypeVar("T_HandlerReturn", bound=SendableMessage, covariant=True)
 
-HandlerCallable: TypeAlias = Callable[
-    ..., Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]
-]
+HandlerCallable = Callable[..., Union[T_HandlerReturn, Awaitable[T_HandlerReturn]]]
 
-HandlerWrapper: TypeAlias = Callable[
+HandlerWrapper = Callable[
     [HandlerCallable[T_HandlerReturn]],
     HandlerCallable[T_HandlerReturn],
 ]
@@ -82,7 +77,7 @@ class SyncWrappedHandlerCall(Protocol[MsgType, T_HandlerReturn]):
         ...
 
 
-WrappedHandlerCall: TypeAlias = Union[
+WrappedHandlerCall = Union[
     AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],
     SyncWrappedHandlerCall[MsgType, T_HandlerReturn],
 ]

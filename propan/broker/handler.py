@@ -11,23 +11,22 @@ from typing import (
     Sequence,
     Tuple,
     Union,
+    cast,
 )
 
 from fast_depends.core import CallModel
-from typing_extensions import override
 
-from propan._compat import IS_OPTIMIZED
+from propan._compat import IS_OPTIMIZED, override
 from propan.asyncapi.base import AsyncAPIOperation
+from propan.asyncapi.utils import to_camelcase
 from propan.broker.message import PropanMessage
 from propan.broker.types import (
     AsyncDecoder,
     AsyncParser,
-    AsyncWrappedHandlerCall,
     MsgType,
     P_HandlerParams,
     SyncDecoder,
     SyncParser,
-    SyncWrappedHandlerCall,
     T_HandlerReturn,
 )
 from propan.broker.wrapper import HandlerCallWrapper
@@ -39,8 +38,7 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
     calls: Union[
         List[
             Tuple[
-                HandlerCallWrapper[MsgType, ..., SendableMessage],  # original
-                SyncWrappedHandlerCall[MsgType, SendableMessage],  # wrapped
+                HandlerCallWrapper[MsgType, ..., SendableMessage],  # handler
                 Callable[[PropanMessage[MsgType]], bool],  # filter
                 SyncParser[MsgType],  # parser
                 SyncDecoder[MsgType],  # decoder
@@ -52,8 +50,7 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
         ],
         List[
             Tuple[
-                HandlerCallWrapper[MsgType, ..., SendableMessage],  # original
-                AsyncWrappedHandlerCall[MsgType, SendableMessage],  # wrapped[]],
+                HandlerCallWrapper[MsgType, ..., SendableMessage],  # handler
                 Callable[[PropanMessage[MsgType]], Awaitable[bool]],  # filter
                 AsyncParser[MsgType],  # parser
                 AsyncDecoder[MsgType],  # decoder
@@ -69,25 +66,35 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
         Sequence[Callable[[MsgType], ContextManager[None]]],
         Sequence[Callable[[MsgType], AsyncContextManager[None]]],
     ]
+    is_test: bool
 
     def __init__(
         self,
         *,
         description: Optional[str] = None,
+        title: Optional[str] = None,
     ):
         self.calls = []  # type: ignore[assignment]
         self.global_middlewares = []
         # AsyncAPI information
         self._description = description
+        self._title = title
+        self.is_test = False
+
+    def set_test(self) -> None:
+        self.is_test = True
 
     @property
     def name(self) -> str:
+        if self._title:
+            return self._title
+
         if not self.calls:
             return "undefined"
 
         caller = self.calls[0][0]._original_call
         name = getattr(caller, "__name__", str(caller))
-        return name.replace("_", " ").title().replace(" ", "")
+        return to_camelcase(name)
 
     @property
     def description(self) -> Optional[str]:
@@ -108,8 +115,7 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
 class SyncHandler(BaseHandler[MsgType]):
     calls: List[
         Tuple[
-            HandlerCallWrapper[MsgType, ..., SendableMessage],  # original
-            SyncWrappedHandlerCall[MsgType, SendableMessage],  # wrapped
+            HandlerCallWrapper[MsgType, ..., SendableMessage],  # handler
             Callable[[PropanMessage[MsgType]], bool],  # filter
             SyncParser[MsgType],  # parser
             SyncDecoder[MsgType],  # decoder
@@ -126,7 +132,6 @@ class SyncHandler(BaseHandler[MsgType]):
         self,
         *,
         handler: HandlerCallWrapper[MsgType, ..., SendableMessage],
-        wrapped_call: SyncWrappedHandlerCall[MsgType, SendableMessage],
         filter: Callable[[PropanMessage[MsgType]], bool],
         parser: SyncParser[MsgType],
         decoder: SyncDecoder[MsgType],
@@ -138,7 +143,6 @@ class SyncHandler(BaseHandler[MsgType]):
         self.calls.append(
             (
                 handler,
-                wrapped_call,
                 filter,
                 parser,
                 decoder,
@@ -155,7 +159,7 @@ class SyncHandler(BaseHandler[MsgType]):
                 stack.enter_context(m(msg))
 
             processed = False
-            for handler, call, f, parser, decoder, middlewares, _ in self.calls:
+            for handler, f, parser, decoder, middlewares, _ in self.calls:
                 message = parser(msg)
                 message.decoded_body = decoder(message)
                 message.processed = processed
@@ -169,8 +173,10 @@ class SyncHandler(BaseHandler[MsgType]):
                         for inner_m in middlewares:
                             stack.enter_context(inner_m(message))
 
-                        handler.mock(message.decoded_body)
-                        result = call(message)
+                        result = cast(
+                            Optional[SendableMessage],
+                            handler.call_wrapped(message, reraise_exc=self.is_test),
+                        )
 
                     except StopConsume:
                         self.close()
@@ -195,8 +201,7 @@ class SyncHandler(BaseHandler[MsgType]):
 class AsyncHandler(BaseHandler[MsgType]):
     calls: List[
         Tuple[
-            HandlerCallWrapper[MsgType, ..., SendableMessage],  # original
-            AsyncWrappedHandlerCall[MsgType, SendableMessage],  # wrapped[]],
+            HandlerCallWrapper[MsgType, ..., SendableMessage],  # handler
             Callable[[PropanMessage[MsgType]], Awaitable[bool]],  # filter
             AsyncParser[MsgType],  # parser
             AsyncDecoder[MsgType],  # decoder
@@ -213,7 +218,6 @@ class AsyncHandler(BaseHandler[MsgType]):
         self,
         *,
         handler: HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
-        wrapped_call: AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],
         parser: AsyncParser[MsgType],
         decoder: AsyncDecoder[MsgType],
         dependant: CallModel[P_HandlerParams, T_HandlerReturn],
@@ -225,7 +229,6 @@ class AsyncHandler(BaseHandler[MsgType]):
         self.calls.append(
             (  # type: ignore[arg-type]
                 handler,
-                wrapped_call,
                 filter,
                 parser,
                 decoder,
@@ -243,7 +246,7 @@ class AsyncHandler(BaseHandler[MsgType]):
                 await stack.enter_async_context(m(msg))
 
             processed = False
-            for handler, call, f, parser, decoder, middlewares, _ in self.calls:
+            for handler, f, parser, decoder, middlewares, _ in self.calls:
                 # TODO: add parser & decoder cashes
                 message = await parser(msg)
                 message.decoded_body = await decoder(message)
@@ -258,8 +261,10 @@ class AsyncHandler(BaseHandler[MsgType]):
                         for inner_m in middlewares:
                             await stack.enter_async_context(inner_m(message))
 
-                        handler.mock(message.decoded_body)
-                        result = await call(message)
+                        result = await cast(
+                            Awaitable[Optional[SendableMessage]],
+                            handler.call_wrapped(message, reraise_exc=self.is_test),
+                        )
 
                     except StopConsume:
                         await self.close()

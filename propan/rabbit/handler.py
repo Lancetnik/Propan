@@ -2,15 +2,14 @@ from typing import AsyncContextManager, Awaitable, Callable, List, Optional
 
 import aio_pika
 from fast_depends.core import CallModel
-from typing_extensions import override
 
+from propan._compat import override
 from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
 from propan.broker.parsers import resolve_custom_func
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
-    AsyncWrappedHandlerCall,
     P_HandlerParams,
     T_HandlerReturn,
 )
@@ -37,9 +36,11 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
         consume_args: Optional[AnyDict] = None,
         # AsyncAPI information
         description: Optional[str] = None,
+        title: Optional[str] = None,
     ):
         super().__init__(
             description=description,
+            title=title,
         )
 
         self.queue = queue
@@ -56,9 +57,6 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
         handler: HandlerCallWrapper[
             aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn
         ],
-        wrapped_call: AsyncWrappedHandlerCall[
-            aio_pika.IncomingMessage, T_HandlerReturn
-        ],
         dependant: CallModel[P_HandlerParams, T_HandlerReturn],
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]],
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]],
@@ -73,7 +71,6 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
     ) -> None:
         super().add_call(
             handler=handler,
-            wrapped_call=wrapped_call,
             parser=resolve_custom_func(parser, AioPikaParser.parse_message),
             decoder=resolve_custom_func(decoder, AioPikaParser.decode_message),
             filter=filter,

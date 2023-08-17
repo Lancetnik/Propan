@@ -8,6 +8,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Optional,
     Sequence,
     Type,
@@ -18,9 +19,9 @@ import aiokafka
 from fast_depends.dependencies import Depends
 from kafka.coordinator.assignors.abstract import AbstractPartitionAssignor
 from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
-from typing_extensions import Literal, override
 
 from propan.__about__ import __version__
+from propan._compat import override
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.message import PropanMessage
 from propan.broker.push_back_watcher import BaseWatcher, WatcherContext
@@ -31,7 +32,6 @@ from propan.broker.types import (
     T_HandlerReturn,
 )
 from propan.broker.wrapper import HandlerCallWrapper
-from propan.exceptions import RuntimeException
 from propan.kafka.asyncapi import Handler, Publisher
 from propan.kafka.producer import AioKafkaPropanProducer
 from propan.kafka.shared.logging import KafkaLoggingMixin
@@ -56,7 +56,6 @@ class KafkaBroker(
         self,
         bootstrap_servers: Union[str, List[str]] = "localhost",
         *,
-        response_topic: str = "",
         protocol: str = "kafka",
         api_version: str = "auto",
         client_id: str = "propan-" + __version__,
@@ -71,7 +70,6 @@ class KafkaBroker(
             bootstrap_servers=bootstrap_servers,
         )
         self.client_id = client_id
-        self.response_topic = response_topic
         self._producer = None
 
     async def _close(
@@ -136,40 +134,34 @@ class KafkaBroker(
         @wraps(func)
         async def process_wrapper(message: KafkaMessage) -> T_HandlerReturn:
             async with WatcherContext(watcher, message):
-                try:
-                    r = await self._execute_handler(func, message)
+                r = await self._execute_handler(func, message)
+                headers = {"correlation_id": message.correlation_id}
 
-                except RuntimeException:
-                    pass
+                if message.reply_to:
+                    await self.publish(
+                        message=r or "",
+                        headers=headers,
+                        topic=message.reply_to,
+                    )
 
-                else:
-                    headers = {"correlation_id": message.correlation_id}
-
-                    if message.reply_to:
-                        await self.publish(
-                            message=r or "",
-                            headers=headers,
-                            topic=message.reply_to,
+                for publisher in call_wrapper._publishers:
+                    try:
+                        await publisher.publish(
+                            message=r,
+                            correlation_id=message.correlation_id,
+                        )
+                    except Exception as e:
+                        self._log(
+                            f"Publish exception: {e}",
+                            logging.ERROR,
+                            self._get_log_context(
+                                context.get_local("message"),
+                                (getattr(publisher, "topic", ""),),
+                            ),
+                            exc_info=e,
                         )
 
-                    for publisher in call_wrapper._publishers:
-                        try:
-                            await publisher.publish(
-                                message=r,
-                                correlation_id=message.correlation_id,
-                            )
-                        except Exception as e:
-                            self._log(
-                                f"Publish exception: {e}",
-                                logging.ERROR,
-                                self._get_log_context(
-                                    context.get_local("message"),
-                                    (getattr(publisher, "topic", ""),),
-                                ),
-                                exc_info=e,
-                            )
-
-                    return r
+                return r
 
             raise AssertionError("unreachable")
 
@@ -227,6 +219,7 @@ class KafkaBroker(
         max_records: Optional[int] = None,
         batch_timeout_ms: int = 200,
         # AsyncAPI information
+        title: Optional[str] = None,
         description: Optional[str] = None,
         **original_kwargs: Any,
     ) -> Callable[
@@ -268,6 +261,7 @@ class KafkaBroker(
                 client_id=self.client_id,
                 builder=builder,
                 description=description,
+                title=title,
                 batch=batch,
                 batch_timeout_ms=batch_timeout_ms,
                 max_records=max_records,
@@ -281,7 +275,7 @@ class KafkaBroker(
         ) -> HandlerCallWrapper[
             aiokafka.ConsumerRecord, P_HandlerParams, T_HandlerReturn
         ]:
-            wrapped_func, handler_call, dependant = self._wrap_handler(
+            handler_call, dependant = self._wrap_handler(
                 func=func,
                 extra_dependencies=dependencies,
                 **original_kwargs,
@@ -290,7 +284,6 @@ class KafkaBroker(
 
             handler.add_call(
                 handler=handler_call,
-                wrapped_call=wrapped_func,
                 filter=to_async(filter),
                 middlewares=middlewares,
                 parser=parser or self._global_parser,

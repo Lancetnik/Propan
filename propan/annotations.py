@@ -1,7 +1,7 @@
 import logging
+from typing import TypeVar
 
-from typing_extensions import Annotated, TypeVar
-
+from propan._compat import Annotated
 from propan.utils.context import Context as ContextField
 from propan.utils.context import ContextRepo as CR
 from propan.utils.no_cast import NoCast as NC

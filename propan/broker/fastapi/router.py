@@ -20,11 +20,13 @@ from fastapi import APIRouter, FastAPI, params
 from fastapi.datastructures import Default
 from fastapi.routing import APIRoute
 from fastapi.utils import generate_unique_id
+from pydantic import AnyHttpUrl
 from starlette import routing
 from starlette.responses import JSONResponse, Response
 from starlette.routing import _DefaultLifespan
 from starlette.types import AppType, ASGIApp, Lifespan
 
+from propan.asyncapi.schema import Contact, ExternalDocs, License, Tag
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.fastapi.route import PropanRoute
 from propan.broker.publisher import BasePublisher
@@ -66,6 +68,16 @@ class PropanRouter(APIRouter, Generic[MsgType]):
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
         ),
+        # AsyncAPI information
+        title: str = "Propan",
+        version: str = "0.1.0",
+        description: str = "",
+        terms_of_service: Optional[AnyHttpUrl] = None,
+        license: Optional[License] = None,
+        contact: Optional[Contact] = None,
+        identifier: Optional[str] = None,
+        asyncapi_tags: Optional[Sequence[Tag]] = None,
+        external_docs: Optional[ExternalDocs] = None,
         **connection_kwars: Any,
     ) -> None:
         assert (
@@ -79,6 +91,17 @@ class PropanRouter(APIRouter, Generic[MsgType]):
         )
 
         self.setup_state = setup_state
+
+        # AsyncAPI information
+        self.title = title
+        self.version = version
+        self.description = description
+        self.terms_of_service = terms_of_service
+        self.license = license
+        self.contact = contact
+        self.identifier = identifier
+        self.asyncapi_tags = asyncapi_tags
+        self.external_docs = external_docs
 
         super().__init__(
             prefix=prefix,

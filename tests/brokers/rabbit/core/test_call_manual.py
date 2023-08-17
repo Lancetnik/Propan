@@ -8,7 +8,8 @@ def just_broker(request):
     return request.param
 
 
-def test_sync(just_broker: RabbitBroker):
+@pytest.mark.asyncio  # run it async to create anyio.Event
+async def test_sync(just_broker: RabbitBroker):
     @just_broker.subscriber("test")
     def func(a: int) -> str:
         return "pong"
@@ -17,7 +18,8 @@ def test_sync(just_broker: RabbitBroker):
     func.mock.assert_called_with(1)
 
 
-def test_sync_publisher(just_broker: RabbitBroker):
+@pytest.mark.asyncio  # run it async to create anyio.Event
+async def test_sync_publisher(just_broker: RabbitBroker):
     @just_broker.publisher("test")
     def func(a: int) -> str:
         return "pong"
@@ -26,7 +28,8 @@ def test_sync_publisher(just_broker: RabbitBroker):
     func.mock.assert_called_with(1)
 
 
-def test_sync_multi(just_broker: RabbitBroker):
+@pytest.mark.asyncio  # run it async to create anyio.Event
+async def test_sync_multi(just_broker: RabbitBroker):
     @just_broker.publisher("test")
     @just_broker.subscriber("test")
     @just_broker.publisher("test")

@@ -1,8 +1,8 @@
 from typing import Any
 
 import pytest
-from typing_extensions import Annotated
 
+from propan._compat import Annotated
 from propan.utils import Context, ContextRepo, apply_types
 
 

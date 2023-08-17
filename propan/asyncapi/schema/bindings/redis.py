@@ -1,7 +1,6 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 from pydantic import BaseModel
-from typing_extensions import Literal
 
 
 class ServerBinding(BaseModel):

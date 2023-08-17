@@ -14,6 +14,7 @@ from propan.asyncapi.schema import (
     OperationBinding,
 )
 from propan.asyncapi.schema.bindings import amqp
+from propan.asyncapi.utils import resolve_payloads, to_camelcase
 from propan.rabbit.handler import LogicHandler
 from propan.rabbit.publisher import LogicPublisher
 from propan.rabbit.shared.constants import ExchangeType
@@ -47,9 +48,7 @@ class RMQAsyncAPIChannel(AsyncAPIOperation, BaseRMQInformation):
                     else None,
                     message=Message(
                         title=f"{self.name}Message",
-                        payload=payloads[0]
-                        if len(payloads) == 1
-                        else {"oneOf": {body["title"]: body for body in payloads}},
+                        payload=resolve_payloads(payloads),
                         correlationId=CorrelationId(
                             location="$message.header#/correlation_id"
                         ),
@@ -95,9 +94,10 @@ class Publisher(RMQAsyncAPIChannel, LogicPublisher):
             call_model = build_call_model(call)
             body = get_response_schema(
                 call_model,
-                prefix=call_model.call_name.replace("_", " ").title().replace(" ", ""),
+                prefix=to_camelcase(call_model.call_name),
             )
-            payloads.append(body)
+            if body:
+                payloads.append(body)
 
         return payloads
 
@@ -105,7 +105,7 @@ class Publisher(RMQAsyncAPIChannel, LogicPublisher):
 class Handler(RMQAsyncAPIChannel, LogicHandler):
     def get_payloads(self) -> List[AnyDict]:
         payloads = []
-        for _, _, _, _, _, _, dep in self.calls:
+        for _, _, _, _, _, dep in self.calls:
             body = parse_handler_params(dep, prefix=self.name)
             payloads.append(body)
 

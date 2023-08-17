@@ -39,7 +39,7 @@ def get_app_schema(app: PropanApp) -> Schema:
         ),
         defaultContentType=ContentTypes.json.value,
         id=app.identifier,
-        tags=list(app.tags) if app.tags else None,
+        tags=list(app.asyncapi_tags) if app.asyncapi_tags else None,
         externalDocs=app.external_docs,
         servers=servers,
         channels=channels,

@@ -10,10 +10,6 @@ class StopConsume(HandlerException):
     """Raise it to stop Handler consuming"""
 
 
-class RuntimeException(Exception):
-    """Base Processing level Exception"""
-
-
 class AckMessage(HandlerException):
     """Raise it to stop `ack` a message immediately"""
 

@@ -1,13 +1,15 @@
 from propan import Logger, PropanApp
-from propan.kafka import KafkaBroker, KafkaRouter
-
-router = KafkaRouter("prefix_")
+from propan.kafka import KafkaBroker, KafkaRoute, KafkaRouter
 
 
-@router.subscriber("in")
 async def handle(msg: str, logger: Logger) -> None:
     logger.info(msg)
 
+
+router = KafkaRouter(
+    "prefix_",
+    handlers=(KafkaRoute(handle, "in"),),
+)
 
 broker = KafkaBroker("localhost:9092")
 broker.include_router(router)
@@ -17,4 +19,4 @@ app = PropanApp(broker)
 
 @app.after_startup
 async def test() -> None:
-    await broker.publish("test", "prefix_in")
+    await broker.publish("Hello!", "prefix_in")

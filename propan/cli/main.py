@@ -15,7 +15,7 @@ from propan.log import logger
 from propan.types import SettingField
 
 cli = typer.Typer(pretty_exceptions_short=True)
-cli.add_typer(docs_app, name="docs", help="AsyncAPI scheme commands")
+cli.add_typer(docs_app, name="docs", help="AsyncAPI schema commands")
 
 
 def version_callback(version: bool) -> None:
@@ -107,8 +107,6 @@ def _run(
     propan_app = try_import_propan(module, app)
     set_log_level(log_level, propan_app)
 
-    propan_app._command_line_options = extra_options
-
     if sys.platform not in ("win32", "cygwin", "cli"):  # pragma: no cover
         try:
             import uvloop
@@ -117,4 +115,8 @@ def _run(
         else:
             uvloop.install()
 
-    anyio.run(propan_app.run, app_level)
+    anyio.run(
+        propan_app.run,
+        app_level,
+        extra_options,
+    )

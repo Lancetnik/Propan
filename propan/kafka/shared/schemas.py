@@ -1,9 +1,8 @@
 import ssl
 from asyncio import AbstractEventLoop
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, TypedDict, Union
 
 from aiokafka.abc import AbstractTokenProvider
-from typing_extensions import Literal, TypedDict
 
 
 class ConsumerConnectionParams(TypedDict, total=False):

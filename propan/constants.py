@@ -1,8 +1,6 @@
 from enum import Enum
 
-from typing_extensions import TypeAlias
-
-ContentType: TypeAlias = str
+ContentType = str
 
 
 class ContentTypes(str, Enum):

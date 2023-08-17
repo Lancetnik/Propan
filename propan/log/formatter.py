@@ -2,10 +2,9 @@ import logging
 import sys
 from collections import defaultdict
 from types import TracebackType
-from typing import Callable, DefaultDict, Mapping, Optional, Tuple, Type, Union
+from typing import Callable, DefaultDict, Literal, Mapping, Optional, Tuple, Type, Union
 
 import click
-from typing_extensions import Literal
 
 from propan.utils.context.main import context
 

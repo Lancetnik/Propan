@@ -1,7 +1,6 @@
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional
 
 from pydantic import AnyHttpUrl, BaseModel, Field
-from typing_extensions import Literal
 
 
 class OauthFlowObj(BaseModel):
@@ -18,7 +17,7 @@ class OauthFlows(BaseModel):
     authorizationCode: Optional[OauthFlowObj] = None
 
 
-class SecuritySchemeComponent(BaseModel):
+class SecuritySchemaComponent(BaseModel):
     type: Literal[
         "userPassword",
         "apikey",
@@ -40,7 +39,10 @@ class SecuritySchemeComponent(BaseModel):
         default=None,
         alias="in",
     )
-    scheme: Optional[str] = None
+    schema_: Optional[str] = Field(
+        default=None,
+        alias="schema",
+    )
     bearerFormat: Optional[str] = None
     openIdConnectUrl: Optional[str] = None
     flows: Optional[OauthFlows] = None

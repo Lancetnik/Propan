@@ -1,8 +1,7 @@
 import logging
 from typing import Any, Iterable, Optional, Sequence
 
-from typing_extensions import override
-
+from propan._compat import override
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.message import PropanMessage
 from propan.log import access_logger

@@ -2,9 +2,9 @@ from dataclasses import dataclass, field
 from typing import Optional, Sequence
 
 from aiokafka import ConsumerRecord
-from typing_extensions import override
 
 from propan.__about__ import __version__
+from propan._compat import override
 from propan.kafka.producer import AioKafkaPropanProducer
 from propan.kafka.shared.publisher import ABCPublisher
 from propan.types import SendableMessage

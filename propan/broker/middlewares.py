@@ -1,8 +1,6 @@
 import logging
 from types import TracebackType
-from typing import Any, Optional, Type
-
-from typing_extensions import TypeVar
+from typing import Any, Optional, Type, TypeVar
 
 Cls = TypeVar("Cls")
 

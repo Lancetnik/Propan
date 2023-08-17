@@ -8,7 +8,7 @@ from propan.asyncapi.schema.info import Contact, Info, License
 from propan.asyncapi.schema.main import ASYNC_API_VERSION, Components, Schema
 from propan.asyncapi.schema.message import CorrelationId, Message
 from propan.asyncapi.schema.operations import Operation
-from propan.asyncapi.schema.security import SecuritySchemeComponent
+from propan.asyncapi.schema.security import SecuritySchemaComponent
 from propan.asyncapi.schema.servers import Server
 from propan.asyncapi.schema.utils import ExternalDocs, Tag
 
@@ -36,7 +36,7 @@ __all__ = (
     "Message",
     "CorrelationId",
     # security
-    "SecuritySchemeComponent",
+    "SecuritySchemaComponent",
     # subscription
     "Operation",
 )

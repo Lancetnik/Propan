@@ -5,13 +5,13 @@ from fast_depends.core import CallModel
 from pydantic import BaseModel
 
 from propan._compat import get_model_fields, model_schema
+from propan.asyncapi.utils import to_camelcase
 
 
 def parse_handler_params(call: CallModel[Any, Any], prefix: str = "") -> Dict[str, Any]:
     body = get_model_schema(
         call.model, prefix=prefix, exclude=tuple(call.custom_fields.keys())
     )
-
     if body is None:
         return {"title": "Payload", "type": "null"}
 
@@ -103,9 +103,11 @@ def get_model_schema(
 
         body = param_body
 
+    camel_body = to_camelcase(body["title"])
     if not use_original_model:
-        body["title"] = prefix + body["title"].replace("_", " ").title().replace(
-            " ", ""
-        )
+        if prefix != camel_body:
+            body["title"] = f"{prefix}{camel_body}Payload"
+        else:
+            body["title"] = f"{camel_body}Payload"
 
     return body
