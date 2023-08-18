@@ -1,4 +1,4 @@
-from typing import Any, Callable, Iterable, Optional, Type
+from typing import Any, Callable, Iterable, Optional, Type, TypedDict, Union
 
 from pydantic import AnyHttpUrl, BaseModel
 
@@ -54,10 +54,21 @@ else:  # pragma: no cover
             return general_plain_validator_function(cls._validate)
 
 
+class ContactDict(TypedDict, total=False):
+    name: str
+    url: Optional[AnyHttpUrl]
+    email: Optional[EmailStr]
+
+
 class Contact(BaseModel):
     name: str
     url: Optional[AnyHttpUrl] = None
     email: Optional[EmailStr] = None
+
+
+class LicenseDict(TypedDict, total=False):
+    name: str
+    url: Optional[AnyHttpUrl]
 
 
 class License(BaseModel):
@@ -70,5 +81,5 @@ class Info(BaseModel):
     version: str = "1.0.0"
     description: str = ""
     termsOfService: Optional[AnyHttpUrl] = None
-    contact: Optional[Contact] = None
-    license: Optional[License] = None
+    contact: Optional[Union[ContactDict, Contact]] = None
+    license: Optional[Union[License, LicenseDict]] = None

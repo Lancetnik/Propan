@@ -1,6 +1,11 @@
-from typing import Optional
+from typing import Optional, TypedDict, Union
 
 from pydantic import AnyHttpUrl, BaseModel, Field
+
+
+class ExternalDocsDict(TypedDict, total=False):
+    url: AnyHttpUrl
+    description: Optional[str]
 
 
 class ExternalDocs(BaseModel):
@@ -8,10 +13,16 @@ class ExternalDocs(BaseModel):
     description: Optional[str] = None
 
 
+class TagDict(TypedDict, total=False):
+    name: str
+    description: Optional[str]
+    externalDocs: Optional[Union[ExternalDocs, ExternalDocsDict]]
+
+
 class Tag(BaseModel):
     name: str
-    description: str = ""
-    externalDocs: Optional[ExternalDocs] = None
+    description: Optional[str] = None
+    externalDocs: Optional[Union[ExternalDocs, ExternalDocsDict]] = None
 
 
 class Reference(BaseModel):

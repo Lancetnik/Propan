@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -7,7 +7,7 @@ from propan.asyncapi.schema.channels import Channel
 from propan.asyncapi.schema.info import Info
 from propan.asyncapi.schema.message import Message
 from propan.asyncapi.schema.servers import Server
-from propan.asyncapi.schema.utils import ExternalDocs, Tag
+from propan.asyncapi.schema.utils import ExternalDocs, ExternalDocsDict, Tag, TagDict
 
 ASYNC_API_VERSION = "2.6.0"
 
@@ -39,8 +39,8 @@ class Schema(BaseModel):
     servers: Optional[Dict[str, Server]] = None
     channels: Dict[str, Channel]
     components: Optional[Components] = None
-    tags: Optional[List[Tag]] = None
-    externalDocs: Optional[ExternalDocs] = None
+    tags: Optional[List[Union[Tag, TagDict]]] = None
+    externalDocs: Optional[Union[ExternalDocs, ExternalDocsDict]] = None
 
     def to_jsonable(self) -> Any:
         return model_to_jsonable(

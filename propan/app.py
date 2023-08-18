@@ -1,12 +1,31 @@
 import logging
 from abc import ABC
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, TypeVar
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    TypeVar,
+    Union,
+)
 
 import anyio
 from pydantic import AnyHttpUrl
 
 from propan._compat import ParamSpec, override
-from propan.asyncapi.schema import Contact, ExternalDocs, License, Tag
+from propan.asyncapi.schema import (
+    Contact,
+    ContactDict,
+    ExternalDocs,
+    ExternalDocsDict,
+    License,
+    LicenseDict,
+    Tag,
+    TagDict,
+)
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.cli.supervisors.utils import set_exit
 from propan.log import logger
@@ -33,11 +52,11 @@ class ABCApp(ABC):
         version: str = "0.1.0",
         description: str = "",
         terms_of_service: Optional[AnyHttpUrl] = None,
-        license: Optional[License] = None,
-        contact: Optional[Contact] = None,
+        license: Optional[Union[License, LicenseDict]] = None,
+        contact: Optional[Union[Contact, ContactDict]] = None,
         identifier: Optional[str] = None,
-        tags: Optional[Sequence[Tag]] = None,
-        external_docs: Optional[ExternalDocs] = None,
+        tags: Optional[Sequence[Union[Tag, TagDict]]] = None,
+        external_docs: Optional[Union[ExternalDocs, ExternalDocsDict]] = None,
     ):
         self.broker = broker
         self.logger = logger
@@ -120,11 +139,11 @@ class PropanApp(ABCApp):
         version: str = "0.1.0",
         description: str = "",
         terms_of_service: Optional[AnyHttpUrl] = None,
-        license: Optional[License] = None,
-        contact: Optional[Contact] = None,
+        license: Optional[Union[License, LicenseDict]] = None,
+        contact: Optional[Union[Contact, ContactDict]] = None,
         identifier: Optional[str] = None,
-        tags: Optional[Sequence[Tag]] = None,
-        external_docs: Optional[ExternalDocs] = None,
+        tags: Optional[Sequence[Union[Tag, TagDict]]] = None,
+        external_docs: Optional[Union[ExternalDocs, ExternalDocsDict]] = None,
     ):
         """Asyncronous Propan Application class
 
