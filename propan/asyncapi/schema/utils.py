@@ -1,6 +1,8 @@
-from typing import Optional, TypedDict, Union
+from typing import Optional, Union
 
 from pydantic import AnyHttpUrl, BaseModel, Field
+
+from propan._compat import TypedDict
 
 
 class ExternalDocsDict(TypedDict, total=False):

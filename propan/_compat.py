@@ -12,7 +12,7 @@ from pydantic import BaseModel
 #     from typing_extensions import override as override
 # else:
 #     from typing import override
-from typing_extensions import override as override
+from typing_extensions import override as override, TypedDict as TypedDict
 
 if sys.version_info < (3, 11):
     from typing_extensions import Never as Never
