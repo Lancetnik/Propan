@@ -21,9 +21,6 @@ class LogicPublisher(ABCPublisher[ConsumerRecord]):
         self,
         *messages: SendableMessage,
         message: SendableMessage = "",
-        rpc: bool = False,
-        rpc_timeout: Optional[float] = 30.0,
-        raise_timeout: bool = False,
         correlation_id: str = "",
     ) -> Optional[SendableMessage]:
         assert self._producer, "Please, setup `_producer` first"
@@ -43,9 +40,6 @@ class LogicPublisher(ABCPublisher[ConsumerRecord]):
                     **(self.headers or {}),
                 },
                 reply_to=self.reply_to or "",
-                rpc=rpc,
-                rpc_timeout=rpc_timeout,
-                raise_timeout=raise_timeout,
             )
         else:
             to_send: Sequence[SendableMessage]

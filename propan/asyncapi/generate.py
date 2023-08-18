@@ -14,7 +14,7 @@ def get_app_schema(app: PropanApp) -> Schema:
     for channel_name, ch in channels.items():
         ch.servers = list(servers.keys())
 
-        if ch.subscribe is not None:  # pragma: no branch
+        if ch.subscribe is not None:
             m = ch.subscribe.message
 
             p = m.payload
@@ -25,6 +25,20 @@ def get_app_schema(app: PropanApp) -> Schema:
             assert m.title
             messages[m.title] = m
             ch.subscribe.message = {
+                "$ref": f"#/components/messages/{m.title}"
+            }  # type: ignore
+
+        if ch.publish is not None:
+            m = ch.publish.message
+
+            p = m.payload
+            p_title = p.get("title", f"{channel_name}Payload")
+            payloads[p_title] = p
+            m.payload = {"$ref": f"#/components/schemas/{p_title}"}
+
+            assert m.title
+            messages[m.title] = m
+            ch.publish.message = {
                 "$ref": f"#/components/messages/{m.title}"
             }  # type: ignore
 
@@ -62,20 +76,24 @@ def get_app_broker_server(app: PropanApp) -> Dict[str, Server]:
         "protocolVersion": broker.protocol_version,
         "description": broker.description,
         "tags": broker.tags,
+        # TODO
+        # "security": "",
+        # "variables": "",
+        # "bindings": "",
     }
 
     if isinstance(broker.url, str):
         servers["development"] = Server(
             url=broker.url,
             **broker_meta,  # type: ignore[arg-type]
-            # TODO
-            # security
-            # variables
-            # bindings
         )
 
-    # else:
-    #     bunch of them
+    else:
+        for i, url in enumerate(broker.url, 1):
+            servers[f"Server{i}"] = Server(
+                url=url,
+                **broker_meta,  # type: ignore[arg-type]
+            )
 
     return servers
 

@@ -17,6 +17,9 @@ class KafkaRouter(BaseRouter):
         timestamp_ms: Optional[int] = None,
         headers: Optional[Dict[str, str]] = None,
         reply_to: str = "",
+        # AsyncAPI information
+        title: Optional[str] = None,
+        description: Optional[str] = None,
     ) -> Publisher:
         new_topic = self.prefix + topic
         publisher = self._publishers[new_topic] = self._publishers.get(
@@ -28,6 +31,8 @@ class KafkaRouter(BaseRouter):
                 timestamp_ms=timestamp_ms,
                 headers=headers,
                 reply_to=reply_to,
+                title=title,
+                _description=description,
             ),
         )
         return publisher

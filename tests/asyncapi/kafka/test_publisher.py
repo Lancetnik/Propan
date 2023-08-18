@@ -1,15 +1,15 @@
 from propan.asyncapi.generate import get_app_schema
 from propan.kafka import KafkaBroker
-from tests.asyncapi.base.arguments import ArgumentsTestcase
+from tests.asyncapi.base.publisher import PublisherTestcase
 
 
-class TestArguments(ArgumentsTestcase):
+class TestArguments(PublisherTestcase):
     broker_class = KafkaBroker
 
-    def test_subscriber_bindings(self):
+    def test_publisher_bindings(self):
         broker = self.broker_class()
 
-        @broker.subscriber("test")
+        @broker.publisher("test")
         async def handle(msg):
             ...
 

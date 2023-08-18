@@ -27,17 +27,12 @@ class RMQAsyncAPIChannel(AsyncAPIOperation, BaseRMQInformation):
     def get_payloads(self) -> List[AnyDict]:
         raise NotImplementedError()
 
-    @property
-    def description(self) -> str:
-        return "undefined"
-
     def schema(self) -> Dict[str, Channel]:
         payloads = self.get_payloads()
-        assert payloads, "You should use this object at least once"
 
         return {
             self.name: Channel(
-                description=self.description,
+                description=self.description,  # type: ignore[attr-defined]
                 subscribe=Operation(
                     bindings=OperationBinding(
                         amqp=amqp.OperationBinding(
@@ -86,7 +81,7 @@ class RMQAsyncAPIChannel(AsyncAPIOperation, BaseRMQInformation):
 class Publisher(RMQAsyncAPIChannel, LogicPublisher):
     @property
     def name(self) -> str:
-        return self.title or "undefined"
+        return self.title or f"{self.queue.name.title()}Publisher"
 
     def get_payloads(self) -> List[AnyDict]:
         payloads = []
@@ -103,6 +98,24 @@ class Publisher(RMQAsyncAPIChannel, LogicPublisher):
 
 
 class Handler(RMQAsyncAPIChannel, LogicHandler):
+    @property
+    def name(self) -> str:
+        original = super().name
+
+        name: str
+        queue_ = to_camelcase(self.queue.name)
+        if original is True:
+            if self.call_name.lower() != queue_.lower():
+                name = f"{self.call_name}{queue_}"
+            else:
+                name = self.call_name
+        elif original is False:  # pragma: no cover
+            name = f"Handler{queue_}"
+        else:
+            name = original
+
+        return name
+
     def get_payloads(self) -> List[AnyDict]:
         payloads = []
         for _, _, _, _, _, dep in self.calls:

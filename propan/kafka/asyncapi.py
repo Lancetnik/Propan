@@ -19,19 +19,36 @@ from propan.kafka.publisher import LogicPublisher
 
 class Handler(LogicHandler, AsyncAPIOperation):
     def schema(self) -> Dict[str, Channel]:
-        payloads = []
-        for _, _, _, _, _, dep in self.calls:
-            body = parse_handler_params(dep, prefix=self.name)
-            payloads.append(body)
+        name: str
+        if self.name is True:
+            name, add_topic = self.call_name, True
+        elif self.name is False:  # pragma: no cover
+            name, add_topic = "Handler", True
+        else:
+            name, add_topic = self.name, False
 
         channels = {}
 
         for t in self.topics:
-            channels[self.name] = Channel(
+            if add_topic:
+                t_ = to_camelcase(t)
+                if name.lower() != t_.lower():
+                    name_ = f"{name}{t_}"
+                else:
+                    name_ = name
+            else:
+                name_ = name
+
+            payloads = []
+            for _, _, _, _, _, dep in self.calls:
+                body = parse_handler_params(dep, prefix=name_)
+                payloads.append(body)
+
+            channels[name_] = Channel(
                 description=self.description,
                 subscribe=Operation(
                     message=Message(
-                        title=f"{self.name}Message",
+                        title=f"{name_}Message",
                         payload=resolve_payloads(payloads),
                         correlationId=CorrelationId(
                             location="$message.header#/correlation_id"

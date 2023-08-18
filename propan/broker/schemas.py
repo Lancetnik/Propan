@@ -13,7 +13,7 @@ class NameRequired(BaseModel):
         if __value is None:
             return False
 
-        if not isinstance(__value, NameRequired):
+        if not isinstance(__value, NameRequired):  # pragma: no cover
             return NotImplemented
 
         return self.name == __value.name

@@ -9,5 +9,5 @@ class AsyncAPIOperation:
     def name(self) -> str:
         raise NotImplementedError()
 
-    def schema(self) -> Dict[str, Channel]:
+    def schema(self) -> Dict[str, Channel]:  # pragma: no cover
         return {}

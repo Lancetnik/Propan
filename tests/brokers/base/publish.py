@@ -33,9 +33,9 @@ class BrokerPublishTestcase:
             (False, bool, None),
             ({"m": 1}, Dict[str, int], None),
             ([1, 2, 3], List[int], None),
+            (now, datetime, None),
             (SimpleModel(r="hello!"), SimpleModel, None),
             (SimpleModel(r="hello!"), dict, {"r": "hello!"}),
-            (now, datetime, now),
         ),
     )
     async def test_serialize(
