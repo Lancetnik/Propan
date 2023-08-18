@@ -1,4 +1,4 @@
-from typing import Any, Callable, Iterable, Optional, Type, TypedDict, Union
+from typing import Any, Callable, Iterable, Optional, Type, Union
 
 from pydantic import AnyHttpUrl, BaseModel
 
@@ -8,6 +8,7 @@ from propan._compat import (
     JsonSchemaValue,
     general_plain_validator_function,
     is_installed,
+    TypedDict,
 )
 from propan.log import logger
 
