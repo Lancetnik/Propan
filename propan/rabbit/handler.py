@@ -98,7 +98,7 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
 
     async def close(self) -> None:
         if self._queue_obj is not None:
-            if self._consumer_tag is not None:
+            if self._consumer_tag is not None:  # pragma: no branch
                 await self._queue_obj.cancel(self._consumer_tag)
                 self._consumer_tag = None
             self._queue_obj = None

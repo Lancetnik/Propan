@@ -39,9 +39,6 @@ class AioKafkaPropanProducer:
         headers: Optional[Dict[str, str]] = None,
         *,
         reply_to: str = "",
-        rpc: bool = False,
-        rpc_timeout: Optional[float] = None,
-        raise_timeout: bool = False,
     ) -> Optional[SendableMessage]:
         assert self._producer, "You need to connect broker at first"
 
@@ -75,7 +72,7 @@ class AioKafkaPropanProducer:
         return None
 
     async def stop(self) -> None:
-        if self._producer is not None:
+        if self._producer is not None:  # pragma: no branch
             await self._producer.stop()
 
     async def publish_batch(

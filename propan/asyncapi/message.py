@@ -13,7 +13,7 @@ def parse_handler_params(call: CallModel[Any, Any], prefix: str = "") -> Dict[st
         call.model, prefix=prefix, exclude=tuple(call.custom_fields.keys())
     )
     if body is None:
-        return {"title": "Payload", "type": "null"}
+        return {"title": "EmptyPayload", "type": "null"}
 
     return body
 
@@ -92,20 +92,13 @@ def get_model_schema(
 
     if params_number == 1 and not use_original_model:
         param_body = body.get("properties", {})
-
         param_body = param_body[name]
-
         param_body["title"] = name
-
-        example = body.get("example", {}).get(name)
-        if example is not None:
-            param_body["example"] = body.get("example", {}).get(name)
-
         body = param_body
 
     camel_body = to_camelcase(body["title"])
     if not use_original_model:
-        if prefix != camel_body:
+        if prefix.lower() != camel_body.lower():
             body["title"] = f"{prefix}{camel_body}Payload"
         else:
             body["title"] = f"{camel_body}Payload"

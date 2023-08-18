@@ -10,7 +10,7 @@ def test_base():
             KafkaBroker(
                 "kafka:9092",
                 protocol="plaintext",
-                api_version="0.9.0",
+                protocol_version="0.9.0",
                 description="Test description",
                 tags=(Tag(name="some-tag", description="experimental"),),
             )
@@ -31,5 +31,31 @@ def test_base():
                 "tags": [{"description": "experimental", "name": "some-tag"}],
                 "url": "kafka:9092",
             }
+        },
+    }
+
+
+def test_multi():
+    schema = get_app_schema(
+        PropanApp(KafkaBroker(["kafka:9092", "kafka:9093"]))
+    ).to_jsonable()
+
+    assert schema == {
+        "asyncapi": "2.6.0",
+        "channels": {},
+        "components": {"messages": {}, "schemas": {}},
+        "defaultContentType": "application/json",
+        "info": {"description": "", "title": "Propan", "version": "0.1.0"},
+        "servers": {
+            "Server1": {
+                "protocol": "kafka",
+                "protocolVersion": "auto",
+                "url": "kafka:9092",
+            },
+            "Server2": {
+                "protocol": "kafka",
+                "protocolVersion": "auto",
+                "url": "kafka:9093",
+            },
         },
     }

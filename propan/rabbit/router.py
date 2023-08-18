@@ -22,6 +22,9 @@ class RabbitRouter(BaseRouter):
         timeout: TimeoutType = None,
         persist: bool = False,
         reply_to: Optional[str] = None,
+        # AsyncAPI information
+        title: Optional[str] = None,
+        description: Optional[str] = None,
         **message_kwargs: Any,
     ) -> Publisher:
         q = RabbitQueue.validate(queue)
@@ -40,6 +43,8 @@ class RabbitRouter(BaseRouter):
                 persist=persist,
                 reply_to=reply_to,
                 message_kwargs=message_kwargs,
+                title=title,
+                _description=description,
             ),
         )
         return publisher

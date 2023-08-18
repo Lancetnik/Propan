@@ -21,7 +21,7 @@ from fast_depends.dependencies import Depends
 from yarl import URL
 
 from propan._compat import override
-from propan.broker.core.asyncronous import BrokerAsyncUsecase
+from propan.broker.core.asyncronous import BrokerAsyncUsecase, default_filter
 from propan.broker.message import PropanMessage
 from propan.broker.push_back_watcher import BaseWatcher, WatcherContext
 from propan.broker.types import (
@@ -95,8 +95,9 @@ class RabbitBroker(
         if self._producer is not None:
             self._producer = None
 
-        if self._connection is not None:
+        if self._connection is not None:  # pragma: no branch
             await self._connection.close()
+
         await super()._close(exc_type, exc_val, exec_tb)
 
     async def connect(self, *args: Any, **kwargs: Any) -> aio_pika.RobustConnection:
@@ -176,7 +177,7 @@ class RabbitBroker(
         ] = None,
         filter: Union[
             Callable[[RabbitMessage], bool], Callable[[RabbitMessage], Awaitable[bool]]
-        ] = lambda m: not m.processed,
+        ] = default_filter,
         # AsyncAPI information
         title: Optional[str] = None,
         description: Optional[str] = None,

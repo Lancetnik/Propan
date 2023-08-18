@@ -1,6 +1,8 @@
 import logging
 from typing import Any, Iterable, Optional, Sequence
 
+from aiokafka import ConsumerRecord
+
 from propan._compat import override
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.message import PropanMessage
@@ -31,7 +33,7 @@ class KafkaLoggingMixin(LoggingMixin):
     @override
     def _get_log_context(  # type: ignore[override]
         self,
-        message: Optional[PropanMessage[Any]],
+        message: Optional[PropanMessage[ConsumerRecord]],
         topics: Sequence[str] = (),
     ) -> AnyDict:
         if topics:

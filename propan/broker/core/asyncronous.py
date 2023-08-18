@@ -12,6 +12,7 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
+    Sized,
     Tuple,
     Type,
     Union,
@@ -192,7 +193,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     def _wrap_decode_message(
         self,
         func: Callable[..., Awaitable[T_HandlerReturn]],
-        params: Sequence[Any] = (),
+        params: Sized = (),
         _raw: bool = False,
     ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
         is_unwrap = len(params) > 1

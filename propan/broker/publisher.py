@@ -21,8 +21,8 @@ class BasePublisher(AsyncAPIOperation, Generic[MsgType]):
     mock: MagicMock = field(init=False, default_factory=MagicMock, repr=False)
 
     @property
-    def description(self) -> str:
-        return self._description or "undefined"
+    def description(self) -> Optional[str]:
+        return self._description
 
     def __call__(
         self,

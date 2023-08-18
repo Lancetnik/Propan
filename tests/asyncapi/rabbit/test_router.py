@@ -2,6 +2,7 @@ from propan import PropanApp
 from propan.asyncapi.generate import get_app_schema
 from propan.rabbit import RabbitBroker, RabbitRoute, RabbitRouter
 from tests.asyncapi.base.arguments import ArgumentsTestcase
+from tests.asyncapi.base.publisher import PublisherTestcase
 from tests.asyncapi.base.router import RouterTestcase
 
 
@@ -26,7 +27,7 @@ class TestRouter(RouterTestcase):
         assert schema == {
             "asyncapi": "2.6.0",
             "channels": {
-                "Handle": {
+                "HandleTestTest": {
                     "bindings": {
                         "amqp": {
                             "bindingVersion": "0.2.0",
@@ -41,7 +42,6 @@ class TestRouter(RouterTestcase):
                             },
                         }
                     },
-                    "description": "undefined",
                     "servers": ["development"],
                     "subscribe": {
                         "bindings": {
@@ -51,21 +51,27 @@ class TestRouter(RouterTestcase):
                                 "cc": "test_test",
                             }
                         },
-                        "message": {"$ref": "#/components/messages/HandleMessage"},
+                        "message": {
+                            "$ref": "#/components/messages/HandleTestTestMessage"
+                        },
                     },
                 }
             },
             "components": {
                 "messages": {
-                    "HandleMessage": {
+                    "HandleTestTestMessage": {
                         "correlationId": {
                             "location": "$message.header#/correlation_id"
                         },
-                        "payload": {"$ref": "#/components/schemas/HandleMsgPayload"},
-                        "title": "HandleMessage",
+                        "payload": {
+                            "$ref": "#/components/schemas/HandleTestTestMsgPayload"
+                        },
+                        "title": "HandleTestTestMessage",
                     }
                 },
-                "schemas": {"HandleMsgPayload": {"title": "HandleMsgPayload"}},
+                "schemas": {
+                    "HandleTestTestMsgPayload": {"title": "HandleTestTestMsgPayload"}
+                },
             },
             "defaultContentType": "application/json",
             "info": {"description": "", "title": "Propan", "version": "0.1.0"},
@@ -80,6 +86,15 @@ class TestRouter(RouterTestcase):
 
 
 class TestRouterArguments(ArgumentsTestcase):
+    broker_class = RabbitRouter
+
+    def build_app(self, router):
+        broker = RabbitBroker()
+        broker.include_router(router)
+        return PropanApp(broker)
+
+
+class TestRouterPublisher(PublisherTestcase):
     broker_class = RabbitRouter
 
     def build_app(self, router):

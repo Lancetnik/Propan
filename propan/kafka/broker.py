@@ -22,7 +22,7 @@ from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 
 from propan.__about__ import __version__
 from propan._compat import override
-from propan.broker.core.asyncronous import BrokerAsyncUsecase
+from propan.broker.core.asyncronous import BrokerAsyncUsecase, default_filter
 from propan.broker.message import PropanMessage
 from propan.broker.push_back_watcher import BaseWatcher, WatcherContext
 from propan.broker.types import (
@@ -57,14 +57,14 @@ class KafkaBroker(
         bootstrap_servers: Union[str, List[str]] = "localhost",
         *,
         protocol: str = "kafka",
-        api_version: str = "auto",
+        protocol_version: str = "auto",
         client_id: str = "propan-" + __version__,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             url=bootstrap_servers,
             protocol=protocol,
-            protocol_version=api_version,
+            protocol_version=protocol_version,
             **kwargs,
             client_id=client_id,
             bootstrap_servers=bootstrap_servers,
@@ -78,7 +78,7 @@ class KafkaBroker(
         exc_val: Optional[BaseException] = None,
         exec_tb: Optional[TracebackType] = None,
     ) -> None:
-        if self._producer is not None:
+        if self._producer is not None:  # pragma: no branch
             await self._producer.stop()
             self._producer = None
 
@@ -214,7 +214,7 @@ class KafkaBroker(
         ] = None,
         filter: Union[
             Callable[[KafkaMessage], bool], Callable[[KafkaMessage], Awaitable[bool]]
-        ] = lambda m: not m.processed,
+        ] = default_filter,
         batch: bool = False,
         max_records: Optional[int] = None,
         batch_timeout_ms: int = 200,

@@ -84,21 +84,27 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
     def set_test(self) -> None:
         self.is_test = True
 
+    @override
     @property
-    def name(self) -> str:
+    def name(self) -> Union[str, bool]:  # type: ignore[override]
         if self._title:
             return self._title
 
-        if not self.calls:
-            return "undefined"
+        if not self.calls:  # pragma: no cover
+            return False
 
+        else:
+            return True
+
+    @property
+    def call_name(self) -> str:
         caller = self.calls[0][0]._original_call
         name = getattr(caller, "__name__", str(caller))
         return to_camelcase(name)
 
     @property
     def description(self) -> Optional[str]:
-        if not self.calls:
+        if not self.calls:  # pragma: no cover
             description = None
 
         else:
@@ -272,7 +278,7 @@ class AsyncHandler(BaseHandler[MsgType]):
 
                     else:
                         message.processed = processed = True
-                        if IS_OPTIMIZED:
+                        if IS_OPTIMIZED:  # pragma: no cover
                             break
 
         return result

@@ -1,10 +1,10 @@
 from propan import PropanApp
 from propan.asyncapi.generate import get_app_schema
 from propan.rabbit import RabbitBroker
-from tests.asyncapi.base.subscriber_naming import SubscriberNamingTestCase
+from tests.asyncapi.base.naming import NamingTestCase
 
 
-class TestNaming(SubscriberNamingTestCase):
+class TestNaming(NamingTestCase):
     broker_class = RabbitBroker
 
     def test_base(self):
@@ -19,7 +19,7 @@ class TestNaming(SubscriberNamingTestCase):
         assert schema == {
             "asyncapi": "2.6.0",
             "channels": {
-                "Handle": {
+                "HandleTest": {
                     "bindings": {
                         "amqp": {
                             "bindingVersion": "0.2.0",
@@ -34,7 +34,6 @@ class TestNaming(SubscriberNamingTestCase):
                             },
                         }
                     },
-                    "description": "undefined",
                     "servers": ["development"],
                     "subscribe": {
                         "bindings": {
@@ -44,21 +43,21 @@ class TestNaming(SubscriberNamingTestCase):
                                 "cc": "test",
                             }
                         },
-                        "message": {"$ref": "#/components/messages/HandleMessage"},
+                        "message": {"$ref": "#/components/messages/HandleTestMessage"},
                     },
                 }
             },
             "components": {
                 "messages": {
-                    "HandleMessage": {
+                    "HandleTestMessage": {
                         "correlationId": {
                             "location": "$message.header#/correlation_id"
                         },
-                        "payload": {"$ref": "#/components/schemas/Payload"},
-                        "title": "HandleMessage",
+                        "payload": {"$ref": "#/components/schemas/EmptyPayload"},
+                        "title": "HandleTestMessage",
                     }
                 },
-                "schemas": {"Payload": {"title": "Payload", "type": "null"}},
+                "schemas": {"EmptyPayload": {"title": "EmptyPayload", "type": "null"}},
             },
             "defaultContentType": "application/json",
             "info": {"description": "", "title": "Propan", "version": "0.1.0"},

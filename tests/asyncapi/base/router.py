@@ -27,4 +27,4 @@ class RouterTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {"HandleMsgPayload": {"title": "HandleMsgPayload"}}
+        assert payload == {"HandleTestMsgPayload": {"title": "HandleTestMsgPayload"}}

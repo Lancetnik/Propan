@@ -23,8 +23,9 @@ Alternatively, you can send me an email to: diementros@yandex.ru
 Be sure to include as much detail as necessary in your report. As with reporting normal issues, a minimal reproducible example will help to fix the issue faster.
 
 Also, please add to your report output of following command:
+
 ```bash
-$ propan --version
+propan --version
 ```
 
 ## Public Discussions

@@ -14,6 +14,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Sized,
     Tuple,
     Type,
     Union,
@@ -200,7 +201,7 @@ class BrokerUsecase(
         decode_f = self._wrap_decode_message(
             func=f,
             _raw=_raw,
-            params=tuple(chain(dependant.flat_params.values(), extra)),
+            params=tuple(chain(dependant.flat_params.keys(), extra)),
         )
 
         process_f = self._process_message(
@@ -304,7 +305,7 @@ class BrokerUsecase(
     def _wrap_decode_message(
         self,
         func: Callable[..., Awaitable[T_HandlerReturn]],
-        params: Sequence[Any] = (),
+        params: Sized = (),
         _raw: bool = False,
     ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
         raise NotImplementedError()
@@ -347,15 +348,14 @@ def _patch_fastapi_dependant(
             if PYDANTIC_V2:
                 info = p.field_info
             else:
-                # TODO: remove it with stable PydanticV2
                 info = p
-            params_unique[p.name] = info
+            params_unique[p.name] = (info.annotation, info.default)
 
     dependant.model = create_model(  # type: ignore[call-overload]
         getattr(dependant.call.__name__, "__name__", type(dependant.call).__name__),
-        **{i: (j.annotation, info.default) for i, j in params_unique.items()},
+        **params_unique,
     )
     dependant.custom_fields = {}
-    dependant.flat_params = params_unique  # type: ignore[misc]
+    dependant.flat_params = params_unique  # type: ignore[assignment,misc]
 
     return dependant

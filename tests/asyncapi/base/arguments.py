@@ -1,18 +1,45 @@
 from typing import Optional, Type
 
 import pydantic
+from dirty_equals import IsStr
 
 from propan import PropanApp
 from propan.asyncapi.generate import get_app_schema
 from propan.broker.core.abc import BrokerUsecase
 
 
-class ArgumentsTestcase:
+class FastAPICompatible:
     broker_class: Type[BrokerUsecase]
 
     def build_app(self, broker):
         """Patch it to test FastAPI scheme generation too"""
         return PropanApp(broker)
+
+    def test_custom_naming(self):
+        broker = self.broker_class()
+
+        @broker.subscriber("test", title="custom_name", description="test description")
+        async def handle(msg):
+            ...
+
+        schema = get_app_schema(self.build_app(broker)).to_jsonable()
+        key = tuple(schema["channels"].keys())[0]
+
+        assert key == "custom_name"
+        assert schema["channels"][key]["description"] == "test description"
+
+    def test_docstring_description(self):
+        broker = self.broker_class()
+
+        @broker.subscriber("test", title="custom_name")
+        async def handle(msg):
+            """test description"""
+
+        schema = get_app_schema(self.build_app(broker)).to_jsonable()
+        key = tuple(schema["channels"].keys())[0]
+
+        assert key == "custom_name"
+        assert schema["channels"][key]["description"] == "test description"
 
     def test_no_type(self):
         broker = self.broker_class()
@@ -25,7 +52,9 @@ class ArgumentsTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {"HandleMsgPayload": {"title": "HandleMsgPayload"}}
+        for key, v in payload.items():
+            assert key == IsStr(regex=r"Handle\w*Payload")
+            assert v == {"title": key}
 
     def test_simple_type(self):
         broker = self.broker_class()
@@ -37,10 +66,11 @@ class ArgumentsTestcase:
         schema = get_app_schema(self.build_app(broker)).to_jsonable()
 
         payload = schema["components"]["schemas"]
+        assert tuple(schema["channels"].values())[0].get("description") is None
 
-        assert payload == {
-            "HandleMsgPayload": {"title": "HandleMsgPayload", "type": "integer"}
-        }
+        for key, v in payload.items():
+            assert key == IsStr(regex=r"Handle\w*Payload")
+            assert v == {"title": key, "type": "integer"}
 
     def test_simple_optional_type(self):
         broker = self.broker_class()
@@ -53,12 +83,12 @@ class ArgumentsTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {
-            "HandleMsgPayload": {
+        for key, v in payload.items():
+            assert key == IsStr(regex=r"Handle\w*Payload")
+            assert v == {
                 "anyOf": [{"type": "integer"}, {"type": "null"}],
-                "title": "HandleMsgPayload",
+                "title": key,
             }
-        }
 
     def test_simple_type_with_default(self):
         broker = self.broker_class()
@@ -71,13 +101,13 @@ class ArgumentsTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {
-            "HandleMsgPayload": {
+        for key, v in payload.items():
+            assert key == IsStr(regex=r"Handle\w*Payload")
+            assert v == {
                 "default": 1,
-                "title": "HandleMsgPayload",
+                "title": key,
                 "type": "integer",
             }
-        }
 
     def test_multi_args_no_type(self):
         broker = self.broker_class()
@@ -90,17 +120,17 @@ class ArgumentsTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {
-            "HandlePayload": {
+        for key, v in payload.items():
+            assert key == IsStr(regex=r"Handle\w*Payload")
+            assert v == {
                 "properties": {
                     "another": {"title": "Another"},
                     "msg": {"title": "Msg"},
                 },
                 "required": ["msg", "another"],
-                "title": "HandlePayload",
+                "title": key,
                 "type": "object",
             }
-        }
 
     def test_multi_args_with_type(self):
         broker = self.broker_class()
@@ -113,17 +143,17 @@ class ArgumentsTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {
-            "HandlePayload": {
+        for key, v in payload.items():
+            assert key == IsStr(regex=r"Handle\w*Payload")
+            assert v == {
                 "properties": {
                     "another": {"title": "Another", "type": "integer"},
                     "msg": {"title": "Msg", "type": "string"},
                 },
                 "required": ["msg", "another"],
-                "title": "HandlePayload",
+                "title": key,
                 "type": "object",
             }
-        }
 
     def test_multi_args_with_default(self):
         broker = self.broker_class()
@@ -136,8 +166,9 @@ class ArgumentsTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {
-            "HandlePayload": {
+        for key, v in payload.items():
+            assert key == IsStr(regex=r"Handle\w*Payload")
+            assert v == {
                 "properties": {
                     "another": {
                         "anyOf": [{"type": "integer"}, {"type": "null"}],
@@ -147,46 +178,9 @@ class ArgumentsTestcase:
                     "msg": {"title": "Msg", "type": "string"},
                 },
                 "required": ["msg"],
-                "title": "HandlePayload",
+                "title": key,
                 "type": "object",
             }
-        }
-
-    def test_multi_args_with_pydantic_field(self):
-        broker = self.broker_class()
-
-        @broker.subscriber("test")
-        async def handle(
-            msg: str,
-            another: Optional[pydantic.PositiveInt] = pydantic.Field(
-                None, description="some field", title="Perfect"
-            ),
-        ):
-            ...
-
-        schema = get_app_schema(self.build_app(broker)).to_jsonable()
-
-        payload = schema["components"]["schemas"]
-
-        assert payload == {
-            "HandlePayload": {
-                "properties": {
-                    "another": {
-                        "anyOf": [
-                            {"exclusiveMinimum": 0, "type": "integer"},
-                            {"type": "null"},
-                        ],
-                        "default": None,
-                        "description": "some field",
-                        "title": "Perfect",
-                    },
-                    "msg": {"title": "Msg", "type": "string"},
-                },
-                "required": ["msg"],
-                "title": "HandlePayload",
-                "type": "object",
-            }
-        }
 
     def test_pydantic_model(self):
         class User(pydantic.BaseModel):
@@ -203,17 +197,17 @@ class ArgumentsTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {
-            "User": {
+        for key, v in payload.items():
+            assert key == "User"
+            assert v == {
                 "properties": {
                     "id": {"title": "Id", "type": "integer"},
                     "name": {"default": "", "title": "Name", "type": "string"},
                 },
                 "required": ["id"],
-                "title": "User",
+                "title": key,
                 "type": "object",
             }
-        }
 
     def test_pydantic_model_mixed_regular(self):
         class User(pydantic.BaseModel):
@@ -230,8 +224,9 @@ class ArgumentsTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {
-            "HandlePayload": {
+        for key, v in payload.items():
+            assert key == IsStr(regex=r"Handle\w*Payload")
+            assert v == {
                 "$defs": {
                     "User": {
                         "properties": {
@@ -252,10 +247,41 @@ class ArgumentsTestcase:
                     "user": {"$ref": "#/$defs/User"},
                 },
                 "required": ["user"],
-                "title": "HandlePayload",
+                "title": key,
                 "type": "object",
             }
-        }
+
+    def test_pydantic_model_with_example(self):
+        class User(pydantic.BaseModel):
+            name: str = ""
+            id: int
+
+            model_config = {
+                "json_schema_extra": {"examples": [{"name": "john", "id": 1}]}
+            }
+
+        broker = self.broker_class()
+
+        @broker.subscriber("test")
+        async def handle(user: User):
+            ...
+
+        schema = get_app_schema(self.build_app(broker)).to_jsonable()
+
+        payload = schema["components"]["schemas"]
+
+        for key, v in payload.items():
+            assert key == "User"
+            assert v == {
+                "examples": [{"id": 1, "name": "john"}],
+                "properties": {
+                    "id": {"title": "Id", "type": "integer"},
+                    "name": {"default": "", "title": "Name", "type": "string"},
+                },
+                "required": ["id"],
+                "title": "User",
+                "type": "object",
+            }
 
     def test_with_filter(self):
         class User(pydantic.BaseModel):
@@ -264,10 +290,11 @@ class ArgumentsTestcase:
 
         broker = self.broker_class()
 
-        @broker.subscriber(
-            "test", filter=lambda m: m.content_type == "application/json"
+        @broker.subscriber(  # pragma: no branch
+            "test",
+            filter=lambda m: m.content_type == "application/json",
         )
-        async def handle(id: int, description: str = ""):
+        async def handle(id: int):
             ...
 
         @broker.subscriber("test")
@@ -278,23 +305,41 @@ class ArgumentsTestcase:
 
         payload = schema["components"]["schemas"]
 
-        assert payload == {
-            "HandlePayload": {
+        for key, v in payload.items():
+            assert key == IsStr(regex=r"Handle\w*Payload")
+            assert v == {
                 "oneOf": {
-                    "HandleMsgPayload": {"title": "HandleMsgPayload"},
-                    "HandlePayload": {
-                        "properties": {
-                            "description": {
-                                "default": "",
-                                "title": "Description",
-                                "type": "string",
-                            },
-                            "id": {"title": "Id", "type": "integer"},
-                        },
-                        "required": ["id"],
-                        "title": "HandlePayload",
-                        "type": "object",
+                    "HandleTestIdPayload": {
+                        "title": "HandleTestIdPayload",
+                        "type": "integer",
                     },
+                    "HandleTestMsgPayload": {"title": "HandleTestMsgPayload"},
                 }
             }
-        }
+
+
+class ArgumentsTestcase(FastAPICompatible):
+    def test_pydantic_field(self):
+        broker = self.broker_class()
+
+        @broker.subscriber("msg")
+        async def msg(
+            msg: Optional[pydantic.PositiveInt] = pydantic.Field(
+                None, description="some field", title="Perfect", examples=[1]
+            ),
+        ):
+            ...
+
+        schema = get_app_schema(self.build_app(broker)).to_jsonable()
+
+        payload = schema["components"]["schemas"]
+
+        for key, v in payload.items():
+            assert key == "MsgPayload"
+            assert v == {
+                "anyOf": [{"exclusiveMinimum": 0, "type": "integer"}, {"type": "null"}],
+                "default": None,
+                "description": "some field",
+                "examples": [1],
+                "title": key,
+            }
