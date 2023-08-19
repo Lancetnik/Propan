@@ -1,4 +1,4 @@
-from typing import Any, Callable, Iterable, Optional, Type, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Type, Union
 
 from pydantic import AnyHttpUrl, BaseModel
 
@@ -6,9 +6,9 @@ from propan._compat import (
     CoreSchema,
     GetJsonSchemaHandler,
     JsonSchemaValue,
+    TypedDict,
     general_plain_validator_function,
     is_installed,
-    TypedDict,
 )
 from propan.log import logger
 
@@ -66,6 +66,8 @@ class Contact(BaseModel):
     url: Optional[AnyHttpUrl] = None
     email: Optional[EmailStr] = None
 
+    model_config = {"extra": "allow"}
+
 
 class LicenseDict(TypedDict, total=False):
     name: str
@@ -76,11 +78,13 @@ class License(BaseModel):
     name: str
     url: Optional[AnyHttpUrl] = None
 
+    model_config = {"extra": "allow"}
+
 
 class Info(BaseModel):
     title: str
     version: str = "1.0.0"
     description: str = ""
     termsOfService: Optional[AnyHttpUrl] = None
-    contact: Optional[Union[ContactDict, Contact]] = None
-    license: Optional[Union[License, LicenseDict]] = None
+    contact: Optional[Union[Contact, ContactDict, Dict[str, Any]]] = None
+    license: Optional[Union[License, LicenseDict, Dict[str, Any]]] = None

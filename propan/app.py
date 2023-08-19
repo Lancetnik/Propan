@@ -29,7 +29,7 @@ from propan.asyncapi.schema import (
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.cli.supervisors.utils import set_exit
 from propan.log import logger
-from propan.types import AnyCallable, AsyncFunc, SettingField
+from propan.types import AnyCallable, AnyDict, AsyncFunc, SettingField
 from propan.utils import apply_types, context
 from propan.utils.functions import to_async
 
@@ -52,11 +52,11 @@ class ABCApp(ABC):
         version: str = "0.1.0",
         description: str = "",
         terms_of_service: Optional[AnyHttpUrl] = None,
-        license: Optional[Union[License, LicenseDict]] = None,
-        contact: Optional[Union[Contact, ContactDict]] = None,
+        license: Optional[Union[License, LicenseDict, AnyDict]] = None,
+        contact: Optional[Union[Contact, ContactDict, AnyDict]] = None,
         identifier: Optional[str] = None,
-        tags: Optional[Sequence[Union[Tag, TagDict]]] = None,
-        external_docs: Optional[Union[ExternalDocs, ExternalDocsDict]] = None,
+        tags: Optional[Sequence[Union[Tag, TagDict, AnyDict]]] = None,
+        external_docs: Optional[Union[ExternalDocs, ExternalDocsDict, AnyDict]] = None,
     ):
         self.broker = broker
         self.logger = logger
@@ -139,11 +139,11 @@ class PropanApp(ABCApp):
         version: str = "0.1.0",
         description: str = "",
         terms_of_service: Optional[AnyHttpUrl] = None,
-        license: Optional[Union[License, LicenseDict]] = None,
-        contact: Optional[Union[Contact, ContactDict]] = None,
+        license: Optional[Union[License, LicenseDict, AnyDict]] = None,
+        contact: Optional[Union[Contact, ContactDict, AnyDict]] = None,
         identifier: Optional[str] = None,
-        tags: Optional[Sequence[Union[Tag, TagDict]]] = None,
-        external_docs: Optional[Union[ExternalDocs, ExternalDocsDict]] = None,
+        tags: Optional[Sequence[Union[Tag, TagDict, AnyDict]]] = None,
+        external_docs: Optional[Union[ExternalDocs, ExternalDocsDict, AnyDict]] = None,
     ):
         """Asyncronous Propan Application class
 
