@@ -139,3 +139,56 @@ def test_full_dict():
         },
         "tags": [{"description": "experimental", "name": "some-tag"}],
     }
+
+
+def test_extra():
+    schema = get_app_schema(
+        PropanApp(
+            KafkaBroker(),
+            title="My App",
+            version="1.0.0",
+            description="Test description",
+            license={"name": "MIT", "url": "https://mit.com/", "x-field": "extra"},
+            terms_of_service="https://my-terms.com/",
+            contact={"name": "support", "url": "https://help.com/", "x-field": "extra"},
+            tags=(
+                {"name": "some-tag", "description": "experimental", "x-field": "extra"},
+            ),
+            identifier="some-unique-uuid",
+            external_docs={
+                "url": "https://extra-docs.py/",
+                "x-field": "extra",
+            },
+        )
+    ).to_jsonable()
+
+    assert schema == {
+        "asyncapi": "2.6.0",
+        "channels": {},
+        "components": {"messages": {}, "schemas": {}},
+        "defaultContentType": "application/json",
+        "externalDocs": {"url": "https://extra-docs.py/", "x-field": "extra"},
+        "id": "some-unique-uuid",
+        "info": {
+            "contact": {
+                "name": "support",
+                "url": "https://help.com/",
+                "x-field": "extra",
+            },
+            "description": "Test description",
+            "license": {"name": "MIT", "url": "https://mit.com/", "x-field": "extra"},
+            "termsOfService": "https://my-terms.com/",
+            "title": "My App",
+            "version": "1.0.0",
+        },
+        "servers": {
+            "development": {
+                "protocol": "kafka",
+                "protocolVersion": "auto",
+                "url": "localhost",
+            }
+        },
+        "tags": [
+            {"description": "experimental", "name": "some-tag", "x-field": "extra"}
+        ],
+    }

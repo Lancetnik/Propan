@@ -39,8 +39,8 @@ class Schema(BaseModel):
     servers: Optional[Dict[str, Server]] = None
     channels: Dict[str, Channel]
     components: Optional[Components] = None
-    tags: Optional[List[Union[Tag, TagDict]]] = None
-    externalDocs: Optional[Union[ExternalDocs, ExternalDocsDict]] = None
+    tags: Optional[List[Union[Tag, TagDict, Dict[str, Any]]]] = None
+    externalDocs: Optional[Union[ExternalDocs, ExternalDocsDict, Dict[str, Any]]] = None
 
     def to_jsonable(self) -> Any:
         return model_to_jsonable(

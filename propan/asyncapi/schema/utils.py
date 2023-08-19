@@ -14,6 +14,8 @@ class ExternalDocs(BaseModel):
     url: AnyHttpUrl
     description: Optional[str] = None
 
+    model_config = {"extra": "allow"}
+
 
 class TagDict(TypedDict, total=False):
     name: str
@@ -25,6 +27,8 @@ class Tag(BaseModel):
     name: str
     description: Optional[str] = None
     externalDocs: Optional[Union[ExternalDocs, ExternalDocsDict]] = None
+
+    model_config = {"extra": "allow"}
 
 
 class Reference(BaseModel):
