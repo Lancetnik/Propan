@@ -1,8 +1,8 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
-from propan.asyncapi.schema.utils import ExternalDocs, Tag
+from propan.asyncapi.schema.utils import ExternalDocs, ExternalDocsDict, Tag, TagDict
 
 
 class CorrelationId(BaseModel):
@@ -27,5 +27,5 @@ class Message(BaseModel):
     # examples
     # traits
 
-    tags: Optional[List[Tag]] = None
-    externalDocs: Optional[ExternalDocs] = None
+    tags: Optional[List[Union[Tag, TagDict, Dict[str, Any]]]] = None
+    externalDocs: Optional[Union[ExternalDocs, ExternalDocsDict, Dict[str, Any]]] = None
