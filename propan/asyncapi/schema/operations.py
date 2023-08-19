@@ -1,10 +1,10 @@
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
 from propan.asyncapi.schema.bindings import OperationBinding
 from propan.asyncapi.schema.message import Message
-from propan.asyncapi.schema.utils import ExternalDocs, Tag
+from propan.asyncapi.schema.utils import ExternalDocs, ExternalDocsDict, Tag, TagDict
 
 
 class Operation(BaseModel):
@@ -21,5 +21,5 @@ class Operation(BaseModel):
     # TODO
     # traits
 
-    tags: Optional[List[Tag]] = None
-    externalDocs: Optional[ExternalDocs] = None
+    tags: Optional[List[Union[Tag, TagDict, Dict[str, Any]]]] = None
+    externalDocs: Optional[Union[ExternalDocs, ExternalDocsDict, Dict[str, Any]]] = None

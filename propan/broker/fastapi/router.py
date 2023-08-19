@@ -26,7 +26,16 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import _DefaultLifespan
 from starlette.types import AppType, ASGIApp, Lifespan
 
-from propan.asyncapi.schema import Contact, ExternalDocs, License, Tag
+from propan.asyncapi.schema import (
+    Contact,
+    ContactDict,
+    ExternalDocs,
+    ExternalDocsDict,
+    License,
+    LicenseDict,
+    Tag,
+    TagDict,
+)
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.fastapi.route import PropanRoute
 from propan.broker.publisher import BasePublisher
@@ -73,11 +82,11 @@ class PropanRouter(APIRouter, Generic[MsgType]):
         version: str = "0.1.0",
         description: str = "",
         terms_of_service: Optional[AnyHttpUrl] = None,
-        license: Optional[License] = None,
-        contact: Optional[Contact] = None,
+        license: Optional[Union[License, LicenseDict, AnyDict]] = None,
+        contact: Optional[Union[Contact, ContactDict, AnyDict]] = None,
         identifier: Optional[str] = None,
-        asyncapi_tags: Optional[Sequence[Tag]] = None,
-        external_docs: Optional[ExternalDocs] = None,
+        asyncapi_tags: Optional[List[Union[Tag, TagDict, AnyDict]]] = None,
+        external_docs: Optional[Union[ExternalDocs, ExternalDocsDict, AnyDict]] = None,
         **connection_kwars: Any,
     ) -> None:
         assert (
