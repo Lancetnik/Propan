@@ -18,7 +18,7 @@ class BrokerRPCTestcase:
             await full_broker.start()
 
             r = await full_broker.publish(
-                "hello", queue, callback_timeout=3, callback=True
+                "hello", queue, callback_timeout=3, callback=True, raise_timeout=True
             )
             assert r == "1"
 
