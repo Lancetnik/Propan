@@ -414,7 +414,7 @@ class KafkaBroker(
 
             except Exception as e:
                 if connected is True:
-                    self._log(e, logging.WARNING, c)
+                    self._log(e, logging.WARNING, c, exc_info=e)
                     connected = False
                 await anyio.sleep(5)
 

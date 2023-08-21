@@ -294,9 +294,9 @@ class RedisBroker(BrokerAsyncUsecase):
                     ignore_subscribe_messages=True,
                     timeout=self._polling_interval,
                 )
-            except Exception:
+            except Exception as e:
                 if connected is True:
-                    self._log("Connection broken", logging.WARNING, c)
+                    self._log("Connection broken", logging.WARNING, c, exc_info=e)
                     connected = False
                 await anyio.sleep(5)
             else:

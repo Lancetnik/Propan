@@ -295,7 +295,7 @@ class NatsBroker(BrokerAsyncUsecase[Msg, Client]):
                 await error_cb(err)
 
             if self.__is_connected is True:
-                self._log(err, logging.WARNING, c)
+                self._log(err, logging.WARNING, c, exc_info=err)
                 self.__is_connected = False
 
         return wrapper

@@ -139,17 +139,18 @@ class NatsJSBroker(NatsBroker):
                 subjects=[h.subject for h in self.handlers],
             )
         except nats.js.errors.BadRequestError as e:
+            c = self._get_log_context(None, "")
             if (
                 e.description
                 == "stream name already in use with a different configuration"
             ):
-                self._log(e, logging.WARNING)
+                self._log(e, logging.WARNING, c, exc_info=e)
                 await self._connection.update_stream(
                     config=self._stream_config,
                     subjects=[h.subject for h in self.handlers],
                 )
             else:  # pragma: no cover
-                self._log(e, logging.ERROR)
+                self._log(e, logging.ERROR, c, exc_info=e)
 
     def _process_message(
         self,

@@ -352,7 +352,7 @@ class SQSBroker(BrokerAsyncUsecase[AnyDict, AioBaseClient]):
 
                 except Exception as e:
                     if connected is True:
-                        self._log(e, logging.WARNING, c)
+                        self._log(e, logging.WARNING, c, exc_info=e)
                         self._queues.pop(handler.queue.name)
                         connected = False
 

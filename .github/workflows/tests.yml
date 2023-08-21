@@ -49,7 +49,7 @@ jobs:
           - 4222:4222
 
       redis:
-        image: redis:alpine
+        image: redis:alpine3.18
         ports:
           - 6379:6379
 
@@ -223,7 +223,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       redis:
-        image: redis:alpine
+        image: redis:alpine3.18
         ports:
           - 6379:6379
     steps:
