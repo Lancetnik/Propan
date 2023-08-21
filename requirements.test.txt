@@ -4,4 +4,5 @@ pytest-asyncio>=0.21
 dirty-equals==0.6.0
 
 fastapi>=0.100.0b
+pydantic-settings
 httpx

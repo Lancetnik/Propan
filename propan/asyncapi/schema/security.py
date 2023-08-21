@@ -2,6 +2,8 @@ from typing import Dict, Literal, Optional
 
 from pydantic import AnyHttpUrl, BaseModel, Field
 
+from propan._compat import PYDANTIC_V2
+
 
 class OauthFlowObj(BaseModel):
     authorizationUrl: Optional[AnyHttpUrl] = None
@@ -9,12 +11,28 @@ class OauthFlowObj(BaseModel):
     refreshUrl: Optional[AnyHttpUrl] = None
     scopes: Dict[str, str]
 
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
+
 
 class OauthFlows(BaseModel):
     implicit: Optional[OauthFlowObj] = None
     password: Optional[OauthFlowObj] = None
     clientCredentials: Optional[OauthFlowObj] = None
     authorizationCode: Optional[OauthFlowObj] = None
+
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class SecuritySchemaComponent(BaseModel):
@@ -46,3 +64,11 @@ class SecuritySchemaComponent(BaseModel):
     bearerFormat: Optional[str] = None
     openIdConnectUrl: Optional[str] = None
     flows: Optional[OauthFlows] = None
+
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"

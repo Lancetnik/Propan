@@ -2,6 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from propan._compat import PYDANTIC_V2
 from propan.asyncapi.schema.bindings import amqp as amqp_bindings
 from propan.asyncapi.schema.bindings import kafka as kafka_bindings
 from propan.asyncapi.schema.bindings import nats as nats_bindings
@@ -16,6 +17,14 @@ class ServerBinding(BaseModel):
     nats: Optional[nats_bindings.ServerBinding] = None
     redis: Optional[redis_bindings.ServerBinding] = None
 
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
+
 
 class ChannelBinding(BaseModel):
     amqp: Optional[amqp_bindings.ChannelBinding] = None
@@ -24,6 +33,14 @@ class ChannelBinding(BaseModel):
     nats: Optional[nats_bindings.ChannelBinding] = None
     redis: Optional[redis_bindings.ChannelBinding] = None
 
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
+
 
 class OperationBinding(BaseModel):
     amqp: Optional[amqp_bindings.OperationBinding] = None
@@ -31,3 +48,11 @@ class OperationBinding(BaseModel):
     sqs: Optional[sqs_bindings.OperationBinding] = None
     nats: Optional[nats_bindings.OperationBinding] = None
     redis: Optional[redis_bindings.OperationBinding] = None
+
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"

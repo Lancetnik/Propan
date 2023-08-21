@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Sequence, Type, overload
 from fast_depends.core import CallModel
 from pydantic import BaseModel
 
-from propan._compat import get_model_fields, model_schema
+from propan._compat import PYDANTIC_V2, get_model_fields, model_schema
 from propan.asyncapi.utils import to_camelcase
 
 
@@ -93,7 +93,18 @@ def get_model_schema(
     if params_number == 1 and not use_original_model:
         param_body = body.get("properties", {})
         param_body = param_body[name]
-        param_body["title"] = name
+
+        if PYDANTIC_V2:
+            original_title = param.title
+        else:
+            original_title = param.field_info.title  # type: ignore[attr-defined]
+
+        if original_title:
+            use_original_model = True
+            param_body["title"] = original_title
+        else:
+            param_body["title"] = name
+
         body = param_body
 
     camel_body = to_camelcase(body["title"])

@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
-from propan._compat import model_to_json, model_to_jsonable
+from propan._compat import PYDANTIC_V2, model_to_json, model_to_jsonable
 from propan.asyncapi.schema.channels import Channel
 from propan.asyncapi.schema.info import Info
 from propan.asyncapi.schema.message import Message
@@ -29,6 +29,14 @@ class Components(BaseModel):
     # channelBindings
     # operationBindings
     # messageBindings
+
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class Schema(BaseModel):

@@ -1,9 +1,10 @@
 from typing import Optional, Type
 
 import pydantic
-from dirty_equals import IsStr
+from dirty_equals import IsDict, IsStr
 
 from propan import PropanApp
+from propan._compat import PYDANTIC_V2
 from propan.asyncapi.generate import get_app_schema
 from propan.broker.core.abc import BrokerUsecase
 
@@ -85,10 +86,17 @@ class FastAPICompatible:
 
         for key, v in payload.items():
             assert key == IsStr(regex=r"Handle\w*Payload")
-            assert v == {
-                "anyOf": [{"type": "integer"}, {"type": "null"}],
-                "title": key,
-            }
+            assert v == IsDict(
+                {
+                    "anyOf": [{"type": "integer"}, {"type": "null"}],
+                    "title": key,
+                }
+            ) | IsDict(
+                {  # TODO: remove when deprecating PydanticV1
+                    "title": "HandleTestMsgPayload",
+                    "type": "integer",
+                }
+            )
 
     def test_simple_type_with_default(self):
         broker = self.broker_class()
@@ -168,13 +176,22 @@ class FastAPICompatible:
 
         for key, v in payload.items():
             assert key == IsStr(regex=r"Handle\w*Payload")
+
             assert v == {
                 "properties": {
-                    "another": {
-                        "anyOf": [{"type": "integer"}, {"type": "null"}],
-                        "default": None,
-                        "title": "Another",
-                    },
+                    "another": IsDict(
+                        {
+                            "anyOf": [{"type": "integer"}, {"type": "null"}],
+                            "default": None,
+                            "title": "Another",
+                        }
+                    )
+                    | IsDict(
+                        {  # TODO: remove when deprecating PydanticV1
+                            "title": "Another",
+                            "type": "integer",
+                        }
+                    ),
                     "msg": {"title": "Msg", "type": "string"},
                 },
                 "required": ["msg"],
@@ -231,7 +248,11 @@ class FastAPICompatible:
                     "User": {
                         "properties": {
                             "id": {"title": "Id", "type": "integer"},
-                            "name": {"default": "", "title": "Name", "type": "string"},
+                            "name": {
+                                "default": "",
+                                "title": "Name",
+                                "type": "string",
+                            },
                         },
                         "required": ["id"],
                         "title": "User",
@@ -249,6 +270,29 @@ class FastAPICompatible:
                 "required": ["user"],
                 "title": key,
                 "type": "object",
+            } or v == {  # TODO: remove when deprecating PydanticV1
+                "definitions": {
+                    "User": {
+                        "properties": {
+                            "id": {"title": "Id", "type": "integer"},
+                            "name": {"default": "", "title": "Name", "type": "string"},
+                        },
+                        "required": ["id"],
+                        "title": "User",
+                        "type": "object",
+                    }
+                },
+                "properties": {
+                    "description": {
+                        "default": "",
+                        "title": "Description",
+                        "type": "string",
+                    },
+                    "user": {"$ref": "#/definitions/User"},
+                },
+                "required": ["user"],
+                "title": key,
+                "type": "object",
             }
 
     def test_pydantic_model_with_example(self):
@@ -256,9 +300,15 @@ class FastAPICompatible:
             name: str = ""
             id: int
 
-            model_config = {
-                "json_schema_extra": {"examples": [{"name": "john", "id": 1}]}
-            }
+            if PYDANTIC_V2:
+                model_config = {
+                    "json_schema_extra": {"examples": [{"name": "john", "id": 1}]}
+                }
+
+            else:
+
+                class Config:
+                    schema_extra = {"examples": [{"name": "john", "id": 1}]}
 
         broker = self.broker_class()
 
@@ -324,8 +374,11 @@ class ArgumentsTestcase(FastAPICompatible):
 
         @broker.subscriber("msg")
         async def msg(
-            msg: Optional[pydantic.PositiveInt] = pydantic.Field(
-                None, description="some field", title="Perfect", examples=[1]
+            msg: pydantic.PositiveInt = pydantic.Field(
+                1,
+                description="some field",
+                title="Perfect",
+                examples=[1],
             ),
         ):
             ...
@@ -335,11 +388,13 @@ class ArgumentsTestcase(FastAPICompatible):
         payload = schema["components"]["schemas"]
 
         for key, v in payload.items():
-            assert key == "MsgPayload"
+            assert key == "Perfect"
+
             assert v == {
-                "anyOf": [{"exclusiveMinimum": 0, "type": "integer"}, {"type": "null"}],
-                "default": None,
+                "default": 1,
                 "description": "some field",
                 "examples": [1],
-                "title": key,
+                "exclusiveMinimum": 0,
+                "title": "Perfect",
+                "type": "integer",
             }

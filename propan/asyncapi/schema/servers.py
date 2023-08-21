@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
+from propan._compat import PYDANTIC_V2
 from propan.asyncapi.schema.bindings import ServerBinding
 from propan.asyncapi.schema.utils import Reference, Tag, TagDict
 
@@ -14,6 +15,14 @@ class ServerVariable(BaseModel):
     description: Optional[str] = None
     examples: Optional[List[str]] = None
 
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
+
 
 class Server(BaseModel):
     url: str
@@ -24,3 +33,11 @@ class Server(BaseModel):
     security: Optional[SecurityRequirement] = None
     variables: Optional[Dict[str, Union[ServerVariable, Reference]]] = None
     bindings: Optional[Union[ServerBinding, Reference]] = None
+
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"

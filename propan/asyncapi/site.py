@@ -1,10 +1,12 @@
 import json
+from typing import TYPE_CHECKING
 
-from propan.asyncapi.schema import Schema
+if TYPE_CHECKING:
+    from propan.asyncapi.schema import Schema
 
 
 def get_asyncapi_html(
-    schema: Schema,
+    schema: "Schema",
     sidebar: bool = True,
     info: bool = True,
     servers: bool = True,
@@ -81,7 +83,7 @@ def get_asyncapi_html(
 
 
 def serve_app(
-    schema: Schema,
+    schema: "Schema",
     host: str,
     port: int,
 ) -> None:
