@@ -192,10 +192,9 @@ class BrokerUsecase(
             dependant = _patch_fastapi_dependant(dependant)
 
         if self._is_apply_types is True:
-            apply_wrapper = cast(
-                _InjectWrapper[P_HandlerParams, Awaitable[T_HandlerReturn]],
-                apply_types(None),
-            )
+            apply_wrapper: _InjectWrapper[
+                P_HandlerParams, Awaitable[T_HandlerReturn]
+            ] = apply_types(None)
             f = apply_wrapper(f, dependant)
 
         decode_f = self._wrap_decode_message(
