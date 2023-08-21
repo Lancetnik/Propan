@@ -263,6 +263,7 @@ class NatsJSBroker(NatsBroker):
         message: SendableMessage,
         subject: str,
         *,
+        stream: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
         reply_to: str = "",
         callback: bool = False,
@@ -280,8 +281,11 @@ class NatsJSBroker(NatsBroker):
             if reply_to:
                 raise WRONG_PUBLISH_ARGS
 
+            token = client._nuid.next()
+            token.extend(token_hex(2).encode())
+
             future: asyncio.Future[Msg] = asyncio.Future()
-            sub = await client.subscribe(reply_to, future=future, max_msgs=1)
+            sub = await client.subscribe(token.decode(), future=future, max_msgs=1)
             await sub.unsubscribe(limit=1)
 
         if raise_timeout:
@@ -300,7 +304,7 @@ class NatsJSBroker(NatsBroker):
                         "content-type": content_type or "",
                     },
                     timeout=callback_timeout,
-                    stream=self._stream_config.name,
+                    stream=stream or self._stream_config.name,
                 )
 
         if callback:
