@@ -127,7 +127,7 @@ version: "3"
 
 services:
   rabbit:
-    image: rabbitmq
+    image: rabbitmq:3
     ports:
       - 5672:5672
 

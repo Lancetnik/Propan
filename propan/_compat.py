@@ -110,20 +110,21 @@ else:
         return json.loads(model.json(**kwargs))
 
     def update_model_example(model: Type[BaseModel]) -> Type[BaseModel]:
-        schema_extra = model.Config.schema_extra.copy()
+        schema_extra = getattr(model.Config, "schema_extra", {})
         if schema_extra.get("example") is None and sys.version_info >= (3, 8):
+            schema = schema_extra.copy()
             from polyfactory.factories.pydantic_factory import ModelFactory
 
             factory: BaseModel = type(
                 f"{model.__name__}_factory", (ModelFactory,), {"__model__": model}
             ).build()
-            schema_extra["example"] = model_to_jsonable(factory)
+            schema["example"] = model_to_jsonable(factory)
             return type(
                 model.__name__,
                 (model,),
                 {
                     "Config": type(
-                        "Config", (model.Config,), {"schema_extra": schema_extra}
+                        "Config", (model.Config,), {"schema_extra": schema}
                     )
                 },
             )
