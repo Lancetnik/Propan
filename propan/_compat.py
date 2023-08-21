@@ -4,7 +4,8 @@ import os
 import sys
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, TypeVar, Union
 
-from fast_depends._compat import PYDANTIC_V2, FieldInfo
+from fast_depends._compat import PYDANTIC_V2 as PYDANTIC_V2
+from fast_depends._compat import FieldInfo
 from pydantic import BaseModel
 
 # TODO: uncomment with 3.12 release
@@ -24,8 +25,10 @@ else:
 
 if sys.version_info < (3, 10):
     from typing_extensions import ParamSpec as ParamSpec
+    from typing_extensions import TypeAlias as TypeAlias
 else:
     from typing import ParamSpec as ParamSpec
+    from typing import TypeAlias as TypeAlias
 
 if sys.version_info < (3, 9):
     from typing_extensions import Annotated as Annotated

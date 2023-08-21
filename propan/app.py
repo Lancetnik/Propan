@@ -1,21 +1,11 @@
 import logging
 from abc import ABC
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, Union
 
 import anyio
 from pydantic import AnyHttpUrl
 
-from propan._compat import ParamSpec, override
+from propan._compat import ParamSpec
 from propan.asyncapi.schema import (
     Contact,
     ContactDict,
@@ -176,11 +166,10 @@ class PropanApp(ABCApp):
 
         set_exit(lambda *_: self.__exit())
 
-    @override
-    def on_startup(  # type: ignore[override]
+    def on_startup(
         self,
         func: Callable[P_HookParams, T_HookReturn],
-    ) -> Callable[P_HookParams, Awaitable[T_HookReturn]]:
+    ) -> Callable[P_HookParams, T_HookReturn]:
         """Add hook running BEFORE broker connected
 
         This hook also takes an extra CLI options as a kwargs
@@ -191,13 +180,13 @@ class PropanApp(ABCApp):
         Returns:
             Async version of the func argument
         """
-        return super().on_startup(to_async(func))
+        super().on_startup(to_async(func))
+        return func
 
-    @override
-    def on_shutdown(  # type: ignore[override]
+    def on_shutdown(
         self,
-        func: Callable[P_HookParams, Awaitable[T_HookReturn]],
-    ) -> AsyncFunc:
+        func: Callable[P_HookParams, T_HookReturn],
+    ) -> Callable[P_HookParams, T_HookReturn]:
         """Add hook running BEFORE broker disconnected
 
         Args:
@@ -206,13 +195,13 @@ class PropanApp(ABCApp):
         Returns:
             Async version of the func argument
         """
-        return super().on_shutdown(to_async(func))
+        super().on_shutdown(to_async(func))
+        return func
 
-    @override
-    def after_startup(  # type: ignore[override]
+    def after_startup(
         self,
-        func: Callable[P_HookParams, Awaitable[T_HookReturn]],
-    ) -> AsyncFunc:
+        func: Callable[P_HookParams, T_HookReturn],
+    ) -> Callable[P_HookParams, T_HookReturn]:
         """Add hook running AFTER broker connected
 
         Args:
@@ -221,13 +210,13 @@ class PropanApp(ABCApp):
         Returns:
             Async version of the func argument
         """
-        return super().after_startup(to_async(func))
+        super().after_startup(to_async(func))
+        return func
 
-    @override
-    def after_shutdown(  # type: ignore[override]
+    def after_shutdown(
         self,
-        func: Callable[P_HookParams, Awaitable[T_HookReturn]],
-    ) -> AsyncFunc:
+        func: Callable[P_HookParams, T_HookReturn],
+    ) -> Callable[P_HookParams, T_HookReturn]:
         """Add hook running AFTER broker disconnected
 
         Args:
@@ -236,7 +225,8 @@ class PropanApp(ABCApp):
         Returns:
             Async version of the func argument
         """
-        return super().after_shutdown(to_async(func))
+        super().after_shutdown(to_async(func))
+        return func
 
     async def run(
         self,

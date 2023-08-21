@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 from pydantic import AnyHttpUrl, BaseModel, Field
 
-from propan._compat import TypedDict
+from propan._compat import PYDANTIC_V2, TypedDict
 
 
 class ExternalDocsDict(TypedDict, total=False):
@@ -14,7 +14,13 @@ class ExternalDocs(BaseModel):
     url: AnyHttpUrl
     description: Optional[str] = None
 
-    model_config = {"extra": "allow"}
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class TagDict(TypedDict, total=False):
@@ -28,7 +34,13 @@ class Tag(BaseModel):
     description: Optional[str] = None
     externalDocs: Optional[Union[ExternalDocs, ExternalDocsDict]] = None
 
-    model_config = {"extra": "allow"}
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class Reference(BaseModel):

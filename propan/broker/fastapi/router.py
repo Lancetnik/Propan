@@ -14,6 +14,7 @@ from typing import (
     Tuple,
     Type,
     Union,
+    overload,
 )
 
 from fastapi import APIRouter, FastAPI, params
@@ -217,6 +218,34 @@ class PropanRouter(APIRouter, Generic[MsgType]):
 
         return start_broker_lifespan
 
+    @overload
+    def after_startup(
+        self,
+        func: Callable[[AppType], Mapping[str, Any]],
+    ) -> Callable[[AppType], Mapping[str, Any]]:
+        ...
+
+    @overload
+    def after_startup(
+        self,
+        func: Callable[[AppType], Awaitable[Mapping[str, Any]]],
+    ) -> Callable[[AppType], Awaitable[Mapping[str, Any]]]:
+        ...
+
+    @overload
+    def after_startup(
+        self,
+        func: Callable[[AppType], None],
+    ) -> Callable[[AppType], None]:
+        ...
+
+    @overload
+    def after_startup(
+        self,
+        func: Callable[[AppType], Awaitable[None]],
+    ) -> Callable[[AppType], Awaitable[None]]:
+        ...
+
     def after_startup(
         self,
         func: Union[
@@ -225,8 +254,14 @@ class PropanRouter(APIRouter, Generic[MsgType]):
             Callable[[AppType], None],
             Callable[[AppType], Awaitable[None]],
         ],
-    ) -> None:
+    ) -> Union[
+        Callable[[AppType], Mapping[str, Any]],
+        Callable[[AppType], Awaitable[Mapping[str, Any]]],
+        Callable[[AppType], None],
+        Callable[[AppType], Awaitable[None]],
+    ]:
         self._after_startup_hooks.append(to_async(func))  # type: ignore
+        return func
 
     def publisher(
         self,

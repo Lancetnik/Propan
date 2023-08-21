@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Type, Union
 from pydantic import AnyHttpUrl, BaseModel
 
 from propan._compat import (
+    PYDANTIC_V2,
     CoreSchema,
     GetJsonSchemaHandler,
     JsonSchemaValue,
@@ -66,7 +67,13 @@ class Contact(BaseModel):
     url: Optional[AnyHttpUrl] = None
     email: Optional[EmailStr] = None
 
-    model_config = {"extra": "allow"}
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class LicenseDict(TypedDict, total=False):
@@ -78,7 +85,13 @@ class License(BaseModel):
     name: str
     url: Optional[AnyHttpUrl] = None
 
-    model_config = {"extra": "allow"}
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class Info(BaseModel):
@@ -88,3 +101,11 @@ class Info(BaseModel):
     termsOfService: Optional[AnyHttpUrl] = None
     contact: Optional[Union[Contact, ContactDict, Dict[str, Any]]] = None
     license: Optional[Union[License, LicenseDict, Dict[str, Any]]] = None
+
+    if PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+
+    else:
+
+        class Config:
+            extra = "allow"
