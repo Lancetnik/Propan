@@ -283,9 +283,9 @@ class NatsJSBroker(NatsBroker):
 
             token = client._nuid.next()
             token.extend(token_hex(2).encode())
-
+            reply_to = token.decode()
             future: asyncio.Future[Msg] = asyncio.Future()
-            sub = await client.subscribe(token.decode(), future=future, max_msgs=1)
+            sub = await client.subscribe(reply_to, future=future, max_msgs=1)
             await sub.unsubscribe(limit=1)
 
         if raise_timeout:
