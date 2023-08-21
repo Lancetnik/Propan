@@ -132,7 +132,7 @@ services:
       - 5672:5672
 
   redis:
-    image: redis
+    image: redis:alpine3.18
     ports:
       - 6379:6379
 
