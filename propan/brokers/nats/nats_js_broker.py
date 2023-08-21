@@ -280,11 +280,6 @@ class NatsJSBroker(NatsBroker):
             if reply_to:
                 raise WRONG_PUBLISH_ARGS
 
-            token = client._nuid.next()
-            token.extend(token_hex(2).encode())
-            reply_to = token.decode()
-
-        if reply_to:
             future: asyncio.Future[Msg] = asyncio.Future()
             sub = await client.subscribe(reply_to, future=future, max_msgs=1)
             await sub.unsubscribe(limit=1)
@@ -308,7 +303,7 @@ class NatsJSBroker(NatsBroker):
                     stream=self._stream_config.name,
                 )
 
-        if reply_to:
+        if callback:
             msg: Any = None
             with scope(callback_timeout):
                 msg = await future
