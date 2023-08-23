@@ -127,11 +127,15 @@ class BrokerUsecase(
         self.description = description
         self.tags = tags
 
-    def include_router(self, router: BrokerRouter[MsgType]) -> None:
+    def include_router(self, router: BrokerRouter[Any, MsgType]) -> None:
         for r in router._handlers:
             self.subscriber(*r.args, **r.kwargs)(r.call)
 
         self._publishers.update(router._publishers)
+
+    def include_routers(self, *routers: BrokerRouter[Any, MsgType]) -> None:
+        for r in routers:
+            self.include_router(r)
 
     def _resolve_connection_kwargs(self, *args: Any, **kwargs: Any) -> AnyDict:
         arguments = get_function_positional_arguments(self.__init__)  # type: ignore

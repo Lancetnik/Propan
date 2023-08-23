@@ -304,7 +304,9 @@ class BrokerPublishTestcase:
 
             await asyncio.wait(
                 (
-                    asyncio.create_task(pub_broker.publish("Hello!", queue, reply_to=queue + "reply")),
+                    asyncio.create_task(
+                        pub_broker.publish("Hello!", queue, reply_to=queue + "reply")
+                    ),
                     asyncio.create_task(event.wait()),
                 ),
                 timeout=3,

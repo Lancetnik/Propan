@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from contextlib import AsyncExitStack, ExitStack
 from typing import (
+    Any,
     AsyncContextManager,
     Awaitable,
     Callable,
@@ -38,7 +39,7 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
     calls: Union[
         List[
             Tuple[
-                HandlerCallWrapper[MsgType, ..., SendableMessage],  # handler
+                HandlerCallWrapper[MsgType, Any, SendableMessage],  # handler
                 Callable[[PropanMessage[MsgType]], bool],  # filter
                 SyncParser[MsgType],  # parser
                 SyncDecoder[MsgType],  # decoder
@@ -50,7 +51,7 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
         ],
         List[
             Tuple[
-                HandlerCallWrapper[MsgType, ..., SendableMessage],  # handler
+                HandlerCallWrapper[MsgType, Any, SendableMessage],  # handler
                 Callable[[PropanMessage[MsgType]], Awaitable[bool]],  # filter
                 AsyncParser[MsgType],  # parser
                 AsyncDecoder[MsgType],  # decoder
@@ -121,7 +122,7 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
 class SyncHandler(BaseHandler[MsgType]):
     calls: List[
         Tuple[
-            HandlerCallWrapper[MsgType, ..., SendableMessage],  # handler
+            HandlerCallWrapper[MsgType, Any, SendableMessage],  # handler
             Callable[[PropanMessage[MsgType]], bool],  # filter
             SyncParser[MsgType],  # parser
             SyncDecoder[MsgType],  # decoder
@@ -137,7 +138,7 @@ class SyncHandler(BaseHandler[MsgType]):
     def add_call(
         self,
         *,
-        handler: HandlerCallWrapper[MsgType, ..., SendableMessage],
+        handler: HandlerCallWrapper[MsgType, Any, SendableMessage],
         filter: Callable[[PropanMessage[MsgType]], bool],
         parser: SyncParser[MsgType],
         decoder: SyncDecoder[MsgType],
@@ -207,7 +208,7 @@ class SyncHandler(BaseHandler[MsgType]):
 class AsyncHandler(BaseHandler[MsgType]):
     calls: List[
         Tuple[
-            HandlerCallWrapper[MsgType, ..., SendableMessage],  # handler
+            HandlerCallWrapper[MsgType, Any, SendableMessage],  # handler
             Callable[[PropanMessage[MsgType]], Awaitable[bool]],  # filter
             AsyncParser[MsgType],  # parser
             AsyncDecoder[MsgType],  # decoder

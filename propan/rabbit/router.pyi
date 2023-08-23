@@ -31,12 +31,21 @@ from propan.types import AnyDict
 
 RabbitMessage = PropanMessage[aio_pika.IncomingMessage]
 
-class RabbitRouter(BrokerRouter[aio_pika.IncomingMessage]):
+class RabbitRouter(BrokerRouter[int, aio_pika.IncomingMessage]):
     def __init__(
         self,
         prefix: str = "",
         handlers: Sequence[RabbitRoute] = (),
     ): ...
+    @staticmethod
+    @override
+    def _get_publisher_key(publisher: Publisher) -> int: ...  # type: ignore[override]
+    @staticmethod
+    @override
+    def _update_publisher_prefix(  # type: ignore[override]
+        prefix: str,
+        publisher: Publisher,
+    ) -> Publisher: ...
     @override
     def subscriber(  # type: ignore[override]
         self,
