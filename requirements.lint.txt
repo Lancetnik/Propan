@@ -1,4 +1,4 @@
-types-redis
+types-PyYAML
 
 mypy==1.4.1
 black==23.3.0
