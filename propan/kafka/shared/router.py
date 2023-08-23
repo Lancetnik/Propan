@@ -14,7 +14,7 @@ __all__ = (
 )
 
 
-class KafkaRouter(BrokerRouter[ConsumerRecord]):
+class KafkaRouter(BrokerRouter[str, ConsumerRecord]):
     def __init__(
         self,
         prefix: str = "",

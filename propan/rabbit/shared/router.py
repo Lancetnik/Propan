@@ -16,7 +16,7 @@ __all__ = (
 )
 
 
-class RabbitRouter(BrokerRouter[IncomingMessage]):
+class RabbitRouter(BrokerRouter[int, IncomingMessage]):
     def __init__(
         self,
         prefix: str = "",

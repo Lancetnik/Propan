@@ -203,6 +203,75 @@ class RouterTestcase(LocalMiddlewareTestcase, LocalCustomParserTestcase):
 
         assert event.is_set()
 
+    async def test_nested_routers_sub(
+        self,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+        event: asyncio.Event,
+    ):
+        core_router = type(router)(prefix="test1_")
+        router.prefix = "test2_"
+
+        @router.subscriber(queue)
+        def subscriber(m):
+            event.set()
+            return "hi"
+
+        core_router.include_routers(router)
+        pub_broker.include_routers(core_router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(
+                    pub_broker.publish("hello", f"test1_test2_{queue}")
+                ),
+                asyncio.create_task(event.wait()),
+            ),
+            timeout=3,
+        )
+
+        assert event.is_set()
+        subscriber.mock.assert_called_with("hello")
+
+    async def test_nested_routers_pub(
+        self,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+        event: asyncio.Event,
+    ):
+        core_router = type(router)(prefix="test1_")
+        router.prefix = "test2_"
+
+        @router.subscriber(queue)
+        @router.publisher(queue + "resp")
+        def subscriber(m):
+            return "hi"
+
+        @pub_broker.subscriber("test1_" + "test2_" + queue + "resp")
+        def response(m):
+            event.set()
+
+        core_router.include_routers(router)
+        pub_broker.include_routers(core_router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(
+                    pub_broker.publish("hello", f"test1_test2_{queue}")
+                ),
+                asyncio.create_task(event.wait()),
+            ),
+            timeout=3,
+        )
+
+        assert event.is_set()
+
 
 @pytest.mark.asyncio
 class RouterLocalTestcase(RouterTestcase):
