@@ -28,7 +28,6 @@ from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
-    AsyncPublisherProtocol,
     ConnectionType,
     MsgType,
     P_HandlerParams,
@@ -90,10 +89,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         self,
         func: Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]],
         watcher: BaseWatcher,
-    ) -> Callable[
-        [PropanMessage[MsgType]],
-        Awaitable[Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]],
-    ]:
+    ) -> Callable[[PropanMessage[MsgType]], Awaitable[WrappedReturn[T_HandlerReturn]],]:
         raise NotImplementedError()
 
     @abstractmethod

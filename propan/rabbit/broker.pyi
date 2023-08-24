@@ -9,7 +9,6 @@ from typing import (
     Dict,
     Optional,
     Sequence,
-    Tuple,
     Type,
     Union,
 )
@@ -28,9 +27,9 @@ from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
-    AsyncPublisherProtocol,
     P_HandlerParams,
     T_HandlerReturn,
+    WrappedReturn,
 )
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.log import access_logger
@@ -227,10 +226,7 @@ class RabbitBroker(
         self,
         func: Callable[[RabbitMessage], Awaitable[T_HandlerReturn]],
         watcher: BaseWatcher,
-    ) -> Callable[
-        [RabbitMessage],
-        Awaitable[Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]],
-    ]: ...
+    ) -> Callable[[RabbitMessage], Awaitable[WrappedReturn[T_HandlerReturn]],]: ...
     async def declare_queue(
         self,
         queue: RabbitQueue,

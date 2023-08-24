@@ -8,7 +8,6 @@ from typing import (
     Dict,
     Optional,
     Sequence,
-    Tuple,
     Type,
     Union,
     cast,
@@ -29,6 +28,7 @@ from propan.broker.types import (
     AsyncPublisherProtocol,
     P_HandlerParams,
     T_HandlerReturn,
+    WrappedReturn,
 )
 from propan.broker.wrapper import FakePublisher, HandlerCallWrapper
 from propan.rabbit.asyncapi import Handler, Publisher
@@ -285,14 +285,11 @@ class RabbitBroker(
         self,
         func: Callable[[RabbitMessage], Awaitable[T_HandlerReturn]],
         watcher: BaseWatcher,
-    ) -> Callable[
-        [RabbitMessage],
-        Awaitable[Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]],
-    ]:
+    ) -> Callable[[RabbitMessage], Awaitable[WrappedReturn[T_HandlerReturn]],]:
         @wraps(func)
         async def process_wrapper(
             message: RabbitMessage,
-        ) -> Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]:
+        ) -> WrappedReturn[T_HandlerReturn]:
             async with WatcherContext(watcher, message):
                 r = await self._execute_handler(func, message)
 
