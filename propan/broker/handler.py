@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from contextlib import AsyncExitStack, ExitStack
+from contextlib import AsyncExitStack
 from typing import (
     Any,
     AsyncContextManager,
@@ -29,6 +29,7 @@ from propan.broker.types import (
     SyncDecoder,
     SyncParser,
     T_HandlerReturn,
+    WrappedReturn,
 )
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.exceptions import StopConsume
@@ -119,92 +120,6 @@ class BaseHandler(AsyncAPIOperation, Generic[MsgType]):
         raise NotImplementedError()
 
 
-class SyncHandler(BaseHandler[MsgType]):
-    calls: List[
-        Tuple[
-            HandlerCallWrapper[MsgType, Any, SendableMessage],  # handler
-            Callable[[PropanMessage[MsgType]], bool],  # filter
-            SyncParser[MsgType],  # parser
-            SyncDecoder[MsgType],  # decoder
-            Sequence[  # middlewares
-                Callable[[PropanMessage[MsgType]], ContextManager[None]]
-            ],
-            CallModel[..., SendableMessage],  # dependant
-        ]
-    ]
-
-    global_middlewares: Sequence[Callable[[MsgType], ContextManager[None]]]
-
-    def add_call(
-        self,
-        *,
-        handler: HandlerCallWrapper[MsgType, Any, SendableMessage],
-        filter: Callable[[PropanMessage[MsgType]], bool],
-        parser: SyncParser[MsgType],
-        decoder: SyncDecoder[MsgType],
-        middlewares: Optional[
-            Sequence[Callable[[PropanMessage[MsgType]], ContextManager[None]]]
-        ],
-        dependant: CallModel[..., SendableMessage],
-    ) -> None:
-        self.calls.append(
-            (
-                handler,
-                filter,
-                parser,
-                decoder,
-                middlewares or (),
-                dependant,
-            )
-        )
-
-    def consume(self, msg: MsgType) -> SendableMessage:
-        result: SendableMessage = None
-
-        with ExitStack() as stack:
-            for m in self.global_middlewares:
-                stack.enter_context(m(msg))
-
-            processed = False
-            for handler, f, parser, decoder, middlewares, _ in self.calls:
-                message = parser(msg)
-                message.decoded_body = decoder(message)
-                message.processed = processed
-
-                if f(message):
-                    assert (
-                        not processed
-                    ), "You can't proccess a message with multiple consumers"
-
-                    try:
-                        for inner_m in middlewares:
-                            stack.enter_context(inner_m(message))
-
-                        result = cast(
-                            Optional[SendableMessage],
-                            handler.call_wrapped(message, reraise_exc=self.is_test),
-                        )
-
-                    except StopConsume:
-                        self.close()
-                        return None
-
-                    else:
-                        message.processed = processed = True
-                        if IS_OPTIMIZED:
-                            break
-
-        return result
-
-    @abstractmethod
-    def start(self) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def close(self) -> None:
-        raise NotImplementedError()
-
-
 class AsyncHandler(BaseHandler[MsgType]):
     calls: List[
         Tuple[
@@ -246,7 +161,8 @@ class AsyncHandler(BaseHandler[MsgType]):
 
     @override
     async def consume(self, msg: MsgType) -> SendableMessage:  # type: ignore[override]
-        result: SendableMessage = None
+        result: Optional[WrappedReturn[SendableMessage]] = None
+        result_msg: SendableMessage = None
 
         async with AsyncExitStack() as stack:
             for m in self.global_middlewares:
@@ -269,9 +185,19 @@ class AsyncHandler(BaseHandler[MsgType]):
                             await stack.enter_async_context(inner_m(message))
 
                         result = await cast(
-                            Awaitable[Optional[SendableMessage]],
+                            Awaitable[Optional[WrappedReturn[SendableMessage]]],
                             handler.call_wrapped(message, reraise_exc=self.is_test),
                         )
+
+                        if result is not None:
+                            result_msg, pub_response = result
+
+                            for publisher in (pub_response, *handler._publishers):
+                                if publisher is not None:
+                                    await publisher.publish(
+                                        message=result_msg,
+                                        correlation_id=message.correlation_id,
+                                    )
 
                     except StopConsume:
                         await self.close()
@@ -282,7 +208,7 @@ class AsyncHandler(BaseHandler[MsgType]):
                         if IS_OPTIMIZED:  # pragma: no cover
                             break
 
-        return result
+        return result_msg
 
     @abstractmethod
     async def start(self) -> None:

@@ -3,7 +3,6 @@ from typing import (
     AsyncContextManager,
     Awaitable,
     Callable,
-    List,
     Optional,
     Sequence,
     Union,
@@ -38,7 +37,7 @@ class RabbitRoute:
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [RabbitMessage],
                     AsyncContextManager[None],

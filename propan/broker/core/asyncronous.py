@@ -8,7 +8,6 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
-    List,
     Mapping,
     Optional,
     Sequence,
@@ -29,10 +28,12 @@ from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
+    AsyncPublisherProtocol,
     ConnectionType,
     MsgType,
     P_HandlerParams,
     T_HandlerReturn,
+    WrappedReturn,
 )
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.exceptions import AckMessage, NackMessage, RejectMessage, SkipMessage
@@ -47,7 +48,7 @@ async def default_filter(msg: PropanMessage[Any]) -> bool:
 
 class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     handlers: Dict[Any, AsyncHandler[MsgType]]  # type: ignore[assignment]
-    middlewares: List[Callable[[MsgType], AsyncContextManager[None]]]  # type: ignore[assignment]
+    middlewares: Sequence[Callable[[MsgType], AsyncContextManager[None]]]  # type: ignore[assignment]
     _global_parser: Optional[AsyncCustomParser[MsgType]]
     _global_decoder: Optional[AsyncCustomDecoder[MsgType]]
 
@@ -88,9 +89,11 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     def _process_message(
         self,
         func: Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]],
-        call_wrapper: HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
         watcher: BaseWatcher,
-    ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
+    ) -> Callable[
+        [PropanMessage[MsgType]],
+        Awaitable[Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]],
+    ]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -116,7 +119,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         decoder: Optional[AsyncCustomDecoder[MsgType]] = None,
         parser: Optional[AsyncCustomParser[MsgType]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [PropanMessage[MsgType]],
                     AsyncContextManager[None],
@@ -149,7 +152,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         decoder: Optional[AsyncCustomDecoder[MsgType]] = None,
         parser: Optional[AsyncCustomParser[MsgType]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [MsgType],
                     AsyncContextManager[None],
@@ -196,7 +199,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         params: Sized = (),
         _raw: bool = False,
     ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
-        is_unwrap = len(params) > 1
+        params_ln = len(params)
 
         @wraps(func)
         async def decode_wrapper(message: PropanMessage[MsgType]) -> T_HandlerReturn:
@@ -205,13 +208,17 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
 
             msg = message.decoded_body
 
-            if is_unwrap is True:
+            if params_ln > 1:
                 if isinstance(msg, Mapping):
                     return await func(**msg)
                 elif isinstance(msg, Sequence):
                     return await func(*msg)
+            elif params_ln == 1:
+                return await func(msg)
+            else:
+                return await func()
 
-            return await func(msg)
+            raise AssertionError("unreachable")
 
         return decode_wrapper
 
@@ -260,12 +267,14 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         self,
         func: Callable[
             [PropanMessage[MsgType]],
-            Awaitable[T_HandlerReturn],
+            Awaitable[WrappedReturn[T_HandlerReturn]],
         ],
         **broker_args: Any,
-    ) -> Callable[[PropanMessage[MsgType]], Awaitable[T_HandlerReturn]]:
+    ) -> Callable[[PropanMessage[MsgType]], Awaitable[WrappedReturn[T_HandlerReturn]]]:
         @wraps(func)
-        async def log_wrapper(message: PropanMessage[MsgType]) -> T_HandlerReturn:
+        async def log_wrapper(
+            message: PropanMessage[MsgType],
+        ) -> WrappedReturn[T_HandlerReturn]:
             log_context = self._get_log_context(message=message, **broker_args)
 
             with context.scope("log_context", log_context):

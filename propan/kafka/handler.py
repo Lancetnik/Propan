@@ -1,14 +1,6 @@
 import asyncio
 from itertools import chain
-from typing import (
-    Any,
-    AsyncContextManager,
-    Awaitable,
-    Callable,
-    List,
-    Optional,
-    Sequence,
-)
+from typing import Any, AsyncContextManager, Awaitable, Callable, Optional, Sequence
 
 import anyio
 from aiokafka import AIOKafkaConsumer, ConsumerRecord
@@ -99,7 +91,9 @@ class LogicHandler(AsyncHandler[ConsumerRecord]):
         decoder: Optional[AsyncCustomDecoder[ConsumerRecord]],
         filter: Callable[[PropanMessage[ConsumerRecord]], Awaitable[bool]],
         middlewares: Optional[
-            List[Callable[[PropanMessage[ConsumerRecord]], AsyncContextManager[None]]]
+            Sequence[
+                Callable[[PropanMessage[ConsumerRecord]], AsyncContextManager[None]]
+            ]
         ],
     ) -> None:
         parser_ = resolve_custom_func(

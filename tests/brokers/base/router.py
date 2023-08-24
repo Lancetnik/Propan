@@ -1,8 +1,11 @@
 import asyncio
+from contextlib import asynccontextmanager
 from typing import Type
+from unittest.mock import Mock
 
 import pytest
 
+from propan import Depends
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.router import BrokerRoute, BrokerRouter
 from propan.types import AnyCallable
@@ -11,7 +14,6 @@ from tests.brokers.base.parser import LocalCustomParserTestcase
 
 
 @pytest.mark.asyncio
-@pytest.mark.rabbit
 class RouterTestcase(LocalMiddlewareTestcase, LocalCustomParserTestcase):
     build_message: AnyCallable
     route_class: Type[BrokerRoute]
@@ -271,6 +273,177 @@ class RouterTestcase(LocalMiddlewareTestcase, LocalCustomParserTestcase):
         )
 
         assert event.is_set()
+
+    async def test_router_dependencies(
+        self,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+        event: asyncio.Event,
+        mock: Mock,
+    ):
+        pub_broker._is_apply_types = True
+
+        async def dep1(s):
+            mock.dep1()
+
+        async def dep2(s):
+            mock.dep1.assert_called_once()
+            mock.dep2()
+
+        router = type(router)(dependencies=(Depends(dep1),))
+
+        @router.subscriber(queue, dependencies=(Depends(dep2),))
+        def subscriber(s):
+            event.set()
+
+        pub_broker.include_routers(router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(pub_broker.publish("hello", queue)),
+                asyncio.create_task(event.wait()),
+            ),
+            timeout=3,
+        )
+
+        assert event.is_set()
+        mock.dep1.assert_called_once()
+        mock.dep2.assert_called_once()
+
+    async def test_router_middlewares(
+        self,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+        event: asyncio.Event,
+        mock: Mock,
+    ):
+        @asynccontextmanager
+        async def mid1(s):
+            mock.mid1()
+            yield
+
+        @asynccontextmanager
+        async def mid2(s):
+            mock.mid1.assert_called_once()
+            mock.mid2()
+            yield
+
+        router = type(router)(middlewares=(mid1,))
+
+        @router.subscriber(queue, middlewares=(mid2,))
+        def subscriber(s):
+            event.set()
+
+        pub_broker.include_routers(router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(pub_broker.publish("hello", queue)),
+                asyncio.create_task(event.wait()),
+            ),
+            timeout=3,
+        )
+
+        assert event.is_set()
+        mock.mid1.assert_called_once()
+        mock.mid2.assert_called_once()
+
+    async def test_router_parser(
+        self,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+        event: asyncio.Event,
+        mock: Mock,
+    ):
+        async def parser(msg, original):
+            mock.parser()
+            return await original(msg)
+
+        async def decoder(msg, original):
+            mock.decoder()
+            return await original(msg)
+
+        router = type(router)(
+            parser=parser,
+            decoder=decoder,
+        )
+
+        @router.subscriber(queue)
+        def subscriber(s):
+            event.set()
+
+        pub_broker.include_routers(router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(pub_broker.publish("hello", queue)),
+                asyncio.create_task(event.wait()),
+            ),
+            timeout=3,
+        )
+
+        assert event.is_set()
+        mock.parser.assert_called_once()
+        mock.decoder.assert_called_once()
+
+    async def test_router_parser_override(
+        self,
+        router: BrokerRouter,
+        pub_broker: BrokerAsyncUsecase,
+        queue: str,
+        event: asyncio.Event,
+        mock: Mock,
+    ):
+        async def global_parser(msg, original):
+            mock()
+            return await original(msg)
+
+        async def global_decoder(msg, original):
+            mock()
+            return await original(msg)
+
+        async def parser(msg, original):
+            mock.parser()
+            return await original(msg)
+
+        async def decoder(msg, original):
+            mock.decoder()
+            return await original(msg)
+
+        router = type(router)(
+            parser=global_parser,
+            decoder=global_decoder,
+        )
+
+        @router.subscriber(queue, parser=parser, decoder=decoder)
+        def subscriber(s):
+            event.set()
+
+        pub_broker.include_routers(router)
+
+        await pub_broker.start()
+
+        await asyncio.wait(
+            (
+                asyncio.create_task(pub_broker.publish("hello", queue)),
+                asyncio.create_task(event.wait()),
+            ),
+            timeout=3,
+        )
+
+        assert event.is_set()
+        assert not mock.called
+        mock.parser.assert_called_once()
+        mock.decoder.assert_called_once()
 
 
 @pytest.mark.asyncio

@@ -1,4 +1,4 @@
-from typing import AsyncContextManager, Awaitable, Callable, List, Optional
+from typing import AsyncContextManager, Awaitable, Callable, Optional, Sequence
 
 import aio_pika
 from fast_depends.core import CallModel
@@ -62,7 +62,7 @@ class LogicHandler(AsyncHandler[aio_pika.IncomingMessage], BaseRMQInformation):
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]],
         filter: Callable[[PropanMessage[aio_pika.IncomingMessage]], Awaitable[bool]],
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [PropanMessage[aio_pika.IncomingMessage]], AsyncContextManager[None]
                 ]
