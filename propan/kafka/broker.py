@@ -10,7 +10,6 @@ from typing import (
     Literal,
     Optional,
     Sequence,
-    Tuple,
     Type,
     Union,
 )
@@ -31,6 +30,7 @@ from propan.broker.types import (
     AsyncPublisherProtocol,
     P_HandlerParams,
     T_HandlerReturn,
+    WrappedReturn,
 )
 from propan.broker.wrapper import FakePublisher, HandlerCallWrapper
 from propan.kafka.asyncapi import Handler, Publisher
@@ -128,14 +128,11 @@ class KafkaBroker(
         self,
         func: Callable[[KafkaMessage], Awaitable[T_HandlerReturn]],
         watcher: BaseWatcher,
-    ) -> Callable[
-        [KafkaMessage],
-        Awaitable[Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]],
-    ]:
+    ) -> Callable[[KafkaMessage], Awaitable[WrappedReturn[T_HandlerReturn]],]:
         @wraps(func)
         async def process_wrapper(
             message: KafkaMessage,
-        ) -> Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]:
+        ) -> WrappedReturn[T_HandlerReturn]:
             async with WatcherContext(watcher, message):
                 r = await self._execute_handler(func, message)
 
