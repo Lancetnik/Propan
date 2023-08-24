@@ -7,9 +7,9 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
-    List,
     Optional,
     Sequence,
+    Tuple,
     Type,
     Union,
 )
@@ -28,6 +28,7 @@ from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
+    AsyncPublisherProtocol,
     P_HandlerParams,
     T_HandlerReturn,
 )
@@ -79,7 +80,7 @@ class RabbitBroker(
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [aio_pika.IncomingMessage],
                     AsyncContextManager[None],
@@ -148,7 +149,7 @@ class RabbitBroker(
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [RabbitMessage],
                     AsyncContextManager[None],
@@ -225,11 +226,11 @@ class RabbitBroker(
     def _process_message(
         self,
         func: Callable[[RabbitMessage], Awaitable[T_HandlerReturn]],
-        call_wrapper: HandlerCallWrapper[
-            aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn
-        ],
         watcher: BaseWatcher,
-    ) -> Callable[[RabbitMessage], Awaitable[T_HandlerReturn]]: ...
+    ) -> Callable[
+        [RabbitMessage],
+        Awaitable[Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]],
+    ]: ...
     async def declare_queue(
         self,
         queue: RabbitQueue,

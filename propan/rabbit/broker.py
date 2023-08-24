@@ -1,5 +1,4 @@
-import logging
-from functools import wraps
+from functools import partial, wraps
 from types import TracebackType
 from typing import (
     Any,
@@ -7,9 +6,9 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
-    List,
     Optional,
     Sequence,
+    Tuple,
     Type,
     Union,
     cast,
@@ -27,10 +26,11 @@ from propan.broker.push_back_watcher import BaseWatcher, WatcherContext
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
+    AsyncPublisherProtocol,
     P_HandlerParams,
     T_HandlerReturn,
 )
-from propan.broker.wrapper import HandlerCallWrapper
+from propan.broker.wrapper import FakePublisher, HandlerCallWrapper
 from propan.rabbit.asyncapi import Handler, Publisher
 from propan.rabbit.helpers import RabbitDeclarer
 from propan.rabbit.producer import AioPikaPropanProducer
@@ -168,7 +168,7 @@ class RabbitBroker(
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [RabbitMessage],
                     AsyncContextManager[None],
@@ -284,41 +284,27 @@ class RabbitBroker(
     def _process_message(
         self,
         func: Callable[[RabbitMessage], Awaitable[T_HandlerReturn]],
-        call_wrapper: HandlerCallWrapper[
-            aio_pika.IncomingMessage, P_HandlerParams, T_HandlerReturn
-        ],
         watcher: BaseWatcher,
-    ) -> Callable[[RabbitMessage], Awaitable[T_HandlerReturn]]:
+    ) -> Callable[
+        [RabbitMessage],
+        Awaitable[Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]],
+    ]:
         @wraps(func)
-        async def process_wrapper(message: RabbitMessage) -> T_HandlerReturn:
+        async def process_wrapper(
+            message: RabbitMessage,
+        ) -> Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]:
             async with WatcherContext(watcher, message):
                 r = await self._execute_handler(func, message)
+
+                pub_response: Optional[AsyncPublisherProtocol]
                 if message.reply_to:
-                    await self.publish(
-                        message=r,
-                        routing_key=message.reply_to,
-                        correlation_id=message.correlation_id,
+                    pub_response = FakePublisher(
+                        partial(self.publish, routing_key=message.reply_to)
                     )
+                else:
+                    pub_response = None
 
-                for publisher in call_wrapper._publishers:
-                    try:
-                        await publisher.publish(
-                            message=r,
-                            correlation_id=message.correlation_id,
-                        )
-                    except Exception as e:
-                        self._log(
-                            f"Publish exception: {e}",
-                            logging.ERROR,
-                            self._get_log_context(
-                                context.get_local("message"),
-                                getattr(publisher, "queue", RabbitQueue("")),
-                                getattr(publisher, "exchange", None),
-                            ),
-                            exc_info=e,
-                        )
-
-                return r
+                return r, pub_response
 
             raise AssertionError("unreachable")
 

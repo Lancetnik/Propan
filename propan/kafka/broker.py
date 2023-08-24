@@ -1,4 +1,3 @@
-import logging
 from functools import partial, wraps
 from types import TracebackType
 from typing import (
@@ -11,6 +10,7 @@ from typing import (
     Literal,
     Optional,
     Sequence,
+    Tuple,
     Type,
     Union,
 )
@@ -28,10 +28,11 @@ from propan.broker.push_back_watcher import BaseWatcher, WatcherContext
 from propan.broker.types import (
     AsyncCustomDecoder,
     AsyncCustomParser,
+    AsyncPublisherProtocol,
     P_HandlerParams,
     T_HandlerReturn,
 )
-from propan.broker.wrapper import HandlerCallWrapper
+from propan.broker.wrapper import FakePublisher, HandlerCallWrapper
 from propan.kafka.asyncapi import Handler, Publisher
 from propan.kafka.producer import AioKafkaPropanProducer
 from propan.kafka.shared.logging import KafkaLoggingMixin
@@ -126,42 +127,27 @@ class KafkaBroker(
     def _process_message(
         self,
         func: Callable[[KafkaMessage], Awaitable[T_HandlerReturn]],
-        call_wrapper: HandlerCallWrapper[
-            aiokafka.ConsumerRecord, P_HandlerParams, T_HandlerReturn
-        ],
         watcher: BaseWatcher,
-    ) -> Callable[[KafkaMessage], Awaitable[T_HandlerReturn]]:
+    ) -> Callable[
+        [KafkaMessage],
+        Awaitable[Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]],
+    ]:
         @wraps(func)
-        async def process_wrapper(message: KafkaMessage) -> T_HandlerReturn:
+        async def process_wrapper(
+            message: KafkaMessage,
+        ) -> Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]:
             async with WatcherContext(watcher, message):
                 r = await self._execute_handler(func, message)
-                headers = {"correlation_id": message.correlation_id}
 
+                pub_response: Optional[AsyncPublisherProtocol]
                 if message.reply_to:
-                    await self.publish(
-                        message=r or "",
-                        headers=headers,
-                        topic=message.reply_to,
+                    pub_response = FakePublisher(
+                        partial(self.publish, topic=message.reply_to)
                     )
+                else:
+                    pub_response = None
 
-                for publisher in call_wrapper._publishers:
-                    try:
-                        await publisher.publish(
-                            message=r,
-                            correlation_id=message.correlation_id,
-                        )
-                    except Exception as e:
-                        self._log(
-                            f"Publish exception: {e}",
-                            logging.ERROR,
-                            self._get_log_context(
-                                context.get_local("message"),
-                                (getattr(publisher, "topic", ""),),
-                            ),
-                            exc_info=e,
-                        )
-
-                return r
+                return r, pub_response
 
             raise AssertionError("unreachable")
 
@@ -205,7 +191,7 @@ class KafkaBroker(
         parser: Optional[AsyncCustomParser[aiokafka.ConsumerRecord]] = None,
         decoder: Optional[AsyncCustomDecoder[aiokafka.ConsumerRecord]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [KafkaMessage],
                     AsyncContextManager[None],

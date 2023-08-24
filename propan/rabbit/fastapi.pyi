@@ -88,7 +88,7 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [aio_pika.IncomingMessage],
                     AsyncContextManager[None],
@@ -117,7 +117,7 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [RabbitMessage],
                     AsyncContextManager[None],
@@ -146,7 +146,7 @@ class RabbitRouter(PropanRouter[RabbitBroker]):
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [RabbitMessage],
                     AsyncContextManager[None],

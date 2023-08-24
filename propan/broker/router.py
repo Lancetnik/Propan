@@ -1,8 +1,28 @@
 from abc import abstractmethod
-from typing import Any, Callable, Dict, Generic, List, Sequence, Tuple, TypeVar
+from typing import (
+    Any,
+    AsyncContextManager,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+)
 
+from fast_depends.dependencies import Depends
+
+from propan.broker.message import PropanMessage
 from propan.broker.publisher import BasePublisher
-from propan.broker.types import MsgType, P_HandlerParams, T_HandlerReturn
+from propan.broker.types import (
+    AsyncCustomDecoder,
+    AsyncCustomParser,
+    MsgType,
+    P_HandlerParams,
+    T_HandlerReturn,
+)
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.types import AnyDict, SendableMessage
 
@@ -38,7 +58,8 @@ class BrokerRouter(Generic[PublisherKeyType, MsgType]):
     @staticmethod
     @abstractmethod
     def _update_publisher_prefix(
-        prefix: str, publisher: BasePublisher[MsgType]
+        prefix: str,
+        publisher: BasePublisher[MsgType],
     ) -> BasePublisher[MsgType]:
         raise NotImplementedError()
 
@@ -46,16 +67,42 @@ class BrokerRouter(Generic[PublisherKeyType, MsgType]):
         self,
         prefix: str = "",
         handlers: Sequence[BrokerRoute[MsgType, SendableMessage]] = (),
+        dependencies: Sequence[Depends] = (),
+        middlewares: Optional[
+            Sequence[
+                Callable[
+                    [PropanMessage[MsgType]],
+                    AsyncContextManager[None],
+                ]
+            ]
+        ] = None,
+        parser: Optional[AsyncCustomParser[MsgType]] = None,
+        decoder: Optional[AsyncCustomDecoder[MsgType]] = None,
     ):
         self.prefix = prefix
         self._handlers = list(handlers)
         self._publishers = {}
+        self._dependencies = dependencies
+        self._middlewares = middlewares
+        self._parser = parser
+        self._decoder = decoder
 
     @abstractmethod
     def subscriber(
         self,
         subj: str,
         *args: Any,
+        dependencies: Sequence[Depends] = (),
+        middlewares: Optional[
+            Sequence[
+                Callable[
+                    [PropanMessage[MsgType]],
+                    AsyncContextManager[None],
+                ]
+            ]
+        ] = None,
+        parser: Optional[AsyncCustomParser[MsgType]] = None,
+        decoder: Optional[AsyncCustomDecoder[MsgType]] = None,
         **kwargs: Any,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
@@ -64,7 +111,20 @@ class BrokerRouter(Generic[PublisherKeyType, MsgType]):
         raise NotImplementedError()
 
     def _wrap_subscriber(
-        self, *args: Any, **kwargs: Any
+        self,
+        *args: Any,
+        dependencies: Sequence[Depends] = (),
+        middlewares: Optional[
+            Sequence[
+                Callable[
+                    [PropanMessage[MsgType]],
+                    AsyncContextManager[None],
+                ]
+            ]
+        ] = None,
+        parser: Optional[AsyncCustomParser[MsgType]] = None,
+        decoder: Optional[AsyncCustomDecoder[MsgType]] = None,
+        **kwargs: Any,
     ) -> Callable[
         [Callable[P_HandlerParams, T_HandlerReturn]],
         HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
@@ -78,6 +138,10 @@ class BrokerRouter(Generic[PublisherKeyType, MsgType]):
             route: BrokerRoute[MsgType, T_HandlerReturn] = BrokerRoute(
                 wrapped_func,
                 *args,
+                dependencies=(*self._dependencies, *dependencies),
+                middlewares=(*(self._middlewares or ()), *(middlewares or ())) or None,
+                parser=parser or self._parser,
+                decoder=decoder or self._decoder,
                 **kwargs,
             )
             self._handlers.append(route)

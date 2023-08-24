@@ -19,10 +19,11 @@ class KafkaRouter(BrokerRouter[str, ConsumerRecord]):
         self,
         prefix: str = "",
         handlers: Sequence[KafkaRoute[ConsumerRecord, SendableMessage]] = (),
+        **kwargs: Any,
     ):
         for h in handlers:
             h.args = tuple(prefix + x for x in h.args)
-        super().__init__(prefix, handlers)
+        super().__init__(prefix, handlers, **kwargs)
 
     def subscriber(
         self,

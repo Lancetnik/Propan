@@ -3,7 +3,6 @@ from typing import (
     AsyncContextManager,
     Awaitable,
     Callable,
-    List,
     Optional,
     Sequence,
     Union,
@@ -36,6 +35,18 @@ class RabbitRouter(BrokerRouter[int, aio_pika.IncomingMessage]):
         self,
         prefix: str = "",
         handlers: Sequence[RabbitRoute] = (),
+        *,
+        dependencies: Sequence[Depends] = (),
+        middlewares: Optional[
+            Sequence[
+                Callable[
+                    [RabbitMessage],
+                    AsyncContextManager[None],
+                ]
+            ]
+        ] = None,
+        parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
+        decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
     ): ...
     @staticmethod
     @override
@@ -61,7 +72,7 @@ class RabbitRouter(BrokerRouter[int, aio_pika.IncomingMessage]):
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
-            List[
+            Sequence[
                 Callable[
                     [RabbitMessage],
                     AsyncContextManager[None],
