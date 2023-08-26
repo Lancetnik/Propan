@@ -259,5 +259,5 @@ class PropanApp(ABCApp):
             await func()
 
     def __exit(self) -> None:
-        if self._stop_event is not None:  # pragma: no branch
+        if self._stop_event:  # pragma: no branch
             self._stop_event.set()
