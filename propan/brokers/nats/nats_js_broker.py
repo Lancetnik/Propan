@@ -72,10 +72,13 @@ class NatsJSBroker(NatsBroker):
         republish: Optional[api.RePublish] = None,
         allow_direct: Optional[bool] = None,
         mirror_direct: Optional[bool] = None,
+        # custom
+        declare_stream: bool = True,
         **kwargs: AnyDict,
     ) -> None:
         super().__init__(*args, **kwargs)
         self._raw_connection = None
+        self._declare_stream = declare_stream
         self._stream_config = api.StreamConfig(
             name=stream,
             description=description,
@@ -133,29 +136,30 @@ class NatsJSBroker(NatsBroker):
 
     async def _start(self):
         await super()._start()
-        subjects = {h.subject for h in self.handlers}
-        try:  # pragma: no branch
-            await self._connection.add_stream(
-                config=self._stream_config,
-                subjects=tuple(subjects),
-            )
-        except nats.js.errors.BadRequestError as e:
-            old_config = (
-                await self._connection.stream_info(self._stream_config.name)
-            ).config
-
-            c = self._get_log_context(None, "")
-            if (
-                e.description
-                == "stream name already in use with a different configuration"
-            ):
-                self._log(e, logging.WARNING, c)
-                await self._connection.update_stream(
+        if self._declare_stream:
+            subjects = {h.subject for h in self.handlers}
+            try:  # pragma: no branch
+                await self._connection.add_stream(
                     config=self._stream_config,
-                    subjects=tuple(set(old_config.subjects).union(subjects)),
+                    subjects=tuple(subjects),
                 )
-            else:  # pragma: no cover
-                self._log(e, logging.ERROR, c, exc_info=e)
+            except nats.js.errors.BadRequestError as e:
+                old_config = (
+                    await self._connection.stream_info(self._stream_config.name)
+                ).config
+
+                c = self._get_log_context(None, "")
+                if (
+                    e.description
+                    == "stream name already in use with a different configuration"
+                ):
+                    self._log(e, logging.WARNING, c)
+                    await self._connection.update_stream(
+                        config=self._stream_config,
+                        subjects=tuple(set(old_config.subjects).union(subjects)),
+                    )
+                else:  # pragma: no cover
+                    self._log(e, logging.ERROR, c, exc_info=e)
 
     def _process_message(
         self,

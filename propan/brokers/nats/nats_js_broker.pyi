@@ -133,6 +133,8 @@ class NatsJSBroker(NatsBroker):
         decode_message: AsyncDecoder[Msg] = None,
         parse_message: AsyncParser[Msg] = None,
         protocol: str = "nats",
+        # custom
+        declare_schema: bool = True,
     ) -> None:
         """"""
     async def _connect(

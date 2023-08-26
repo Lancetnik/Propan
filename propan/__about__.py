@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock
 
-__version__ = "0.1.5.21"
+__version__ = "0.1.5.22"
 
 
 INSTALL_MESSAGE = (
