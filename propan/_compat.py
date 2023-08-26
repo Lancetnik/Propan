@@ -122,11 +122,7 @@ else:
             return type(
                 model.__name__,
                 (model,),
-                {
-                    "Config": type(
-                        "Config", (model.Config,), {"schema_extra": schema}
-                    )
-                },
+                {"Config": type("Config", (model.Config,), {"schema_extra": schema})},
             )
         else:
             return model
