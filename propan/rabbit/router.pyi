@@ -1,12 +1,4 @@
-from typing import (
-    Any,
-    AsyncContextManager,
-    Awaitable,
-    Callable,
-    Optional,
-    Sequence,
-    Union,
-)
+from typing import Any, Awaitable, Callable, Optional, Sequence, Union
 
 import aio_pika
 from fast_depends.dependencies import Depends
@@ -14,6 +6,7 @@ from fast_depends.dependencies import Depends
 from propan._compat import override
 from propan.broker.core.asyncronous import default_filter
 from propan.broker.message import PropanMessage
+from propan.broker.middlewares import BaseMiddleware
 from propan.broker.router import BrokerRouter
 from propan.broker.types import (
     AsyncCustomDecoder,
@@ -38,12 +31,7 @@ class RabbitRouter(BrokerRouter[int, aio_pika.IncomingMessage]):
         *,
         dependencies: Sequence[Depends] = (),
         middlewares: Optional[
-            Sequence[
-                Callable[
-                    [RabbitMessage],
-                    AsyncContextManager[None],
-                ]
-            ]
+            Sequence[Callable[[aio_pika.IncomingMessage], BaseMiddleware]]
         ] = None,
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
@@ -74,8 +62,8 @@ class RabbitRouter(BrokerRouter[int, aio_pika.IncomingMessage]):
         middlewares: Optional[
             Sequence[
                 Callable[
-                    [RabbitMessage],
-                    AsyncContextManager[None],
+                    [aio_pika.IncomingMessage],
+                    BaseMiddleware,
                 ]
             ]
         ] = None,

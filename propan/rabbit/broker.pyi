@@ -1,17 +1,7 @@
 import logging
 from ssl import SSLContext
 from types import TracebackType
-from typing import (
-    Any,
-    AsyncContextManager,
-    Awaitable,
-    Callable,
-    Dict,
-    Optional,
-    Sequence,
-    Type,
-    Union,
-)
+from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, Type, Union
 
 import aio_pika
 import aiormq
@@ -23,6 +13,7 @@ from propan._compat import override
 from propan.asyncapi import schema as asyncapi
 from propan.broker.core.asyncronous import BrokerAsyncUsecase, default_filter
 from propan.broker.message import PropanMessage
+from propan.broker.middlewares import BaseMiddleware
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.types import (
     AsyncCustomDecoder,
@@ -82,7 +73,7 @@ class RabbitBroker(
             Sequence[
                 Callable[
                     [aio_pika.IncomingMessage],
-                    AsyncContextManager[None],
+                    BaseMiddleware,
                 ]
             ]
         ] = None,
@@ -148,12 +139,7 @@ class RabbitBroker(
         parser: Optional[AsyncCustomParser[aio_pika.IncomingMessage]] = None,
         decoder: Optional[AsyncCustomDecoder[aio_pika.IncomingMessage]] = None,
         middlewares: Optional[
-            Sequence[
-                Callable[
-                    [RabbitMessage],
-                    AsyncContextManager[None],
-                ]
-            ]
+            Sequence[Callable[[aio_pika.IncomingMessage], BaseMiddleware]]
         ] = None,
         retry: Union[bool, int] = False,
         # AsyncAPI information

@@ -71,24 +71,12 @@ class AsyncPublisherProtocol(Protocol):
 
 WrappedReturn = Tuple[T_HandlerReturn, Optional[AsyncPublisherProtocol]]
 
-
-class AsyncWrappedHandlerCall(Protocol[MsgType, T_HandlerReturn]):
-    async def __call__(
-        self,
-        __msg: PropanMessage[MsgType],
-        reraise_exc: bool = False,
-    ) -> Optional[WrappedReturn[T_HandlerReturn]]:
-        ...
-
-
-class SyncWrappedHandlerCall(Protocol[MsgType, T_HandlerReturn]):
-    def __call__(
-        self,
-        __msg: PropanMessage[MsgType],
-        reraise_exc: bool = False,
-    ) -> Optional[WrappedReturn[T_HandlerReturn]]:
-        ...
-
+AsyncWrappedHandlerCall = Callable[
+    [PropanMessage[MsgType]], Awaitable[Optional[WrappedReturn[T_HandlerReturn]]]
+]
+SyncWrappedHandlerCall = Callable[
+    [PropanMessage[MsgType]], Optional[WrappedReturn[T_HandlerReturn]]
+]
 
 WrappedHandlerCall = Union[
     AsyncWrappedHandlerCall[MsgType, T_HandlerReturn],

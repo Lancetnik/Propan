@@ -7,7 +7,6 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    ContextManager,
     Dict,
     Generic,
     List,
@@ -30,7 +29,7 @@ from propan.asyncapi import schema as asyncapi
 from propan.broker.core.mixins import LoggingMixin
 from propan.broker.handler import BaseHandler
 from propan.broker.message import PropanMessage
-from propan.broker.middlewares import CriticalLogMiddleware
+from propan.broker.middlewares import BaseMiddleware, CriticalLogMiddleware
 from propan.broker.publisher import BasePublisher
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.router import BrokerRouter
@@ -43,12 +42,7 @@ from propan.broker.types import (
     T_HandlerReturn,
     WrappedReturn,
 )
-from propan.broker.utils import (
-    change_logger_handlers,
-    get_watcher,
-    set_message_context,
-    suppress_decor,
-)
+from propan.broker.utils import change_logger_handlers, get_watcher, set_message_context
 from propan.broker.wrapper import HandlerCallWrapper
 from propan.log import access_logger
 from propan.types import AnyDict, F_Return, F_Spec
@@ -68,7 +62,7 @@ class BrokerUsecase(
 
     dependencies: Sequence[Depends]
     started: bool
-    middlewares: Sequence[Callable[[MsgType], ContextManager[None]]]
+    middlewares: Sequence[Callable[[Any], BaseMiddleware]]
     _global_parser: Optional[CustomParser[MsgType]]
     _global_decoder: Optional[CustomDecoder[MsgType]]
     _connection: Optional[ConnectionType]
@@ -89,9 +83,7 @@ class BrokerUsecase(
         log_level: int = logging.INFO,
         log_fmt: Optional[str] = "%(asctime)s %(levelname)s - %(message)s",
         dependencies: Sequence[Depends] = (),
-        middlewares: Optional[
-            Sequence[Callable[[MsgType], ContextManager[None]]]
-        ] = None,
+        middlewares: Optional[Sequence[Callable[[MsgType], BaseMiddleware]]] = None,
         decoder: Optional[CustomDecoder[MsgType]] = None,
         parser: Optional[CustomParser[MsgType]] = None,
         **kwargs: Any,
@@ -220,9 +212,8 @@ class BrokerUsecase(
             process_f = self._log_execution(process_f, **broker_log_context_kwargs)
 
         process_f = set_message_context(process_f)
-        suppress_f = suppress_decor(process_f)
 
-        handler_call.set_wrapped(suppress_f)
+        handler_call.set_wrapped(process_f)
         return handler_call, dependant
 
     def _abc_start(self) -> None:
@@ -270,7 +261,7 @@ class BrokerUsecase(
             Sequence[
                 Callable[
                     [PropanMessage[MsgType]],
-                    ContextManager[None],
+                    BaseMiddleware,
                 ]
             ]
         ] = None,

@@ -79,7 +79,6 @@ class HandlerCallWrapper(Generic[MsgType, P_HandlerParams, T_HandlerReturn]):
     def call_wrapped(
         self,
         message: PropanMessage[MsgType],
-        reraise_exc: bool = False,
     ) -> Union[
         Optional[WrappedReturn[T_HandlerReturn]],
         Awaitable[Optional[WrappedReturn[T_HandlerReturn]]],
@@ -87,7 +86,7 @@ class HandlerCallWrapper(Generic[MsgType, P_HandlerParams, T_HandlerReturn]):
         assert self._wrapped_call, "You should use `set_wrapped` first"
         self.mock(message.decoded_body)
         self.event.set()
-        return self._wrapped_call(message, reraise_exc=reraise_exc)
+        return self._wrapped_call(message)
 
     async def wait_call(self, timeout: Optional[float] = None) -> None:
         with anyio.fail_after(timeout):

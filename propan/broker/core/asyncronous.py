@@ -4,7 +4,6 @@ from functools import wraps
 from types import TracebackType
 from typing import (
     Any,
-    AsyncContextManager,
     Awaitable,
     Callable,
     Dict,
@@ -24,6 +23,7 @@ from propan._compat import Self, override
 from propan.broker.core.abc import BrokerUsecase
 from propan.broker.handler import AsyncHandler
 from propan.broker.message import PropanMessage
+from propan.broker.middlewares import BaseMiddleware
 from propan.broker.push_back_watcher import BaseWatcher
 from propan.broker.types import (
     AsyncCustomDecoder,
@@ -47,7 +47,7 @@ async def default_filter(msg: PropanMessage[Any]) -> bool:
 
 class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
     handlers: Dict[Any, AsyncHandler[MsgType]]  # type: ignore[assignment]
-    middlewares: Sequence[Callable[[MsgType], AsyncContextManager[None]]]  # type: ignore[assignment]
+    middlewares: Sequence[Callable[[MsgType], BaseMiddleware]]
     _global_parser: Optional[AsyncCustomParser[MsgType]]
     _global_decoder: Optional[AsyncCustomDecoder[MsgType]]
 
@@ -114,14 +114,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         dependencies: Sequence[Depends] = (),
         decoder: Optional[AsyncCustomDecoder[MsgType]] = None,
         parser: Optional[AsyncCustomParser[MsgType]] = None,
-        middlewares: Optional[
-            Sequence[
-                Callable[
-                    [PropanMessage[MsgType]],
-                    AsyncContextManager[None],
-                ]
-            ]
-        ] = None,
+        middlewares: Optional[Sequence[Callable[[MsgType], BaseMiddleware]]] = None,
         filter: Callable[[PropanMessage[MsgType]], Awaitable[bool]] = default_filter,
         _raw: bool = False,
         _get_dependant: Optional[Any] = None,
@@ -147,14 +140,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
         dependencies: Sequence[Depends] = (),
         decoder: Optional[AsyncCustomDecoder[MsgType]] = None,
         parser: Optional[AsyncCustomParser[MsgType]] = None,
-        middlewares: Optional[
-            Sequence[
-                Callable[
-                    [MsgType],
-                    AsyncContextManager[None],
-                ]
-            ]
-        ] = None,
+        middlewares: Optional[Sequence[Callable[[MsgType], BaseMiddleware]]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -166,7 +152,7 @@ class BrokerAsyncUsecase(BrokerUsecase[MsgType, ConnectionType]):
             dependencies=dependencies,
             decoder=decoder,
             parser=parser,
-            middlewares=middlewares,  # type: ignore[arg-type]
+            middlewares=middlewares,
             **kwargs,
         )
 

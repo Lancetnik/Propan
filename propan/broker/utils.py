@@ -9,13 +9,7 @@ from propan.broker.push_back_watcher import (
     EndlessWatcher,
     OneTryWatcher,
 )
-from propan.broker.types import (
-    AsyncWrappedHandlerCall,
-    MsgType,
-    T_HandlerReturn,
-    WrappedReturn,
-)
-from propan.exceptions import HandlerException
+from propan.broker.types import MsgType, T_HandlerReturn, WrappedReturn
 from propan.utils import context
 
 
@@ -43,30 +37,6 @@ def get_watcher(
     else:
         watcher = CounterWatcher(logger=logger, max_tries=try_number)
     return watcher
-
-
-def suppress_decor(
-    func: Callable[
-        [PropanMessage[MsgType]],
-        Awaitable[WrappedReturn[T_HandlerReturn]],
-    ],
-) -> AsyncWrappedHandlerCall[MsgType, T_HandlerReturn]:
-    @wraps(func)
-    async def suppress_wrapper(
-        message: PropanMessage[MsgType],
-        reraise_exc: bool = False,
-    ) -> Optional[WrappedReturn[T_HandlerReturn]]:
-        try:
-            return await func(message)
-        except HandlerException as e:
-            raise e
-        except Exception as e:
-            if reraise_exc is True:
-                raise e
-
-            return None
-
-    return suppress_wrapper
 
 
 def set_message_context(
