@@ -2,7 +2,6 @@ from functools import partial, wraps
 from types import TracebackType
 from typing import (
     Any,
-    AsyncContextManager,
     Awaitable,
     Callable,
     Dict,
@@ -23,6 +22,7 @@ from propan.__about__ import __version__
 from propan._compat import override
 from propan.broker.core.asyncronous import BrokerAsyncUsecase, default_filter
 from propan.broker.message import PropanMessage
+from propan.broker.middlewares import BaseMiddleware
 from propan.broker.push_back_watcher import BaseWatcher, WatcherContext
 from propan.broker.types import (
     AsyncCustomDecoder,
@@ -190,8 +190,8 @@ class KafkaBroker(
         middlewares: Optional[
             Sequence[
                 Callable[
-                    [KafkaMessage],
-                    AsyncContextManager[None],
+                    [aiokafka.ConsumerRecord],
+                    BaseMiddleware,
                 ]
             ]
         ] = None,
@@ -315,8 +315,7 @@ class KafkaBroker(
         *args: Any,
         **kwargs: Any,
     ) -> Optional[SendableMessage]:
-        if self._producer is None:
-            raise ValueError("KafkaBroker is not started yet")
+        assert self._producer, "KafkaBroker is not started yet"
         return await self._producer.publish(*args, **kwargs)
 
     async def publish_batch(
@@ -324,6 +323,5 @@ class KafkaBroker(
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if self._producer is None:
-            raise ValueError("KafkaBroker is not started yet")
+        assert self._producer, "KafkaBroker is not started yet"
         await self._producer.publish_batch(*args, **kwargs)

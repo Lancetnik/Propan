@@ -1,11 +1,10 @@
 import asyncio
-from contextlib import asynccontextmanager
 from typing import Type
 from unittest.mock import Mock
 
 import pytest
 
-from propan import Depends
+from propan import BaseMiddleware, Depends
 from propan.broker.core.asyncronous import BrokerAsyncUsecase
 from propan.broker.router import BrokerRoute, BrokerRouter
 from propan.types import AnyCallable
@@ -321,16 +320,14 @@ class RouterTestcase(LocalMiddlewareTestcase, LocalCustomParserTestcase):
         event: asyncio.Event,
         mock: Mock,
     ):
-        @asynccontextmanager
-        async def mid1(s):
-            mock.mid1()
-            yield
+        class mid1(BaseMiddleware):
+            async def on_receive(self) -> None:
+                mock.mid1()
 
-        @asynccontextmanager
-        async def mid2(s):
-            mock.mid1.assert_called_once()
-            mock.mid2()
-            yield
+        class mid2(BaseMiddleware):
+            async def on_receive(self) -> None:
+                mock.mid1.assert_called_once()
+                mock.mid2()
 
         router = type(router)(middlewares=(mid1,))
 
