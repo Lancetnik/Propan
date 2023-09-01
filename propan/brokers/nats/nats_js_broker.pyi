@@ -134,7 +134,7 @@ class NatsJSBroker(NatsBroker):
         parse_message: AsyncParser[Msg] = None,
         protocol: str = "nats",
         # custom
-        declare_schema: bool = True,
+        declare_stream: bool = True,
     ) -> None:
         """"""
     async def _connect(
