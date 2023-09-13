@@ -42,8 +42,8 @@ class RabbitQueue(Queue):
     timeout: TimeoutType = None
     robust: bool = True
 
-    bind_arguments: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
-    routing_key: str = Field(default="", exclude=True)
+    bind_arguments: Optional[Dict[str, Any]] = None
+    routing_key: str = ""
 
     def __hash__(self) -> int:
         return sum(
@@ -96,9 +96,9 @@ class RabbitExchange(NameRequired):
     timeout: TimeoutType = None
     robust: bool = True
 
-    bind_to: Optional["RabbitExchange"] = Field(default=None, exclude=True)
-    bind_arguments: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
-    routing_key: str = Field(default="", exclude=True)
+    bind_to: Optional["RabbitExchange"] = None
+    bind_arguments: Optional[Dict[str, Any]] = None
+    routing_key: str = Field(default="")
 
     def __hash__(self) -> int:
         return sum(

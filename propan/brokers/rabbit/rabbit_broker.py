@@ -269,7 +269,7 @@ class RabbitBroker(
     async def declare_queue(self, queue: RabbitQueue) -> aio_pika.RobustQueue:
         q = self._queues.get(queue)
         if q is None:
-            q = await self._channel.declare_queue(**model_to_dict(queue))
+            q = await self._channel.declare_queue(**model_to_dict(queue, exclude={"routing_key", "bind_arguments"}))
             self._queues[queue] = q
         return q
 
@@ -279,7 +279,7 @@ class RabbitBroker(
         exch = self._exchanges.get(exchange)
 
         if exch is None:
-            exch = await self._channel.declare_exchange(**model_to_dict(exchange))
+            exch = await self._channel.declare_exchange(**model_to_dict(exchange, exclude={"routing_key", "bind_arguments", "bind_to"}))
             self._exchanges[exchange] = exch
 
         if exchange.bind_to is not None:
