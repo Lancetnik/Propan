@@ -39,6 +39,18 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 ---
 
+## :warning::warning::warning: Deprecation notice :warning::warning::warning:
+
+This project is superceeded by [**FastStream**](https://github.com/airtai/faststream){.external-link target="_blank"}.
+
+**FastStream** is a new package based on the ideas and experiences gained from [**FastKafka**](https://github.com/airtai/fastkafka){.external-link target="_blank"} and [**Propan**](https://github.com/lancetnik/propan){.external-link target="_blank"}. By joining our forces, we picked up the best from both packages and created the unified way to write services capable of processing streamed data regradless of the underliying protocol.
+
+We’ll continue to maintain FastKafka package, but new development will be in **FastStream**. If you are starting a new service, **FastStream** is the recommended way to do it.
+
+For now **FastStream** supports **Kafka** and **RabbitMQ**. Other brokers support will be added in a few months.
+
+---
+
 ## The key features are
 
 * **Simple**: Designed to be easy to use and learn.
@@ -167,7 +179,7 @@ using the `@event` decorator. This decorator is similar to the decorator `@handl
 
 !!! tip
     When used this way, **Propan** does not utilize its own dependency system, but integrates into **FastAPI**.
-    That is, you can use `Depends`, `Background Tasks` and other tools **Facet API** as if it were a regular HTTP endpoint.
+    That is, you can use `Depends`, `BackgroundTasks` and other tools **FastAPI** as if it were a regular HTTP endpoint.
 
 {! includes/getting_started/index/05_native_fastapi.md !}
 
