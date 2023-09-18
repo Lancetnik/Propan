@@ -41,13 +41,15 @@ It is a modern, high-level framework on top of popular specific Python brokers l
 
 ## :warning::warning::warning: Deprecation notice :warning::warning::warning:
 
-This project is superceeded by [**FastStream**](https://github.com/airtai/faststream){.external-link target="_blank"}.
+**Propan** project is superceeded by [**FastStream**](https://github.com/airtai/faststream){.external-link target="_blank"}.
 
-**FastStream** is a new package based on the ideas and experiences gained from [**FastKafka**](https://github.com/airtai/fastkafka){.external-link target="_blank"} and [**Propan**](https://github.com/lancetnik/propan){.external-link target="_blank"}. By joining our forces, we picked up the best from both packages and created the unified way to write services capable of processing streamed data regradless of the underliying protocol.
+**FastStream** is a new package based on the ideas and experiences gained from [**FastKafka**](https://github.com/airtai/fastkafka){.external-link targer="_blank"} and **Propan**. By joining our forces, we picked up the best from both packages and created a unified way to write services capable of processing streamed data regardless of the underlying protocol.
 
-We’ll continue to maintain FastKafka package, but new development will be in **FastStream**. If you are starting a new service, **FastStream** is the recommended way to do it.
+I’ll continue to maintain **Propan** package, but new development will be in **FastStream**. If you are starting a new service, **FastStream** is the recommended way to do it.
 
 For now **FastStream** supports **Kafka** and **RabbitMQ**. Other brokers support will be added in a few months.
+
+You can find a detail migration guide in the [documentation](./migration.md){.internal-link}
 
 ---
 
