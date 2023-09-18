@@ -88,6 +88,8 @@ markdown_extensions:  # do not reorder
   - codehilite
   - extra
   - pymdownx.details
+  - pymdownx.inlinehilite
+  - def_list
   - pymdownx.superfences:
       custom_fences:
       - name: mermaid
@@ -129,6 +131,7 @@ extra:
 
 nav:
   - Propan: index.md
+  - FastStream Migration: migration.md
   - Getting Started:
     - Hello, Propan!: getting_started/1_quick-start.md
     - CLI Tool: getting_started/2_cli.md
