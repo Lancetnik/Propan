@@ -23,7 +23,8 @@ except ImportError:
 
 try:
     from propan.brokers.kafka import KafkaBroker, KafkaRouter
-except ImportError:
+except ImportError as e:
+    print(e)
     KafkaBroker = KafkaRouter = about.INSTALL_KAFKA  # type: ignore
 
 try:

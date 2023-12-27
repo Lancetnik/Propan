@@ -19,10 +19,10 @@ from uuid import uuid4
 
 import anyio
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
+from aiokafka.coordinator.assignors.abstract import AbstractPartitionAssignor
+from aiokafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from aiokafka.structs import ConsumerRecord
 from fast_depends.dependencies import Depends
-from kafka.coordinator.assignors.abstract import AbstractPartitionAssignor
-from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from typing_extensions import Literal, TypeAlias, TypeVar
 
 from propan.__about__ import __version__

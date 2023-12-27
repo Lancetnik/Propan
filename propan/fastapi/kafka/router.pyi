@@ -5,14 +5,14 @@ from ssl import SSLContext
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Type, Union
 
 from aiokafka.abc import AbstractTokenProvider
+from aiokafka.coordinator.assignors.abstract import AbstractPartitionAssignor
+from aiokafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from aiokafka.producer.producer import _missing
 from aiokafka.structs import ConsumerRecord
 from fastapi import params
 from fastapi.datastructures import Default
 from fastapi.routing import APIRoute
 from fastapi.utils import generate_unique_id
-from kafka.coordinator.assignors.abstract import AbstractPartitionAssignor
-from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from kafka.partitioner.default import DefaultPartitioner
 from starlette import routing
 from starlette.responses import JSONResponse, Response
