@@ -16,7 +16,7 @@ from fastapi.routing import run_endpoint_function
 from starlette.requests import Request
 from starlette.routing import BaseRoute
 
-from propan._compat import raise_fastapi_validation_error
+from propan._compat import FASTAPI_V106, raise_fastapi_validation_error
 from propan.brokers._model.broker_usecase import (
     BrokerAsyncUsecase,
     HandlerCallable,
@@ -129,13 +129,18 @@ def get_app(
 ) -> Callable[[PropanMessage], Coroutine[Any, Any, Any]]:
     async def app(request: PropanMessage) -> Any:
         async with AsyncExitStack() as stack:
-            request.scope["fastapi_astack"] = stack
+            if FASTAPI_V106:
+                kwargs = {"async_exit_stack": stack}
+            else:
+                request.scope["fastapi_astack"] = stack
+                kwargs = {}
 
             solved_result = await solve_dependencies(
                 request=request,
                 body=request._body,
                 dependant=dependant,
                 dependency_overrides_provider=dependency_overrides_provider,
+                **kwargs,
             )
 
             values, errors, _, _2, _3 = solved_result
