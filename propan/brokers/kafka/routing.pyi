@@ -1,9 +1,9 @@
 from typing import Any, Awaitable, Callable, Optional, Sequence, Union
 
+from aiokafka.coordinator.assignors.abstract import AbstractPartitionAssignor
+from aiokafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from aiokafka.structs import ConsumerRecord
 from fast_depends.dependencies import Depends
-from kafka.coordinator.assignors.abstract import AbstractPartitionAssignor
-from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
 from typing_extensions import Literal
 
 from propan.brokers._model.broker_usecase import (
