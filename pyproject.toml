@@ -26,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
     "Topic :: Internet",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
@@ -66,7 +67,7 @@ async-redis = [
 ]
 
 async-kafka = [
-    "aiokafka>=0.8",
+    "aiokafka>=0.9,<0.10",
 ]
 
 async-sqs = [

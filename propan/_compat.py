@@ -15,9 +15,11 @@ def is_installed(package: str) -> bool:
 
 
 if is_installed("fastapi"):
-    from fastapi import __version__ as FASTAPI_VERSION
+    from fastapi import __version__ as FASTAPI_VERSION  # noqa: N812
 
-    FASTAPI_V2 = FASTAPI_VERSION.startswith("0.10")
+    major, minor, *_ = map(int, FASTAPI_VERSION.split("."))
+    FASTAPI_V2 = major > 0 or minor > 100
+    FASTAPI_V106 = major > 0 or minor >= 106
 
     if FASTAPI_V2:
         from fastapi._compat import _normalize_errors
