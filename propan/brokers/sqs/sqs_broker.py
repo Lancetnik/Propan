@@ -364,6 +364,7 @@ class SQSBroker(BrokerAsyncUsecase[AnyDict, AioBaseClient]):
                         connected = True
 
                     messages = r.get("Messages", [])
+                    has_trash_messages = False
                     for msg in messages:
                         try:
                             await handler.callback(msg, True)
