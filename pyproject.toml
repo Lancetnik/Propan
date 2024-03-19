@@ -7,7 +7,7 @@ name = "propan"
 description = "Propan framework: the simplest way to work with a messaging queues"
 readme = "README.md"
 authors = [
-    { name = "Pastukhov Nikita", email = "diementros@yandex.ru" },
+    { name = "Nikita Pastukhov", email = "nikita@pastukhov-dev.com" },
 ]
 
 keywords = ["rabbitmq", "nats", "kafka", "sqs", "redis", "framework", "message brokers"]
