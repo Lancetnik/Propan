@@ -4,6 +4,7 @@ __pycache__
 .vscode
 .pypirc
 venv
+.venv
 serve.py
 test.py
 poetry.lock
