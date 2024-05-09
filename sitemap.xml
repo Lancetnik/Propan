@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+         <loc>https://lancetnik.github.io/Propan/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/CHANGELOG/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/CHANGELOG/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/CHANGELOG/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/alternatives/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/alternatives/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/alternatives/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/help/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/help/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/help/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/migration/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/migration/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/migration/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/contributing/1_todo/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/contributing/1_todo/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/contributing/1_todo/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/contributing/2_contributing-index/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/contributing/2_contributing-index/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/contributing/2_contributing-index/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/contributing/3_docs/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/contributing/3_docs/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/contributing/3_docs/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/contributing/4_adapters/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/contributing/4_adapters/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/contributing/4_adapters/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/10_settings/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/10_settings/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/10_settings/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/1_quick-start/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/1_quick-start/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/1_quick-start/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/2_cli/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/2_cli/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/2_cli/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/3_app/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/3_app/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/3_app/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/6_lifespans/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/6_lifespans/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/6_lifespans/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/7_testing/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/7_testing/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/7_testing/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/8_logging/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/8_logging/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/8_logging/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/9_documentation/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/9_documentation/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/9_documentation/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/4_broker/1_index/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/4_broker/1_index/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/4_broker/1_index/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/4_broker/2_routing/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/4_broker/2_routing/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/4_broker/2_routing/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/4_broker/3_type-casting/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/4_broker/3_type-casting/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/4_broker/3_type-casting/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/4_broker/4_custom_serialization/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/4_broker/4_custom_serialization/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/4_broker/4_custom_serialization/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/4_broker/5_publishing/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/4_broker/5_publishing/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/4_broker/5_publishing/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/4_broker/6_rpc/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/4_broker/6_rpc/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/4_broker/6_rpc/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/5_dependency/1_di-index/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/5_dependency/1_di-index/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/5_dependency/1_di-index/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/getting_started/5_dependency/2_context/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/getting_started/5_dependency/2_context/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/getting_started/5_dependency/2_context/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/helpful/in-progress/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/helpful/in-progress/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/helpful/in-progress/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/helpful/missing-translation/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/helpful/missing-translation/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/helpful/missing-translation/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/integrations/1_integrations-index/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/integrations/1_integrations-index/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/integrations/1_integrations-index/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/integrations/2_fastapi-plugin/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/integrations/2_fastapi-plugin/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/integrations/2_fastapi-plugin/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/kafka/1_kafka-index/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/kafka/1_kafka-index/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/kafka/1_kafka-index/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/nats/1_nats-index/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/nats/1_nats-index/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/nats/1_nats-index/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/nats/2_publishing/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/nats/2_publishing/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/nats/2_publishing/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/nats/4_nats-js/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/nats/4_nats-js/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/nats/4_nats-js/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/nats/3_examples/1_direct/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/nats/3_examples/1_direct/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/nats/3_examples/1_direct/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/nats/3_examples/2_pattern/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/nats/3_examples/2_pattern/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/nats/3_examples/2_pattern/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/rabbit/1_routing/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/rabbit/1_routing/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/rabbit/1_routing/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/rabbit/2_exchanges/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/rabbit/2_exchanges/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/rabbit/2_exchanges/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/rabbit/3_queues/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/rabbit/3_queues/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/rabbit/3_queues/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/rabbit/4_publishing/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/rabbit/4_publishing/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/rabbit/4_publishing/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/rabbit/5_examples/1_direct/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/rabbit/5_examples/1_direct/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/rabbit/5_examples/1_direct/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/rabbit/5_examples/2_fanout/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/rabbit/5_examples/2_fanout/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/rabbit/5_examples/2_fanout/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/rabbit/5_examples/3_topic/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/rabbit/5_examples/3_topic/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/rabbit/5_examples/3_topic/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/rabbit/5_examples/4_header/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/rabbit/5_examples/4_header/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/rabbit/5_examples/4_header/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/redis/1_redis-index/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/redis/1_redis-index/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/redis/1_redis-index/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/redis/2_publishing/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/redis/2_publishing/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/redis/2_publishing/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/redis/3_examples/1_direct/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/redis/3_examples/1_direct/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/redis/3_examples/1_direct/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/redis/3_examples/2_pattern/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/redis/3_examples/2_pattern/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/redis/3_examples/2_pattern/"/>
+         
+    </url>
+    <url>
+         <loc>https://lancetnik.github.io/Propan/sqs/1_sqs-index/</loc>
+         <lastmod>2024-05-09</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="https://lancetnik.github.io/Propan/en/sqs/1_sqs-index/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="https://lancetnik.github.io/Propan/ru/sqs/1_sqs-index/"/>
+         
+    </url>
+</urlset>
