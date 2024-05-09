@@ -104,7 +104,7 @@ If you are interested in this project, please give me feedback by:
 
 - tweet about <a href="https://twitter.com/compose/tweet?text=I'm like @PropanFramework because... https://github.com/Lancetnik/Propan" class="external-link" target="_blank">**Propan**</a> and let me and others know why you use it
 
-- joining <a href="https://discord.gg/ChhMXJpvz7" target="_blank">Discord server</a>
+- joining <a href="https://discord.gg/qFm6aSqq59" target="_blank">Discord server</a>
 
 Your support helps me to stay in touch with you and encourages to
 continue developing and improving the library. Thank you for your
